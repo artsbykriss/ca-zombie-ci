@@ -1,0 +1,88 @@
+{
+  "finding": "MonoSwap V3 (L2 watchlist row #18, blast) \u2014 zombie-hunt II Phase-2 deep dive",
+  "title": "MonoSwap V3 (Blast): $112k in canonical UniV3-fork pools is position-owner-scoped; factory owner holds $3.9k (yield+fees); $19.3k USDB yield permanently stranded by claimAllYield bug; E-U $0",
+  "chains": [
+    "blast"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "headline_range_usd": [
+    0,
+    0.0001
+  ],
+  "categories": {
+    "E-U": 0,
+    "H-O": 112003.06,
+    "P": 3887.45,
+    "S": 19298.02
+  },
+  "category_notes": {
+    "E-U": "$0.00. Max measurable unprivileged extraction across all 61 pools + periphery is $0.000053 USDB (micro-arb minting MUSD via the public deposit() and dumping into USDB/MUSD pool 0x77e149 at the optimal 0.001-USDB size; all larger sizes and all other pools are net losses; below gas). Main USDB/WETH pool ($104k) is priced at market (0.09% vs 0.3% fee) and actively traded (1,204 events/27h). All pools/libraries byte-identical to canonical Uniswap V3; NPM canonical; no stray tokens in NPM/routers/factories; third-party yield claim impossible (USDB/WETH claim() is msg.sender-scoped); no mintable-token drain (KID mint 0.04 ETH/unit vs $0.0049 pool price; BAJA signature-gated; OLE bridge-gated; YIELD controller-gated).",
+    "H-O": "LP principal + swap fees in the 61 CL pools = $112,003.06 (USDB/WETH main pool $104,182; KID/WETH $2,421; WETH/BLSTE $1,697; ezETH/WETH $1,428; WETH/BAJA $1,239; USDB/MUSD $648; WETH/BLAST $579; ...). Positions are NFTs on canonical NPM 0x0F0C3dE3...; owner withdrawal fork-proven (test_16); non-owner reverts.",
+    "P": "Factory-owner EOA 0x90a30F6a76D05Cbe5Dad714838E0b38d53d7f310 (code size 0, live \u2014 collects protocol fees): all accrued Blast WETH yield $2,779.82 via claimAllYield (onlyFactoryOwner; fork-proven) + accrued protocol fees $1,076.54 via collectProtocol (onlyFactoryOwner; fork-proven) + ~$31 native gas rebates (0.0124 ETH, gas governor = deploy-time factory owner EOA).",
+    "S": "Accrued Blast USDB yield $19,284.08 (19,375.77 USDB) permanently unclaimable: claimAllYield claims WETH first, then re-reads the now-zero WETH claimable amount and passes it to usdb.claim -> USDB is never claimed by anyone (fork-proven: main pool owner gains 0 USDB while 13,327 USDB stays stranded). Plus $10.22 in 36 zero-liquidity pools (residual balances unreachable) + MUSD contract's 3.72 USDB backing (withdraw() bricked: empty path, mono=0)."
+  },
+  "latest_block": 41562147,
+  "block_numbers": {
+    "blast": 41562147,
+    "state_dump_block": 41560448,
+    "main_pool_last_swap_block": 41562016,
+    "factory_deploy_block": 172327,
+    "last_pool_created_block": 27019302,
+    "owner_changed_block": 13814337
+  },
+  "targets_checked": 132,
+  "live_targets": 61,
+  "targets_detail": {
+    "v3_factory": "0x48d0F09710794313f33619c95147F34458BF7C3b",
+    "v3_pools_enumerated": 61,
+    "v3_pools_with_balances": 61,
+    "v3_pools_with_meaningful_value": 20,
+    "v3_pool_value_usd": 113089.82,
+    "npm": "0x0F0C3dE3cd5185454eDe5EF184bC9C7F4133fb90",
+    "routers_and_factories_checked": 6,
+    "v2_pairs_enumerated": 62,
+    "v2_real_asset_value_usd": 1084.62,
+    "musd": "0x837fE561e9C5DFa73F607fDa679295DBC2Be5E40",
+    "tokens_metadata_priced": 46,
+    "claimable_usdb_total": 19375.77,
+    "claimable_weth_total": 1.108519,
+    "protocol_fees_usd": 1076.54,
+    "zero_liquidity_stuck_usd": 10.22
+  },
+  "closed_reasons": [
+    "pool math canonical (all libraries byte-identical to Uniswap V3 mainnet)",
+    "NPM canonical (only BlastConfigure mixin + public/external cosmetic)",
+    "main pool at market price, actively arbitraged (1,204 events in last 49k blocks)",
+    "yield claim third-party-blocked (msg.sender-scoped USDB/WETH claim)",
+    "claimAllYield/collectProtocol/setFeeProtocol onlyFactoryOwner",
+    "NPM/router/factory balances zero (sweepToken returns 0)",
+    "MUSD mint-and-dump: optimal extraction $0.000053 (dust), all other sizes net loss",
+    "KID mint 0.04 ETH/unit vs $0.0049 pool price (20,000x loss)",
+    "other mintable tokens signature/controller/bridge-gated; paired real-asset pools <= $254"
+  ],
+  "poc": {
+    "tests_passed": 18,
+    "tests_total": 18,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38485155201"
+    ],
+    "framework": "Foundry fork of Blast mainnet (public keyless RPC), read-only, no transactions"
+  },
+  "key_facts": [
+    "61 pools, $113,089.82 balances at DefiLlama prices (USDB $0.99527, WETH $2,507.69); main USDB/WETH pool 0x0d44f3f2 holds $104,182 and trades actively",
+    "Factory owner EOA 0x90a30F6a76D05Cbe5Dad714838E0b38d53d7f310 is live: collectProtocol txs at blocks 40,088,549..41,479,196",
+    "claimAllYield bug: weth.claim() zeroes weth claimable before the usdb.claim() argument is evaluated -> USDB yield ($19,284) is permanently stuck",
+    "Pools initialize with feeProtocol=68 (1/4 protocol fee); protocol fees $1,076.54 owner-collectable",
+    "MUSD public deposit() mints at 6.96e10 MUSD/USDB; dumping into pools loses money beyond $0.000053 (slot0 price is a mirage with negligible liquidity)",
+    "Blast wind-down: interface withdrawals until 2026-10-26, then direct L1 bridge contracts; assets remain recoverable (no time-boxed loss)"
+  ],
+  "caveats": [
+    "Two KID facets and a handful of token contracts are unverified; mint gating probed behaviourally (mint(uint256) exists, priced 0.04 ETH/unit >> pool price)",
+    "P vs S for the factory-owner value assumes the owner EOA key remains live; if lost, P becomes S",
+    "Fork tests used keyless public RPCs at the recorded block; micro-arb optimum measured by snapshot scan (max +5.349e13 wei USDB)",
+    "Blast wind-down may complicate exit after 2026-10-26 (direct bridge contract interaction required)",
+    "Value estimates use DefiLlama prices at 2026-10-14; memecoin pool sides (MUSD/BLSTE/KID/BAJA/etc.) have no reliable external market"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live from MonoSwap V3 (high confidence; max measured $0.00005 micro-arb): all $113k of pool value is LP-position-scoped (H-O, fork-proven withdrawal), the live factory owner holds $3.9k (WETH yield + protocol fees), and $19.3k of USDB yield is permanently stranded by the claimAllYield double-read bug."
+}
