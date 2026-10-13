@@ -1,0 +1,30 @@
+stages: [poc]
+
+# InsureDAO L2 Phase-2 PoC — GitLab fallback (Debian + foundryup pattern).
+# Runs the read-only fork PoC in poc/ against a keyless public Ethereum RPC.
+poc:
+  stage: poc
+  image: debian:bookworm-slim
+  timeout: 1h
+  script:
+    - apt-get update -qq && apt-get install -y -qq curl git ca-certificates
+    - curl -L https://foundry.paradigm.xyz | bash
+    - export PATH="$HOME/.foundry/bin:$PATH"
+    - foundryup -i stable
+    - forge --version
+    - |
+      PICK=""
+      for u in "$FORK_RPC_URL" "$RPC_URL" "https://ethereum-rpc.publicnode.com" "https://eth.drpc.org"; do
+        if [ -n "$u" ]; then
+          r=$(curl -s -m 15 -X POST -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' "$u" 2>/dev/null || true)
+          case "$r" in *result*) PICK="$u"; break;; esac
+        fi
+      done
+      if [ -n "$PICK" ]; then echo "ETH RPC selected"; export FORK_RPC_URL="$PICK"; else echo "WARNING: no working ETH RPC"; fi
+    - cd poc
+    - forge test -vvv
+  artifacts:
+    when: always
+    paths:
+      - ci-out/
+    expire_in: 7 days

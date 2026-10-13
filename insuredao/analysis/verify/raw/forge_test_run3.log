@@ -1,0 +1,51 @@
+No files changed, compilation skipped
+
+Ran 6 tests for test/Verify.t.sol:VerifyTest
+[FAIL: ERROR: WITHDRAWAL_QUEUE] test_v1_cds_roundtrip() (block: 26186097) (gas: 662665)
+[FAIL: panic: division or modulo by zero (0x12)] test_v1_fake_credit_no_drain() (block: 26186097) (gas: 1736745)
+[PASS] test_v1_index_premium_capture_fails() (gas: 2703546)
+[PASS] test_v1_index_roundtrip() (gas: 1854085)
+Logs:
+  index minted: 999609
+  index out: 999999
+
+[PASS] test_v1_share_math_roundtrip() (gas: 3926425)
+Logs:
+  pool: 0x8dfFb0c2b2d0A126f13667C0825ba7c026ECb24a
+    deposited: 1000000
+    minted: 1000000
+    withdrew: 1000000
+  pool: 0xC03Ab4bB777Edf97e8692bd125968358aD3b7F08
+    deposited: 1000000
+    minted: 1000000
+    withdrew: 1000000
+  pool: 0x58803187E676b180eD12b4F7d79b94cA011f4b8e
+    deposited: 1000000
+    minted: 1000000
+    withdrew: 1000000
+  pool: 0xB0AC0465320E9289BE7a9dF0d86B136d56C83722
+    deposited: 1000000
+    minted: 1000000
+    withdrew: 1000000
+  pool: 0xB127A53646EEfF7a0a787b754258B101D782Db0C
+    deposited: 1000000
+    minted: 1000000
+    withdrew: 1000000
+
+[PASS] test_v1_staking_side_no_profit() (gas: 21438888)
+Logs:
+  attacker claimable after deposit: 0
+
+Suite result: FAILED. 4 passed; 2 failed; 0 skipped; finished in 350.87s (474.25s CPU time)
+
+Ran 1 test suite in 350.93s (350.87s CPU time): 4 tests passed, 2 failed, 0 skipped (6 total tests)
+
+Failing tests:
+Encountered 2 failing tests in test/Verify.t.sol:VerifyTest
+[FAIL: ERROR: WITHDRAWAL_QUEUE] test_v1_cds_roundtrip() (block: 26186097) (gas: 662665)
+[FAIL: panic: division or modulo by zero (0x12)] test_v1_fake_credit_no_drain() (block: 26186097) (gas: 1736745)
+
+Encountered a total of 2 failing tests, 4 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 2 failed tests
+Tip: Run `forge test --debug --match-test <TEST_NAME>` to inspect one failing test in the debugger

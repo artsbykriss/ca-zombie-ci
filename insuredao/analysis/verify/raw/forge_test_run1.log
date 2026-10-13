@@ -1,0 +1,50 @@
+No files changed, compilation skipped
+
+Ran 14 tests for test/Verify.t.sol:VerifyTest
+[PASS] test_v1_adjust_alloc_permissionless_selfclaim() (gas: 1440738)
+Logs:
+  index attr before: 5295609398
+  index attr after : 5297168425
+  index attr before: 1555151900
+  index attr after : 1555151900
+  index attr before: 1200000000
+  index attr after : 1200350880
+
+[PASS] test_v1_admin_fee_and_distribute() (gas: 707889)
+Logs:
+  distribute reverted id: 0
+  distribute reverted id: 1
+  distribute reverted id: 2
+  poolproxy usdc after: 3215129
+  safe usdc after: 0
+
+[FAIL: own deposit recovered, no more: 1000000 != 1001000000] test_v1_attacker_market_inert() (block: 26186047) (gas: 1449218)
+[FAIL: ERC20: transfer amount exceeds allowance] test_v1_cds_roundtrip() (block: 26186047) (gas: 491957)
+[PASS] test_v1_compensate_gates() (gas: 929477)
+[PASS] test_v1_factory_surface() (gas: 114943)
+[FAIL: EvmError: Revert] test_v1_fake_credit_no_drain() (block: 26186047) (gas: 955562)
+[FAIL: EvmError: Revert] test_v1_index_premium_capture_fails() (block: 26186047) (gas: 953918)
+[FAIL: ERC20: transfer amount exceeds allowance] test_v1_index_roundtrip() (block: 26186047) (gas: 631863)
+[PASS] test_v1_live_state_recheck() (gas: 1174116)
+[PASS] test_v1_repayDebt_no_capture() (gas: 403417)
+[FAIL: ERC20: transfer amount exceeds allowance] test_v1_share_math_roundtrip() (block: 26186047) (gas: 1528652)
+[FAIL: Cannot add to expired lock.] test_v1_staking_side_no_profit() (block: 26186047) (gas: 545384)
+[PASS] test_v1_unlock_public_good_only() (gas: 203043)
+Suite result: FAILED. 7 passed; 7 failed; 0 skipped; finished in 58.58s (160.83s CPU time)
+
+Ran 1 test suite in 58.63s (58.58s CPU time): 7 tests passed, 7 failed, 0 skipped (14 total tests)
+
+Failing tests:
+Encountered 7 failing tests in test/Verify.t.sol:VerifyTest
+[FAIL: own deposit recovered, no more: 1000000 != 1001000000] test_v1_attacker_market_inert() (block: 26186047) (gas: 1449218)
+[FAIL: ERC20: transfer amount exceeds allowance] test_v1_cds_roundtrip() (block: 26186047) (gas: 491957)
+[FAIL: EvmError: Revert] test_v1_fake_credit_no_drain() (block: 26186047) (gas: 955562)
+[FAIL: EvmError: Revert] test_v1_index_premium_capture_fails() (block: 26186047) (gas: 953918)
+[FAIL: ERC20: transfer amount exceeds allowance] test_v1_index_roundtrip() (block: 26186047) (gas: 631863)
+[FAIL: ERC20: transfer amount exceeds allowance] test_v1_share_math_roundtrip() (block: 26186047) (gas: 1528652)
+[FAIL: Cannot add to expired lock.] test_v1_staking_side_no_profit() (block: 26186047) (gas: 545384)
+
+Encountered a total of 7 failing tests, 7 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 7 failed tests
+Tip: Run `forge test --debug --match-test <TEST_NAME>` to inspect one failing test in the debugger

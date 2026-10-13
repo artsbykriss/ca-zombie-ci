@@ -1,0 +1,72 @@
+{
+  "finding": "L2-InsureDAO",
+  "title": "InsureDAO \u2014 dead DeFi insurance protocol (v1 Ethereum + v2 Arbitrum/Optimism + v1 Astar)",
+  "chains": [
+    "ethereum",
+    "arbitrum",
+    "optimism",
+    "astar"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 124270.92,
+    "P": 715.18,
+    "S": 0
+  },
+  "latest_block": 26185830,
+  "block_numbers": {
+    "ethereum": 26185830,
+    "arbitrum": 514519558,
+    "optimism": 158159954,
+    "astar": 15064424
+  },
+  "targets_checked": 93,
+  "live_targets": 71,
+  "closed_reasons": [
+    "All vault value-out paths require the caller's own attributions (LP shares): withdrawValue/withdrawAttribution/withdrawAllAttribution/transferValue/offsetDebt are share-owner-scoped; borrowValue/addValue are onlyMarket; utilize reverts (controller=0x0 on ETH); withdrawRedundant/setController/setKeeper are onlyOwner.",
+    "Claim path permanently dead on Ethereum v1: default_reporting_admin=0x0 and reporting_admin[market]=0x0 for all 29 markets, so PoolProxy.pool_apply_cover/pool_apply_bounty can never be invoked; all markets are Trading (no Payingout) so redeem()/resume()/_liquidation/compensate chains revert.",
+    "The only open Factory template (PoolTemplate 0x1dcd35cf) lets a fresh attacker create a listed market, but PoolTemplate clones have no generic external call and their only value-moving vault calls (redeem/applyBounty/_liquidation) are owner/Payingout-gated; fork-proven inert (12/12 tests).",
+    "CDSTemplate.compensate's only gate is registry.isListed(msg.sender) but only PoolTemplate._liquidation can originate the call, which is owner/resume-gated; IndexTemplate.compensate requires allocPoints[msg.sender]!=0 (owner-set pools only).",
+    "PoolProxy.withdraw_admin_fee is permissionless but only moves PoolProxy's own $3.215 of fees into PoolProxy and allocates them 25/50/25 to the Safe/Aragon-Govern distributors; distribute() to those distributors reverts; attacker receives $0.",
+    "All 29 Ethereum markets are solvent to the wei (attributions == originalLiquidity + index-premium earmarks), price per share exactly 1e6, no bad debt; no donation/rounding/first-depositor path is profitable on existing pools (deposits/withdrawals round in the pool's favour).",
+    "Deployed Ethereum v1 code is pool-contracts@3327626 (2022-02-22) with all 14 Code4rena highs fixed; bytecode selectors match verified sources 100% (PoolTemplate 56/56, IndexTemplate 42/42, CDS 32/32, Vault 33/33) and a recompile of PoolTemplate matches 20,570/20,613 bytes (IPFS metadata only).",
+    "No DEX market exists for INSURE or any iToken (DexScreener: 0 pairs), so no discounted claim purchase exists; INSURE realizable value ~$0.",
+    "Side chains: v2 Vault (Arbitrum/Optimism) and v1 Vault (Astar) use the same share model; all registered markets' value is LP claims; remaining attributions are held by the owner EOA 0x2c9bc901... (Arb 376.48 / OP 153.80 / Astar 18.86 USDC) or unknown EOAs; no permissionless payout found.",
+    "Side chains: v2 factories are permissionless but the reference allowlist forces fresh clones onto the real registry/parameters, so owner gates stay with the owner EOA 0x2c9bC901...; no Reserve/CDS instance exists; all value-out gates revert for unprivileged callers (exact strings in analysis/v2-chains/REPORT.md)."
+  ],
+  "poc": {
+    "tests_passed": 12,
+    "tests_total": 12,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38467538976",
+      "https://gitlab.com/group18185918/insuredao-ci/-/pipelines/2944108622"
+    ],
+    "ci_note": "GitHub Actions (artsbykriss/ca-zombie-ci) run 38467538976: 12/12 PASS; GitLab fallback pipeline 2944108622: 12/12 PASS. The old kingmariano repo was billing-locked ('account is locked due to a billing issue'). Logs: ci-out/github-run-38467538976.log, ci-out/gitlab-run1.log."
+  },
+  "key_facts": [
+    "ETH USDC vault 0x131fb74C6fEdE6D6710FF224E07cE0eD8123f144: valueAll = balance = totalAttributions = 122,292,300,439 (122,292.30 USDC) at block 26,185,830; controller=0x0; totalDebt=0; price per share exactly 1e6.",
+    "Attribution ledger sums exactly: 29 markets 122,289,085,305 + PoolProxy 3,215,129 + 5 wei dust = totalAttributions.",
+    "Largest claims: CDS 0x86c82E8c 59,793.84 (crowdPool), pool 0x22453153 16,018.87 (100% in LiquidityGauge 0xCa2Bd134, is_killed=true), pool 0x8c494310 10,778.96, pool 0xDFdFcFEd 10,000.00, index 0xDAea5b1B 5,295.61.",
+    "Owner stack: PoolProxy 0xF4d046D8 -> Gnosis Safe 1.3.0 0x54bE2F27, threshold 3 of 5 (owners 0x44F224b9, 0xc3EaCb24, 0xbCc6DCC2, 0x928472F2, 0x55951Ce2); no reporting admin set anywhere.",
+    "H-O is live and functioning: CDS LP 0xcc34E60802 withdrew 109.397189 USDC on 2026-04-28 and 20.328382 USDC on 2026-09-19 via CDS.withdraw (Blockscout tx 0xad5d0236..., 0x7ae834ac...).",
+    "Staking side: LiquidityGauge 0xf57882cf holds 1,582.94016 of the 1,582.94016658 INSURE/WETH LP (0.52094149 WETH + 5,067,155.03 INSURE) -> WETH side $1,305.75 at $2,506.51/ETH; INSURE has no market.",
+    "vlINSURE (InsureDepositor proxy 0xA12ab76a, impl 0xb0730e7f) holds 10,754,075.28 INSURE with no public transfer-out; VotingEscrow 0x3dc07E60 holds 5,412,108 INSURE; lockIncentive=0, incentiveInsure=0.",
+    "Side chains: Arbitrum vault 0x968C9718 valueAll 607,055,148 (12 markets, impls 0x576e74c0/0xcb146803); Optimism vault 0x54F23d2f valueAll 232,764,196 (37 markets, impls 0x4763f972/0x016d4eb1); Astar vault 0x190dA1B9 valueAll 548,239,573 (15 markets, impls 0x00749760/0x734afd33; v1 code, keeper() present).",
+    "Side-chain ownership owner on Arb/OP/Astar = single EOA 0x2c9bc901f39f847c2fe5d2d7ac9c5888a2ab8fcf (code length 0) = privileged (P), and it holds 376.48/153.80/18.86 USDC of vault attributions respectively.",
+    "Fork PoC: 12/12 PASS (test_05 proves a fresh attacker can create a listed market with 1,000 USDC but captures nothing; test_08 proves honest LP withdrawal of 10,000 USDC works; test_09 proves the permissionless fee sweep pays the attacker $0).",
+    "Side chains (child audit): Arbitrum 12 markets (value $607.06; owner EOA fee attribution $442.52 + emergencyExit), Optimism 37 markets ($232.76; owner $174.88 + emergencyExit), Astar 15 markets ($548.24; owner $18.86 + former-owner legacy $75.70 + setController). All value-out gates revert for unprivileged callers; v2 factories are open but reflist pins token/registry/parameters to the real contracts.",
+    "Independent adversarial verification (analysis/verify/REPORT.md): 14/14 own fork tests + event censuses (3 TemplateApprovals ever, 29 MarketCreated, 1 VaultSet=USDC only) reproduced E-U=$0.00 (high); refinements: staking-side owner EOA 0x79F5Dc19 (P), lockInsure() bricked (escrow lock expired 2026-03-19), LP-gauge weight 0, 4,033 wei unclaimable premium orphans, and a griefing-only DoS (fake index inflates totalCredit -> BondingPremium.getPremium panics)."
+  ],
+  "caveats": [
+    "Ethereum v1 state is static but not frozen: H-O withdrawals can reduce the vault balance over time; all amounts are stated at the cited blocks (ETH head 26,185,830, 2026-10-13 20:02 UTC).",
+    "P amount ($3.215) is PoolProxy fee dust; the latent privileged authority over the full $122k (setController/withdrawRedundant/reporting-admin+forged-incident) is not counted as P because the same value is also H-O (LP claims) \u2014 it is a risk, not a separate pot.",
+    "INSURE valuation is approximate: no market exists; the staked LP's realizable value is bounded by its 0.5209 WETH (~$1,306) plus whatever a buyer would pay for the INSURE side (\u2248$0).",
+    "v2-chain internal accounting was verified by a child subagent (analysis/v2-chains/REPORT.md + state.json); the parent independently verified vault/registry/ownership reads and the attributions held by the owner EOA.",
+    "GitHub Actions CI is unavailable due to a billing lock on the account; all PoC evidence is from the GitLab pipeline linked above.",
+    "Astar's remaining 75.70 USDC of attributions (beyond markets and the owner EOA) was not individually attributed; it is held by non-protocol addresses (H-O for them) and cannot be reached by a fresh attacker given the same gating logic.",
+    "A fresh index can permissionlessly inflate a pool's totalCredit until BondingPremium.getPremium panics (division by zero), bricking insure() on that pool \u2014 a real griefing/DoS primitive that extracts no value; noted for completeness."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live from InsureDAO (high confidence): $122,292.30 in the ETH v1 USDC vault is share-owner-scoped (H-O) with the claim path permanently dead (no reporting admin, all pools Trading), the only open market-creation template yields inert contracts (12/12 fork tests), the sole permissionless payout moves $3.22 of the protocol's own fees to its Safe distributors, and the $1,388 side-chain legs are equally gated."
+}
