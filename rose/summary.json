@@ -1,0 +1,56 @@
+{
+  "finding": "L2B-row16 (Rose)",
+  "title": "Rose (Aurora) — Curve stableswap pools + Kashi CDP gardens + BentoBox VASE + RUSD/stROSE zombie",
+  "chains": ["aurora"],
+  "headline_extractable_usd": 0.08,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.08,
+    "H-O": 60300.0,
+    "P": 36900.0,
+    "S": 279.0
+  },
+  "latest_block": 219876670,
+  "block_numbers": {"aurora": 219876670},
+  "targets_checked": 33,
+  "live_targets": 30,
+  "closed_reasons": [
+    "3pool/Curve-fork round trips lose except a one-shot imbalance bonus of +0.0143 (0.000095%); iterated repeats and the perfect-balancing deposit both lose",
+    "All meta/RUSD pool imbalance probes lose in both directions (deposit scarce side -> remove valuable side and reverse)",
+    "Rose metaUST/metaFRAX/metaMAI/RUSD pool marginal prices match the live Aurora DEX prices (Trisolaris UST/WNEAR $0.0358 vs $0.0363; RUSD/WNEAR $0.3033 vs $0.3102); FRAX/MAI have no executable Aurora market",
+    "Garden liquidations: team keeper bot already harvested meaningful collateral; remaining insolvent users seize only $0.081 gross / ~$0.06 net of RUSD cost",
+    "Solvent garden positions protected: liquidate() refreshes the oracle and skips solvent users (Garden: all are solvent); oracles are fixed Chainlink-style proxies, not manipulable",
+    "Garden borrowable RUSD inventory drained to ~1,059 RUSD (test asserts < 1,200); borrowing RUSD and repaying 1:1 yields no net gain given RUSD's ~$0.31 marginal value and ~$320 total depth",
+    "VASE is byte-level BentoBox V1 (only error strings renamed + STRATEGY_DELAY removed); totals == balanceOf for all 7 tokens (no excess); no external skim(); flash loans require whitelisted masters; allowed(from) blocks third-party share moves",
+    "Permissionless donate_admin_fees (0x5cb2bb08) sends pool excess to the team PaymentSplitter 0xf042... (caller balance unchanged, verified on fork)",
+    "Pool admin functions (kill_me/ramp_A/set_fee_receiver) and LP-token set_minter/set_name are owner-only; pools are not killed (storage slot 0x10 = 0)",
+    "Farm recoverERC20/addReward/setPaused/nominateNewOwner revert for third parties; withdraw() only the caller's own stake",
+    "stROSE mint() requires a ROSE transferFrom deposit; burn() is self-only; RUSD mint/mintToVase are onlyOwner",
+    "LP tokens are BoringFactory ERC-20s whose minter() is the pool; third-party mint reverts"
+  ],
+  "poc": {
+    "tests_passed": 18,
+    "tests_total": 18,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38484211687"
+    ]
+  },
+  "key_facts": [
+    "Live external-unprivileged extractable: 3pool one-shot imbalance bonus +0.014271 DAI-equivalent (add_liquidity [5000,5000,5000] then remove_liquidity, measured on fork) plus liquidation dust of the remaining insolvent users (seized $0.081 gross; RUSD paid 0.0538 = ~$0.017 at the $0.31 marginal price) => ~$0.08 total.",
+    "Architecture: Curve-style Vyper pools (3pool 0xc90dB0d8713414d78523436dC347419164544A3f + metas UST 0x8fe44f5cce02D5BE44e3446bBc2e8132958d22B8 / FRAX 0xa34315F1ef49392387Dd143f4578083A9Bd33E94 / MAI 0x65a761136815B45A9d78d9781d22d47247B49D23 + RUSD pool 0x79B0a67a4045A7a8DC04b17456F4fe15339cBA34); BentoBox fork VASE 0xee793001Ce9Fa988712B15a59CCf5dC7d54b22FF; 6 Kashi-fork Garden clones (master 0x857050Ef3a0241a2c1f65ca1F0c100a04E4AEd93); 5 multi-reward farms (owner 0x6ADf17424F6E68733C71209471dA50e155B5C5B2); RUSD 0x19cc40283B057D6608C22F1D20F17e16C245642E; stROSE 0xe23d2289FBca7De725DC21a13fC096787A85e16F.",
+    "VASE verification: identical 31-entry dispatch table to Ethereum BentoBox V1 0xF5BCE5077908a1b7370B9ae04AdC565EBd643966; only error-string prefixes ('BentoBox:' -> 'Vase:'), the setStrategy STRATEGY_DELAY removal, and 5 solc ABI-helper regions differ; live owner 0x0e2a05ca5d1e218034f2b7deb6e9419159839f8b, no strategies, no excess.",
+    "Garden formula verified from source + fork: seized = borrowAmount x 107500 x exchangeRate / 1e23; insolvent users (team bot last liquidated at block 217103562, bot 0xd3c2002911422cc769fe0207fd80d845b6524a1e) now hold only dust; solvent large positions: cf02ac (7.406 WETH vs 4302 RUSD, ratio 2.39) and d74e80 (8000 USDC vs 4814 RUSD, 1.50).",
+    "Admin-fee excess (owner-claimable via permissionless donate_admin_fees -> PaymentSplitter 0xf042F2dABba35f83eb126116f7Ff8dAdfC631E97): total $2,919.58 (3pool $738.74, metaUST $9.62, metaFRAX $80.87, metaMAI $413.75, RUSD pool $1,676.60; VASE $0).",
+    "Holder map: pool LP ~$60.1k net (farms hold $27.9k staked by users; fee-recipient contracts $18.5k; users ~$11.6k; team contracts $1.25k); VASE garden collateral $27.4k (USDC 8,718.61 + WETH 7.4175 + WNEAR 5.2208 + UST 116.95 + RUSD ~1,059); treasury EOA 0x3820fedd... holds 391,566 RUSD + 0.40436 WBTC + 1,800 UST in VASE; stROSE $316 (15.04M ROSE @ $0.000021).",
+    "Valuation correction vs triage: UST on Aurora trades at ~$0.036 (7x DefiLlama global $0.0053) and RUSD at ~$0.31 marginal / ~$0.02 average-value with only ~$320 total sell-side depth (Rose RUSD pool 200.8 LP + Trisolaris RUSD/WNEAR 24.2 WNEAR), so the RUSD-denominated 'treasury' pot is not realisable near its nominal $121k.",
+    "Latent: 3pool imbalance bonus recurs on any future re-imbalance (<= ~$0.15 = sum(balances) - D); VASE owner can queue+activate a strategy in one tx (STRATEGY_DELAY removed); insolvent bad debt accrues ~2%/yr; farms and PaymentSplitter are owner/payee-controlled."
+  ],
+  "caveats": [
+    "Prices are point-in-time (DefiLlama + Aurora DEX reserves at the pinned blocks); UST/RUSD market prices derive from shallow Aurora pools and are size-sensitive.",
+    "Fork tests pin the latest Aurora block at run time; numbers above are from the local pre-CI run and are re-verified by the CI run (see ci-log.txt).",
+    "The child1 STRATEGY_DELAY difference was established by differential disassembly of live vs recompiled code, not by reproducing the exact build.",
+    "H-O/P/S category USD values are nominal at stated prices and include team-held positions; E-U is the only attacker-extractable category.",
+    "No mainnet transactions were made; all exploit paths were tested on local forks only."
+  ],
+  "one_liner": "External unprivileged attacker can extract only ~$0.08 live from Rose (Aurora): a one-shot $0.014 3pool imbalance bonus plus ~$0.06 of liquidation dust left by the protocol's own keeper; all larger pots are holder-, owner- or oracle-gated and the pools/VASE/farms are stock audited forks."
+}
