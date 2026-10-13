@@ -1,0 +1,15 @@
+01 (01 Exchange) Solana wind-down — live verification @ slot 456618687 (2026-10-13T23:12:59.936230Z)
+Vault USDC: 111615.829133 ($111615.83)
+Margin accounts: 10009
+zo program upgrade authority: DtCyZQSP9AjdasXJPs5m5Q8dovo73UJvUG1ieosofDwX (on-curve=False)
+
+RedeemUsdc gate tests:
+  T1_own_redeem: err=null amount=26536453286 
+  T2_impersonation: err={"InstructionError": [1, {"Custom": 2006}]} amount=None A seeds constraint was violated.
+  T3_foreign_dest: err={"InstructionError": [0, {"Custom": 2015}]} amount=None A token owner constraint was violated.
+  T4_fresh_signer: err={"InstructionError": [1, {"Custom": 2006}]} amount=None A seeds constraint was violated.
+  T5_zamm_forged_key: err={"InstructionError": [1, {"Custom": 6077}]} amount=None The zamm key is invalid.
+Admin gate tests:
+  T6_finalize_fresh: err={"InstructionError": [0, {"Custom": 2012}]} An address constraint was violated.
+  T7_setrates_fresh: err={"InstructionError": [0, {"Custom": 2012}]} An address constraint was violated.
+Claims measured (top25): 22 margins, $98169.93

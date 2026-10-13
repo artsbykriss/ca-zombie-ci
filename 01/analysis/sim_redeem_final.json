@@ -1,0 +1,170 @@
+[
+ {
+  "label": "T-OWN: funded margin owner redeems own margin (amount unit test)",
+  "err": null,
+  "amount": 26536453286,
+  "deltas": [
+   [
+    "2CwcHD2rawi5WKzxbdr7qUtvfbeu8rubWXwEFNj6gvoU",
+    94267764,
+    26630721050,
+    26536453286
+   ],
+   [
+    "3er2PEWxhpuRkbVwE3ks2nynr5EtcSjCs5fdDJiKQocp",
+    111615829133,
+    85079375847,
+    -26536453286
+   ]
+  ],
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: Instruction: RedeemUsdc",
+   "Program log: zo-log",
+   "Program data: /+ToTFzmUEwAAAAAAAAAAAAAAAAAAAAAAA==",
+   "Program log: zo-log",
+   "Program data: /+ToTFzmUEwBAAAAAAAAAAAAAAAAAAAAAA==",
+   "Program log: zo-log",
+   "Program data: /+ToTFzmUEwCAAAAAAAAAAAAAAAAAAAAAA==",
+   "Program log: zo-log",
+   "Program data: /+ToTFzmUEwDAAAAAAAAAAAAAAAAAAAAAA==",
+   "Program log: zo-log",
+   "Program data: /+ToTFzmUEwEAAAAAAAAAAAAAAAAAAAAAA==",
+   "Program log: zo-log",
+   "Program data: /+ToTFzmUEwGAAAAAAAAAAAAAAAAAAAAAA==",
+   "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+   "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 76 of 6182 compute units",
+   "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+   "Program log: zo-log",
+   "Program data: Q3ovSg8GDiAIYeKP5P5SIgOeWhN3FmhbD3TeSxTIqCYuniXvtqC2MrkjBwp+V3jkn/cpoY/TuQUlbbjRZMbewxFcj6osbExrpiSyLQYAAAA=",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 195894 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk success"
+  ],
+  "events": [
+   "ffe4e84c5ce6504c0000000000000000000000000000000000",
+   "ffe4e84c5ce6504c0100000000000000000000000000000000",
+   "ffe4e84c5ce6504c0200000000000000000000000000000000",
+   "ffe4e84c5ce6504c0300000000000000000000000000000000",
+   "ffe4e84c5ce6504c0400000000000000000000000000000000",
+   "ffe4e84c5ce6504c0600000000000000000000000000000000",
+   "437a2f4a0f060e200861e28fe4fe5222039e5a137716685b0f74de4b14c8a8262e9e25efb6a0b632b923070a7e5778e49ff729a18fd3b905256db8d164c6dec3115c8faa2c6c4c6ba624b22d06000000"
+  ]
+ },
+ {
+  "label": "T-CONTROL: 531euoNt own margin/control/dest (expect amount=0)",
+  "err": null,
+  "amount": 0,
+  "deltas": [],
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: Instruction: RedeemUsdc",
+   "Program log: zo-log",
+   "Program data: Q3ovSg8GDiA78qX8UyYPwfHFk1vOdwgGySmSbCcfxBKxnGs/2nM8LUKJo4Db6NaR9z9XHA6tul0QcVeMUbAjuXGGLs9UtVoXAAAAAAAAAAA=",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 82826 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk success"
+  ],
+  "events": [
+   "437a2f4a0f060e203bf2a5fc53260fc1f1c5935bce770806c929926c271fc412b19c6b3fda733c2d4289a380dbe8d691f73f571c0eadba5d1071578c51b023b971862ecf54b55a170000000000000000"
+  ]
+ },
+ {
+  "label": "T-IMP-A: 531euoNt signer + VICTIM margin/control -> 531euoNt ATA",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2006
+    }
+   ]
+  },
+  "amount": null,
+  "deltas": [],
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: margin. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 22632 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d6"
+  ],
+  "events": []
+ },
+ {
+  "label": "T-IMP-B: 531euoNt signer + VICTIM margin + own control -> own ATA",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2006
+    }
+   ]
+  },
+  "amount": null,
+  "deltas": [],
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: margin. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 22632 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d6"
+  ],
+  "events": []
+ },
+ {
+  "label": "T-IMP-C: 531euoNt signer + VICTIM margin/control -> VICTIM ATA",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2006
+    }
+   ]
+  },
+  "amount": null,
+  "deltas": [],
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: margin. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 22632 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d6"
+  ],
+  "events": []
+ },
+ {
+  "label": "T-FRESH: fresh key + VICTIM margin/control -> VICTIM ATA",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2006
+    }
+   ]
+  },
+  "amount": null,
+  "deltas": [],
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: margin. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 22632 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d6"
+  ],
+  "events": []
+ },
+ {
+  "label": "T-FRESH-2: fresh key + 531euoNt margin/control -> 531euoNt ATA",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2006
+    }
+   ]
+  },
+  "amount": null,
+  "deltas": [],
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: margin. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 22632 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d6"
+  ],
+  "events": []
+ }
+]

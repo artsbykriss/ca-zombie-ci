@@ -1,0 +1,129 @@
+[
+ {
+  "label": "T1 replay last real RedeemUsdc tx (531euoNt) - double-redeem test",
+  "err": {
+   "InstructionError": [
+    6,
+    {
+     "Custom": 6400
+    }
+   ]
+  },
+  "logs": [
+   "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+   "Program ComputeBudget111111111111111111111111111111 success",
+   "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+   "Program ComputeBudget111111111111111111111111111111 success",
+   "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL invoke [1]",
+   "Program log: CreateIdempotent",
+   "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL consumed 4338 of 199700 compute units",
+   "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL success",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: Instruction: RedeemUsdc",
+   "Program log: zo-log",
+   "Program data: Q3ovSg8GDiA78qX8UyYPwfHFk1vOdwgGySmSbCcfxBKxnGs/2nM8LUKJo4Db6NaR9z9XHA6tul0QcVeMUbAjuXGGLs9UtVoXAAAAAAAAAAA=",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 82826 of 195362 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk success",
+   "Program 11111111111111111111111111111111 invoke [1]",
+   "Program 11111111111111111111111111111111 success",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 invoke [1]",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 consumed 1818 of 112386 compute units",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 success",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 invoke [1]",
+   "Program log: Result (Failed): Some(98994604) >= Some(2311452404)",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 consumed 3144 of 110568 compute units",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 failed: custom program error: 0x1900"
+  ],
+  "units": 92576
+ },
+ {
+  "label": "T2 control: 531euoNt redeems own margin",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2000
+    }
+   ]
+  },
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: state. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 10388 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d0"
+  ],
+  "units": 10388
+ },
+ {
+  "label": "T3 control: GveuASEe redeems own margin",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2000
+    }
+   ]
+  },
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: state. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 10388 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d0"
+  ],
+  "units": 10388
+ },
+ {
+  "label": "T4 impersonation: 531euoNt signer + GveuASEe margin -> 531euoNt ATA",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2000
+    }
+   ]
+  },
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: state. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 10388 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d0"
+  ],
+  "units": 10388
+ },
+ {
+  "label": "T5 fresh attacker signer + GveuASEe margin -> GveuASEe ATA",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2000
+    }
+   ]
+  },
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: state. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 10388 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d0"
+  ],
+  "units": 10388
+ },
+ {
+  "label": "T6 dest-constraint: 531euoNt margin -> GveuASEe ATA",
+  "err": {
+   "InstructionError": [
+    0,
+    {
+     "Custom": 2000
+    }
+   ]
+  },
+  "logs": [
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: AnchorError caused by account: state. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 10388 of 200000 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk failed: custom program error: 0x7d0"
+  ],
+  "units": 10388
+ }
+]

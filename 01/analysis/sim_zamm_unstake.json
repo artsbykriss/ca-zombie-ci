@@ -1,0 +1,65 @@
+[
+ {
+  "label": "ZAMM-1: zamm margin redeem + forged zamm key (remaining acct)",
+  "err": "InvalidAccountForFee",
+  "logs": []
+ },
+ {
+  "label": "UNSTAKE as-is (orig signer)",
+  "err": {
+   "InstructionError": [
+    5,
+    {
+     "Custom": 6400
+    }
+   ]
+  },
+  "logs": [
+   "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+   "Program ComputeBudget111111111111111111111111111111 success",
+   "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+   "Program ComputeBudget111111111111111111111111111111 success",
+   "Program 6N71ta5gVjN65hSTDnK4fy4B1YWGgMLyeSu8WEr8Uh2J invoke [1]",
+   "Program log: Instruction: Unstake",
+   "Program log: 1/ Unstaking... collateral-only winddown",
+   "Program log: No lp",
+   "Program 6N71ta5gVjN65hSTDnK4fy4B1YWGgMLyeSu8WEr8Uh2J consumed 23205 of 1399700 compute units",
+   "Program 6N71ta5gVjN65hSTDnK4fy4B1YWGgMLyeSu8WEr8Uh2J success",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk invoke [1]",
+   "Program log: Instruction: RedeemUsdc",
+   "Program log: zo-log",
+   "Program data: Q3ovSg8GDiDp0QbkBs7eh/CjaiPMYhPWuVFtEi0ngUXhKtaKM+/gVxLw6P7uekZYQmuarOVdaWeyKw7RdTHdjia/zuSDCyePAAAAAAAAAAA=",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk consumed 57056 of 1376495 compute units",
+   "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk success",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 invoke [1]",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 consumed 1818 of 1319439 compute units",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 success",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 invoke [1]",
+   "Program log: Result (Failed): Some(0) >= Some(53823974086)",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 consumed 4010 of 1317621 compute units",
+   "Program L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95 failed: custom program error: 0x1900"
+  ]
+ },
+ {
+  "label": "UNSTAKE fresh signer",
+  "err": {
+   "InstructionError": [
+    2,
+    {
+     "Custom": 2006
+    }
+   ]
+  },
+  "logs": [
+   "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+   "Program ComputeBudget111111111111111111111111111111 success",
+   "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+   "Program ComputeBudget111111111111111111111111111111 success",
+   "Program 6N71ta5gVjN65hSTDnK4fy4B1YWGgMLyeSu8WEr8Uh2J invoke [1]",
+   "Program log: Instruction: Unstake",
+   "Program log: AnchorError caused by account: staker_info. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.",
+   "Program 6N71ta5gVjN65hSTDnK4fy4B1YWGgMLyeSu8WEr8Uh2J consumed 17283 of 1399700 compute units",
+   "Program 6N71ta5gVjN65hSTDnK4fy4B1YWGgMLyeSu8WEr8Uh2J failed: custom program error: 0x7d6"
+  ]
+ }
+]

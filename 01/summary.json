@@ -1,0 +1,46 @@
+{
+  "finding": "01",
+  "title": "01 Exchange (01.xyz) Solana wind-down vault — live extractability audit",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 111615.83, "P": 0, "S": 0},
+  "latest_block": 456617346,
+  "block_numbers": {"solana": 456617346},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "redeem_usdc is bound to the caller's own margin PDA: ConstraintSeeds (2006) [signer, state, 'marginv1'] — cross-user redeem reverts (proven by simulation)",
+    "destination token account must be owned by the signer: ConstraintTokenOwner (2015) (proven)",
+    "claims are single-spend: replaying the last real redeem tx pays amount 0 (RedeemUsdcLog amount=0)",
+    "zamm pool margins unredeemable via public path: InvalidZamm (6077) even with forged zamm key",
+    "admin instructions admin-gated: ConstraintAddress (2012) on 'admin' for finalize_winddown / set_manual_rates_and_overrides / settle_collateral (fresh-signer replays); all one-shot (RedeemAlreadyEnabled 6099 on admin replays)",
+    "staker program Unstake gated: ConstraintSeeds (2006) on staker_info for a fresh signer",
+    "no other instruction in the wind-down build transfers from the vault USDC ATA"
+  ],
+  "poc": {
+    "tests_passed": 28,
+    "tests_total": 28,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38482919463", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38484214593"]
+  },
+  "key_facts": [
+    "Vault PDA HjHSNe8hhvZ8hKCRrhKg1DGiGPd9NYQbUjT1SQRDo4kZ is off-curve (PDA), System-owned, holds 34 SPL token accounts; USDC ATA 3er2PEWxhpuRkbVwE3ks2nynr5EtcSjCs5fdDJiKQocp = 111,615.829133 USDC ($111,615.83) at finalized slot 456,617,346",
+    "Program Zo1ggzTUKMY5bYnDvT5mtVeZxzf2FaLTbKkmvGUhUQk ('01 Program') is a live wind-down build (deployed 2026-04, slot 413,063,530); users have redeemed ~$65.1K since 2026-04-15 (largest single $59,804.42 on 2026-05-24)",
+    "zo program upgrade authority = DtCyZQSP9AjdasXJPs5m5Q8dovo73UJvUG1ieosofDwX (off-curve multisig PDA) — P-capability: upgrade could drain the vault; not attacker-accessible",
+    "admin hot key DH7N1sJQxyLJqc79fk67U32mymejUiRVH8SqayTuRtG7 (on-curve, 15.94 SOL) controls SettleCollateral/FinalizeWinddown/SetManualRates and the staker program 6N71ta5gVjN65hSTDnK4fy4B1YWGgMLyeSu8WEr8Uh2J upgrade",
+    "10,009 margin accounts (793 B, disc 98118ec350c4a130) exist; measured redeemable claims across the top 373 margins = $145,117.24 vs remaining pool $111,615.83 (wind-down pool was $176,728.62; $65,112.79 redeemed since) → first-come-first-served shortfall of >=$33.5K (medium confidence; some top claimants may be protocol-controlled)",
+    "Payouts are full-nominal and NOT pro-rata: one simulated tx redeemed the top 3 margins and paid each exactly its standalone amount ($57,964.94 total; vault 111,615.83 -> 53,650.89)",
+    "Largest measured individual claims: $26,536.45; $15,912.97; $15,515.52; $10,147.77; $8,701.05; $8,613.16",
+    "Vault-PDA Token-2022 holding of 384,000 units (mint 7atgF8KQo4wJrD5ATGX7t1V2zVvykPJbBfNeVf1icFv1) is dead — the mint account does not exist",
+    "Instruction set (discriminators): redeem_usdc 658ef6b8c6385cae, finalize_winddown cbc28cbd27150e21, init_winddown_book eaefd1a003ddb538, set_manual_rates_and_overrides c2fc9bfe1d8a3348, settle_collateral 2c08bb9510edd963, zamm_transfer 5172fb20f0e71608, close_margin d1b6de1372b280e9, consume_events dd91b1341f2f3fc9, cache_oracle f1dc8357f592c983, create_margin 139b4868a4c00344, force_cancel_all_perp_orders e4b279d4e6e8eb20, update_heimdall c555f804f4492fab, update_oracle 7029d112f8e2fcbc, init_state 7cd5498850258d36"
+  ],
+  "caveats": [
+    "All proofs are chain-native simulations (simulateTransaction, sigVerify=false, replaceRecentBlockhash=true); no mainnet transaction was signed or sent",
+    "Claim sums are gross per-margin simulations against current state (no sequential state forking) and are not a solvency proof; the shortfall estimate assumes the measured claimants are third-party users",
+    "A 3-redeem single-tx simulation shows payouts are full-nominal and first-come-first-served (no pro-rata), so the measured excess of claims over the pool implies a real tail shortfall",
+    "The deployed program is a newer build than the public 2022 01protocol/zo-abi; semantics were proven empirically via simulation, not read from source",
+    "Two zamm pool margins hold large internal balances whose USD value is unknown (blocked public path); they flow through the staker program only",
+    "H-O bucket equals the current vault balance (user/protocol claim pool); P-capability (upgrade authority) can redirect the same funds but is not a separate pool"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from 01's $111.6K Solana wind-down vault: redeem_usdc pays only the caller's own margin PDA to the caller's own token account, single-spend, with all admin/zamm paths gated — the remaining $111.6K is still-redeemable user/protocol claims (H-O), and measured claims ($145.1K across 373 margins) already exceed the pool, implying a first-come-first-served tail shortfall of >=$33.5K."
+}
