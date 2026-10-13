@@ -1,0 +1,72 @@
+{
+ "child": "C-v2",
+ "title": "Nuri V2/cAMM factory (Ramses V2 fork) + 74 beacon-proxy pairs on Scroll — live value and unprivileged-extraction audit",
+ "chains": ["scroll"],
+ "status": "read-only; no mainnet transactions; eth_call simulation only",
+ "block_numbers": {"scroll_pairs_and_prices": 35364606, "scroll_guard_probes": 35364623, "scroll_nuri_liquidity": 35364648},
+ "v2_pairs_total_usd_defillama_priced": 4576.26,
+ "v2_pairs_total_usd_incl_nuri_at_dex_implied_price": 5237.15,
+ "headline_extractable_usd": 0,
+ "headline_confidence": "high",
+ "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+ "addresses": {
+  "v2_factory_proxy": "0xAAA16c016BF556fcD620328f0759252E29b1AB57",
+  "v2_factory_logic": "0xa7d39aff8f4bd058f48e59f10820d0bf3243a872",
+  "factory_proxyadmin": "0x8e01fc0d89b93a6447d6c6eca6fbd30e6e4a1ce3",
+  "pair_implementation": "0xf5d139c3f51967505c532c42898ba47b15da4b9f",
+  "owner_pauser_treasury_safe": "0xC9d28676b7d470210a3C490B60729660eE5a7257",
+  "fee_manager_commandcenter": "0xAAA11500dddb2b67a90d1a154dfb7eabb518eae6",
+  "voter": "0xAAAf3D9CDD3602d117c67D80eEC37a160C8d9869",
+  "minter": "0xAAA823aa799BDa3193D46476539bcb1da5B71330",
+  "nuri_token": "0xaaae8378809bb8815c08d3c59eb0c7d1529ad769"
+ },
+ "pair_topology": {"pairs": 74, "volatile_vAMM": 66, "stable_cAMM": 8, "pairs_with_active_gauge": 5, "pairfees_with_feeDistributor": 34},
+ "live_fees": {"stableFee_bps": 1, "volatileFee_bps": 30, "MAX_FEE_bps": 1000, "default_feeSplit": 42, "isPaused": false},
+ "unprivileged_extraction_paths_checked": [
+  "pair.skim excess: 0 wei on all 74 pairs x 2 tokens (balances == reserves)",
+  "pair.burn self-LP: balanceOf(pair) == 0 on all 74 pairs",
+  "pair.claimFees: permissionless but only pushes PairFees balance to feeDistributor (PairFees priced total $0.07)",
+  "pair.sync/setFeeSplit/setActiveGauge/swap/mint/initialize: no attacker payout",
+  "factory 35 selectors: views / permissionless createPair / owner|feeManager|treasury gated (probe from 0xdead reverts)",
+  "acceptPauser/acceptFeeManager: pending == 0 -> only callable from address(0), unreachable in real tx",
+  "NURI.mint/setMinter: !MINTER (minter = Minter proxy)",
+  "Minter.updatePeriod: permissionless but pays voter/rewardsDistributor; activePeriod=1790812800 in future -> no-op; reinitializers used; initiateEpochZero multisig-gated",
+  "CommandCenter (feeManager): all mutating fns role-gated (OPERATOR/FEE_SETTER/DEFAULT_ADMIN); multisigWithdraw pays Safe; 0 token balances"
+ ],
+ "nuri_exit_liquidity": {
+  "deepest_venue": "V2 vAMM-WETH/NURI 0x8ae1c699c9c62fac468a1e253e15b571b69a7ffe",
+  "weth_side": 0.260898914736861987,
+  "nuri_side": 809757.238708542836252943,
+  "implied_nuri_price_usd": 0.0008082042893822046,
+  "quote_sell_1M_NURI_out_WETH": 0.14252719,
+  "cl_pools_weth_side_total": 0.0022,
+  "comment": "total realistic exit depth ~$654 of WETH; dumping the entire NURI reserve returns 0.1288 WETH"
+ },
+ "other_held_value": {
+  "voter_nuri": 411.781441317293206078,
+  "voter_other": "1 unit ERC-1155 ExactERC1155Clone 0x467055a7783b851eefe673aa996bd7d2b7e6f891",
+  "minter_tokens": 0,
+  "safe_owner_treasury_tokens": "~$4 real (STONE/WETH/wstETH dust + 44.19 NURI); remaining 40+ entries are $0 scam airdrops",
+  "pairfees_priced_total_usd": 0.07,
+  "native_eth_all_targets": 0
+ },
+ "deviations_from_canonical_ramses_v2_pair": [
+  "initialize(token0,token1,stable) -> initialize(factory,token0,token1,stable,voter); PairFees bound to voter",
+  "claimFees(): canonical gated (gauge/treasury); deployed is permissionless but only notifies feeDistributor",
+  "_f/_get_y stable-curve rounding/loop variant (newer published version); core swap/mint/burn/skim/sync identical"
+ ],
+ "key_facts": [
+  "V2 factory proxy 0xAAA16c... delegates to unverified logic 0xa7d39a... (selector set matches Ramses V2 PairFactory + owner/setOwner + implementation() beacon getter)",
+  "pairs are PairBeaconProxy with beacon = factory; pair logic 0xf5d139... is VERIFIED",
+  "triage's $116,431 CL-only figure does not include V2; V2 adds $4,576-$5,237 live",
+  "all admin paths probed empirically with 7 caller identities; only owner Safe and CommandCenter (feeManager) pass",
+  "proxy admin 0x8e01... owner = 0xAAA13cbe7a8cf93cf3505d00fe254fdcce14ef4e (can upgrade factory/CC/Minter)"
+ ],
+ "blockers": [
+  "owner/pauser/treasury = Safe 0xC9d... gates setOwner/setPauser/setPause/setTreasury/setImplementation",
+  "feeManager = CommandCenter (role-gated) gates setFee/setPairFee/setFeeSplit/setPoolFeeSplit/setFeeManager",
+  "pair skim/burn surfaces measure exactly zero",
+  "NURI mint requires msg.sender == minter (Minter proxy), whose mint path pays protocol destinations only"
+ ],
+ "one_liner": "Nuri's 74 V2/cAMM pairs hold ~$4.58k-$5.24k live but an external unprivileged attacker can extract $0: every admin function is owner/feeManager-gated and every permissionless pair surface (skim/burn/claimFees) measures zero excess at block 35,364,606."
+}

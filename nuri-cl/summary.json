@@ -1,0 +1,60 @@
+{
+  "finding": "nuri-cl",
+  "title": "Nuri CL (Scroll) — L2 Phase-2 deep dive (Ramses V2 fork)",
+  "chains": ["scroll"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.00,
+    "H-O": 120283.13,
+    "P": 128.85,
+    "S": 18.94
+  },
+  "latest_block": 35364740,
+  "block_numbers": {
+    "scroll": 35364740
+  },
+  "targets_checked": 296,
+  "live_targets": 235,
+  "closed_reasons": [
+    "CL pool principal is owned by 7,573 position NFTs; collect/burn/getReward revert for non-owners (fork-proven) — holder-only (H-O)",
+    "All factory/pool admin paths revert for a stranger: setOwner/setImplementation/setFeeCollector/setFeeProtocol/enableFeeAmount 'AUTH'; pool.collectProtocol 'onlyFeeCollector'; pool.setFee 'AUTH'",
+    "The only permissionless money-mover (FeeCollector.collectProtocolFees) pays 100% to the treasury Safe (treasuryFees=10000) — attacker balance unchanged (fork-proven with real and fake pools)",
+    "Gauge and FeeDistributor claims are veNFT/NFT-owner gated; 6/6 live attacker simulations revert",
+    "Pool prices track the market (USDC/WETH 0.15% dev, WETH/STONE 0.16% dev; below fee tiers); all >2% deviations are in dust-side or zero-liquidity pools — total arb <$10",
+    "Pool checkpoint guard blocks retroactive gauge reward claims (fork-proven: periodEarned(firstPeriod, NURI, recentId)==0)",
+    "Direct pool.mint(recipient=NFP, index=...) is permissionless but gauge payouts follow nfpManager.ownerOf(tokenId) — only self-gifting possible",
+    "Nuri V2 AMM: skim() excess = 0 wei on all 148 sides, no self-owned LP, all admin setters revert (bonus check, $4,576 TVL)",
+    "NFP sweepToken/unwrapWETH9/refundETH are public but the NFP holds 0 ETH and 0 of 16 tokens probed",
+    "Ramses V3 Oct-2024 $90K exploit pattern is absent from the deployed Ramses-V2 FeeDistributor (per-(period,tokenId,token) userClaimed; require(period <= getPeriod()); split/merge require !voted)"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38482194238",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38480988932"
+    ]
+  },
+  "key_facts": [
+    "Factory 0xAAA32926fcE6bE95ea2c51cB4Fcb60836D320C42 (ClPoolFactory proxy + pools' beacon); pool impl 0xDBA1DDc96d2df6850808f0317CEeF773A74e565C (Ramses V2 ClPool, verified); 95 pools, all initialized and unlocked",
+    "Live pool value re-read at block 35364648: $116,740.98 priced (USDC/WETH $59,283; WETH/STONE $15,884; WETH/0xf610 $12,218; WETH/USDT $9,888; WETH/0xa25b $7,317; 0x01f0/WETH $6,905)",
+    "feeProtocol=100 -> 100% of swap fees are protocol fees; accrued protocol fees across all pools = $128.85 (0.0294 WETH + 51.96 USDC), collectable only via FeeCollector (pays the Safe)",
+    "feeSetter=CommandCenter 0xAAA11500...; owner/treasury/governor = Gnosis SafeL2 0xC9d28676... with threshold 1 of 3 owners; ProxyAdmin 0x8e01fc0d... owned by TimelockController 0xAAA13CBe... (minDelay 86400s, Safe holds PROPOSER+EXECUTOR+ADMIN)",
+    "Privileged risk: ClPoolFactory.setImplementation(newLogic) is owner(Safe)-only with NO timelock -> any single Safe signer can upgrade all 95 pools' logic and drain ~$116.6k (category P, not E-U)",
+    "Gauges: 62 (19 alive) hold 3,434,096.93 NURI + 0.001041 WETH ($2.61); NURI has no meaningful exit liquidity (only V2 pair ~0.26 WETH / $654; 1M NURI dump yields ~$357)",
+    "FeeDistributors: 30 with balances; core WETH/USDC/USDT $3,282.96 + SCR/LSTs/DAI/USDe/NURI ~$3,671 total; largest 0x52239D606aF3a8b41B13F9c3d7658054De4a165F (0.3126 WETH + 950.26 USDC + 175.8 NURI); >99% of historical 85.58 WETH/251,420 USDC inflow was claimed by recorded voters; dormant ~9-10 months",
+    "NFP totalSupply=7573; CI sampled 800 tokenIds (stratified) - positions belong to ordinary owners; pool tokensOwed are tiny; NFP holds $0",
+    "veNURI totalSupply 20,767,434.59; VotingEscrow holds 30,429,982 NURI; all withdraw/merge/split/transfer paths owner-gated",
+    "Bonus (outside the CL row): Nuri V2 AMM factory 0xAAA16c016BF556fcD620328f0759252E29B1AB57, 74 pairs, $4,576 priced TVL ($5,237 incl. NURI at marginal) - no unprivileged extraction (child C)"
+  ],
+  "caveats": [
+    "NURI is unpriced by DefiLlama and effectively illiquid; gauge/FD NURI is valued at $0 in the headline categories (marginal-price estimate ~$2.8k, not realizable in size)",
+    "USD values use DefiLlama prices at 2026-10-13/14 (WETH $2509.65, USDC $0.99982, STONE $2682.71)",
+    "The NFP position census is a stratified 800/7,573 sample via public RPC (CI), supplemented by per-path simulations; a full tokenId-level owner attribution was not feasible (explorer pagination caps)",
+    "V2 factory logic is unverified on Scrollscan; behaviour probed only (child C)",
+    "S estimate ($18.94) covers sampled zero-vote FD buckets (17.81 USDC + 47.08 SCR + 536 NURI); rewards of burned veNFTs are unquantified",
+    "First CI attempt (38480988932) failed at the enumeration step on a public-RPC 429 before the forge suite ran; re-run 38482194238 executed enumeration + 10/10 tests"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Nuri CL (Scroll) — the ~$116.7k of pool value is NFT-owned (holder-only), every admin/protocol path is gated (collectProtocol onlyFeeCollector, factory AUTH, gauge/FD claims owner-only), the one permissionless money-mover pays the treasury 100%, prices are at market (arb <$10), and the Ramses V3 Oct-2024 exploit class is absent from this Ramses-V2 fork; residual risk is privileged: a 1-of-3 Safe can upgrade all pool logic immediately via setImplementation (no timelock)."
+}
