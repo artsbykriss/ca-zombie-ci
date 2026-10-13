@@ -1,0 +1,47 @@
+{
+  "finding": "L2-PEAKDEFI",
+  "title": "PEAKDEFI Global Fund + NFT Fund + BSC PeakStaking — no unprivileged extraction; live value is holder/referrer-only or stranded",
+  "chains": ["ethereum", "bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 107065.83, "P": 0, "S": 13543.2},
+  "latest_block": 26186172,
+  "block_numbers": {"ethereum": 26186172, "bsc": 127472371},
+  "targets_checked": 23,
+  "live_targets": 3,
+  "live_value_usd": 120609.03,
+  "closed_reasons": [
+    "Admin/upgrade entry points (changeProxyAdmin, developerInitiateUpgrade, migrateOwnedContractsToNextVersion, transferAssetToNextVersion, changeDeveloperFeeAccount/Rate, listKyber/CompoundToken) resolve to empty fallbacks in the live implementation chain - callable but no-ops; state verified unchanged on fork",
+    "initOwner/init/transferOwnership/renounceOwnership revert (already initialized / onlyOwner)",
+    "deposit and withdraw are both priced at NAV = totalFundsInUSDC/shareSupply; phase transitions only subtract fees, so round trips are a net loss (measured 1000 USDC in -> 978.19 USDC total return)",
+    "nextPhase() is permissionless but pays the caller nothing (NEXT_PHASE_REWARD=1e18 is never paid)",
+    "referral commissions cannot be farmed: sybil A-refers-B farming is net-negative (A +7.38 USDC cash vs B -27.35 USDC NAV dilution on a 2k position)",
+    "manager registration registerWithUSDC() reverts; all 3 REP holders have commission=0 for every cycle and redeemCommission pays 0",
+    "arbitrary-calldata paths (sellLeftoverToken, withdrawTokenAdvanced, depositTokenAdvanced) revert",
+    "BSC PeakStaking mint cap exhausted: mintedPeakTokens=27499999999919103 vs cap 27500000000000000 (headroom 0.000809 PEAK); any >=1 PEAK stake reverts before minting; all 4 PEAK mint caps >=99.4% consumed",
+    "BSC staking withdraw(stakeIdx) is staker-only and there is no admin/withdraw-all function"
+  ],
+  "poc": {
+    "tests_passed": 9,
+    "tests_total": 9,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Global Fund 0x07cDB44fA1E7eCEb638c12A3451A3Dc9CE1400e4: 51,248.642016 USDC = 35,298.925965 investor capital + 13,546.478915 manager pool + 2,403.237136 referral pool (block 26186172)",
+    "NFT Fund 0xC120C7dB0804ae3AbEB1d5f9c9C70402347B4685: 58,985.681365 USDC = 27,705.453559 investor capital + 31,280.227706 referral pool (block 26186172)",
+    "BSC PeakStaking 0xe9428B8acaA6b9d7C3314D093975c291Ec59A009: 156,799,455.22979847 PEAK (~10,400 USD) + 1.70 USDT; stake() closed by mint cap (block 127472371)",
+    "Global Fund implementation chain: EIP-1167 proxy -> 0xa1dFf47E -> delegatecall 0x7CE70A3a -> 0xef4eF84d -> modules 0x80bBA403 (deposit/withdraw) / 0x2FC2528861 (nextPhase/referral)",
+    "Entitled referrer payout verified (H-O): 0xB4238F7C5B5E117CaB8a2AF7e414c8882316D37A received 226.60 USDC; NFT referrer 0xafb12c7cfa66d7eb824da1cb55fff64bb6be7c18 received 10,690.59 USDC for cycle 1 (sell phase only)",
+    "Manager pool 13,546.48 USDC has no claimer: all 3 REP holders (0x26D57f31..., 0x52524a45..., 0x176c344a...) have commission=0 for all cycles 1-20; redeemCommission/redeemCommissionForCycle pay 0 or revert",
+    "Referral pools are first-come-first-served and under-collateralised: global pool 2,403 vs ~15,613 of accrued raw balances; NFT pool 31,280 vs ~26,194 identified raw",
+    "PEAK DEX liquidity ~4k USD total (PancakeSwap PEAK/WBNB 4.65e15 PEAK + 4.18 WBNB; PEAK/BUSD 7.24e14 PEAK + 480.3 BUSD)",
+    "owner EOAs: Global Fund 0xEff81b475D97f8074F23d54cF465E65b4DD43b7D; NFT Fund 0xbC8bDC1c7B3E0A312BCe191AB2628d585E828f17; proxyAdmin 0x5D38653912Ca9Ce130bc954BDE8994a09f9bCD92 (same for both)"
+  ],
+  "caveats": [
+    "Fund implementation is unverified; behaviour established by debug_traceCall + fork simulation of every tested path, not by source review",
+    "Referral-pool H-O amounts are claimable only during the sell phase (next global sell window opens when anyone calls nextPhase() after 2026-11-04)",
+    "H-O amounts assume entitled parties still control their keys; PEAK leg is not realisable at mark given ~4k USD DEX liquidity",
+    "Manager-pool commission formula is opaque; S classification is based on exhaustive testing of every redemption entry point with all REP holders"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from PEAKDEFI: the two Ethereum funds' $110,234 USDC and BSC staking pool are reachable only by entitled share holders/referrers/stakers (H-O $107,066), the admin surface is a no-op, all PEAK mint caps are exhausted, and $13,543 of manager commissions has no claim path (S)."
+}
