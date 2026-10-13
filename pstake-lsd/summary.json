@@ -1,0 +1,40 @@
+{
+  "finding": "pstake-lsd",
+  "title": "pSTAKE LSD (stkBNB on BSC + stkXPRT on Persistence) — zombie custody deep dive",
+  "chains": ["bsc", "persistence"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 117842.37, "P": 4267.55, "S": 0},
+  "latest_block": 127472407,
+  "block_numbers": {"bsc": 127472407, "persistence": 29491114},
+  "targets_checked": 3,
+  "live_targets": 2,
+  "closed_reasons": [
+    "StakePool claim requests are per-owner (from = ERC777 sender); third parties cannot create or claim them",
+    "stkBNB mint/burn restricted to the StakePool (onlySender), so no free tokens to redeem",
+    "deposit/withdraw exchange-rate math truncates in the pool's favour (round trip loses 1 wei per 5 BNB)",
+    "epochUpdate permissionless but reverts (all 5 stake credits at 1 wei, stored stakes 1 wei, 0 earnings) and only mints fee tokens to the FeeVault",
+    "withdrawBNB/triggerRebalance/pause are DEFAULT_ADMIN_ROLE (2-of-3 Gnosis Safes); BOT functions cannot move funds to arbitrary addresses",
+    "Persistence liquidstake module: permissionless mint/redeem only, both math paths truncate against the user, fee 0, module active"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 5,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "BSC StakePool proxy 0xC228CefDF841dEfDbD5B3a18dFD414cC0dbfa0D8 (impl 0xc54a9c4ac81f55eb62e8670e5b376a263e320e38, upgraded 2025-03-13) holds 159.211388550510322716 BNB, all reserved as claimReserve",
+    "pending claims reconstructed from all 1988 Withdraw events: 176 users / 191 requests / 87.593098268523525468 BNB (H-O)",
+    "remaining stkBNB supply 62.641883505527747919 redeemable at 1.0514833643277688 BNB/stkBNB = 65.866898416220492850 BNB (H-O)",
+    "surplus 5.751291865766304398 BNB not attributable to any claimant/holder — admin-only via pause()+withdrawBNB (P)",
+    "V2 removed the 8-day claim cooldown (dead _canBeClaimed) so old V1 requests are immediately claimable by owners",
+    "no BNBWithdrawn event ever; DelegationManager balance 0; all stake credits 1 wei",
+    "Persistence liquidstake module: stkXPRT supply 748782.939653, net_amount 1117050.285846 XPRT (=$3972.71), mint_rate 0.670321604265029056, fee 0, module active (MsgLiquidStake 2026-10-02)"
+  ],
+  "caveats": [
+    "BSC figures are a snapshot at block 127472407; claims/redeems move the numbers (CI job re-derives them)",
+    "Persistence leg is source-level + live-state audit; no Cosmos fork PoC",
+    "USD values at 2026-10-13 DefiLlama prices (BNB $742.015, XPRT $0.003556)"
+  ],
+  "one_liner": "external unprivileged attacker can extract $0 live; the $118k in the BSC pool is other users' claim reserve + stkBNB backing (holder-recoverable), with only a 5.75 BNB admin-only surplus"
+}
