@@ -1,0 +1,45 @@
+{
+  "finding": "L2-Triage-A/geist-finance",
+  "title": "Geist Finance (Fantom) — zombie Aave V2 fork: staking-reward farm is the live E-U path; liquidations unprofitable",
+  "chains": ["fantom"],
+  "headline_extractable_usd": 603,
+  "headline_confidence": "medium-high",
+  "categories": {"E-U": 603, "H-O": 115428, "P": 0, "S": 15192},
+  "latest_block": 123678801,
+  "block_numbers": {"fantom": 123678801},
+  "targets_checked": 12,
+  "live_targets": 10,
+  "closed_reasons": [
+    "liquidation path closed: all 881 underwater borrowers with collateral are unprofitable to liquidate (collateral more over-valued than debt, or zero-cash WFTM collateral)",
+    "no permissionless function moves aToken cash to a non-holder",
+    "oracle frozen (Chainlink aggregators revert, Band base updates stale since 2024-12-03); updatePrice() is a no-op",
+    "all 9 reserves frozen since 2023-07-06 (last Borrow event block 65,236,379)"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 14,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38467704657",
+      "https://gitlab.com/group18185918/geist-finance-ci/-/pipelines/2943999650",
+      "https://github.com/kingmariano/ca-zombie-ci/actions/runs/38448429445"
+    ],
+    "note": "4 CI failures were public-RPC HTTP 429 rate limits, not logic; locally re-run and passing"
+  },
+  "key_facts": [
+    "E-U path: buy GEIST on SpookySwap (86.5M GEIST for 20,000 WFTM), stake(unlocked), getReward() after 1 week -> aTokens (aCRV 2.99M nominal, aMIM 6,513, aDAI 14.6, aETH 0.000026, aLINK 0.0063), redeem+sell -> 8,875 WFTM, unstake+sell GEIST -> net +8,813.8 WFTM (~$603) for one week",
+    "the aCRV redemption drains the entire 107,517 CRV cash (98% of aCRV supply sits in the staking contract) - one-time ~$344",
+    "recurring stream ~$260/week from aMIM/aDAI/aETH/aLINK interest on the treasury balances",
+    "liquidation screen: 2,421 live debtors; 905 with HF<1; 881 with HF<1 and collateral; ZERO pairs with >$1 estimated profit",
+    "largest realisable collateral positions (USDC 997,708; fUSDT 9,293; BTC 17.6) all carry WFTM debt (oracle/market ratio 1.57) which is unprofitable to repay",
+    "aToken cash ~$18.0M at frozen oracle prices but only 1,909,747 WFTM (~$110-131k) when dumped into the live SpookySwap+SpiritSwap pools",
+    "H-O split: withdrawable holders can realise ~$115k; ~$15k of cash is locked behind underwater borrowers (S)",
+    "treasury aTokens are streamed to stakers; the deployed staking contract exposes getReward() (0x3d18b912), not the array variant in the GitHub source",
+    "admin = 3-of-5 Gnosis Safe 0xC03253FFc57bC863c6F593bDCe394B533DF6a182; owner/timelock 0x7FB9a7cB... (delay 172800s)"
+  ],
+  "caveats": [
+    "the ~$603 first-cycle E-U includes a one-time CRV cash drain; steady-state is ~$260/week and shrinks as the aToken cash is consumed",
+    "market prices for the unbacked Multichain tokens are thin local DEX prices; a Multichain liquidation distribution could re-rate them",
+    "CI FANTOM_RPC_URL secret non-functional; scans/tests used keyless public endpoints (rpc2/rpc3.fantom.network)"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$603 in the first week (~$260/week recurring) by buying GEIST, staking it and claiming the treasury's aToken rewards; the liquidation path is $0 (all 881 underwater positions are unprofitable); ~$115k of aToken cash is holder-withdrawable (H-O)"
+}

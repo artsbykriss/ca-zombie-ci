@@ -1,0 +1,42 @@
+stages: [scan, poc]
+
+# Geist Finance (Fantom) — GitLab fallback CI (GitHub Actions account is billing-locked).
+# Stage 1: enumerate live borrowers (public RPC, read-only).
+# Stage 2: Foundry fork tests (Debian + foundryup; do NOT use foundry docker images here).
+
+scan:
+  stage: scan
+  image: debian:bookworm-slim
+  timeout: 2h
+  script:
+    - apt-get update -qq && apt-get install -y -qq curl python3 ca-certificates > /dev/null
+    - python3 --version
+    - mkdir -p ci-out
+    - python3 analysis/scan_borrowers.py > ci-out/scan-stdout.txt 2> ci-out/scan-stderr.txt; echo "scan exit=$?"
+    - tail -c 3000 ci-out/scan-stderr.txt || true
+    - ls -la ci-out/
+  artifacts:
+    when: always
+    paths:
+      - ci-out/
+    expire_in: 1 week
+
+poc:
+  stage: poc
+  image: debian:bookworm-slim
+  timeout: 1h
+  script:
+    - apt-get update -qq && apt-get install -y -qq curl git ca-certificates > /dev/null
+    - curl -sL https://foundry.paradigm.xyz | bash > /dev/null
+    - export PATH="$HOME/.foundry/bin:$PATH"
+    - foundryup -i stable > /dev/null 2>&1 || foundryup
+    - forge --version
+    - ls -la ci-out/ || true
+    - cd poc
+    - forge test -vvv
+  artifacts:
+    when: always
+    paths:
+      - ci-out/
+      - poc/out/
+    expire_in: 1 week
