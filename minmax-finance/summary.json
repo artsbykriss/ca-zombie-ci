@@ -1,0 +1,45 @@
+{
+  "finding": "MinMax Finance (L2 Phase-2, triage rank #19)",
+  "title": "MinMax Finance (IoTeX) — abandoned Saddle-fork StableSwap pools: $98.5k live, ~$0.04 extractable",
+  "chains": ["iotex"],
+  "headline_extractable_usd": 0.044,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.044, "H-O": 96704, "P": 1818, "S": 0},
+  "latest_block": 53359657,
+  "block_numbers": {"iotex": 53359657},
+  "targets_checked": 19,
+  "live_targets": 19,
+  "closed_reasons": [
+    "P1/P5/P9 at StableSwap equilibrium: best spot edge (+0.62%/+0.51%/+0.55%) is below the 0.66% round-trip market fee (Mimo 0.3%+0.3% + pool 0.06%); simulation negative at all sizes",
+    "Ethereum-bridged io* tokens are impaired by the 2026-02-21 ioTube hack and already trade at $0.54 (not $1); P1 holds four equally-impaired tokens at par = fair pricing",
+    "XIM has no liquid exit: three metapools independently imply XIM ~= $0.036; only exit is the MAX/XIM Mimo pair worth $0.72 total in WIOTX terms; 0 XIM transfers in last 40k blocks",
+    "Paused metapools (P4/P8/P10 + 5 more): swap/addLiquidity revert; only proportional removeLiquidity (LP-holder-only, H-O)",
+    "Admin fees $1,818: withdrawAdminFees() is onlyOwner (EOA 0x226f272a..., no outgoing tx for ~2 years)",
+    "No permissionless value-paying function in the Saddle v1 ABI; clones are initialised (re-init reverts)"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38492711664"],
+    "note": "5/5 verification checks passed on CI (state dump of 19 pools + 10 market pairs; closed-cycle extraction optimiser using the live pools' calculateSwap; Saddle-v1 math equivalence <25 wei; live TokenSwap liveness evidence; LP/admin accounting). IoTeX cannot be forked with anvil/foundry (node returns native fields foundry cannot unmarshal; state pruned >3000 blocks; eth_call state overrides unsupported) - no Foundry fork test exists; see poc/README.md."
+  },
+  "key_facts": [
+    "Architecture: Saddle v1 StableSwap fork on IoTeX; EIP-1167 clones of unverified implementation 0x0e62d07a666691ca2276adb729ca33b03779b2b15; A=200, swapFee=0.06%, adminFee=50% of fee",
+    "Pool set (19 live): 8 base pools + 11 metapools enumerated from archived frontend bundles (2022/2023), DefiLlama adapter f99db7b813, triage set, and clone-pattern probing of every IOTEX address in the bundles",
+    "owner() of base pools = EOA 0x226f272a2635523b9d50a8d2b481ced204b4d9c2, dormant ~2 years, holds 581 XIM; early pools owned by 0x025eda... / 0x3f8e52...",
+    "Market-priced live value ~= $98.5k vs triage $111,352 (DefiLlama maps ioUSDT/ioDAI to Ethereum underlyings at $1.00; real market $0.538/$0.54)",
+    "io-token market anchors (Mimo V2 vs WIOTX, all balanced): ioUSDC $0.540, ioBUSD $0.539, ioUSDT $0.538; BSC/Polygon stables ~$1 (BUSD-bsc $0.999, USDT_b $0.995, DAI-matic $0.995, USDT-matic $0.996)",
+    "Best fresh-attacker cycles: A8D ioUSDT->ioUSDC +6.36 WIOTX ($0.024); P7 USDT-matic->USDT_b +2.29 WIOTX ($0.009); P2 ioUSDC->ioBUSD +1.73 WIOTX ($0.007); P6 USDT_b->BUSD-bsc +1.29 WIOTX ($0.005); P11 +0.0013 WIOTX; all P1/P3/P5/P9 pairs negative",
+    "Admin fees accrued in pools: $1,818 total (P1 $929, P5 $489, P9 $301, rest ~$100) - owner-only",
+    "Live arbitrage bot 0x782e8Aa84ACc4006fF7b0cF45214B200234965D0 runs 5-hop cycles through P1/P5 (e.g. tx 0x4954f267... at block 53,342,593 netting +1.91 WIOTX), keeping the big pools within ~0.2% of equilibrium",
+    "Latent: if ioTube compensation re-rates io-tokens to ~$1, P1 becomes a ~$16k extraction target; if a XIM market appears at $0.61, metapools yield ~$140-600"
+  ],
+  "caveats": [
+    "Pool implementation 0x0e62d07a is unverified source; Saddle-v1 equivalence established behaviourally (calculateSwap/swapStorage/getVirtualPrice match exactly), not by source review",
+    "Pause semantics (removeLiquidity unblocked) taken from Saddle v1 source, not fork-verified (forking IoTeX is impossible with public RPCs)",
+    "IoTeX public RPC prunes historical state (<=3000 blocks) - all figures are point-in-time at the stated block",
+    "Pool set completeness: no factory/registry discoverable (explorer Cloudflare-gated, RPC history pruned); a pool created after 2023 and never in a frontend could be missed, though it would be a micro-metapool by pattern",
+    "Micro-arbitrage totals are the sum of best single cycles per pool; combining cycles can only reduce the total"
+  ],
+  "one_liner": "External unprivileged attacker can extract only ~$0.04 live from MinMax Finance: the $98.5k of abandoned StableSwap liquidity is at equilibrium with IoTeX's thin markets (io-tokens already priced at $0.54 after the ioTube hack, XIM has no exit), leaving only micro-imbalances in two early pools and the XIM metapools; $1,818 admin fees are owner-only and ~$97k is LP-holder-redeemable."
+}

@@ -1,0 +1,37 @@
+{
+  "note": "Direct liveness evidence for MinMax pool swap paths, gathered by targeted eth_getLogs at the latest block (2026-10-14). The babel RPC rate-limits large parallel log scans, so this file records the decisive targeted queries.",
+  "rpc": "https://babel-api.mainnet.iotex.io",
+  "token_swap_topic": "0xc6c1e0630dbe9130cc068028486c0d118ddcea348550819defd5cb8c257f8a38",
+  "queries": [
+    {
+      "pool": "P1_E4 0x89963FCD25Cd3b369A2e0642521BCA7Cf0B9d547",
+      "fromBlock": 53342500,
+      "toBlock": 53344500,
+      "events": 1,
+      "first_event": {
+        "block": 53342593,
+        "tx": "0x4954f267c8f191e8bf6b521bc90dcd65d71dbd4db6498592f1f1575f8765451f",
+        "decoded": "aggregator 0x782e8Aa8... swap ioUSDT(2)->ioUSDC(1): 5.900903 ioUSDT in -> 5.860142 ioUSDC out"
+      }
+    },
+    {
+      "pool": "P5_B3 0x09A1B7d922BcfECa097b06498Bc992A83b0BCc42",
+      "fromBlock": 53342500,
+      "toBlock": 53344500,
+      "events": 27,
+      "note": "27 swaps in ~2.8 hours: the pools are actively arbitraged"
+    },
+    {
+      "pool": "full-cycle tx 0x4954f267...",
+      "block": 53342593,
+      "route": "WIOTX -> USDT_b -> (P5) BUSD-bsc -> ioUSDT -> (P1) ioUSDC -> WIOTX",
+      "net": "+1.91045 WIOTX (profit paid out to caller 0x31c798ac...)",
+      "gas_used": 550463
+    }
+  ],
+  "allowance_probe": {
+    "allowance(ioUSDT, aggregator 0x782e8Aa8..., P1)": 0,
+    "allowance(ioUSDT, router 0x4278307e..., P1)": 0,
+    "note": "No residual allowances exist, and the IoTeX RPC ignores eth_call state overrides, so an end-to-end swap() eth_call from a synthetic funded caller is not possible; calculateSwap() (the pool's own view function) is used instead and matches the Saddle-v1 math to <25 wei."
+  }
+}
