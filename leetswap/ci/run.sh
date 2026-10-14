@@ -7,5 +7,7 @@ LEET_MAX_PAIRS="${LEET_MAX_PAIRS:-4600}" python3 ci/scan.py
 echo "== scan exit $? =="
 echo "== leet ecosystem =="
 python3 ci/leet_eco.py || echo "leet_eco failed"
+echo "== second factories (UniV2) =="
+python3 ci/second_factory.py || echo "second_factory failed"
 echo "== done =="
 ls -la ci-out/
