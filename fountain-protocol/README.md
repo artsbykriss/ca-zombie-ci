@@ -191,10 +191,18 @@ Preconditions for the only theoretical extraction (a liquidation) — all false/
 
 | Run | URL | Result |
 |---|---|---|
-| run 3 (`38497766124`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38497766124 | bytecode 28/28 ✓; enumeration ✓ (artifacts in `ci-out/`); Foundry suite 9/15 (4 RPC-429 infra failures + 2 test bugs, fixed) |
-| run 4 (`38502878256`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38502878256 | final: anvil-fork PoC + bytecode + enumeration |
+| run 3 (`38497766124`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38497766124 | bytecode 28/28 ✓; enumeration ✓ (artifacts in `ci-out/`); Foundry suite 9/15 (4 RPC-429 infra failures + 2 test bugs — fixed) |
+| run 4 (`38502878256`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38502878256 | anvil-fork PoC 14/15 (1 rounding constant — fixed); bytecode 28/28 ✓; enumeration ✓ |
+| run 5 (`38503750641`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38503750641 | final: full 15/15 PoC + bytecode + enumeration (artifacts `ci-out/fork-tests.log`, `ci-out/bytecode-verify.json`, `ci-out/enumeration.json`) |
 
-Test results (final run): _(to be filled from run 4 logs)_
+Key PoC results (run 4, 14/15 — run 5 = same suite with the rounding constant fixed):
+`test_A` state re-verification ✓ · `test_B` mint reverts `"mint is paused"` ✓ · `test_C` borrow reverts
+`"borrow is paused"` ✓ · `test_D` cToken transfer reverts `"transfer is paused"` ✓ · `test_E` `seize()` reverts
+`"seize is paused"` ✓ · `test_F` liquidation of a live-shortfall account reverts `"seize is paused"` ✓ ·
+`test_G` fresh `claimComp` pays 0 FTP ✓ · `test_H` supplier redeems 1,000 USDT (H-O) ✓ · `test_I` holder
+claims accrued FTP (H-O) ✓ · `test_J` usd markets dust + no shortfall ✓ · `test_K` empty-market inflation is a
+wash ✓ · `test_M` lpt bad debt locked ✓ · `test_N` admin paths privileged ✓ · `test_O` unprotected `sweepToken`
+cannot escalate to `seize()` ✓ · `test_L` Band oracle stale (fixed constant).
 
 ---
 

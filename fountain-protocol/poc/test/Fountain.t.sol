@@ -291,8 +291,9 @@ contract FountainForkTest is Test {
         (uint256 rate, uint256 lastBase,) = IBand(BAND).getReferenceData("ETH", "USD");
         assertApproxEqRel(rate, 1_742_936_894_706_000_000_000, 1e15); // 0.1% (raw Band rate)
         assertLt(lastBase, block.timestamp - 30 days, "band ETH stale >30d");
+        // the oracle truncates Band to 1e8 precision before scaling back up
         int256 p = IOracle(ORACLE_CLASSIC).getUnderlyingPrice(FETH_C);
-        assertEq(p, int256(1_742_936_894_710_000_000_000));
+        assertEq(p, int256(1_742_936_894_700_000_000_000));
         // ROSE price used by the protocol
         int256 pr = IOracle(ORACLE_CLASSIC).price("ROSE");
         assertEq(pr, int256(617_994));
