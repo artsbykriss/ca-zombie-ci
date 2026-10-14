@@ -1,0 +1,55 @@
+{
+  "finding": "fountain-protocol",
+  "title": "Fountain Protocol (Oasis Emerald) — Compound v2 fork frozen by guardian pauses; E-U $0",
+  "chains": ["oasis-emerald"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "H-O": 89197.28,
+    "P": 18424.24,
+    "S": 93366.1
+  },
+  "category_notes": {
+    "H-O": "suppliers may redeem market cash: $89,197.28 at protocol-oracle prices ($93,532.67 at market prices — matches the Phase-1 $93,533 row). Largest single claim 68,900 USDT (0xf8aae8d5…).",
+    "P": "market reserves (admin _reduceReserves) + pause/unpause and Timelock/EOA admin authority.",
+    "S": "lpt fROSE supplier claims 13.29M ROSE (cash ~0, liquidations blocked) = $82,159.80 oracle / $114,073.18 market; classic fUSDC claims above cash $11,070.56; classic fROSE claims above cash $135.74."
+  },
+  "latest_block": 22380248,
+  "block_numbers": {"oasis-emerald": 22380248},
+  "targets_checked": 28,
+  "live_targets": 15,
+  "closed_reasons": [
+    "classic comptroller: mintGuardianPaused+borrowGuardianPaused on all 4 markets; transferGuardianPaused=1; seizeGuardianPaused=1 (systemStop 2023-03-11, round 4896841)",
+    "lpt comptroller: same pauses (systemStop 2022-09-25, round 3015970/3015982)",
+    "no way to acquire cTokens (transfer paused; mint paused) => redeem/claim are holder-only",
+    "no liquidation possible (seizeAllowed reverts 'seize is paused') even though 3 underwater accounts exist (shortfalls $7,825 / $1,172 / $43)",
+    "claimComp pays only the caller's own accrued FTP (fresh address accrues 0; mining ended 2026-02-04)",
+    "usd comptroller is unpaused but holds $1.25; only borrower is over-collateralised (no shortfall); borrow requires >= collateral; empty-market inflation is a wash",
+    "all admin paths privileged (Timelock/EOA admin, FTPGuardian.guardian EOA); Unitroller pending impl = 0",
+    "deployed bytecode == published repo source (28/28 metadata-stripped matches, solc 0.5.16 opt200)"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 15,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Live cash in the 3 comptrollers at block 22,380,248: $89,197.28 at protocol-oracle prices / $93,532.67 at market prices",
+    "Pauses: classic mint+borrow paused per market since 2023-03-11, transfer+seize paused globally; lpt since 2022-09-25; usd never paused (dust)",
+    "Oracle: Band StdReference 0xda7a001b… last updated 2026-07-03; ETH oracle $1742.94 vs market $2504.79 (-30%); ROSE $0.00618 vs $0.00858 (-28%)",
+    "Bad debt: 246 accounts with live shortfall (total $16,748.41 protocol view at stale oracle); top: 0x4ec0306f… $7,825 (7,997 USDC debt vs 46,010 ROSE collateral); uncollectible while seize is paused",
+    "LPT oracle prices LP collateral from DEX spot reserves (manipulable) but all lpt markets are paused",
+    "FTP token (10B) is effectively worthless: only pool is YuzuSwap FTP/wROSE with 3,917 wROSE reserves (~$24 depth)",
+    "Jan 2026 liquidation attempts by 0x98c89980… failed with Failure(3,18,3) = COMPTROLLER_REJECTION/LIQUIDATE_COMPTROLLER_REJECTION/INSUFFICIENT_SHORTFALL",
+    "sweepToken (inherited pre-fix Compound, no admin guard) sends non-underlying token balances to admin; no market holds non-underlying ERC20s (CI scan) and the callback cannot escalate to seize() (caller must be a listed market) — no caller profit (fork-verified)",
+    "Bytecode: 28/28 deployed contracts match the published repo source (metadata-stripped), solc 0.5.16 optimizer 200"
+  ],
+  "caveats": [
+    "Point-in-time snapshot at block 22,380,248 (2026-10-14); balances/interest accrue",
+    "USD at protocol-oracle prices unless 'market' is stated; the oracle is stale (2026-07-03)",
+    "The admin EOAs (0xf750B9a7… for the classic Timelock; 0x4Ce41518… for usd/lpt) could unpause and enable liquidations — privileged-only latent risk",
+    "The fROSE markets are CEther-style; their underlying() reverts 'mint is paused' because the fallback attempts a paused mint (not a real underlying() function)"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live: both funded comptrollers are frozen (mint/borrow/transfer/seize paused since 2022-09/2023-03) and the only unpaused comptroller holds $1.25 with no profitable path; $89.2K remains holder-redeemable (H-O) and $93.4K is stuck (S)."
+}
