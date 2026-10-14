@@ -1,0 +1,51 @@
+{
+ "finding": "caviarnine-lsu-pool",
+ "finding_id": "L2-CaviarNine LSU Pool (Radix, non-EVM)",
+ "title": "CaviarNine LSU Pool (Radix) - stale-valuation sandwich via public price refresh",
+ "chains": ["radix"],
+ "headline_extractable_usd": 47.6,
+ "headline_confidence": "high",
+ "categories": {"E-U": 47.6, "H-O": 36338.0, "P": 43.04, "S": 0},
+ "latest_block": 563204896,
+ "block_numbers": {"radix_state_version": 563204896},
+ "targets_checked": 1,
+ "live_targets": 1,
+ "closed_reasons": [
+  "reserve vaults (141,678 XRD / $43.04) are owner-badge-only (take_from_reserve_vaults)",
+  "no free-withdrawal path: all value sits behind add/remove_liquidity share accounting or owner roles",
+  "swap path prices both legs at fresh validator redemption values and charges fees (no leak)",
+  "no negative stale gaps exist (all 82 cached prices <= fresh), so the reverse sandwich is unprofitable",
+  "credit receipts cannot be forged or inflated (NFT data updates restricted to global_caller(component))"
+ ],
+ "poc": {
+  "tests_passed": 2,
+  "tests_total": 2,
+  "ci_run_urls": [],
+  "tests": [
+   "preview: update_multiple_validator_prices(200) x2 adds +156,700.779 XRD to dex_valuation_xrd (permissionless refresh) - PASS",
+   "preview: atomic stake -> add_liquidity -> public refresh -> remove_liquidity on live mainnet with real funding account nets +1,219.501 LSU (~+1,495.75 XRD net of 5.384 XRD fee, ~$0.4543) - PASS"
+  ]
+ },
+ "key_facts": [
+  "Target: component_rdx1cppy08xgra5tv5melsjtj79c0ngvrlmzl8hhs7vwtzknp9xxs63mfp (LsuPool v1.0.0, package_rdx1pkfrtmv980h85c9nvhxa7c9y0z4vxzt25c3gdzywz5l52g5t0hdeey), Radix mainnet",
+  "Recorded dex_valuation_xrd 119,627,574.224120164155823961 XRD vs fresh value 119,784,293.063 XRD -> stale gap C = 156,718.84 XRD (0.1308%) at state version 563,204,896; measured refresh delta +156,700.78 XRD",
+  "C in USD at DefiLlama coingecko:radix 0.0003037594191718614 (2026-10-14) = $47.60; pool TVL fresh ~= $36.4K",
+  "Extraction formula profit_XRD = C * D/(V+D) - fees: max $47.60 (D->inf), ~$23.8 at D=V, ~$43.3 at D=10V",
+  "Demonstrated end-to-end with 1,280,000 XRD (~$389) capital: net +1,495.75 XRD (~$0.4543) in ONE atomic preview transaction; status Succeeded; 88.76M cost units; tx fee 5.384 XRD",
+  "update_multiple_validator_prices is PUBLIC (deployed interface + role assignments confirm); add_liquidity/swap require the allow-all 'user' role; remove_liquidity is PUBLIC",
+  "Pool holds 82 LSU resources; LSULP supply 97,447,941.266766377338962701; credit receipt NFTs 2,034; fees 1bp protocol / 5bp liquidity / 1bp reserve; no pause mechanism",
+  "Reserve vaults hold 141,678.09 XRD fresh (~$43.04), owner-badge-only (badge resource_rdx1nglan7djf0stpdm5pf3hzctlha366l3s5xllu9z04z6puctdg200m4, 3 NFTs minted, holders not enumerable via public Gateway)",
+  "Token validator component_rdx1cz7h8j68esue87jmq4fqpnx5403jujadewlqcn5cqxew80fwd5fgd has require_active=true (gates deposits of inactive-validator LSUs only)",
+  "Off-chain price check: stake_xrd_vault/lsu_supply equals the contract get_validator_price_lsu_xrd for all 82 resources (0 mismatches); sum(main vault * cached price) == dex_valuation_xrd to 1e-13",
+  "CaviarNine is sunsetting; price-refresh activity is sparse (5 prices per pool operation + any public refresh), so the gap persists and re-accrues ~32K XRD (~$9.7)/day",
+  "Deployed-vs-repo deviation observed on-chain in the credit-discount fee path: taxable=(payout-credit)/(1-liquidity_fee) and the 5bp liquidity fee is not deducted from the user payout (tiny, does not affect extraction math)"
+ ],
+ "caveats": [
+  "C and USD are point-in-time (state version 563,204,896 / epoch 349494, 2026-10-14); both drift with rewards and pool activity",
+  "The $47.60 headline is the theoretical stale-gap bound requiring capital >> pool TVL; the demonstrated net extraction with $389 capital is $0.4543; a capital-constrained attacker captures C*D/(V+D)",
+  "Preview simulations used a real live account only as a simulated funding source (assume_all_signature_proofs, use_free_credit); nothing was signed or submitted",
+  "Deployed bytecode source is not verified through the Gateway; behaviour verified in simulation; minor fee-formula deviation from the public repo documented",
+  "Gateway stream/transactions affected_global_entities filter proved unreliable in testing and was not used for any claim"
+ ],
+ "one_liner": "External unprivileged attacker can extract up to ~$47.60 live (stale-valuation gap C=156,718.84 XRD) from CaviarNine LSU Pool by depositing LSU at the stale pool valuation, calling the PUBLIC update_multiple_validator_prices refresh, and redeeming at the refreshed valuation; demonstrated end-to-end net +$0.4543 on $389 capital in one atomic transaction."
+}
