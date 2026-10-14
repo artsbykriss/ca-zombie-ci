@@ -133,6 +133,7 @@ PoCs are preview simulations against live mainnet state, never submitted.
 | `analysis/pool_state_snapshot.json` (rebuilt by `pull_state.py` → `vault_level.json`, `main_vault_balances.json`, `fresh_prices.json`, `cached_prices.json`, `lsu_info.json`, `validator_info.json`) | 82 vaults + cached vs fresh prices; C derivation; off-chain/on-chain price cross-check |
 | `analysis/snapshot_pool.py`, `analysis/pull_state.py`, `analysis/sandwich_preview.py`, `analysis/bech32m.py`, `analysis/extract_addrs.py` | Reproducible read-only scripts (public endpoints only) |
 | `ci/verify_live.py` + `ci/run.sh` | CI re-run: re-measures the gap and re-runs the sandwich simulation; results in `ci-out/` |
+| `ci-out/results.json` (CI run [38634433460](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38634433460)) | Independent reproduction on a GitHub runner: stale gap **+157,492.27 XRD**; sandwich **Succeeded**, net **+1,172.71 XRD** on 1,000,000 XRD capital |
 
 Key numbers from the successful simulation (`sandwich_preview.json`):
 
@@ -148,8 +149,11 @@ user received                1,041,067.745081926642543708 LSU
 net profit                   +1,219.501155753397103708 LSU ≈ +1,495.75 XRD ≈ $0.4543
 ```
 
-CI runs (public repo `artsbykriss/ca-zombie-ci`, branch `caviarnine-lsu-pool`): recorded in `summary.json`
-(`poc.ci_run_urls`) and `ci-log.txt`.
+CI runs (public repo `artsbykriss/ca-zombie-ci`, branch `caviarnine-lsu-pool`):
+**https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38634433460** — independent re-run on a GitHub runner
+(state version 563,225,826): stale gap **+157,492.27 XRD** measured by the public refresh; sandwich simulation
+**Succeeded** with 1,000,000 XRD capital → deposited 812,377.04 LSU, received 813,334.10 LSU, **net +957.059 LSU
+= +1,172.71 XRD** after 5.384 XRD fees (≈ $0.3562); artifact `ci-out/results.json`. Log: `ci-log.txt`.
 
 ---
 
