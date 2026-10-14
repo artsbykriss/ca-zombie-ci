@@ -1,0 +1,50 @@
+{
+ "finding": "L2-Triage-A row 45 (printr)",
+ "title": "Printr cross-chain launchpad — live unprivileged extraction screen",
+ "chains": ["ethereum", "base", "mantle", "bsc", "avalanche", "arbitrum", "monad"],
+ "headline_extractable_usd": 0,
+ "headline_confidence": "high",
+ "categories": {"E-U": 0, "H-O": 41238.2, "P": 37.56, "S": 0},
+ "latest_block": 26192609,
+ "block_numbers": {
+  "ethereum": 26192609,
+  "base": 52555856,
+  "mantle": 101919105,
+  "arbitrum": 514820494,
+  "bsc": 127565826,
+  "avalanche": 97514314,
+  "monad": 113248591
+ },
+ "targets_checked": 8,
+ "live_targets": 7,
+ "closed_reasons": [
+  "Treasury withdraw is gated on an immutable printr address = the core proxy (0xb77726...): attacker -> WrongAccess(), core -> success (fork-proven; same for legacy treasury)",
+  "Admin surface (pause/unpause/transferOwnership/renounceOwnership/upgradeToAndCall/updateGlobalProtocols) reverts OwnableUnauthorizedAccount for unprivileged callers; owner is EOA 0x8dd1886b...c273",
+  "Cross-chain mint path receiveFromChannel requires CREATE3 channel + protocol==2 + hard-coded Solana peer 0x27289e1d...3b5f (fork-proven: wrong peer -> UnauthorizedCaller, correct peer -> reaches parser)",
+  "Bonding-curve buy/sell math charges 1% each way with protocol-favouring rounding; buy->sell round trip always ends below start (fork-proven on 3 live Ethereum curves)",
+  "collectProtocolFees/collectLiquidityFees are permissionless to trigger but pay only protocol funds/creator NFT owner/stakers; attacker deltas = 0 (fork-proven)",
+  "printrDev creator-NFT mint from attacker reverts 0x878d41a8; telecoin teleportIn/Out are core-gated; permitWitnessCall binds the full call into the signed witness"
+ ],
+ "poc": {
+  "tests_passed": 5,
+  "tests_total": 5,
+  "ci_run_urls": [
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38617506210"
+  ]
+ },
+ "key_facts": [
+  "Same proxy 0xb77726291b125515d0a7affeea2b04f2ff243172 on all EVM chains (PrintrProxy ERC1967); impl/teleport/module are unverified and were audited via decompilation + live/fork execution",
+  "Treasury 0x8c843012b347664caf84b907053754208a933fee holds the curve reserves: ETH $10,485 (4.2646 WETH), Base $3,912, BSC $6,093 (8.28 WBNB), Avalanche $3,114 (312 WAVAX), Monad $6,149 (253,980 WMON), Mantle $10,970 (21,050 WMNT), Arbitrum ~$515 => ~$41.2k total (GoldRush 2026-10-14)",
+  "All four fee funds on Ethereum point at one address 0x65f7a87c6e055f55edd81fc01eee506f66acd4ab; tradingFee=1%, fee split team 70%/creator 30%",
+  "Only the LZ_FAST channel (0x69b20d72...c384) is deployed on Ethereum; LZ_SECURE/SLOW channels have no code",
+  "Legacy treasury 0xde420c83...1549 and the staking contract 0x49336345...b5d5 hold only dust ($0 / $0.02 on Base)",
+  "Measured accumulated protocol fees on 3 sampled Ethereum telecoins: 0.000659 / 0.013980 / 0.000637 WETH (~$38 total); unmeasured elsewhere, small"
+ ],
+ "caveats": [
+  "Deployed impl/teleport/module are unverified; conclusions rest on selectors, heimdall/evmole decompilation and live eth_call + fork execution of the deployed bytecode",
+  "Arbitrum treasury value ($515) carried from triage row (GoldRush HTTP 552 during this run)",
+  "P (protocol fees) only sampled on 3 Ethereum tokens; no full enumeration of 5,343 telecoins",
+  "Solana leg out of scope (EVM-focused screen)"
+ ],
+ "one_liner": "external unprivileged attacker can extract $0 live from Printr; ~$41.2k is bonding-curve reserve redeemable by telecoin holders (H-O), and every privileged/cross-chain/admin path is correctly gated and fork-verified"
+}
