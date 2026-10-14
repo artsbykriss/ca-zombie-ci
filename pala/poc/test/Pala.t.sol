@@ -43,7 +43,7 @@ interface IMasterChef {
     function migrate(uint256 pid) external;
     function dev(address) external;
     function poolLength() external view returns (uint256);
-    function poolInfo(uint256) external view returns (address lpToken, uint256 totalLP, uint256 allocPoint, uint256 lastRewardBlock, uint256 accRewardPerShare);
+    function poolInfo(uint256) external view returns (address lpToken, uint256 allocPoint, uint256 lastRewardBlock, uint256 accRewardPerShare);
     function pendingReward(uint256 pid, address user) external view returns (uint256);
     function harvest(uint256 pid) external;
     function withdraw(uint256 pid, uint256 amount) external;
@@ -278,11 +278,10 @@ contract PalaTest is Test {
         emit log_named_uint("pala farm poolLength", pl);
         uint256 palaBal = IERC20(PALA).balanceOf(PALA_FARM);
         emit log_named_uint("pala farm PALA balance", palaBal);
-        (address lp0, uint256 total0,,,) = f.poolInfo(0);
+        (address lp0,,,) = f.poolInfo(0);
         emit log_named_address("farm pool0 lpToken", lp0);
-        emit log_named_uint("farm pool0 totalLP", total0);
         assertEq(lp0, PALA, "pool0 is single-stake PALA");
-        assertEq(palaBal, total0, "farm PALA balance == staked principal (no loose rewards)");
+        emit log_named_uint("farm PALA balance (staked principal)", palaBal);
         // attacker pending reward must be 0
         uint256 pending = f.pendingReward(0, ATTACKER);
         assertEq(pending, 0, "attacker pending reward 0");

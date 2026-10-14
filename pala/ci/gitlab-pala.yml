@@ -27,7 +27,7 @@ poc:
       set +e
       for attempt in 1 2 3; do
         echo "=== forge attempt $attempt ==="
-        forge test -vvv --fork-retries 12 --fork-retry-backoff 2500 > ../ci-out/forge-pala.log 2>&1
+        forge test -vvv --rpc-url "$KAIA_RPC_URL" --fork-retries 12 --fork-retry-backoff 2500 > ../ci-out/forge-pala.log 2>&1
         RC=$?
         echo "forge exit=$RC"
         tail -n 200 ../ci-out/forge-pala.log
