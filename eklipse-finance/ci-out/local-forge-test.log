@@ -1,0 +1,80 @@
+=== local attempt 1 07:29:26
+No files changed, compilation skipped
+Error: could not instantiate forked environment with provider lb.drpc.org
+
+Context:
+- MPP HTTP request to https://lb.drpc.org/ failed: HTTP request failed: error sending request: error sending request: operation timed out
+=== local attempt 2 07:30:31
+No files changed, compilation skipped
+Error: could not instantiate forked environment with provider lb.drpc.org
+
+Context:
+- HTTP error 400 with body: {"id":0,"jsonrpc":"2.0","error":{"message":"the method eth_getBlockByNumber does not exist/is not available","code":-32601}}
+=== local attempt 3 07:31:20
+No files changed, compilation skipped
+Error: could not instantiate forked environment with provider lb.drpc.org
+
+Context:
+- MPP HTTP request to https://lb.drpc.org/ failed: HTTP request failed: error sending request: error sending request: operation timed out
+=== local attempt 4 07:32:52
+No files changed, compilation skipped
+[2m2026-10-14T06:35:03.500906Z[0m [31mERROR[0m [2msharedbackend[0m[2m:[0m Failed to send/recv `storage` [3merr[0m[2m=[0mfailed to get storage for 0xe59234EeDC854b3b37D48EFd8a529069C3990F83 at 111414077815863400510004064629973595961579173665589224203503662149373724986688: HTTP error 400 with body: {"id":119,"jsonrpc":"2.0","error":{"message":"the method eth_getStorageAt does not exist/is not available","code":-32601}} [3maddress[0m[2m=[0m0xe59234EeDC854b3b37D48EFd8a529069C3990F83 [3mindex[0m[2m=[0m111414077815863400510004064629973595961579173665589224203503662149373724986688
+[2m2026-10-14T06:35:03.500906Z[0m [31mERROR[0m [2msharedbackend[0m[2m:[0m Failed to send/recv `storage` [3merr[0m[2m=[0mfailed to get storage for 0xe59234EeDC854b3b37D48EFd8a529069C3990F83 at 111414077815863400510004064629973595961579173665589224203503662149373724986688: HTTP error 400 with body: {"id":119,"jsonrpc":"2.0","error":{"message":"the method eth_getStorageAt does not exist/is not available","code":-32601}} [3maddress[0m[2m=[0m0xe59234EeDC854b3b37D48EFd8a529069C3990F83 [3mindex[0m[2m=[0m111414077815863400510004064629973595961579173665589224203503662149373724986688
+[2m2026-10-14T06:35:03.500936Z[0m [31mERROR[0m [2msharedbackend[0m[2m:[0m Failed to send/recv `storage` [3merr[0m[2m=[0mfailed to get storage for 0xe59234EeDC854b3b37D48EFd8a529069C3990F83 at 111414077815863400510004064629973595961579173665589224203503662149373724986688: HTTP error 400 with body: {"id":119,"jsonrpc":"2.0","error":{"message":"the method eth_getStorageAt does not exist/is not available","code":-32601}} [3maddress[0m[2m=[0m0xe59234EeDC854b3b37D48EFd8a529069C3990F83 [3mindex[0m[2m=[0m111414077815863400510004064629973595961579173665589224203503662149373724986688
+
+Ran 5 tests for test/Eklipse.t.sol:EklipseExploitTest
+[FAIL: EvmError: Revert] test_exploit_kdai_drain_meta() (block: 229756919) (gas: 370547)
+Logs:
+  already on Kaia fork, block.number: 229756919
+  meta pUSD reserve: 10403963277985893319479
+
+[FAIL: EvmError: Revert] test_exploit_ousdc() (block: 229756919) (gas: 361590)
+Logs:
+  already on Kaia fork, block.number: 229756919
+
+[FAIL: EvmError: Revert] test_max_extraction_kdai_10k() (block: 229756919) (gas: 358983)
+Logs:
+  already on Kaia fork, block.number: 229756919
+
+[PASS] test_negative_control_base_swap() (gas: 67560)
+Logs:
+  already on Kaia fork, block.number: 229756919
+  1000 KDAI -> 903469892 oUSDT
+  in USD: 96350000000000000000  out USD: 94945650950280000000
+
+[PASS] test_snapshot_state() (gas: 282781)
+Logs:
+  already on Kaia fork, block.number: 229756919
+  block.number: 229756919
+  base pool tokens: 0x5c74070FDeA071359b86082bd9f9b3dEaafbe32b 0xceE8FAF64bB97a73bb51E115Aa89C17FfA8dD167 0x754288077D0fF82AF7a5317C7CB8c444D421d103
+  base KDAI  : 269073987159932380726533
+  base oUSDT : 30328098765
+  base oUSDC : 1662025719
+  base LP supply: 285741485454393026202371
+  base virtual price: 1041313016005439079
+  meta baseLP: 9131924991930958710
+  meta pUSD  : 10403963277985893319479
+  meta virtual price: 1057825823300497656
+  meta A: 200 base A: 2000
+  base paused: false meta paused: false
+
+Suite result: FAILED. 2 passed; 3 failed; 0 skipped; finished in 22.21s (67.74s CPU time)
+
+Ran 1 test suite in 24.11s (22.21s CPU time): 2 tests passed, 3 failed, 0 skipped (5 total tests)
+
+Failing tests:
+Encountered 3 failing tests in test/Eklipse.t.sol:EklipseExploitTest
+[FAIL: EvmError: Revert] test_exploit_kdai_drain_meta() (block: 229756919) (gas: 370547)
+[FAIL: EvmError: Revert] test_exploit_ousdc() (block: 229756919) (gas: 361590)
+[FAIL: EvmError: Revert] test_max_extraction_kdai_10k() (block: 229756919) (gas: 358983)
+
+Encountered a total of 3 failing tests, 2 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 3 failed tests
+Tip: Run `forge test --debug --match-test <TEST_NAME>` to inspect one failing test in the debugger
+=== local attempt 5 07:35:18
+No files changed, compilation skipped
+Error: failed to retrieve chain ID from fork endpoint
+
+Context:
+- MPP HTTP request to https://lb.drpc.org/ failed: HTTP request failed: error sending request: error sending request: operation timed out

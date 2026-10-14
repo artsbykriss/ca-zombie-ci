@@ -1,0 +1,69 @@
+{
+  "finding": "L2B-eklipse-finance",
+  "title": "Eklipse Finance (Kaia) \u2014 zombie Saddle-style StableSwap: meta-pool prices the depegged base LP at par; permissionless LP-dump drains all 10,403.96 pUSD",
+  "chains": [
+    "kaia"
+  ],
+  "headline_extractable_usd": 9493.74,
+  "headline_confidence": "high",
+  "gross_extractable_usd": 10406.6,
+  "categories": {
+    "E-U": 10406.6,
+    "H-O": 31438.06,
+    "P": 212.7,
+    "S": 0
+  },
+  "category_notes": {
+    "E-U": "Meta pool 0xe59234EeDC854b3b37D48EFd8a529069C3990F83 holds 10,403.963278 pUSD (real $1.00025 stable). Any unprivileged account can mint base-pool LP from cheap depegged tokens (KDAI $0.09635, oUSDT $0.10509, oUSDC $0.29620) and swap it in the meta pool: on-chain calculateSwap(0,1,1 LP)=222.43 pUSD vs fair LP value $0.10361. Fork PoC: 8,000 KDAI ($770.80) -> 7,428.38 LP -> 10,264.54 pUSD => net +$9,493.74; 10,000 KDAI ($963.50) -> 10,383.95 pUSD, leaves 20.01 pUSD in pool (99.8% drained) => net +$9,420.45; 1,700 oUSDC ($503.54) -> 6,179.49 pUSD => net +$5,675.95. Headline = net at the optimum (8,000 KDAI).",
+    "H-O": "Base pool 0x4F5d9F3b (KDAI 268,996.60 + oUSDT 30,401.01 + oUSDC 1,661.05 = $29,604.79) is withdrawable by baseLP holders via removeLiquidity (proportional; permissionless for LP holders); plus p3 0x323fdda2 ($41.56) + p4 0x5B4ed832 ($1,788.80) + p5 0x29c6Eb80 ($2.91) for their own LP holders = $31,438.06. BaseLP held by meta/p6-p9 (~$627) is a claim on the base pool, already counted.",
+    "P": "Base pool getAdminBalances() = 828.213 KDAI + 1,043.829 oUSDT + 78.317 oUSDC = $212.70, fully backed by the pool balance, withdrawable only by owner EOA 0x024dfd23bf033d3ae3e9a1e41244ffcb6f6671ea via withdrawAdminFee(). Meta pool admin balances = 0. Owner can also pause() all pools (EOA, no timelock).",
+    "S": "KSD (40,363.64 + 1,446.84), KASH (676,714.07 + 7.74), oBUSD (11.94 + 0.23), USDK (4.59e9), EKL (16.5M staked) and the EKL pool2 LP tokens are unpriced with no market (DefiLlama tracks no price; no exit venue found) - value not realisable by anyone. Also S: p3/p4/p5 recorded adminBalances exceed their actual balances (p3: 6,232.19 KDAI admin vs 264.03 held; p5: 756.23 oBUSD admin vs 7.74 held) -> phantom fees, withdrawAdminFee() would revert."
+  },
+  "latest_block": 229754867,
+  "block_numbers": {
+    "kaia": 229754867
+  },
+  "fork_block": 229753258,
+  "triage_block": 229512567,
+  "targets_checked": 9,
+  "live_targets": 9,
+  "live_total_priced_usd": 42471.69,
+  "closed_reasons": [
+    "Base pool 0x4F5d9F3b swap rates are market-efficient: 1,000 KDAI -> 908.94 oUSDT (in-USD $96.35 vs out-USD $95.52, loss) \u2014 no direct swap extraction (fork-verified negative control).",
+    "No admin/upgrade path for outsiders: pool owner() is EOA 0x024dfd23bf033d3ae3e9a1e41244ffcb6f6671ea (0 bytes of code), no proxy slots, no migrateTo/setFee reachable, only pause/fee withdrawal are owner-gated.",
+    "No whitelist/blacklist/KYC functions in the deployed ABI; paused()==false on all 9 pools; no allowance preconditions (pools pull via transferFrom after approve).",
+    "Junk-token pools p3-p9 are gated by tokens (KSD/KASH/oBUSD/USDK) that DefiLlama does not price and for which no market/exit venue was found \u2014 their $2.5k of KDAI/oUSDT/oUSDC/baseLP is not extractable without acquiring those tokens.",
+    "EKL staking 0xD067C3b8 and pool2 0x625ae904 pay only EKL, which is unpriced/unmarketable ($0).",
+    "Triage figure $80,359.22 is overstated: the DefiLlama adapter's vaults list contains 0x4F5d9F3b twice, and the triage summed owners without de-duplication (double-counted KDAI+oUSDT+oUSDC = ~$31,342)."
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": [],
+    "notes": "Local Foundry fork run (Kaia mainnet state) 5/5 PASS at block 229753258; CI run URLs appended when the GitHub Actions run completes. Tests: snapshot, KDAI-drain (8k), oUSDC path, max-extraction (10k), base-pool negative control."
+  },
+  "key_facts": [
+    "Implementation: Saddle-Finance-style StableSwap (Curve fork) \u2014 dispatcher selectors match Saddle Swap v2 ABI: swapStorage/getTokens/getTokenBalances/getTokenPrecisionMultipliers/getVirtualPrice/getA/addLiquidity(uint256[],uint256,uint256)/removeLiquidity*/calculateSwap/calculateTokenAmount + Ownable/Pausable.",
+    "Meta pool 0xe59234EeDC854b3b37D48EFd8a529069C3990F83: tokens [baseLP 0xd83b9dFa49D6C6d2A69554576e712E45A8A13E49, pUSD 0x168439b5eebe8c83db9eef44a0d76c6f54767ae4]; reserves 9.131925 LP + 10,403.963278 pUSD; A=200; vp=1.057825812; fee=0.06%; unpaused.",
+    "Meta pool getTokenPrecisionMultipliers()[0] = base_pool.getVirtualPrice() = 1.041312951e18 (dynamic par pricing of the LP) while the LP's real market value is $0.10361 (base pool $29,604.79 / 285,741.485 LP).",
+    "Exact Saddle invariant model (A=200, D=meta_vp x metaLP_supply) reproduces on-chain calculateSwap to 9 decimals with implied fee = 0.0006000 constant across sizes 0.001-100 LP.",
+    "Extraction cap = meta pool pUSD balance 10,403.963278 ($10,406.60 at DL $1.00025); after a 10,000-KDAI dump only 20.01 pUSD remains.",
+    "pUSD is a real $1 stable (DL price $1.0000-1.0003 flat over 30d, conf 0.99, supply 1,663,773; 10.4k = 0.63% of supply).",
+    "Input tokens are depegged: KDAI $0.09635 (30d range 0.0921-0.1061), oUSDT $0.10509, oUSDC $0.29620; base LP real value $0.10361.",
+    "Roles: owner = EOA 0x024dfd23bf033d3ae3e9a1e41244ffcb6f6671ea (base/meta/p6-p9) and EOA 0xfd914b8463a2d22dd654da360c56913f31b3936e (p3-p5); feeDistributor 0x5a7b01f95a25d1aba0bb86ae214b83f6f7df7836; paused=false on all pools.",
+    "Pool inventory (9 pools): base KDAI/oUSDT/oUSDC; meta baseLP/pUSD; p3 oBUSD/KDAI/oUSDT/oUSDC; p4 KSD/KDAI/oUSDT/oUSDC; p5 KASH/KDAI/oUSDT/oUSDC; p6 baseLP/KSD; p7 baseLP/KASH; p8 baseLP/oBUSD; p9 baseLP/USDK.",
+    "Live priced custody $42,471.69 (base $29,604.79 + meta pUSD $10,406.60 + p3 $41.56 + p4 $1,788.80 + p5 $2.91 + baseLP held by other pools $627.04 at real value $0.10361/LP); junk tokens unpriced.",
+    "The opportunity is static: meta pUSD balance identical (10,403.963278) across all reads over >=6h and across >=3 blocks; nobody has taken it.",
+    "Attack is permissionless and cheap: ~0.8M gas on Kaia (<<$0.01); no flash loan required; ~$770-960 of KDAI buys the full drain.",
+    "p3/p4/p5 admin-fee accounting is broken: recorded adminBalances exceed actual pool balances (fees consumed by LP withdrawals) -> withdrawAdminFee() would revert; base pool admin fees ($212.70) are fully backed."
+  ],
+  "caveats": [
+    "USD values use DefiLlama prices at 2026-10-14 (KDAI $0.09635, oUSDT $0.10509, oUSDC $0.29620, pUSD $1.00025).",
+    "Net profit depends on KDAI acquisition slippage and pUSD exit price; both are liquid but finite-depth (KDAI 30-day traded range $0.092-0.106 suggests a functioning market; 10% slippage still leaves ~$9.4k net).",
+    "PoC funds the attacker with deal() to simulate the market purchase; the cost is accounted at the DefiLlama market price. The on-chain path itself (addLiquidity + swap) is executed with real contract calls on a fork.",
+    "KSD/KASH/oBUSD/USDK/EKL have no DefiLlama price and no market was located; if any becomes tradable, the p3-p9 pools (~$2.5k) become extractable too (latent).",
+    "The meta pool's swap math was validated against calculateSwap (view) and executed via swap() in the fork PoC \u2014 the two agree.",
+    "Fork block drifts between runs; conclusions reproduced at blocks 229750245, 229753258 and 229754867."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$9,494 net (~$10,407 gross) live from Eklipse Finance on Kaia: the meta pool prices the depegged base LP at par (1.0413) while its real value is $0.1036, so buying ~8-10k KDAI (~$770-960), minting base LP and swapping it in the meta pool drains all 10,403.96 pUSD \u2014 fork-verified 5/5; the remaining ~$31.4k is LP-holder-recoverable (H-O), $213 is owner fees (P), and the junk-token pools (~$2.5k) are gated by unmarketable tokens."
+}

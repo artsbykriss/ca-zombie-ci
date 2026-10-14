@@ -1,0 +1,16 @@
+stages: [poc]
+
+poc:
+  stage: poc
+  image: debian:bookworm-slim
+  timeout: 1h
+  script:
+    - apt-get update -qq && apt-get install -y -qq curl git ca-certificates python3
+    - curl -L https://foundry.paradigm.xyz | bash
+    - export PATH="$HOME/.foundry/bin:$PATH"
+    - foundryup -i stable
+    - forge --version
+    # ci/run.sh probes Kaia RPCs (by-hash capable first), writes /tmp/kaia-rpc.txt and runs the PoC
+    - bash ci/run.sh || true
+    # the plain forge test is the pass/fail gate (reads /tmp/kaia-rpc.txt written above)
+    - cd poc && forge test -vvv
