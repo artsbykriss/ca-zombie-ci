@@ -1,0 +1,42 @@
+stages: [poc]
+
+# Pala (Kaia) fallback CI: live-state probe + Foundry fork PoC.
+# Debian + foundryup pattern (foundry docker image breaks the runner wrapper).
+poc:
+  stage: poc
+  image: debian:bookworm-slim
+  timeout: 2h
+  script:
+    - apt-get update -qq && apt-get install -y -qq curl git ca-certificates python3
+    - curl -L https://foundry.paradigm.xyz | bash
+    - export PATH="$HOME/.foundry/bin:$PATH"
+    - foundryup -i stable
+    - forge --version
+    - mkdir -p ci-out
+    - python3 ci/probe_state.py > ci-out/probe.log 2>&1 || echo "probe failed"
+    - |
+      PICK=""
+      for u in "https://rpc.ankr.com/kaia" "https://klaytn.drpc.org" "https://public-en.node.kaia.io"; do
+        r=$(curl -s -m 15 -X POST -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' "$u" 2>/dev/null || true)
+        case "$r" in *result*) PICK="$u"; break;; esac
+      done
+      if [ -n "$PICK" ]; then export KAIA_RPC_URL="$PICK"; echo "Kaia fork RPC selected: $PICK"; else echo "WARNING: no Kaia RPC"; fi
+    - sleep 5
+    - cd poc
+    - |
+      set +e
+      for attempt in 1 2 3; do
+        echo "=== forge attempt $attempt ==="
+        forge test -vvv --fork-retries 12 --fork-retry-backoff 2500 > ../ci-out/forge-pala.log 2>&1
+        RC=$?
+        echo "forge exit=$RC"
+        tail -n 200 ../ci-out/forge-pala.log
+        [ $RC -eq 0 ] && break
+        sleep 15
+      done
+      exit $RC
+  artifacts:
+    when: always
+    paths:
+      - ci-out/
+    expire_in: 7 days

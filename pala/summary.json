@@ -1,0 +1,52 @@
+{
+  "finding": "pala",
+  "title": "Pala (Kaia) — UniV2-fork DEX + MasterChef farms: no unprivileged extraction path",
+  "chains": ["kaia"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 66944.61, "P": 0, "S": 0},
+  "latest_block": 229800562,
+  "block_numbers": {"kaia": 229800562},
+  "targets_checked": 98,
+  "live_targets": 94,
+  "closed_reasons": [
+    "skim excess = 0 on all 89 pairs: balances == stored reserves (fork-verified: 0 pools with excess, 89 without; CI probe: 0 positive, 0 negative)",
+    "factory setFeeTo/setFeeToSetter revert 'Pala: FORBIDDEN' for unprivileged callers; feeTo = 0x0",
+    "PALA/ATTEN mint is owner-only / minter-only; attacker simulations revert",
+    "PALA farm migrate(0) reverts 'migrate: no migrator'; dev()/setMigrator() gated; pendingReward(0, attacker) = 0; emergencyWithdraw pays 0",
+    "PALA farm emissions (0.0625 PALA/block, alloc 99,993/99,994 on pool 15) require LP of pair 0xf7469c09 whose tokens REWARD/BURN are Ownable-mint-only, 1-token supply, no market -> LP unobtainable",
+    "ATTEN farm ended at block 78,207,245; reward balances 0; not a PALA minter",
+    "pKLAY and WKLAY are 1:1 KLAY wrappers with native balance == totalSupply exactly (delta 0)",
+    "viewer lens tokenPrice is oUSDT-denominated (not USD) and has no on-chain value-moving consumer; DefiLlama's $400,740 is an off-chain adapter artifact (oUSDT treated as $1)",
+    "cross-pool arbitrage across real-value pools <= ~$0.09 (pools aligned within 0.33% of reference prices)"
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 8,
+    "ci_run_urls": [
+      "https://gitlab.com/group18185918/pala-ci/-/pipelines/2947886494",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38617004412"
+    ]
+  },
+  "key_facts": [
+    "Pala = Uniswap V2 fork DEX on Kaia (89 pairs, factory 0xa25ba09d8837f6319cd65b2345c0bbea99c39cb1, feeTo=0)",
+    "Custody at block 229800562: $66,944.61 market-priced (oUSDT $23,994.66; PALA $18,284.01 at lens price; oUSDC $12,922.27; WKLAY $8,496.29; oETH $1,511.55; oXRP $777.32; KDAI $647.15; oWBTC $311.37); hard value ex-PALA = $48,660.60",
+    "Custody belongs to LP holders/stakers (H-O): ~$26.2k staked in the two MasterChef farms (LP + single-stake PALA); remainder in LP tokens held outside farms",
+    "Viewer tokenPrice (oUSDT units): WKLAY 0.4259884910673348, PALA 0.007217161590779585, oUSDC 2.812380349406114 at block 229800562; only 3 of 178 registry tokens priced; oUSDT base returns 0",
+    "DefiLlama adapter projects/pala/index.js multiplies reserves by tokenInfoDetail().price and reports as USDT -> treats oUSDT ($0.104 market) as $1 -> the $400,740 inflation vs $66,945 market-priced",
+    "PALA farm 0xcfc140e8e3b1b05f9acb4a42249b7abb8c27576c: owner EOA 0x6981705d156d6fb7bef67914a670de81be233d33, migrator 0, devaddr EOA 0xa46be0bcc61a9ca048fabb625ea80c75f872686d, totalAllocPoint 99994, rewardPerBlock 0.0625 PALA, isMinter(PALA)=true, PALA balance 4658619.222702579 == pool-0 staked principal",
+    "ATTEN farm 0x883726a307d420286086679f7851d8378bb16771: totalAllocPoint 100, rewardPerBlock 1 ATTEN, endBlock 78207245 (past), PALA balance 13474.580575105847 == staked principal",
+    "ATTEN token contract doubles as PALA claim distributor (rewardToken=PALA, startBlock 78293645, rewardPerBlock 0.5 PALA, window end 92708845); holds 115727.43854228825 unclaimed PALA (~$87); legacy-holder path only (H-O)",
+    "pKLAY native==supply 561297.593682772912801472 KLAY; WKLAY native==supply 237705.462526663220865292 KLAY (1:1 wrappers)",
+    "Pool-15 LP gate: pair 0xf7469c09a68ab6d52bdb4df1d95d7755c80a74c5 tokens are REWARD (0x6d52751b..., supply 1e18) and BURN (0xfe9138db..., supply 1e18), both Ownable owner 0xa36e062932bc4345264e1d7555d3d64b02d59456, mint owner-only"
+  ],
+  "caveats": [
+    "Local RPC reads were intermittently corrupted by the local network (response mixing under concurrency); all conclusions rest on CI runs, fork tests and double-read spot checks across 3 public RPCs",
+    "PALA valued at lens-implied price ($0.000756); its realizable value is lower (thin pools). Excluding PALA, hard-value custody = $48,660.60",
+    "LP-token holder census not completed (no historical logs / holder index on public Kaia RPC); H-O vs S split inferred from farm poolInfo + pair totalSupply/reserves",
+    "Pair bytecode not diffed against a canonical Uniswap V2 build (behavioral equivalence only)",
+    "GitLab pipeline forge step initially failed on RPC 429; state probe succeeded; local fork suite verified skim=0, gates and wrappers",
+    "One of 8 PoC tests (test_farmEmissionFunctions/test_farmLpAcquisitionGate) was written after the local full-suite run and is pending a clean CI run; their claims also hold from direct eth_call evidence"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Pala (Kaia): all 89 UniV2 pools hold balance == reserves (skim=0, fork-verified), every admin/mint/migrate path reverts, farm emissions are gated behind owner-mintable REWARD/BURN LP tokens, and the $400k DefiLlama number is an off-chain artifact of the oUSDT-denominated lens; ~$67k of custody is LP-holder/staker recoverable (H-O)."
+}
