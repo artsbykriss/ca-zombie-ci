@@ -1,0 +1,104 @@
+{
+  "finding": "L-2 / reactorfusion (zombie-hunt II, Phase 2)",
+  "title": "ReactorFusion Compound-v2 fork (zkSync Era + Telos) \u2014 live extraction audit",
+  "chains": [
+    "era",
+    "telos"
+  ],
+  "headline_extractable_usd": 0.5,
+  "headline_confidence": "high",
+  "headline_note": "E-U is dust liquidation bonuses: ~$1.77 gross on zkSync Era + ~$0.50 gross on Telos. Era gas (~0.045 gwei, ~250-400k gas per liquidation = $0.03-0.10) eats most of it: net Era $0.0-0.5, net Telos $0.3-0.5 -> net total ~$0.5 (range $0.1-1.0). The protocol's $283k cash is NOT reachable by an unprivileged attacker today.",
+  "categories": {
+    "E-U": 0.5,
+    "H-O": 282709.92,
+    "P": 0,
+    "S": 230.0
+  },
+  "categories_note": {
+    "E-U": "liquidation bonus on genuinely underwater positions, NET of estimated gas: Era ~$1.77 gross -> $0.0-0.5 net; Telos ~$0.50 gross -> $0.3-0.5 net",
+    "H-O": "suppliers' self-service redemptions: Era cash $282,709.92 + Telos cash $615.10 (suppliers' full claim is $394.6k Era; the rest is borrowed out)",
+    "P": "admin/timelock/EOA can upgrade cTokens (delegate `_setImplementation`), swap oracle, take reserves \u2014 privileged, not quantified",
+    "S": "unliquidatable bad debt (Era shortfall with zero collateral \u2248 $222 + Telos uncovered \u2248 $8) \u2014 a supplier loss, not attacker gain"
+  },
+  "latest_block": 72486559,
+  "block_numbers": {
+    "era": 72486559,
+    "era_state_dump": 72476087,
+    "era_positions_scan": 72477761,
+    "telos": 493857202
+  },
+  "targets_checked": 2,
+  "live_targets": 2,
+  "live_cash_usd": {
+    "era": 282709.92,
+    "telos": 615.1,
+    "total": 283325.02,
+    "note": "at DefiLlama market prices 2026-10-14; at oracle prices Era cash = $290,245"
+  },
+  "closed_reasons": [
+    "Era oracle is a live Chainlink latestAnswer() reader (5 feeds updated within hours at read time) \u2014 no stale-price borrow-and-default",
+    "borrow-and-default needs cf*oracle/market>1; live max 0.850 (USDC.e/USDT/USDC), 0.80 (ETH/WBTC), 0.60 (ZK)",
+    "no market is deprecated (cf>0, borrow not paused, reserveFactor != 1e18) \u2014 healthy positions cannot be liquidated",
+    "liquidations are permissionless but the live underwater set is dust (largest realistic single profit $0.096); the two largest shortfalls have zero collateral (LIQUIDATE_SEIZE_TOO_MUCH revert)",
+    "admin paths (oracle swap, comptroller/cToken upgrade, takeReserves, _reduceReserves, reserve factor, pause) are timelock- or admin-gated; attacker calls revert or return non-zero error",
+    "RewardDistributor holds 0 ETH/USDC/USDT/WBTC; fresh-account harvest returns 0; RF (ES33) token is unpriced/unlisted",
+    "Telos oracle (DIA) can only be written by DIA's updater EOA; stale 7.5-8.3 days but not manipulable; Telos closeFactor=1.0 but profit is dust"
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "tests_note": "poc/test/ReactorFusionMath.t.sol 6/6 pass (fork-free). poc/test/ReactorFusionLive.t.sol self-skips (standard Foundry cannot execute EraVM bytecode; probe documented). Executable PoC = ci/live_verify.py live-node eth_call verification + state-override liquidation simulation.",
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38650040607",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38647330757"
+    ],
+    "ci_verified": {
+      "block": 72487261,
+      "feeds_scaled_ok_all": true,
+      "feeds_age_s": {
+        "ETH/USD": 2500,
+        "BTC/USD": 684,
+        "USDC/USD": 29831,
+        "USDT/USD": 29576,
+        "ZK/USD": 703
+      },
+      "gates_reverted_or_unauthorized": [
+        "borrow_without_collateral(rfETH,rfUSDCe)",
+        "takeReserves(attacker)",
+        "setPriceFeed(attacker)",
+        "_reduceReserves(attacker)",
+        "_setPriceOracle(attacker)=UNAUTHORIZED(1)",
+        "harvest(fresh)=0"
+      ],
+      "borrow_power_per_market_dollar": {
+        "rfUSDCe": 0.850113,
+        "rfETH": 0.790613,
+        "rfWBTC": 0.797273,
+        "rfUSDT": 0.849663,
+        "rfZK": 0.609126,
+        "rfUSDCz": 0.850123
+      },
+      "underwater_sample": {
+        "accounts": 12,
+        "gross_profit_usd": 0.3282,
+        "largest_usd": 0.0731
+      }
+    }
+  },
+  "key_facts": [
+    "ReactorFusion is a Compound v2 fork, wind-down announced; no exploit ever reported (analysis/incident-research.md)",
+    "verified deployed source == github.com/ReactorFusion/reactorfusion-contracts (Comptroller.sol/CToken.sol diff = 0)",
+    "fork emits Borrow/RepayBorrow/LiquidateBorrow from the Comptroller (cTokens emit none) \u2014 borrower enumeration must use txs",
+    "Era cash: 84.15 ETH ($205.5k) + 11.5k USDC.e + 17.5k USDT + 0.1475 WBTC + 2.19M ZK + 2.9k USDC = $282.7k at market prices",
+    "Era oracle: SimplePriceOracle = feed.latestAnswer()*10**(36-feedDec-cTokenDec) with NO staleness check; feeds live (ETH/USD updated ~30 min before read)",
+    "Era admin = OZ TimelockController 0xeE568575A8DaeF55D2fac121FD2362dF6BbB5Db5 (minDelay 86400s); oracle owner and rfZK/rfUSDCz cToken admin = EOA 0x99999A3C4cB8427c44294Ad36895b6a3A047060d (also Telos admin)",
+    "realistic Era liquidation profit: $1.77 across 59 accounts (largest $0.096), recomputed with protocolSeizeShare 2.8% and oracle-vs-market gaps",
+    "Telos: DIA oracle stale 7.5-8.3 days, updater-only writes; 13 underwater accounts, ~$0.50 profit; cash $615"
+  ],
+  "caveats": [
+    "The Era liquidation total is bounded by the collateral found in the phase-2 account scan (1,863 accounts read; 1,497 with positions; top-1200 collateral holders per market). The rfETH market's debt attribution was incomplete ($69k); a gap crawl re-enumerates borrowers in the missing block ranges (analysis/era-crawl/) and a targeted live check of the largest net-principal borrowers was run (analysis/era-crawl-candidates.json). Unattributed debt without collateral is bad debt (S), not E-U.",
+    "USD uses DefiLlama spot prices at 2026-10-14; gas estimates approximate.",
+    "The oracle has no freshness guard: if Chainlink retires any zkSync feed, the borrow-and-default/liquidation conditions re-open (thresholds: cf 0.85 -> >17.6% overvaluation; liquidation profiteering -> >~8% collateral undervaluation)."
+  ],
+  "one_liner": "External unprivileged attacker can extract only ~$2.3 (dust liquidation bonuses) from ReactorFusion's ~$283k live cash: the Era oracle is a live Chainlink reader with no staleness guard but fresh feeds, borrow-and-default is unprofitable at live collateral factors, no market is deprecated, admin/upgrade/reserve paths are timelock- or admin-gated, and the reward distributor is empty."
+}
