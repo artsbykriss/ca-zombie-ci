@@ -1,0 +1,47 @@
+Compiling 19 files with Solc 0.8.24
+Solc 0.8.24 finished in 1.19s
+Compiler run successful with warnings:
+Warning (2018): Function state mutability can be restricted to view
+   --> test/Fountain.t.sol:138:5:
+    |
+138 |     function test_A_live_state_pauses_and_cash() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/Fountain.t.sol:257:5:
+    |
+257 |     function test_J_usd_open_but_dust_and_no_shortfall() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/Fountain.t.sol:290:5:
+    |
+290 |     function test_L_oracle_is_stale() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/Fountain.t.sol:302:5:
+    |
+302 |     function test_M_lpt_bad_debt_locked() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+
+Ran 15 tests for test/Fountain.t.sol:FountainForkTest
+[PASS] test_A_live_state_pauses_and_cash() (gas: 521672)
+[PASS] test_B_mint_is_paused() (gas: 295405)
+[PASS] test_C_borrow_is_paused() (gas: 109631)
+[PASS] test_D_ctoken_transfer_is_paused() (gas: 52816)
+[PASS] test_E_seize_is_paused() (gas: 46868)
+[PASS] test_F_liquidation_blocked_even_with_live_shortfall() (gas: 1071305)
+[PASS] test_G_claimComp_fresh_attacker_gets_zero() (gas: 478143)
+[PASS] test_H_ho_supplier_redeem_works() (gas: 242138)
+[PASS] test_I_ho_claimComp_holder_works() (gas: 373823)
+[PASS] test_J_usd_open_but_dust_and_no_shortfall() (gas: 201592)
+[PASS] test_K_usd_empty_market_inflation_is_a_wash() (gas: 752313)
+[PASS] test_L_oracle_is_stale() (gas: 132288)
+[PASS] test_M_lpt_bad_debt_locked() (gas: 61497)
+[PASS] test_N_admin_paths_privileged() (gas: 76468)
+[PASS] test_O_sweeptoken_no_privilege_escalation() (gas: 646650)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 35.39s (135.79s CPU time)
+
+Ran 1 test suite in 35.40s (35.39s CPU time): 15 tests passed, 0 failed, 0 skipped (15 total tests)

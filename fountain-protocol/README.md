@@ -12,7 +12,7 @@ from Fountain Protocol (fresh-attacker standard: no legacy positions, whitelists
 
 | Target | Live value (cash in markets) | Live extractable by external attacker (E-U) | Why closed / open | Latent risk |
 |---|---|---|---|---|
-| Classic comptroller `0xA7684aE7…` (4 markets: fROSE, fETH, fUSDT, fUSDC) | **~$89.2K** (oracle prices) / $93.5K (market prices) | **$0.00** | mint+borrow paused per market since 2023‑03‑11; **transfer+seize paused globally** → no way to acquire cTokens, open a position, or liquidate. Oracle stale (Band last update 2026‑07‑03). | If an admin ever unpauses seize: 246 accounts have live shortfalls ($16.7K total) but only ~$1.2K of priced collateral — liquidator profit bounded by ~$0.5K (10% incentive + 28–30% stale-price bonus). **Privileged-only.** |
+| Classic comptroller `0xA7684aE7…` (4 markets: fROSE, fETH, fUSDT, fUSDC) | **~$89.2K** (oracle prices) / $93.5K (market prices) | **$0.00** | mint+borrow paused per market since 2023‑03‑11; **transfer+seize paused globally** → no way to acquire cTokens, open a position, or liquidate. Oracle stale (Band last update 2026‑07‑03). | If an admin ever unpauses seize: ~240 accounts have live shortfalls ($16.7K total) but only ~$1.2K of priced collateral — liquidator profit bounded by ~$0.5K (10% incentive + 28–30% stale-price bonus). **Privileged-only.** |
 | USD comptroller `0x1C0C3079…` (4 markets) | **$1.25** (0.553 USDT cash + 0.7 USDT debt) | **$0.00** | Markets are *not* paused, but the only live value is $1.25; the only borrower is over‑collateralised (no shortfall); minting requires ≥ collateral; empty-market inflation is a wash with no other suppliers. | None material (dust). |
 | LPT comptroller `0x7c4d0c83…` (7 markets) | ~**$0** cash (0.0000571 ROSE + LP dust) | **$0.00** | mint+borrow paused per market since 2022‑09‑25; **transfer+seize paused globally**; all cash borrowed out. | 13.30M ROSE of debt (≈$82K oracle / $114K market) is uncollectible-by-liquidation; supplier claims are effectively stuck (S) unless borrowers repay voluntarily. |
 | FTP token `0xd1dF9CE4…` + comptroller reward pools (927.6M + 6.6M FTP) | FTP is effectively worthless (only pool: 3,917 wROSE / 14.33M FTP ⇒ ~$0.0000017/FTP, ~$24 of wROSE depth) | **$0.00** | `claimComp` pays only the caller's *own* accrued rewards; a fresh attacker accrues 0 (fork-verified). | Holders can still claim accrued FTP (H-O); no market to sell into. |
@@ -129,10 +129,11 @@ healthy at market prices) — but seize is paused.
 These accounts **cannot be liquidated** (seize paused). They are the reason the fUSDC/lpt suppliers' claims
 exceed available cash.
 
-**Full enumeration (CI, block 22,380,251, 1,614 candidate accounts):** 758 accounts still carry debt and
-**246 have a live shortfall** (protocol view, stale oracle): 5 ≥ $1,000 · 4 in $100–1,000 · 47 in $1–100 ·
-91 in $0.01–1 · 99 < $0.01 — **total shortfall $16,748.41**. Every shortfall account holds some cToken
-collateral, so absent the seize pause all of it would be liquidatable; today none of it is.
+**Full enumeration (CI, two runs at blocks 22,380,251 / 22,380,252):** 1,508–1,614 candidate accounts; 701–758
+still carry debt and **239–246 have a live shortfall** (protocol view, stale oracle): 5 ≥ $1,000 · 4 in
+$100–1,000 · 47 in $1–100 · 91 in $0.01–1 · 99 < $0.01 — **total shortfall $16,748.41**. Every shortfall
+account holds some cToken collateral, so absent the seize pause all of it would be liquidatable; today none of
+it is.
 
 **Market ERC20 balances (CI scan):** every cErc20 market holds **only its own underlying** (plus zero of
 everything else) — the unprotected `sweepToken` (inherited from pre-2021-fix Compound: no `msg.sender == admin`
@@ -191,18 +192,18 @@ Preconditions for the only theoretical extraction (a liquidation) — all false/
 
 | Run | URL | Result |
 |---|---|---|
-| run 3 (`38497766124`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38497766124 | bytecode 28/28 ✓; enumeration ✓ (artifacts in `ci-out/`); Foundry suite 9/15 (4 RPC-429 infra failures + 2 test bugs — fixed) |
+| run 3 (`38497766124`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38497766124 | bytecode 28/28 ✓; enumeration ✓; Foundry suite 9/15 (4 RPC-429 infra failures + 2 test bugs — fixed) |
 | run 4 (`38502878256`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38502878256 | anvil-fork PoC 14/15 (1 rounding constant — fixed); bytecode 28/28 ✓; enumeration ✓ |
-| run 5 (`38503750641`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38503750641 | final: full 15/15 PoC + bytecode + enumeration (artifacts `ci-out/fork-tests.log`, `ci-out/bytecode-verify.json`, `ci-out/enumeration.json`) |
+| **run 6 (`38504418601`)** | **https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38504418601** | **FINAL — success: PoC 15/15 passed (both in `ci/run.sh` and the workflow `forge test` step), bytecode 28/28 ✓, enumeration ✓ (artifacts: `ci-out/fork-tests.log`, `ci-out/bytecode-verify.json`, `ci-out/enumeration.json`, `ci-log.txt`)** |
 
-Key PoC results (run 4, 14/15 — run 5 = same suite with the rounding constant fixed):
+Final PoC (run 6, anvil fork of Emerald @ block 22,380,248 — `ci-out/fork-tests.log`):
 `test_A` state re-verification ✓ · `test_B` mint reverts `"mint is paused"` ✓ · `test_C` borrow reverts
 `"borrow is paused"` ✓ · `test_D` cToken transfer reverts `"transfer is paused"` ✓ · `test_E` `seize()` reverts
 `"seize is paused"` ✓ · `test_F` liquidation of a live-shortfall account reverts `"seize is paused"` ✓ ·
 `test_G` fresh `claimComp` pays 0 FTP ✓ · `test_H` supplier redeems 1,000 USDT (H-O) ✓ · `test_I` holder
 claims accrued FTP (H-O) ✓ · `test_J` usd markets dust + no shortfall ✓ · `test_K` empty-market inflation is a
-wash ✓ · `test_M` lpt bad debt locked ✓ · `test_N` admin paths privileged ✓ · `test_O` unprotected `sweepToken`
-cannot escalate to `seize()` ✓ · `test_L` Band oracle stale (fixed constant).
+wash ✓ · `test_L` Band oracle stale ✓ · `test_M` lpt bad debt locked ✓ · `test_N` admin paths privileged ✓ ·
+`test_O` unprotected `sweepToken` cannot escalate to `seize()` ✓ — **15 passed / 0 failed**.
 
 ---
 
@@ -215,7 +216,7 @@ gates (deployed bytecode == published source, 28/28), and no permissionless func
 
 **Latent risk (not extractable today):**
 1. **If an admin unpauses** (EOA `0x4Ce41518…` for usd/lpt; Timelock `0x5d4Ae9eC…` with admin EOA
-   `0xf750B9a7…` for classic), liquidations become possible. Quantified at live state: the 246 underwater
+   `0xf750B9a7…` for classic), liquidations become possible. Quantified at live state: the ~240 underwater
    accounts hold only **~$1,218 of priced collateral** (ROSE/ETH/stables; 31 more hold only unpriced LP dust)
    against $16,748 of bad debt — so a liquidator's total take is bounded by ~$1.2K of collateral, of which the
    profit is the 10% incentive plus the stale-price bonus (ROSE oracle is 28% below market ⇒ seizing at oracle
