@@ -187,13 +187,14 @@ Preconditions for the only theoretical extraction (a liquidation) — all false/
   claimComp), the usd dust/inflation analysis, oracle staleness, lpt bad debt.
 - `ci/run.sh`: (1) builds `verify/` (legacy sources), (2) bytecode comparison, (3) live enumeration
   (Nexus tx history → candidate accounts → live positions at the pinned block; output `ci-out/enumeration.json`).
-- **CI runs:** (filled after run — see `ci-out/`, `ci-log.txt`, `ci-artifacts/`)
+- **CI runs:**
 
 | Run | URL | Result |
 |---|---|---|
-| 1 | _(pending)_ | |
+| run 3 (`38497766124`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38497766124 | bytecode 28/28 ✓; enumeration ✓ (artifacts in `ci-out/`); Foundry suite 9/15 (4 RPC-429 infra failures + 2 test bugs, fixed) |
+| run 4 (`38502878256`) | https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38502878256 | final: anvil-fork PoC + bytecode + enumeration |
 
-Test results: _(pending — will record x/y PASS + key numbers here)_
+Test results (final run): _(to be filled from run 4 logs)_
 
 ---
 

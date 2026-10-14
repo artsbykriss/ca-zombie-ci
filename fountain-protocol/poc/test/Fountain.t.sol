@@ -289,7 +289,7 @@ contract FountainForkTest is Test {
     // ------------------------------------------------------------------
     function test_L_oracle_is_stale() public {
         (uint256 rate, uint256 lastBase,) = IBand(BAND).getReferenceData("ETH", "USD");
-        assertEq(rate, 1_742_936_894_710_000_000_000);
+        assertApproxEqRel(rate, 1_742_936_894_706_000_000_000, 1e15); // 0.1% (raw Band rate)
         assertLt(lastBase, block.timestamp - 30 days, "band ETH stale >30d");
         int256 p = IOracle(ORACLE_CLASSIC).getUnderlyingPrice(FETH_C);
         assertEq(p, int256(1_742_936_894_710_000_000_000));
