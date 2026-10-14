@@ -123,7 +123,7 @@ Net total ≈ **$0.5** (range $0.1–1.0). No flash loan needed (repay sizes are
 
 ## 6. Verdict and residual/latent risk
 
-* **E-U now: ≈ $2.3 gross / ≈ $1.5–2.0 net. H-O: suppliers can redeem their own cTokens (cash-limited: rfUSDC.e cash 11.5k vs 36.5k supply — normal lending). P: admin/timelock/EOA paths. S: bad debt ($8–14 on Telos; ~$222 of Era shortfall has no collateral) and the rfETH market's bad-debt exposure.**
+* **E-U now: ≈ $2.3 gross / ≈ $0.5 net of gas (range $0.1–1.0). H-O: suppliers can redeem their own cTokens (cash-limited: rfUSDC.e cash 11.5k vs 36.5k supply — normal lending). P: admin/timelock/EOA paths. S: bad debt ($8–14 on Telos; ~$222 of Era shortfall has no collateral) and the rfETH market's bad-debt exposure.**
 * **Latent risk (why this is a watch item):** the Era oracle has **no staleness check**; it is safe only because Chainlink still maintains 5 feeds for a dead protocol. If any feed is retired/frozen while its market holds collateral, the borrow-and-default condition (`cf × oracle/market > 1`, i.e. >17.6 % overvaluation at cf 0.85) or a profitable liquidation wave (>8 % undervaluation) becomes reachable against the remaining ~$283k. The Telos oracle is already 8 days stale and its admin is a plain EOA with upgrade rights.
 * **Blockers for extraction:** no oracle control, no admin keys, no zero-collateral liquidations, no permissionless reserve/oracle paths, reward token worthless/empty distributor.
 

@@ -257,7 +257,10 @@ def main():
         dm = ERA_MARKETS[dname]
         cm = ERA_MARKETS[cname]
         debt = int(snap[acct].get(f"debt_{dname}") or 0)
-        repay = debt // 2  # closeFactor 0.5
+        # repay <= closeFactor*debt AND seize (repay*1.08) must not exceed the borrower's collateral:
+        # use the capped repay_usd computed in the analysis, with a 0.5% safety margin
+        repay_cap_units = int(float(pick["best"]["repay_usd"]) * 0.995 * 10 ** mk[dname]["decimals()"] / price(dname))
+        repay = min(debt // 2, max(repay_cap_units, 0))
         allow = call_from(C, "liquidateBorrowAllowed(address,address,address,address,uint256)",
                           ["address", "address", "address", "address", "uint256"],
                           [dm, cm, ATTACKER, acct, repay])
