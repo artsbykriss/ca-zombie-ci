@@ -1,0 +1,41 @@
+{
+  "finding": "miniswap",
+  "title": "MiniSwap (Ethereum) — two-factory Uniswap-V2 fork with MINI mining hook; live value is LP-owned, attacker-extractable ≈ $0",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 94378.63, "P": 3842.26, "S": 0},
+  "latest_block": 26188992,
+  "block_numbers": {"ethereum": 26188992},
+  "targets_checked": 68,
+  "live_targets": 68,
+  "closed_reasons": [
+    "Mining hook refunds exactly the 0.3% swap fee as newly minted MINI (fork-proven: 50 USDT swap -> 67.577 MINI); net for swapper = -slippage, no profitable loop",
+    "feeTemp MINI (1,841,167.47 MINI ~ $4,062) is LP-owned: sendTokenTo reverts for strangers; getMineFeeAmount pays out only inside burn(); fork-proven 32.71 MINI paid to a 500 USDT LP",
+    "Zero balance-minus-reserve excess across all 68 pairs (skim yields nothing)",
+    "All token issue/mint paths gated: MINI issueAuthAddr = the two miners only; YMI/MG owner = their MasterChefs; HDOT/HBCH admin multi-sig; TPT minter role; LEV owner renounced",
+    "Prices track the market within +/-0.5% for real/real pairs; 0.3% fee + pool slippage make every stale-price arb negative (fork-verified 1-100% sizes)",
+    "MINI bonding curve closed (k=31 > maxK=30), contract ETH balance 0",
+    "No proxies/EIP-1967 on factories, pairs or MINI; admin paths (feeTo/feeToSetter, pause, blacklist, MC set/add) are owner-gated",
+    "MG/YMI MasterChef emissions ended (getMultiplier(now, now+1) = 0); pending rewards belong to historical stakers"
+  ],
+  "poc": {"tests_passed": 14, "tests_total": 14, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38523307878", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38531811021"]},
+  "key_facts": [
+    "Triage missed factory 2: 0xbbe026500e273e2f2e6b41c93d11fe6d5c6d71bf has no code; the real second factory is 0x2294577031f113df4782b881cf0b140e94209a6f (19 mining pairs)",
+    "Factory1 49 pairs = $61,320.04; factory2 19 pairs = $33,058.59; total $94,378.63 priced at block 26,188,992 (DefiLlama prices; lower bound, 19/36 tokens unpriced)",
+    "MiniswapMiner 0xcdd8dec17622468a1775d18bb4fcfe8be8ba8b68 verified; issues MINI = 0.3% fee value to swapper AND feeTemp on 18 whitelisted factory-2 pairs; live issuance at block 26,188,094+",
+    "Daily mining cap 18,000 MINI/day (~$39.7/day); recent daily usage 85-1,142 MINI",
+    "feeTemp MINI total 1,841,167.47 (~$4,062 at MINI $0.002208); largest: WETH/USDT pair feeTemp 1,581,216.74 MINI",
+    "YMI MasterChef holds 66,391.18 USDT staked (H-O); MG MasterChef holds 90,602,736 MG + 1,610,915.97 MINI (H-O)",
+    "feeTo LP tokens (factory1, EOA 0xe7847cc97188f9805d8b5f5a12f87c19a9dc4dd52) worth ~$3,842 (26% of MINI/WETH LP)",
+    "MINI price $0.002208; MINI totalSupply 151,094,890.95 of 1B max; not paused",
+    "USDT non-standard (returns no data) — test harness must use low-level safe transfers"
+  ],
+  "caveats": [
+    "V1 pair/factory bytecode unverified; behaviour established via published MiniswapOrg V1 interface, disassembly and 14 fork tests",
+    "USD values use DefiLlama prices at 2026-10-14; 19 of 36 tokens unpriced -> lower bound",
+    "feeTo/feeTemp owner keys assumed unknown; if compromised the value is P not S",
+    "Mining emission is an intended program; counted as latent dilution, not extraction"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from MiniSwap: the $94,379 across both factories is LP-owned (H-O), the mining hook refunds only the swap fee paid (fork-proven), and every other path (skim, free mint, stale price, admin) is closed on-chain."
+}
