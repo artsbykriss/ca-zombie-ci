@@ -1,0 +1,57 @@
+{
+  "finding": "L2-Phase2 / pandaswap (triage row: PandaSwap, BSC)",
+  "title": "PandaSwap (UniswapV2 fork, BSC) — live extractability of a zombie DEX",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "headline_note": "No vulnerability-based extraction and no realizable arbitrage: pairs are provably stock UniV2Pair code; zero real balance-reserve excess; the one apparently mispriced pair (POLS/WBNB) is fork-proven to lose money at every trade size vs the live PancakeSwap market. The triage's $84.4k is LP-owned value (H-O).",
+  "categories": {"E-U": 0, "H-O": 85283.54, "P": 28239, "S": 0},
+  "latest_block": 127518422,
+  "block_numbers": {
+    "bsc": 127518422,
+    "bsc_fork_tests": 127538669,
+    "bsc_triage": 126994409
+  },
+  "targets_checked": 129,
+  "live_targets": 129,
+  "closed_reasons": [
+    "All 129 pairs are provably the stock UniswapV2Pair code: the factory runtime embeds the pair creation code verbatim, keccak256(embedded) == factory.pairCodeHash() (0xb785cebe...), the deployed pair runtime equals the embedded runtime portion byte-for-byte, and CREATE2(factory, keccak(token0||token1), pairCodeHash) reproduces every pair address; the embedded blob equals the BscScan-verified source compiled with solc 0.5.16/optimizer 200 except the 32-byte metadata hash.",
+    "balance - reserve excess: zero real excess across all 129 pairs (single-call re-reads; earlier 1e167-scale 'excesses' were an RPC batch-misalignment artifact). skim() on the 8 largest pairs transfers 0 (fork-proven).",
+    "Stale-price arbitrage vs the live PancakeSwap market: POLS/WBNB (the pair a DefiLlama-price model flagged at -71%) is fork-proven net-negative at all sizes (best -0.0363 WBNB at 0.2 WBNB in; -2.29 WBNB at 3 WBNB) because PandaSwap and PancakeSwap price POLS identically (~2.377e-5 WBNB).",
+    "Fake/spam-token pairs (vBTC/WBNB etc.): balances normal, skim yields 0, swap-without-input reverts UniswapV2: INSUFFICIENT_INPUT_AMOUNT (fork test 08).",
+    "PNDA mint is privileged: mint() onlyOwner (owner 0x9942cb4c..., a codeless address with nonce 1); manualMint bricked (manualMinted 250M > manualMintLimit 100k); capUpdate onlyAuthorized (deployer EOA).",
+    "No live farm: the intended MasterChef (PNDA owner) has no code, PNDA supply is static, and no contract holds meaningful LP; xBAMBOO leave() and pair burn() are the only redeem paths (H-O)."
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 8,
+    "ci_run_urls": [],
+    "key_tests": {
+      "test_01_create2_all_pairs": "CREATE2 derivation reproduces all 129 pair addresses from the on-chain pairCodeHash (local: 111/111 checked, 0 mismatch; CI: full 129)",
+      "test_03_skim_no_real_excess": "attacker skim() on the 8 funded pairs: 0 token gain on every leg",
+      "test_05_roundtrip_loses_fees": "WBNB->PNDA->WBNB round trip 0.5 -> 0.497428 WBNB (the 0.3% fee)",
+      "test_06_pnda_mint_gates": "fresh attacker: mint reverts Ownable, manualMint/capUpdate revert (no data); owner 0x9942cb4c..., cap 100B, manualMinted 250M",
+      "test_07_stale_price_arb_pols": "net-P&L arb vs live PancakeSwap at 8 sizes: all negative (best -0.0363 WBNB); asserts no positive profit",
+      "test_08_fake_token_pairs_no_drain": "vBTC/WBNB pair: skim 0, no-input swap reverts"
+    }
+  },
+  "key_facts": [
+    "Factory 0x9Ad32bf5DaFe152Cbe027398219611DB4E8753B3: verified UniswapV2Factory (solc 0.5.16, opt 200), allPairsLength 129, feeTo 0xe1a2CD535C4e7d9C2C187e529f9f491cceA41e07 (BambooMaker), feeToSetter 0x3bC3c8aF8CFe3dFC9bA1A57c7C3b653e3f6d6951 (EOA), pairCodeHash 0xb785cebe4aa62be64e9e412e79c479c58578c1c3d0ffbb4602a9217d8b289559.",
+    "129 pairs enumerated: priced reserve value $83,531.70 at block 127,518,422 (56/96 tokens DefiLlama-priced; unpriced = scam tokens/LP-token pairs valued 0); DefiLlama protocol TVL $108,471; triage $84,422.",
+    "Top pairs: ATOM/WBNB $14,382; Cake/WBNB $9,814; MATTER/WBNB $8,751; DOGE/WBNB $8,052; XTZ/WBNB $4,768; BAO/WBNB $4,711; POLS/WBNB $3,262; BSCX/WBNB $3,261; WBNB/SPARTA $2,598; WBNB/LINK $2,320; PNDA/WBNB $2,244; ETH/PNDA $1,421; WBNB/BUSD $1,073.",
+    "BambooMaker (feeTo) holds accumulated protocol-fee LP across ~30 pairs worth ~$23 (largest: BSCX/WBNB $13.9, WBNB/RHINO $5.4, MATTER/WBNB $3.6); convert() is permissionless but onlyEOA and sends proceeds to the BambooBar.",
+    "BambooBar 0xef88e0d265ddc8f5e725a4fda1871f9fe21b11e2: 1,553,814,826.76 PNDA backing 804,704,779.51 xBAMBOO (1.931 PNDA/share); bar value ~$1,752 at the PNDA pool price $1.1274e-6.",
+    "PNDA 0x47DcC83a14aD53Ed1f13d3CaE8AA4115f07557C0: totalSupply 74,952,744,075.778591907702862261; cap 100B; owner 0x9942cb4c6180820e6211183ab29831641f58577a (code size 0, nonce 1, balance 0); authorized[0x3bC3...6951] = 1; manualMinted 250M > manualMintLimit 100k.",
+    "LP concentration: the codeless 0x9942cb4c... holds 44,752.46/63,159.43 (70.9%) of PNDA/WBNB LP and 157.177/157.178 (99.999%) of ATOM/WBNB LP (~$17.6k combined) — reclassification to S only if that key is provably lost.",
+    "Corrections: Python hashlib.sha3_256 is not Ethereum Keccak (hash proofs redone with a pure-Python Keccak-256); batched public-RPC responses were provider-misaligned (96-byte getReserves results in balanceOf slots) — all balance reads redone single-call; DefiLlama POLS price ($0.0609) is stale vs the on-chain Pancake market ($0.0177), which invalidated the initial $569 'arb' model.",
+    "Fork-measured POLS/WBNB arb net P&L (WBNB in -> net): 0.2 -> -0.0363, 0.4 -> -0.1218, 0.6 -> -0.2372, 0.8 -> -0.3721, 1.0 -> -0.5205, 1.5 -> -0.9287, 2.0 -> -1.3681, 3.0 -> -2.2932."
+  ],
+  "caveats": [
+    "40/96 tokens are unpriced by DefiLlama; $83,531.70 is a lower bound for pair reserves (DefiLlama's $108,471 prices more tokens incl. PNDA).",
+    "P (privileged) $28,239 is the notional PNDA mint room (25.05B PNDA at the pool price); realizable extraction is bounded by PNDA exit liquidity (~$4.5k across the four PNDA pools) and requires the owner key.",
+    "The codeless LP holder 0x9942cb4c... cannot be classified between 'EOA with lost key' (H-O) and 'self-destructed contract' (S) without archive state; its ~$17.6k of LP is the only candidate S.",
+    "Local fork tests ran at blocks 127,537,8xx-127,538,7xx; CI re-runs at a fresh block; numbers move with prices, mechanisms do not.",
+    "The live-market arb scan uses exact constant-product simulation against PancakeSwap pools; a token with no Pancake route has no realizable exit and is treated as arb=0."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from PandaSwap (BSC): the 129 pairs are provably stock UniswapV2 code, there is zero real balance-reserve excess to skim, no farm emits, PNDA minting is privileged and effectively dead, and the most mispriced-looking pool (POLS/WBNB) is fork-proven net-negative against the live PancakeSwap market; the $83.5k-$108k of reserves is LP-owned (H-O)."
+}
