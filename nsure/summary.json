@@ -1,0 +1,47 @@
+{
+  "finding": "L2-nsure",
+  "title": "Nsure Network (Ethereum) — insurance/underwriting pools; live extractability",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 1322.89, "P": 27773.85, "S": 275.84},
+  "latest_block": 26193225,
+  "block_numbers": {"ethereum": 26193225},
+  "targets_checked": 12,
+  "live_targets": 6,
+  "closed_reasons": [
+    "Underwriting/Treasury.claim() pays only against an EIP-712 signature from signer EOA 0xbb826fb8... (never transacted; pure off-chain signing key)",
+    "Surplus/Treasury/Underwriting/CapitalStake.payouts()/burnOuts() require operator, which is address(0) on all of them (never set); setOperator is onlyOwner (single EOA 0x7023a321...)",
+    "Buy.buyInsurance() requires a signer signature (fabricated sig reverts atomically before any value leaves)",
+    "CapitalConverter.convert() is bricked: smartBalance()==0 with totalSupply>0 => SafeMath underflow revert; exit() pays value*0/totalSupply = 0",
+    "CapitalStake.claim()/withdraw() pay only the caller's own accrued rewards / own pending withdrawal; a fresh address has user.amount=0 => 0 NSURE",
+    "CapitalStake.deposit() needs nETH, which is no longer mintable (converter bricked); nETH backing was paid out to the team on 2026-10-09 via CapitalConverter.payouts (Safe exec)",
+    "Nsure.mint() is minter-gated (3 minters: CapitalStake, ClaimPurchaseMint, 3/5 Safe)",
+    "No WETH/NSURE approvals exist from any pool/converter to any spender"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38637806719"]
+  },
+  "key_facts": [
+    "Live value at block 26193225: 10.870575694638655562 WETH ($26,419.98 @ $2,430.41) in Underwriting (3.3105) + Surplus (6.0481) + Treasury (1.5120)",
+    "NSURE in contracts: CapitalStake 16,291,541.69 (reward pool, staker-claimable), Underwriting 1,869,535.49, Treasury 26,000, ClaimPurchaseMint 145,484.07, Nsure token contract 415,838.18; price $0.0006633 from live UniV2 pair 0xed196f5f... (19,745,162 NSURE / 5.38903 WETH)",
+    "owner() of all five pools = single EOA 0x7023a32108539a024ca17afab0f5b90f8770bccd (active 2026-09-21: rotated CapitalStake signer)",
+    "signer() of Underwriting/Treasury/Buy/ClaimPurchaseMint = EOA 0xbb826fb86fae53be90f0b711c6a506860b7bdbe3 with zero on-chain txs; CapitalStake signer = 0x04ae9200... (active 2026-10-09/12)",
+    "operator() is address(0) on Underwriting, Treasury, Surplus, CapitalStake => their payout paths are unreachable by anyone today",
+    "nETH totalSupply 41.182, of which 38.702 staked in CapitalStake; CapitalConverter native ETH = 0 (smartBalance 0) => nETH redemption value is 0",
+    "Wind-down: 2026-09-24 big holder exited 50 nETH -> 50 ETH (tx 0x3002b102...); 2026-10-09 Gnosis Safe (3/5) executed CapitalConverter.payouts() paying the remaining 41.181 ETH to signer EOA 0x04ae9200 (tx 0x14ee088c..., event ePayouts); nETH totalSupply unchanged => holders got nothing",
+    "H-O: 17 active nETH stakers have 2,218,372.86 NSURE pending claimable now via permissionless CapitalStake.claim(0) (~$1,471 nominal / ~$1,323 realizable); reward pool streams 1.8 NSURE/block",
+    "PoC: 12 fresh-attacker attempts all revert or yield 0; net gain 0 wei; legacy nETH holder exit(2e18) succeeds and pays 0 ETH",
+    "P-path PoC: owner rotates signer + signed claim + setOperator => exactly 10.870575694638655562 WETH drained (gas 462,209)"
+  ],
+  "caveats": [
+    "Key possession is not verifiable on-chain: the signer EOA 0xbb826fb8 has never sent a tx; if that key were publicly leaked the 10.87 WETH would become E-U (no evidence found)",
+    "Owner 0x7023a321 is a single EOA (not a multisig) controlling all five pools; a compromise would convert P to E-U",
+    "NSURE USD valuation uses one thin UniV2 pool; nominal value 18.75M NSURE = $12,436 but all-at-once realizable is <= ~$6,379",
+    "Team is actively winding down (Sept-Oct 2026 activity); state may change; re-check owner/signer/operator slots and balances before relying on this",
+    "MarketingMining 0x0feccb11 (23.42 ETH) is NOT Nsure — NFTX/Shard-era SAND/ENJ pools, excluded"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from Nsure: the 10.8706 WETH ($26,419.98) is only reachable with the owner EOA (0x7023a321) or the never-transacted signer key (0xbb826fb8) via signer-gated claims / setOperator, Surplus's 6.05 WETH is operator-unset (unreachable), nETH backing was already paid out to the team on 2026-10-09, and all permissionless calls pay the caller only their own (worthless or zero) position."
+}

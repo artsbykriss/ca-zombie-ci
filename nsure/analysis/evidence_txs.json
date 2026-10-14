@@ -1,0 +1,84 @@
+{
+ "note": "Key on-chain transactions used as evidence (read-only citations; no transactions sent by this research).",
+ "wind_down_txs": [
+  {
+   "what": "Big holder exits 50 nETH for 50 ETH from CapitalConverter",
+   "hash": "0x3002b102717e0e20d6c1cec464892dfacd87c1a3a5a2d7f740bed8d9f515742b",
+   "block": 26048215,
+   "date_utc": "2026-09-24",
+   "from": "0x4322aa46ffed67809862da613725728e2fb8eae3",
+   "to": "0xa6b658Ce4b1CDb4E7d8f97dFFB549B8688CAFb84",
+   "method": "exit(uint256)",
+   "neth_burned": "50.0",
+   "eth_paid": "50.0"
+  },
+  {
+   "what": "CapitalStake.withdraw of 50 nETH (pending period over) just before the exit",
+   "hash": "withdraw-event",
+   "block": 26048212,
+   "user": "0x4322aa46ffed67809862da613725728e2fb8eae3",
+   "amount_neth": "50.0"
+  },
+  {
+   "what": "Gnosis Safe execTransaction -> CapitalConverter.payouts(): remaining 41.181 ETH to the CapitalStake signer EOA",
+   "hash": "0x14ee088cf410d7ee2fa4dc6d6d722351733cc83190e94b4933a5fd43550be9fc",
+   "block": 26152934,
+   "date_utc": "2026-10-09",
+   "executor": "0x04ae9200c02d598edf2801c3e3850431d57cd707",
+   "safe": "0x1995dc62b91163e4693f63eae7af6559c8ab299c",
+   "call_target": "0xa6b658Ce4b1CDb4E7d8f97dFFB549B8688CAFb84",
+   "event": "ePayouts(to=0x04ae9200..., amount=41.181e18)",
+   "note": "nETH totalSupply remained 41.182 after this payout => ETH left via operator payouts, not via holder exits; nETH lost its backing."
+  },
+  {
+   "what": "Owner EOA rotates CapitalStake signer (proves owner activity Sept 2026)",
+   "hash": "0xa05c76d9b8d75f3a",
+   "block": 26025678,
+   "date_utc": "2026-09-16",
+   "from": "0x7023a32108539a024ca17afab0f5b90f8770bccd",
+   "to": "0xB98eD9800fCD2982d26Cf0E4a6B53C96bbeff6A6",
+   "method": "setSigner(0x04ae9200c02d598edf2801c3e3850431d57cd707)"
+  },
+  {
+   "what": "signer EOA reimburses 8.2 ETH to the 8.2-nETH staker off-chain",
+   "hash": "0x...6f9bb7e4 (see txlist block 26152974)",
+   "block": 26152974,
+   "date_utc": "2026-10-09",
+   "from": "0x04ae9200c02d598edf2801c3e3850431d57cd707",
+   "to": "0x6f9bb7e454f5b3eb2310343f0e99269dc2bb8a1d",
+   "value_eth": "8.2"
+  },
+  {
+   "what": "signer EOA moves 33 ETH onward",
+   "hash": "0x...51027293 (see txlist block 26173448)",
+   "block": 26173448,
+   "date_utc": "2026-10-12",
+   "from": "0x04ae9200c02d598edf2801c3e3850431d57cd707",
+   "to": "0x510272938c5b8dc0ba90a6018c305c4d86011eb5",
+   "value_eth": "33.0"
+  }
+ ],
+ "last_buy_premium": {
+  "event": "Buy.NewOrder",
+  "last_block": 20344537,
+  "date_utc": "2024-07-20"
+ },
+ "last_underwriting_claim": {
+  "event": "Underwriting.Claim",
+  "last_block": 22311302,
+  "date_utc": "2025-04-20"
+ },
+ "last_converter_payout_before_winddown": {
+  "event": "CapitalConverter.ePayouts",
+  "blocks": [
+   12334184,
+   26115840,
+   26152934
+  ]
+ },
+ "last_capitalstake_claim": {
+  "event": "CapitalStake.Claim",
+  "last_block": 26014422,
+  "date_utc": "2026-09-19"
+ }
+}
