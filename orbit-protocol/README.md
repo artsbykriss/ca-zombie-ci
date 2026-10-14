@@ -17,14 +17,14 @@ Impl: `OrbitSpaceStationV4` (Compound v2 Comptroller fork + ORB rewards). Market
 | c2: oETHV2 9.175 ETH ($22,994) + ezETH 8.220 ($22,339) + dust | $45,334 | H-O | idem. |
 | c3: wrsETH 1.266 ($3,322) + USDe 1,234 ($1,234) + USDB 1,892 ($1,881) + DETH 0.285 ($714) + weETH $69 + RESC (unpriced) + dust | $7,220 | H-O/S | Mostly suppliers' claims; DETH/USDB/DUSD claims are ~100% bad debt. |
 | c4: oETHV2 0.538 ETH ($1,350) + weETH 0.207 ($571) + DETH 0.1 ($250) | $2,171 | H-O | idem. |
-| Blast native yield on oEther markets | **~$20,200** (8.06 ETH) | **P** | `_blastClaimYield` is `msg.sender == admin` only (fork-verified revert). |
+| Blast yield (native ETH + USDB rebase) | **~$22,900** (8.53 ETH + 1,482.55 USDB) | **P** | `_blastClaimYield` is `msg.sender == admin` only (fork-verified revert). |
 | Mispriced collateral: RESC priced at ETH/USD | **$0** | E-U (closed) | c3 RESC market maps to the **ETH/USD Pyth feed** (CF 0.8, mint+borrow open), but 990,000 of the 1,000,000 RESC supply is held by the team admin address and there is no market/venue to obtain RESC — not an unprivileged path. |
 | Liquidation of underwater accounts | **$0 today; ≤ $12.50 conditional** | E-U | 4,042 borrowers scanned: 65 underwater, **1** with profitable collateral ($250 USDe → 5% = $12.50), and liquidations are **currently blocked** because every Pyth feed reverts `StalePrice` (fork-verified). Needs a Pyth API key to refresh. |
-| Bad debt (c3 DETH/USDB/DUSD) | $457.8M nominal shortfall | **S** | Uncollectible; claims inflated by interest on defaulted borrows; nobody can realize it. |
+| Bad debt (c3 DETH/USDB/DUSD) | ~$445M nominal shortfall | **S** | Uncollectible; claims inflated by interest on defaulted borrows; nobody can realize it. |
 
 ### Total live extractable now: **$0.00 (E-U)** — confidence **high**
 
-The $612,954 of live cash is **supplier-owned (H-O)**; the $20.2k of Blast yield is **admin-gated (P)**; the ~$458M of nominal bad debt is **unrealizable (S)**. The only theoretical unprivileged profits are (a) one underwater account worth **$12.50** of liquidation profit and (b) the RESC-collateral borrow (**$0**, token unobtainable) — and both require the Pyth price feeds to be refreshed first, which today is impossible without a Pyth API key (the reason the protocol is frozen).
+The $612,954 of live cash is **supplier-owned (H-O)**; the $22.9k of Blast yield is **admin-gated (P)**; the ~$445M of nominal bad debt is **unrealizable (S)**. The only theoretical unprivileged profits are (a) one underwater account worth **$12.50** of liquidation profit and (b) the RESC-collateral borrow (**$0**, token unobtainable) — and both require the Pyth price feeds to be refreshed first, which today is impossible without a Pyth API key (the reason the protocol is frozen).
 
 ---
 
@@ -55,7 +55,7 @@ The $612,954 of live cash is **supplier-owned (H-O)**; the $20.2k of Blast yield
 | API3 oETHV2 | `getUnderlyingPrice` reverts `dAPI name not set` | call trace |
 | RESC feed | `addressToPriceFeedID[RESC] = 0xff61491a…` = **ETH/USD feed** (RESC has no market value) | `addressToPriceFeedID()` |
 | Live cash | **$612,954** (see table in §1; per-market detail `analysis/custody_table.json`) | `getCash` + CoinGecko/DefiLlama prices |
-| Blast claimable yield | c1 oETHV2 4.715 ETH, c2 oETHV2 2.925 ETH, c4 oETHV2 0.420 ETH (+dust) ≈ $20.2k | `IBlast.readClaimableYield` |
+| Blast claimable yield | 8.5345 ETH total (c1 oETHV2 4.715, c2 oETHV2 2.925, c4 oETHV2 0.420, c1 oETH#1 dust) + 1,482.55 USDB ≈ $22.9k | `IBlast.readClaimableYield`, USDB `getClaimableAmount` |
 | ORB token | `0x42e12d42b3d6c4a74a88a61063856756ea2db357`; comptroller balance ~0.00065 ORB | `getTokenAddress()`, `balanceOf` |
 | Comptroller ORB accruals | compRate = 0; no active reward speeds | `compRate()`, `_setOrbSpeeds` admin-gated |
 
@@ -106,9 +106,9 @@ Foundry project `poc/` (fork of Blast mainnet, keyless public RPC). **9/9 tests 
 - `test_08_targeted_liquidation` — the 4 largest underwater accounts all revert `0x19abf40e` (`StalePrice`) on `getAccountLiquidity` → **liquidations are impossible today**.
 
 The full borrower scan (4,042 candidate pairs from 30,592 on-chain `Borrow` events) runs off-chain in `analysis/positions2.py` (CI step) because it needs ~10k `eth_call`s; results in `ci-artifacts/…/ci-out/positions2.json` and `analysis/liquidation_profit.json`:
-- 4,042 scanned, 65 underwater (nominal shortfall $457.8M), **1** with collateral in a market whose cash ratio > 0.9524 (`0xD89b1b88…`, $249.90 of USDe) → **max liquidation profit $12.50** — and only after a Pyth refresh.
+- 4,042 scanned, 65 underwater (nominal shortfall $444.8M), **1** with collateral in a market whose cash ratio > 0.9524 (`0xD89b1b88…`, $249.90 of USDe) → **max liquidation profit $12.50** — and only after a Pyth refresh.
 
-CI run: see `summary.json` → `poc.ci_run_urls` and `ci-log.txt` / `ci-artifacts/`.
+CI runs: **https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38595770752** (9/9 PASS) and the earlier data-only run https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38531211140 (7/9; two tests fixed after). Logs in `ci-log.txt`, artifacts in `ci-artifacts/`.
 
 ---
 
@@ -117,9 +117,9 @@ CI run: see `summary.json` → `poc.ci_run_urls` and `ci-log.txt` / `ci-artifact
 - **E-U = $0.00 today (high confidence).** Every unprivileged path to the $612,954 of live cash is closed by code (admin gates), state (all markets funded with supply>0; borrow/mint pauses; dead oracles), or economics (CF<1, 5% liquidation bonus vs cash ratios of 0.0002–1.0).
 - **Conditional E-U = $12.50** (one underwater account `0xD89b1b88…`: repay ~$238 of DETH, seize $250 of USDe oTokens, redeem; 5% bonus) — executable only after someone obtains a Pyth API key and refreshes the ETH/USD + USDC/USD feeds. The RESC-collateral path is worth $0 (token unobtainable).
 - **H-O = $612,954**: suppliers can redeem pro-rata while cash lasts; debt-free suppliers don't need oracles. Individual accounts holding dead-oracle markets (c1 USDB, c1 oETHV2) as collateral *and* carrying debt are frozen (can't redeem/borrow/liquidate) — a subset of the cash is in those markets (c1 USDB $63.4k, c1 oETHV2 $359.6k).
-- **P = ~$20.2k** Blast yield (admin-only) + market reserves (admin `_reduceReserves`; reserves are largely unbacked in the bad-debt markets).
-- **S = $457.8M nominal** bad debt (65 underwater accounts; c3 DETH/USDB/DUSD) + frozen accounts — uncollectible/immovable by anyone.
-- **Latent risk:** (1) the RESC→ETH/USD feed misconfiguration is a real bug: if RESC were ever distributed/listed, a holder could borrow up to ~$714 against worthless collateral; (2) if a Pyth API key is used to refresh feeds, the $12.50 liquidation becomes live and bots may cascade to seize remaining realizable collateral; (3) if the admin keys are lost, the $20.2k Blast yield becomes S.
+- **P = ~$22.9k** Blast yield (8.53 ETH + 1,482.55 USDB, admin-only) + market reserves (admin `_reduceReserves`; reserves are largely unbacked in the bad-debt markets).
+- **S = $444.8M nominal** bad debt (65 underwater accounts; c3 DETH/USDB/DUSD) + frozen accounts — uncollectible/immovable by anyone.
+- **Latent risk:** (1) the RESC→ETH/USD feed misconfiguration is a real bug: if RESC were ever distributed/listed, a holder could borrow up to ~$714 against worthless collateral; (2) if a Pyth API key is used to refresh feeds, the $12.50 liquidation becomes live and bots may cascade to seize remaining realizable collateral; (3) if the admin keys are lost, the $22.9k Blast yield becomes S.
 
 **Blockers/caveats:**
 - Blast wind-down (announced 2026-10-02): withdrawals through the Blast interface until 2026-10-26, then via L1 bridge contracts; assets remain withdrawable.

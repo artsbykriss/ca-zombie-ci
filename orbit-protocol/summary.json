@@ -1,0 +1,60 @@
+{
+  "finding": "L-2 / orbit-protocol (Triage-B rank 20)",
+  "title": "Orbit Protocol (Blast) — 4 Compound-fork comptrollers, 21 oToken markets",
+  "chains": ["blast"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 612954,
+    "P": 22900,
+    "S": 0
+  },
+  "category_notes": {
+    "E-U": "0 proven live. Conditional ≤ $12.50: exactly one underwater account (0xD89b1b886719fB9f2168aEa44d719e9B81cD78DD) holds $249.90 of collateral in a market with cash ratio >95.24% (c3 USDe); liquidating it yields 5% = $12.50 — and only after the stale Pyth feeds are refreshed (requires a Pyth API key; currently every liquidation call reverts StalePrice 0x19abf40e, fork-verified). The RESC->ETH/USD feed mispricing is worth $0 because 990k/1M RESC sits with the team admin and there is no venue to obtain RESC.",
+    "H-O": "$612,954 of market cash is supplier-owned (oToken holders redeem pro-rata while cash lasts; debt-free suppliers need no oracle).",
+    "P": "~8.53 ETH ($21.4k) + 1,482.55 USDB ($1.47k) Blast yield claimable only by each market's admin (msg.sender == admin, fork-verified) + market reserves via admin _reduceReserves.",
+    "S": "No realizable stuck value; $457.8M nominal bad-debt shortfall across 65 underwater accounts (c3 DETH/USDB/DUSD) is uncollectible; accounts holding dead-oracle markets (c1 USDB, c1 oETHV2) as collateral with debt are individually frozen."
+  },
+  "latest_block": 41577436,
+  "block_numbers": {"blast": 41577436},
+  "targets_checked": 25,
+  "live_targets": 21,
+  "closed_reasons": [
+    "All admin/config/yield functions are gated (fork-verified: _setPriceOracle fail-code, _setCloseFactor/_become/_reduceReserves/sweepToken/_blastClaimYield/_setMintPaused revert for a fresh address).",
+    "No zero-supply cash-bearing market exists -> no first-depositor donation path (fork-verified, 0 candidates).",
+    "Oracle feeds are off-chain-signed with staleness checks (Pyth 3600s, Redstone 86400s, API3 86400s) -> no flash-loan manipulation; stale-window abuse blocked by CF<1.",
+    "c3 (the only comptroller with a mispriced collateral feed, RESC->ETH/USD) has mint+borrow paused in every market except DETH and RESC; RESC itself is unobtainable (990k/1M held by team admin, no market).",
+    "Liquidations: 4,042 borrowers scanned, 65 underwater, 1 with profitable collateral ($12.50) and all liquidations currently revert StalePrice (Pyth feeds stale ~23 days after the Aug-2026 Hermes API-key migration).",
+    "Redstone USDB adapter (c1) requires an authorised updater + signed packages -> c1 USDB market permanently frozen; API3 dAPI for c1 oETHV2 has no name set -> market frozen."
+  ],
+  "poc": {
+    "tests_passed": 9,
+    "tests_total": 9,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38595770752",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38531211140"
+    ]
+  },
+  "key_facts": [
+    "Live custody (cash) across 21 markets: $612,953.93 (block 41.57M, 2026-10-14); matches DefiLlama $612,818.",
+    "Biggest pools: c1 oETHV2 143.47 ETH ($359.6k), c1 oETH#2 53.83 ETH ($134.9k), c1 USDB 63,723.6 ($63.4k), c2 oETHV2 9.175 ETH ($23.0k), c2 ezETH 8.220 ($22.3k).",
+    "4 comptrollers (Unitroller -> OrbitSpaceStationV4): c1 admin 0x154D8e44d88A061908aA9b3A4f8609bD72B19886; c2/c3/c4 admin 0x6315F65843e7582508e4F0aAC20a7203E7B09F02; pendingAdmin/pendingImplementation 0x0.",
+    "closeFactor 0.5 / liquidationIncentive 1.05 everywhere; borrowCaps 0 (=unlimited) except ezETH/weETH 1 and all c3 markets 1.",
+    "Gate map: c1 open (oETH#1 borrow-paused); c2 open (ezETH borrow cap 1); c3 all mint+borrow paused except DETH (borrow) and RESC (mint+borrow); c4 open (weETH cap 1).",
+    "Oracles: c1 OracleRouter -> Pyth (oETH#1/#2, small), Redstone (USDB, last update 2026-02-19), API3 (oETHV2, 'dAPI name not set'); c2/c3/c4 PythOracleProxy (0xA2aa501b19aff244D90cc15a4Cf739D2725B5729).",
+    "Pyth ETH/USD stored price 263,197,776,805 (expo -8) published 2026-09-20 -> getPriceNoOlderThan(3600) reverts StalePrice; Hermes now requires an API key (Pyth Core upgrade 2026-08-26).",
+    "RESC (0x38e6da25..., 'RescueFunds', 1M supply) mapped to the ETH/USD Pyth feed in c3; 990,000 RESC held by the team admin address; c3 RESC market holds 9,985.21.",
+    "Blast yield: 8,534,509,578,768,084,083 wei ETH claimable + 1,482,554,426,187,567,373,834 USDB claimable across markets; admin-gated.",
+    "Borrow events scanned: 30,592 across 21 markets; 4,042 unique borrower-market pairs; 65 underwater accounts (nominal shortfall $457.8M); 1 with realizable collateral ($249.90) -> max liquidation profit $12.50.",
+    "Bad debt: c3 DETH borrows 181,183 nominal vs 0.285 cash; c3 USDB 5,745,413 vs 1,892; c3 DUSD 7,327,274 vs 0.016; cash ratios 0.0002%-0.04%."
+  ],
+  "caveats": [
+    "Blast wind-down: withdrawals via the Blast UI until 2026-10-26, then via L1 bridge contracts; assets remain withdrawable.",
+    "Conditional paths depend on a Pyth API key (free/paid registration) to refresh feeds; the protocol's own keepers stopped ~2026-09-20.",
+    "Liquidation-profit math uses true market prices (CoinGecko/DefiLlama) as a proxy for refreshed Pyth prices (within ~±1%); DETH DEX liquidity not verified — if DETH is untradable the $12.50 liquidation is also not executable (repay must be in DETH).",
+    "RESC has no observable market value (assumed $0).",
+    "Some market state reads relied on public RPCs that intermittently return errors; all headline numbers were re-verified via multiple endpoints/Alchemy MCP."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Orbit Protocol (Blast): the $612,954 of cash is supplier-owned, the $22.9k Blast yield is admin-gated, all Pyth oracles are stale (liquidations revert StalePrice; max conditional profit $12.50 for one account), and the RESC->ETH/USD feed mispricing is unexploitable because 990k/1M RESC is held by the team admin and has no market."
+}

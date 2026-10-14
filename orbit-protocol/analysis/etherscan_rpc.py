@@ -12,7 +12,7 @@ KEY = os.environ.get("ETHERSCANV2_API_KEY", "")
 BASE = "https://api.etherscan.io/v2/api"
 
 _last = [0.0]
-_MIN_INTERVAL = 0.21  # ~5 req/s
+_MIN_INTERVAL = 0.40  # conservative (free tier is 3-5 req/s)
 
 
 def _throttle():
@@ -31,9 +31,12 @@ def eth_call(to, data, tag="latest"):
             req = urllib.request.Request(f"{BASE}?{q}", headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=30) as r:
                 out = json.loads(r.read())
-            if "result" in out:
+            if "result" in out and isinstance(out["result"], str) and out["result"].startswith("0x"):
                 return out["result"]
             err = out.get("error") or {}
+            if "result" in out and not str(out["result"]).startswith("0x"):
+                time.sleep(1.2)
+                continue
             msg = (err.get("message") or "") + str(err.get("data") or "")
             if err.get("code") == 3 or "revert" in msg.lower() or "invalid opcode" in msg.lower():
                 return "__REVERT__"
@@ -52,7 +55,7 @@ def block_number():
             req = urllib.request.Request(f"{BASE}?{q}", headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=30) as r:
                 out = json.loads(r.read())
-            if "result" in out:
+            if "result" in out and str(out["result"]).startswith("0x"):
                 return int(out["result"], 16)
         except Exception:  # noqa: BLE001
             time.sleep(1.5)
@@ -68,7 +71,7 @@ def get_balance(addr, tag="latest"):
             req = urllib.request.Request(f"{BASE}?{q}", headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=30) as r:
                 out = json.loads(r.read())
-            if "result" in out:
+            if "result" in out and str(out["result"]).startswith("0x"):
                 return int(out["result"], 16)
         except Exception:  # noqa: BLE001
             time.sleep(1.5)

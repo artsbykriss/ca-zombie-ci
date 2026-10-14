@@ -1,0 +1,76 @@
+{
+ "generated": "2026-10-14",
+ "note": "Oracle configuration + observed states (verified via public RPC + Alchemy MCP + Etherscan V2).",
+ "oracle_of": {
+  "c1": "0x8240881C0731a84F44b69a221871bBD88E8ca711 (OracleRouter)",
+  "c2": "0xF62dd5404d96Bf9628a891c6fd2D62DcD4DB8A56 (PythOracleProxy)",
+  "c3": "0x5F3f2f65c78Ea522767ae965a1C48cBC852820cE (PythOracleProxy)",
+  "c4": "0x5F3f2f65c78Ea522767ae965a1C48cBC852820cE (PythOracleProxy)"
+ },
+ "router_map_c1": {
+  "0xf92996ddc677a8dcb032ac5fe62bbf00f92ae2ec": "0x5f3f2f65c78ea522767ae965a1c48cbc852820ce (Pyth)",
+  "0xd847b486fe612c51900f1da1a045741820dd5fa0": "0x5f3f2f65c78ea522767ae965a1c48cbc852820ce (Pyth)",
+  "0x9aecedcd6a82d26f2f86d331b17a1c1676442a87": "0xfe4c1021d3276a6f9c4c1e7f296947f92b293cd1 (Redstone)",
+  "0xf9b3b455f5d900f62bc1792a6ca6e1d47b989389": "0x5f3f2f65c78ea522767ae965a1c48cbc852820ce (Pyth)",
+  "0x0872b71efc37cb8dde22b2118de3d800427fdba0": "0xcb80b73f2fe80b0859458048f27d57436bdd2730 (API3)",
+  "0x8c415331761063e5d6b1c8e700f996b13603fc2e": "0x5f3f2f65c78ea522767ae965a1c48cbc852820ce (Pyth)"
+ },
+ "pyth_feeds": {
+  "ETH/USD": "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+  "USDC/USD": "0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+  "weETH/USD": "0x9ee4e7c60b940440a261eb54b6d8149c23b580ed7da3139f7f08f4ea29dad395"
+ },
+ "market_feed_mapping_c3c4": {
+  "RESC": "ETH/USD (mispricing)",
+  "DETH": "ETH/USD",
+  "wrsETH": "ETH/USD",
+  "DUSD": "USDC/USD",
+  "USDB": "USDC/USD",
+  "USDe": "USDC/USD",
+  "weETH": "weETH/USD"
+ },
+ "pyth_contract": "0xA2aa501b19aff244D90cc15a4Cf739D2725B5729",
+ "pyth_valid_time_period_s": 60,
+ "pyth_stored_eth_usd": {
+  "price": 263197776805,
+  "expo": -8,
+  "publishTime": 1789936627,
+  "stale_days_at_2026-10-14": 23.4,
+  "freshness_check": "getPriceNoOlderThan(feed,3600) reverts StalePrice 0x19abf40e"
+ },
+ "redstone_usdb": {
+  "proxy": "0xfe4c1021d3276a6f9c4c1e7f296947f92b293cd1",
+  "impl": "0x0e2d75d760b12ac1f2ae84cd2ff9fd13cb632942",
+  "adapter": "0x3a236f67fce401d87d7215695235e201966576e4",
+  "latestRoundData": {
+   "roundId": 3506,
+   "answer": 99797441,
+   "decimals": 8,
+   "updatedAt": 1771528225,
+   "updatedAt_utc": "2026-02-19",
+   "usd": 0.99797441
+  },
+  "observed": "getUnderlyingPrice(oUSDB) reverts OraclePriceExpired (>86400s stale)",
+  "updatable_by_attacker": false,
+  "source": "MergedAdapterWithRoundsUsdbV1 (requireAuthorisedUpdater + signed Redstone packages)"
+ },
+ "api3_oethv2": {
+  "proxy": "0xcb80b73f2fe80b0859458048f27d57436bdd2730",
+  "observed": "getUnderlyingPrice(oETHV2) reverts 'dAPI name not set'",
+  "updatable_by_attacker": false
+ },
+ "resc_feed_mispricing": {
+  "market": "0x586abb06179535de9eb6c6d968a355128dd74511",
+  "asset": "0x38e6da25e91fe7fc023bf2689a5bd0154e2f810a (RESC 'RescueFunds')",
+  "feed": "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace (ETH/USD)",
+  "true_value_usd": 0.0,
+  "oracle_value_usd": 2506.18,
+  "holders": {
+   "0x6315F65843e7582508e4F0aAC20a7203E7B09F02 (team admin)": 990000,
+   "0x586abb... c3 RESC market": 9985.21,
+   "0xa1a0e331825584bfbfd6c025a75b87c7ba795de6": 13.79,
+   "other dust": "~1.0"
+  },
+  "exploitability": "closed: RESC unobtainable (no DEX/market; 990k/1M with team admin); c3 borrows paused except DETH and RESC (max $714 if RESC were obtainable)"
+ }
+}
