@@ -132,6 +132,15 @@ def main():
     body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []}).encode()
     h0 = ES.block_number()
     heights = [h0] if h0 else []
+    if not heights:
+        for url in RPCS:
+            try:
+                req = urllib.request.Request(url, data=body, headers={
+                    "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=10) as r:
+                    heights.append(int(json.loads(r.read())["result"], 16))
+            except Exception:  # noqa: BLE001
+                continue
     blk = (min(heights) - 5) if heights else None
     if blk is None:
         raise RuntimeError("no block number")

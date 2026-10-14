@@ -10,7 +10,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from enumerate_live2 import batch, u  # noqa: E402
+from enumerate_live2 import batch, u, words  # noqa: E402
 
 OUTDIR = os.environ.get("CI_OUT", HERE)
 BLAST = "0x4300000000000000000000000000000000000002"
@@ -62,7 +62,6 @@ def main():
     for (a, k), h in zip(keys, r):
         c = out["contracts"].setdefault(a, {})
         if k == "gas_params" and h and h != "__REVERT__":
-            from enumerate_live2 import words
             ws = words(h)
             if len(ws) >= 4:
                 c[k] = {"etherSeconds": u("0x" + ws[0]), "etherBalance": u("0x" + ws[1]),
@@ -74,9 +73,11 @@ def main():
     os.makedirs(OUTDIR, exist_ok=True)
     with open(os.path.join(OUTDIR, "blast_yield.json"), "w") as f:
         json.dump(out, f, indent=1)
-    tot_usdb = sum((c.get("usdb_claimable") or 0) for c in out["contracts"].values())
-    tot_weth = sum((c.get("weth_claimable") or 0) for c in out["contracts"].values())
-    tot_yield = sum((c.get("claimable_yield") or 0) for c in out["contracts"].values())
+    def _num(x):
+        return x if isinstance(x, int) else 0
+    tot_usdb = sum(_num(c.get("usdb_claimable")) for c in out["contracts"].values())
+    tot_weth = sum(_num(c.get("weth_claimable")) for c in out["contracts"].values())
+    tot_yield = sum(_num(c.get("claimable_yield")) for c in out["contracts"].values())
     print(f"claimable: yield_wei={tot_yield} usdb={tot_usdb} weth={tot_weth}", flush=True)
     print("wrote blast_yield.json", flush=True)
 

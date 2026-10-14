@@ -36,7 +36,7 @@ contract OrbitTest is Test {
     address constant M_C4_DETH = 0x7878C119F08052789F84CF4fDD3C3642fa291257;
 
     address constant PYTH = 0xA2aa501b19aff244D90cc15a4Cf739D2725B5729;
-    bytes32 constant ETH_USD = 0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace;
+    bytes32 constant ETH_USD = 0xfF61491a931112DDF1Bd8147cd1b641375F79f5825126d665480874634fd0ace;
 
     uint256 forkBlock;
 
@@ -208,8 +208,10 @@ contract OrbitTest is Test {
         uint256 candidates;
         for (uint256 i = 0; i < mks.length; i++) {
             address m = mks[i];
-            uint256 sup = ICErc20(m).totalSupply();
-            uint256 cash = ICErc20(m).getCash();
+            uint256 sup;
+            uint256 cash;
+            try ICErc20(m).totalSupply() returns (uint256 v) { sup = v; } catch { continue; }
+            try ICErc20(m).getCash() returns (uint256 v) { cash = v; } catch { continue; }
             if (sup == 0 && cash > 0) {
                 candidates++;
                 emit log_named_address("DONATION-CANDIDATE", m);
@@ -310,55 +312,27 @@ contract OrbitTest is Test {
         return n;
     }
 
-    /// 08 — liquidation scan over candidates.txt (comptroller,borrower per line).
-    ///      Requires refreshed Pyth prices (VAAs via env) for meaningful results.
-    function test_08_liquidation_scan() public {
-        _refreshPyth();
-        string memory path = vm.envOr("CANDIDATES", string("../ci-out/candidates.txt"));
-        string memory data;
-        try vm.readFile(path) returns (string memory d) {
-            data = d;
-        } catch {
-            emit log("candidates file missing; skipping scan");
-            return;
-        }
-        string[] memory lines = _split(data, "\n");
-        uint256 scanned;
-        uint256 withDebt;
-        uint256 underwater;
-        uint256 reverts;
-        uint256 shortfallTotal;
-        for (uint256 i = 0; i < lines.length; i++) {
-            bytes memory b = bytes(lines[i]);
-            if (b.length < 10) continue;
-            uint256 comma = b.length;
-            for (uint256 j = 0; j < b.length; j++) {
-                if (b[j] == ",") { comma = j; break; }
-            }
-            if (comma == b.length) continue;
-            address comp = _parseAddr(b, 0, comma);
-            address bor = _parseAddr(b, comma + 1, b.length);
-            scanned++;
-            try IComptroller(comp).getAccountLiquidity(bor) returns (uint256 err, uint256 liquidity, uint256 shortfall) {
-                err;
-                liquidity;
-                if (shortfall > 0) {
-                    underwater++;
-                    shortfallTotal += shortfall;
-                    emit log_named_address("UNDERWATER", bor);
-                    emit log_named_address("  comptroller", comp);
-                    emit log_named_uint("  shortfall", shortfall);
-                }
-                if (bor != address(0)) withDebt++;
-            } catch {
-                reverts++;
+    /// 08 — targeted liquidation probes for the accounts found by the off-chain scan
+    ///      (analysis/positions2.py over 4,042 candidates; 65 underwater, 1 with
+    ///      profitable collateral). A full on-chain scan needs a stable RPC and is
+    ///      done off-chain instead.
+    function test_08_targeted_liquidation() public {
+        address[4] memory probes = [
+            0xD89b1b886719fB9f2168aEa44d719e9B81cD78DD, // underwater $1,602; $250 USDe collateral
+            0x34bbf3b83F82342F16AC3C5d7D3256F9BE9441bc, // underwater $7.2M; collateral DETH (rho~0)
+            0xB7eF760F30d139097bA547bD6f0dfaeCbf148452, // underwater $401; collateral rho~0
+            0x6315F65843e7582508e4F0aAC20a7203E7B09F02  // team account, deep bad debt
+        ];
+        for (uint256 i = 0; i < probes.length; i++) {
+            try IComptroller(C3).getAccountLiquidity(probes[i]) returns (uint256 err, uint256 liq, uint256 shortfall) {
+                emit log_named_address("account", probes[i]);
+                emit log_named_uint("  err", err);
+                emit log_named_uint("  liquidity", liq);
+                emit log_named_uint("  shortfall", shortfall);
+            } catch (bytes memory e) {
+                emit log_named_bytes(string(abi.encodePacked("liq-revert ", vm.toString(probes[i]))), e);
             }
         }
-        emit log_named_uint("scanned", scanned);
-        emit log_named_uint("ok", withDebt);
-        emit log_named_uint("reverts(frozen)", reverts);
-        emit log_named_uint("underwater accounts", underwater);
-        emit log_named_uint("total shortfall (raw)", shortfallTotal);
     }
 
     function _split(string memory s, string memory sep) internal pure returns (string[] memory) {

@@ -80,8 +80,9 @@ def batch(items, block, chunk=40, retries=3):
             res[i] = REVERT
     for i in range(0, len(items), chunk):
         part = items[i:i + chunk]
+        tag = hex(block) if isinstance(block, int) else str(block)
         reqs = [{"jsonrpc": "2.0", "id": j, "method": "eth_call",
-                 "params": [{"to": t, "data": d}, hex(block)]} for j, (t, d) in enumerate(part)]
+                 "params": [{"to": t, "data": d}, tag]} for j, (t, d) in enumerate(part)]
         body = json.dumps(reqs).encode()
         got = False
         for attempt in range(retries):
@@ -112,8 +113,9 @@ def batch(items, block, chunk=40, retries=3):
             break
         for k in missing:
             t, d = items[k]
+            tag2 = hex(block) if isinstance(block, int) else str(block)
             body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "eth_call",
-                               "params": [{"to": t, "data": d}, hex(block)]}).encode()
+                               "params": [{"to": t, "data": d}, tag2]}).encode()
             for url in pick_rpc():
                 try:
                     req = urllib.request.Request(url, data=body, headers={
