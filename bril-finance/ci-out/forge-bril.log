@@ -1,0 +1,74 @@
+Compiling 20 files with Solc 0.8.24
+Solc 0.8.24 finished in 1.28s
+Compiler run successful with warnings:
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:109:32:
+    |
+109 |         (int24 nb0, int24 nb1, int24 nl0, int24 nl1, int24 ntick) = _ticks(T3_VAULT);
+    |                                ^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:161:20:
+    |
+161 |         (int24 s0, int24 s1, int24 s2, int24 s3) = IBrilStrategy(T1_STRAT).simulate();
+    |                    ^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:161:30:
+    |
+161 |         (int24 s0, int24 s1, int24 s2, int24 s3) = IBrilStrategy(T1_STRAT).simulate();
+    |                              ^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:176:20:
+    |
+176 |         (int24 n0, int24 n1, int24 n2, int24 n3) = IBrilStrategy(T1_STRAT).simulate();
+    |                    ^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:176:30:
+    |
+176 |         (int24 n0, int24 n1, int24 n2, int24 n3) = IBrilStrategy(T1_STRAT).simulate();
+    |                              ^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:286:20:
+    |
+286 |         (int24 b0, int24 b1, int24 l0, int24 l1,) = _ticks(vault);
+    |                    ^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:286:30:
+    |
+286 |         (int24 b0, int24 b1, int24 l0, int24 l1,) = _ticks(vault);
+    |                              ^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:303:21:
+    |
+303 |         (int24 nb0, int24 nb1, int24 nl0, int24 nl1,) = _ticks(vault);
+    |                     ^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/BrilLive.t.sol:303:32:
+    |
+303 |         (int24 nb0, int24 nb1, int24 nl0, int24 nl1,) = _ticks(vault);
+    |                                ^^^^^^^^^
+
+[2m2026-10-14T01:11:09.861581Z[0m [31mERROR[0m [2msharedbackend[0m[2m:[0m Failed to send/recv `basic` [3merr[0m[2m=[0mfailed to get account for 0x000000000000000000000000000000000000bEEF: server returned an error response: error code -32603: state at block #127494166 is pruned [3maddress[0m[2m=[0m0x000000000000000000000000000000000000bEEF
+[2m2026-10-14T01:11:10.008570Z[0m [31mERROR[0m [2msharedbackend[0m[2m:[0m Failed to send/recv `basic` [3merr[0m[2m=[0mfailed to get account for 0xD3b0d838cCCEAe7ebF1781D11D1bB741DB7Fe1A7: server returned an error response: error code -32603: state at block #127494166 is pruned [3maddress[0m[2m=[0m0xD3b0d838cCCEAe7ebF1781D11D1bB741DB7Fe1A7
+
+Ran 1 test for test/BrilLive.t.sol:BrilLiveTest
+[FAIL: EVM error; database error: failed to get account for 0xD3b0d838cCCEAe7ebF1781D11D1bB741DB7Fe1A7: server returned an error response: error code -32603: state at block #127494166 is pruned] setUp() (gas: 0)
+Suite result: FAILED. 0 passed; 1 failed; 0 skipped; finished in 432.36ms (0.00ns CPU time)
+
+Ran 1 test suite in 433.43ms (432.36ms CPU time): 0 tests passed, 1 failed, 0 skipped (1 total tests)
+
+Failing tests:
+Encountered 1 failing test in test/BrilLive.t.sol:BrilLiveTest
+[FAIL: EVM error; database error: failed to get account for 0xD3b0d838cCCEAe7ebF1781D11D1bB741DB7Fe1A7: server returned an error response: error code -32603: state at block #127494166 is pruned] setUp() (gas: 0)
+
+Encountered a total of 1 failing tests, 0 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 1 failed test
+Tip: Run `forge test --debug --match-test <TEST_NAME>` to inspect one failing test in the debugger

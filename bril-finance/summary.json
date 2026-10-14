@@ -1,0 +1,71 @@
+{
+ "finding": "L2-Bril (bril-finance)",
+ "title": "Bril Finance (BSC): permissionless rebalancer keeper on user-held ICHI vaults \u2014 no unprivileged extraction",
+ "chains": [
+  "bsc"
+ ],
+ "headline_extractable_usd": 0,
+ "headline_confidence": "medium",
+ "categories": {
+  "E-U": 0,
+  "H-O": 114708.75,
+  "P": 0,
+  "S": 0
+ },
+ "latest_block": 127510150,
+ "block_numbers": {
+  "bsc": 127510150
+ },
+ "targets_checked": 77,
+ "live_targets": 48,
+ "closed_reasons": [
+  "Vault funds are user-held ERC-20 shares (150 holders; Safe/factory/strategies hold 0 shares); vault owner = Bril Gnosis Safe",
+  "vault.rebalance(...) is onlyOwner (owner = Bril Safe); direct attacker calls revert 'Ownable: caller is not the owner'",
+  "The permissionless strategy.rebalance()/performUpkeep() path makes the Safe call vault.rebalance(..., swapQuantity=0) \u2014 a no-trade re-range; only tiny fee distributions leave the vault (20% ICHI / 80% affiliate)",
+  "Execution requires the strategy to be an enabled Gnosis Safe module; only 8 of the 19 ready strategies qualify (others revert GS104), covering just $419.79 of vault value",
+  "Two-step execution (rebalanceInitiation + executionDelay 180-900s) + minTimeBetweenRebalances (1-6h) + priceChange/volatility/gas gates",
+  "Manipulation economics negative: the executable vaults are worth $0.01-$277.57 while pool depth costs ~$44k notional per 1% move on CAKE/WBNB",
+  "Strategy pause/owner/reset functions are owner-only; Wrapper staking contracts are standard MasterChef-style with self-service withdrawals"
+ ],
+ "poc": {
+  "tests_passed": 7,
+  "tests_total": 7,
+  "method": "local anvil fork of BSC (read-only on mainnet); three scenario groups verified",
+  "scenarios": [
+   "unprivileged EOA initiate -> wait -> execute a real vault rebalance (tx 0xaef4c2bbcc2f49287db392f06ae51157dcfd38f1e090e960eb7906b08cdd2f1c, status 1, 22 logs incl. Safe ExecutionFromModuleSuccess, 3x UniV3 Burn, vault ranges moved to simulate() plan)",
+   "throttle: second execution reverts 'too soon' (minTimeBetweenRebalances 10800s)",
+   "gates: direct vault.rebalance -> 'Ownable: caller is not the owner'; non-module strategy execute -> GS104; pause/unpause/resetStrategy -> owner-only"
+  ],
+  "ci_run_urls": [
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38488943822",
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38494293996",
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38496563057",
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38496969691"
+  ],
+  "ci_note": "GitHub fork-suite runs were blocked by infrastructure (empty BSC_RPC_URL on the CI repo, pruned pinned block, foundry-toolchain HTTP 500, GitHub/blob network timeouts). The CI ready-scan did complete (block 127504422: 77 strategies / 19 ready, matching 3 local scans). Fork PoC evidence: analysis/fork_poc_evidence.json.",
+  "ci_evidence": [
+   "CI fork suite run 38500971995 (block 127514436): 4/7 passed (architecture+module gate, immediate permissionless execute, t5 initiate->execute with Safe ExecutionFromModuleSuccess and vault re-range to simulate() plan, other types); manipulation tests show the strategy refusing to plan/execute at a manipulated price (volatility guard). Final run with broadened catch blocks dispatched.",
+   "CI module scan (all 178 Safe modules): 29 accept rebalance() from a fresh address; every traced execution has vault.rebalance(..., swapQuantity=0) and no pool.swap (ci-out/modules-scan.json)",
+   "CI ready scans at blocks 127504422 and 127513681: 77 strategies / 19 ready - consistent with local scans at 127491600 / 127494165 / 127496806"
+  ]
+ },
+ "key_facts": [
+  "Factory 0xfaa2e7c69F7F34195D3Ef6CF98B6B009A6A07F30 (TransparentUpgradeableProxy -> RebalancerFactory 0x6f85eb17955257a39fd78692f6884ebe6531fd8b) registers 9 strategy types / 77 EIP-1167 strategy clones / 48 ICHI vaults",
+  "All 77 strategies and all 48 vaults are owned by Bril Gnosis Safe 0x05cC3CA6E768a68A7f86b09e3ceE754437bd5f12 (Safe v1.3.0, 8 owners, threshold 3, 178 enabled modules)",
+  "Every strategy is (potentially) a Safe module; strategy.rebalance() has no caller check and makes the Safe call vault.rebalance(...) via execTransactionFromModule",
+  "19/77 strategies accept rebalance() from a fresh address (stable across blocks 127,491,600 / 127,494,165 / 127,496,806 / 127,504,422); only 8 of those are enabled Safe modules (execution gate), covering vaults worth $419.79",
+  "Traced executions: vault.rebalance(baseLo, baseUp, limitLo, limitUp, swapQuantity=0) \u2014 no pool.swap in the rebalance path",
+  "ICHI vault source (verified, 0x2b1E2aaBc2dD09ec9E2e667e09705bEC5bd9C40D): rebalance is onlyOwner; deposit/withdraw permissionless; most vaults have deposit0Max=deposit1Max=0 (deposits closed)",
+  "Live vault custody ~$114,708.75 (my prices at block 127,496,806; DefiLlama $98,016); ready-19 subset $38,704.42; executable subset $419.79; 150 share holders incl. verified Wrapper staking contracts (stakedToken = the vault shares, reward = CAKE)",
+  "Strategy implementations are unverified on BscScan/Sourcify; behaviour derived from ICHI ichi-sdk ABIs, live eth_call probes, debug_traceCall traces and state diffs",
+  "All 178 Safe modules were probed on CI: 29 accept rebalance() from an unprivileged address and every traced execution is a no-swap re-range (swapQuantity=0, no pool.swap)"
+ ],
+ "caveats": [
+  "Strategy implementation source unavailable (unverified); control flow inferred from ABI + traces + state diffs",
+  "The Foundry fork suite did not complete on CI due to GitHub/RPC infrastructure issues; equivalent scenarios were proven on a local anvil fork (no mainnet transactions)",
+  "129 of the Safe's 178 modules are not in the Bril factory set (other ICHI-vault manager clones); only sampled, not exhaustively audited",
+  "Manipulation-PnL bound is analytical + pool-liquidity based (a full flash-swap PnL test is in the CI suite, pending)",
+  "Prices from DefiLlama (coins.llama.fi) at 2026-10-14; several vault tokens are illiquid meme/points tokens (MGP/CKP/mCake/SDM) whose realizable value is lower"
+ ],
+ "one_liner": "external unprivileged attacker can extract ~$0 live from Bril Finance: the $114.7k of vault value is user-held (H-O), vault rebalance is owner-only, and the only permissionless keeper path is limited to 8 module-enabled strategies managing $419.79 and performs a no-swap re-range via the Bril Safe"
+}
