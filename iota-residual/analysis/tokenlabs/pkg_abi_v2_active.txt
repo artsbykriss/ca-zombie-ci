@@ -1,0 +1,174 @@
+# TokenLabs public ABI of the LIVE package version v2 = 0x6ab984dfae09bbef27551765622a85f461e0b46629eee60807b6e5399c0f7f0f
+# (type names are displayed with the ORIGINAL package id 0xe4abf8b6... ; see FINDINGS.md 2.0)
+# extracted via iota_getNormalizedMoveModulesByPackage on 2026-10-15; checkpoint 204076768; epoch 528
+
+=== cert (v2) ===
+  struct CERT abilities=['Drop']
+      dummy_field: Bool
+  struct Metadata abilities=['Store', 'Key'] typeparams
+      id: 0x2::object::UID
+      version: U64
+      total_supply: 0x2::balance::Supply<{"TypeParameter": 0}>
+  struct MigratedEvent abilities=['Copy', 'Drop']
+      prev_version: U64
+      new_version: U64
+  [Frie]  burn_balance(&mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, 0x2::balance::Balance<0xe4ab::cert::CERT>) -> U64
+  [Frie]  burn_coin(&mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, 0x2::coin::Coin<0xe4ab::cert::CERT>) -> U64
+  [Publ]  get_total_supply(&0xe4ab::cert::Metadata<0xe4ab::cert::CERT>) -> &0x2::balance::Supply<0xe4ab::cert::CERT>
+  [Publ]  get_total_supply_value(&0xe4ab::cert::Metadata<0xe4ab::cert::CERT>) -> U64
+  [Priv]E migrate(&mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, &0xe4ab::ownership::OwnerCap) -> 
+  [Frie]  mint(&mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, U64, &mut 0x2::tx_context::TxContext) -> 0x2::coin::Coin<0xe4ab::cert::CERT>
+
+=== math (v2) ===
+  [Publ]  from_shares(U256, U64) -> U64
+  [Publ]  mul_div(U64, U64, U64) -> U64
+  [Publ]  ratio(U64, U64) -> U256
+  [Publ]  to_shares(U256, U64) -> U64
+
+=== native_pool (v2) ===
+  struct BaseRewardFeeChangedEvent abilities=['Copy', 'Drop']
+      prev_value: U64
+      new_value: U64
+  struct FeeCollectedEvent abilities=['Copy', 'Drop']
+      to: Address
+      value: U64
+  struct MaxValidatorStakePerEpochChangedEvent abilities=['Copy', 'Drop']
+      prev_value: U64
+      new_value: U64
+  struct MigratedEvent abilities=['Copy', 'Drop']
+      prev_version: U64
+      new_version: U64
+  struct MinStakeChangedEvent abilities=['Copy', 'Drop']
+      prev_value: U64
+      new_value: U64
+  struct NativePool abilities=['Key']
+      id: 0x2::object::UID
+      pending: 0x2::balance::Balance<0x2::iota::IOTA>
+      validator_set: 0xe4ab::validator_set::ValidatorSet
+      total_staked: U64
+      staked_update_epoch: U64
+      base_reward_fee: U64
+      version: U64
+      paused: Bool
+      min_stake: U64
+      total_rewards: U64
+      collected_rewards: U64
+      rewards_threshold: U64
+      rewards_update_ts: U64
+      max_validator_stake_per_epoch: U64
+  struct PausedEvent abilities=['Copy', 'Drop']
+      paused: Bool
+  struct PendingValueAddedEvent abilities=['Copy', 'Drop']
+      prev_value: U64
+      new_value: U64
+  struct RatioUpdatedEvent abilities=['Copy', 'Drop']
+      ratio: U256
+  struct RebalanceEvent abilities=['Copy', 'Drop']
+      bad_validators: vector<Address>
+      total_unstaked: U64
+      total_restaked: U64
+  struct RewardsRevertedEvent abilities=['Copy', 'Drop']
+      prev_total_rewards: U64
+      new_total_rewards: U64
+      fee_adjustment: U64
+      collected_rewards_after: U64
+  struct RewardsThresholdChangedEvent abilities=['Copy', 'Drop']
+      prev_value: U64
+      new_value: U64
+  struct RewardsUpdated abilities=['Copy', 'Drop']
+      value: U64
+  struct StakedEvent abilities=['Copy', 'Drop']
+      staker: Address
+      iota_amount: U64
+      cert_amount: U64
+  struct StakedToValidatorsEvent abilities=['Copy', 'Drop']
+      staker: Address
+      validators: vector<Address>
+      iota_amount: U64
+      cert_amount: U64
+  struct UnstakedEvent abilities=['Copy', 'Drop']
+      staker: Address
+      cert_amount: U64
+      iota_amount: U64
+  struct ValidatorCapBaseChangedEvent abilities=['Copy', 'Drop']
+      prev_value: U64
+      new_value: U64
+  struct ValidatorsUpdatedEvent abilities=['Copy', 'Drop']
+      validators: vector<Address>
+      priorities: vector<U64>
+      count: U64
+  [Publ]E add_pending(&mut 0xe4ab::native_pool::NativePool, 0x2::coin::Coin<0x2::iota::IOTA>, &0xe4ab::ownership::OperatorCap) -> 
+  [Publ]E change_base_reward_fee(&mut 0xe4ab::native_pool::NativePool, &0xe4ab::ownership::OwnerCap, U64) -> 
+  [Publ]E change_max_validator_stake_per_epoch(&mut 0xe4ab::native_pool::NativePool, &0xe4ab::ownership::OwnerCap, U64) -> 
+  [Publ]E change_min_stake(&mut 0xe4ab::native_pool::NativePool, &0xe4ab::ownership::OwnerCap, U64) -> 
+  [Publ]E change_validator_cap_base(&mut 0xe4ab::native_pool::NativePool, &0xe4ab::ownership::OwnerCap, U64) -> 
+  [Publ]E collect_fee_new(&mut 0xe4ab::native_pool::NativePool, &mut 0x3::iota_system::IotaSystemState, Address, &0xe4ab::ownership::OwnerCap, &mut 0x2::tx_context::TxContext) -> 
+  [Publ]  from_shares(&0xe4ab::native_pool::NativePool, &0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, U64) -> U64
+  [Publ]  get_collected_rewards(&0xe4ab::native_pool::NativePool) -> U64
+  [Publ]  get_max_stake_per_epoch(&0xe4ab::native_pool::NativePool) -> U64
+  [Publ]  get_min_stake(&0xe4ab::native_pool::NativePool) -> U64
+  [Publ]  get_pending(&0xe4ab::native_pool::NativePool) -> U64
+  [Publ]  get_ratio(&0xe4ab::native_pool::NativePool, &0xe4ab::cert::Metadata<0xe4ab::cert::CERT>) -> U256
+  [Publ]  get_total_rewards(&0xe4ab::native_pool::NativePool) -> U64
+  [Publ]  get_total_staked(&0xe4ab::native_pool::NativePool) -> U64
+  [Publ]  get_validator_cap_base(&0xe4ab::native_pool::NativePool) -> U64
+  [Publ]  get_validators(&0xe4ab::native_pool::NativePool) -> vector<Address>
+  [Priv]E migrate(&mut 0xe4ab::native_pool::NativePool, &0xe4ab::ownership::OwnerCap) -> 
+  [Publ]E publish_ratio(&0xe4ab::native_pool::NativePool, &0xe4ab::cert::Metadata<0xe4ab::cert::CERT>) -> 
+  [Publ]E rebalance(&mut 0xe4ab::native_pool::NativePool, &mut 0x3::iota_system::IotaSystemState, &mut 0x2::tx_context::TxContext) -> 
+  [Publ]E set_pause(&mut 0xe4ab::native_pool::NativePool, &0xe4ab::ownership::OwnerCap, Bool) -> 
+  [Publ]E stake(&mut 0xe4ab::native_pool::NativePool, &mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, &mut 0x3::iota_system::IotaSystemState, 0x2::coin::Coin<0x2::iota::IOTA>, &mut 0x2::tx_context::TxContext) -> 
+  [Publ]  stake_non_entry(&mut 0xe4ab::native_pool::NativePool, &mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, &mut 0x3::iota_system::IotaSystemState, 0x2::coin::Coin<0x2::iota::IOTA>, &mut 0x2::tx_context::TxContext) -> 0x2::coin::Coin<0xe4ab::cert::CERT>
+  [Publ]E stake_to_validators(&mut 0xe4ab::native_pool::NativePool, &mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, &mut 0x3::iota_system::IotaSystemState, vector<Address>, 0x2::coin::Coin<0x2::iota::IOTA>, &mut 0x2::tx_context::TxContext) -> 
+  [Publ]  stake_to_validators_non_entry(&mut 0xe4ab::native_pool::NativePool, &mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, &mut 0x3::iota_system::IotaSystemState, vector<Address>, 0x2::coin::Coin<0x2::iota::IOTA>, &mut 0x2::tx_context::TxContext) -> 0x2::coin::Coin<0xe4ab::cert::CERT>
+  [Publ]  to_shares(&0xe4ab::native_pool::NativePool, &0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, U64) -> U64
+  [Publ]E unstake(&mut 0xe4ab::native_pool::NativePool, &mut 0x3::iota_system::IotaSystemState, &mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, 0x2::coin::Coin<0xe4ab::cert::CERT>, &mut 0x2::tx_context::TxContext) -> 
+  [Publ]  unstake_non_entry(&mut 0xe4ab::native_pool::NativePool, &mut 0x3::iota_system::IotaSystemState, &mut 0xe4ab::cert::Metadata<0xe4ab::cert::CERT>, 0x2::coin::Coin<0xe4ab::cert::CERT>, &mut 0x2::tx_context::TxContext) -> 0x2::coin::Coin<0x2::iota::IOTA>
+  [Publ]E update_rewards(&mut 0xe4ab::native_pool::NativePool, &0x2::clock::Clock, U64, &0xe4ab::ownership::OperatorCap) -> 
+  [Publ]E update_rewards_revert(&mut 0xe4ab::native_pool::NativePool, U64, &0xe4ab::ownership::OwnerCap) -> 
+  [Publ]E update_rewards_threshold(&mut 0xe4ab::native_pool::NativePool, &0xe4ab::ownership::OwnerCap, U64) -> 
+  [Publ]E update_validators(&mut 0xe4ab::native_pool::NativePool, vector<Address>, vector<U64>, &0xe4ab::ownership::OperatorCap) -> 
+
+=== ownership (v2) ===
+  struct OperatorCap abilities=['Key']
+      id: 0x2::object::UID
+  struct OperatorCapTransferred abilities=['Copy', 'Drop']
+      from: Address
+      to: Address
+  struct OwnerCap abilities=['Key']
+      id: 0x2::object::UID
+  struct OwnerCapTransferred abilities=['Copy', 'Drop']
+      from: Address
+      to: Address
+  [Publ]E transfer_operator(0xe4ab::ownership::OperatorCap, Address, &mut 0x2::tx_context::TxContext) -> 
+  [Publ]E transfer_owner(0xe4ab::ownership::OwnerCap, Address, &mut 0x2::tx_context::TxContext) -> 
+
+=== validator_set (v2) ===
+  struct ValidatorPriorUpdated abilities=['Copy', 'Drop']
+      validator: Address
+      priority: U64
+  struct ValidatorSet abilities=['Store', 'Key']
+      id: 0x2::object::UID
+      vaults: 0x2::table::Table<Address,0xe4ab::validator_set::Vault>
+      validators: 0x2::vec_map::VecMap<Address,U64>
+      sorted_validators: vector<Address>
+  struct Vault abilities=['Store', 'Key']
+      id: 0x2::object::UID
+      stakes: 0x2::object_table::ObjectTable<U64,0x3::staking_pool::StakedIota>
+      total_staked: U64
+      stake_epoch: U64
+      staked_in_epoch: U64
+  [Frie]  add_stake(&mut 0xe4ab::validator_set::ValidatorSet, Address, 0x3::staking_pool::StakedIota, &mut 0x2::tx_context::TxContext) -> 
+  [Frie]  create(&mut 0x2::tx_context::TxContext) -> 0xe4ab::validator_set::ValidatorSet
+  [Frie]  ensure_validator_exists(&mut 0xe4ab::validator_set::ValidatorSet, Address, U64) -> 
+  [Publ]  get_bad_validators(&0xe4ab::validator_set::ValidatorSet) -> vector<Address>
+  [Publ]  get_staked_in_epoch(&0xe4ab::validator_set::ValidatorSet, Address, U64) -> U64
+  [Publ]  get_total_stake(&0xe4ab::validator_set::ValidatorSet, Address) -> U64
+  [Publ]  get_validator_priority(&0xe4ab::validator_set::ValidatorSet, Address) -> U64
+  [Publ]  get_validators(&0xe4ab::validator_set::ValidatorSet) -> vector<Address>
+  [Frie]  remove_stakes(&mut 0xe4ab::validator_set::ValidatorSet, &mut 0x3::iota_system::IotaSystemState, Address, U64, &mut 0x2::tx_context::TxContext) -> 0x2::balance::Balance<0x2::iota::IOTA>, U64, U64
+  [Frie]  update_validators(&mut 0xe4ab::validator_set::ValidatorSet, vector<Address>, vector<U64>) -> 
+
+=== FUNCTIONS ADDED IN v2 (vs v1 0xe4ab) ===
+  native_pool: only_v2=['change_validator_cap_base', 'get_validator_cap_base'] only_v1=[]
+  validator_set: only_v2=['get_validator_priority'] only_v1=[]

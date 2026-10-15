@@ -1,0 +1,47 @@
+{
+  "finding": "L2-19+L2-20 (iota-residual)",
+  "title": "TokenLabs vIOTA (IOTA L1) + Deepr Finance (IOTA EVM) — adversarial zombie-hunt",
+  "chains": ["iota", "iota-evm"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 329000,
+    "P": 146000,
+    "S": 0
+  },
+  "latest_block": 13020710,
+  "block_numbers": {"iota": 204090375, "iota-evm": 13020710},
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "TokenLabs: full bytecode audit of v1 + live v2 packages (all 5 modules each); share math floors in both directions; no donation path into the pool; ratio derived from live state with solvency abort; rebalance/publish_ratio cannot pay a caller; v1 permissionless-validator path removed in v2; admin/operator/upgrade all capability-gated",
+    "Deepr: verified sources of all components are upstream-faithful Compound V2 (CToken diffed line-for-line) with a standard MasterChef RewardPool, an owner-only Supra oracle adapter with staleness reverts, and a Gnosis Safe admin; OFT mint is endpoint-gated; only $0.87 of dust shortfalls are liquidatable"
+  ],
+  "poc": {
+    "tests_passed": 1,
+    "tests_total": 1,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38707924869", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38712671531"]
+  },
+  "key_facts": [
+    "TokenLabs TVL 3,597,964.219313557 IOTA (equals sum of 17 vaults) + 255,612.938399482 IOTA uncollected rewards; vIOTA supply 3,590,070.089452751; 1 vIOTA = 1.073398864561 IOTA (verified against real StakedEvents to 11 dp); pool version field = 2, paused = false",
+    "TokenLabs live code is package v2 0x6ab984dfae09bbef27551765622a85f461e0b46629eee60807b6e5399c0f7f0f (upgraded 2026-02-21); v1 0xe4abf8b6... is not the live code; v2 delta (validator_cap_base, per-validator caps, priority<=200, stake_to_validators neutered) is unaudited",
+    "TokenLabs conditional E-U: daily 09:00 UTC update_rewards credits R ~= 1,138.6 IOTA/day in one instant; attacker staked across the cron captures X/(T+X)*R*(1-0.0099) -> ~544 IOTA/day (~$24.6/day) at X=TVL (~$162.6k), ceiling ~$51/day (~$18.6k/yr) with unbounded capital; pro-rata transfer from incumbent holders, not principal theft",
+    "TokenLabs privileged (P): one EOA 0x55556790...b54ae7c holds OwnerCap, OperatorCap and UpgradeCap; update_rewards accepts an operator-supplied number and allows <=1% of staked per 12h, so the owner can inflate the ratio and unstake real principal (~$1.6k/call, <=2x/day), and can publish compatible upgrades with no timelock",
+    "TokenLabs: rebalance and publish_ratio have never been called (0 txs, both versions); rebalance reverts today (0 bad validators); 100% of TVL sits in one validator vault (0xe7f6929a...); a deactivated validator would make stake_pool abort (latent DoS, not attacker-triggerable)",
+    "Deepr markets at block 13,020,635: cash 34.7098 WETH + 876,552.30 IOTA + 19,768.67 USDC = $141,606; borrows $35,800; reserves $330; supplier claims $177,075; prices from the protocol's own Supra feed",
+    "Deepr DEEPR token (0x4Eb8E034...) = $0.00006877; Comptroller holds 65,959,952.64 DEEPR ($4,536) for lender rewards; RewardPool (0x18041c94...) holds 62,686,372.93 staked + 6,997,548.30 locked + 57,734,950.17 unemitted",
+    "Deepr admin 0x84456E99Fe3e0C0b06E6e48854f9a6D2c56a7cBD is a Gnosis Safe proxy (345 bytes, masterCopy()=0xa619486e); it can upgrade the Comptroller implementation and drain market cash (P)",
+    "Deepr RewardPool.withdrawRequestAndHarvest() zeroes rewardDebt instead of setting stakedAmount*acc/P, but stakedAmount is zeroed in the same call and re-deposits are blocked until the 7-day request completes -> no double-claim (quirk disproven)",
+    "Deepr liquidatable dust: 28 underwater positions, total shortfall $0.87, total debt $4.94 -> max liquidation bonus $0.20, below gas cost; largest borrower ($11.1k debt) is healthy",
+    "IOTA spot ~$0.0452 (2026-10-15) vs $0.0603 in the corpus -> corpus USD figures are ~25% overstated"
+  ],
+  "caveats": [
+    "Deepr Comptroller source reviewed as published verified source; not recompiled byte-for-byte against the deployment",
+    "TokenLabs JIT figure depends on the operator keeping the daily 09:00 UTC cron and on attacker timing; R measured from 50 consecutive daily FeeCollectedEvents (11.27 IOTA mean / 0.0099 fee rate)",
+    "TokenLabs v2 upgrade delta is unaudited by any third party; the operator's reward feed is an off-chain number",
+    "DEEPR USD value rests on a thin CoinGecko price ($6.877e-5); selling large size would move it",
+    "ShimmerEVM deployment not scanned (DefiLlama chainTvl = 0)"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from either protocol: TokenLabs vIOTA (IOTA L1, $162.6k TVL) has no principal/mispricing path in the audited v1+v2 bytecode (only a conditional ~$24.6/day reward-timing edge at 1x-TVL capital, ceiling ~$51/day), and Deepr Finance (IOTA EVM, $141.6k cash) is upstream-faithful Compound V2 + a clean Supra oracle + a standard MasterChef pool with a Gnosis Safe admin (only $0.20 of dust liquidation bonus available); the dominant residual risks are privileged (single-EOA caps on TokenLabs; admin-Safe upgrade on Deepr)."
+}

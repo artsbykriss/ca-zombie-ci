@@ -1,0 +1,120 @@
+74c74
+< 	11: LdConst[1](u64: 300)
+---
+> 	11: LdConst[2](u64: 300)
+184a185,210
+> public get_validator_priority(Arg0: &ValidatorSet, Arg1: address): u64 {
+> L2:	loc0: u64
+> B0:
+> 	0: CopyLoc[0](Arg0: &ValidatorSet)
+> 	1: ImmBorrowField[1](ValidatorSet.validators: VecMap<address, u64>)
+> 	2: ImmBorrowLoc[1](Arg1: address)
+> 	3: Call vec_map::contains<address, u64>(&VecMap<address, u64>, &address): bool
+> 	4: BrFalse(12)
+> B1:
+> 	5: MoveLoc[0](Arg0: &ValidatorSet)
+> 	6: ImmBorrowField[1](ValidatorSet.validators: VecMap<address, u64>)
+> 	7: ImmBorrowLoc[1](Arg1: address)
+> 	8: Call vec_map::get<address, u64>(&VecMap<address, u64>, &address): &u64
+> 	9: ReadRef
+> 	10: StLoc[2](loc0: u64)
+> 	11: Branch(16)
+> B2:
+> 	12: MoveLoc[0](Arg0: &ValidatorSet)
+> 	13: Pop
+> 	14: LdU64(0)
+> 	15: StLoc[2](loc0: u64)
+> B3:
+> 	16: MoveLoc[2](loc0: u64)
+> 	17: Ret
+> }
+> 
+207c233
+< 	10: LdConst[3](u64: 304)
+---
+> 	10: LdConst[4](u64: 304)
+220c246
+< 	20: LdConst[2](u64: 301)
+---
+> 	20: LdConst[3](u64: 301)
+316,320c342,345
+< 	0: CopyLoc[0](Arg0: &mut ValidatorSet)
+< 	1: ImmBorrowField[1](ValidatorSet.validators: VecMap<address, u64>)
+< 	2: ImmBorrowLoc[1](Arg1: address)
+< 	3: Call vec_map::contains<address, u64>(&VecMap<address, u64>, &address): bool
+< 	4: BrFalse(14)
+---
+> 	0: CopyLoc[2](Arg2: u64)
+> 	1: LdConst[1](u64: 200)
+> 	2: Le
+> 	3: BrFalse(5)
+322,330c347
+< 	5: MoveLoc[0](Arg0: &mut ValidatorSet)
+< 	6: MutBorrowField[1](ValidatorSet.validators: VecMap<address, u64>)
+< 	7: ImmBorrowLoc[1](Arg1: address)
+< 	8: Call vec_map::get_mut<address, u64>(&mut VecMap<address, u64>, &address): &mut u64
+< 	9: StLoc[3](loc0: &mut u64)
+< 	10: CopyLoc[2](Arg2: u64)
+< 	11: MoveLoc[3](loc0: &mut u64)
+< 	12: WriteRef
+< 	13: Branch(19)
+---
+> 	4: Branch(9)
+331a349,359
+> 	5: MoveLoc[0](Arg0: &mut ValidatorSet)
+> 	6: Pop
+> 	7: LdConst[6](u64: 306)
+> 	8: Abort
+> B3:
+> 	9: CopyLoc[0](Arg0: &mut ValidatorSet)
+> 	10: ImmBorrowField[1](ValidatorSet.validators: VecMap<address, u64>)
+> 	11: ImmBorrowLoc[1](Arg1: address)
+> 	12: Call vec_map::contains<address, u64>(&VecMap<address, u64>, &address): bool
+> 	13: BrFalse(23)
+> B4:
+334,342c362,380
+< 	16: CopyLoc[1](Arg1: address)
+< 	17: CopyLoc[2](Arg2: u64)
+< 	18: Call vec_map::insert<address, u64>(&mut VecMap<address, u64>, address, u64)
+< B3:
+< 	19: MoveLoc[1](Arg1: address)
+< 	20: MoveLoc[2](Arg2: u64)
+< 	21: Pack[0](ValidatorPriorUpdated)
+< 	22: Call event::emit<ValidatorPriorUpdated>(ValidatorPriorUpdated)
+< 	23: Ret
+---
+> 	16: ImmBorrowLoc[1](Arg1: address)
+> 	17: Call vec_map::get_mut<address, u64>(&mut VecMap<address, u64>, &address): &mut u64
+> 	18: StLoc[3](loc0: &mut u64)
+> 	19: CopyLoc[2](Arg2: u64)
+> 	20: MoveLoc[3](loc0: &mut u64)
+> 	21: WriteRef
+> 	22: Branch(28)
+> B5:
+> 	23: MoveLoc[0](Arg0: &mut ValidatorSet)
+> 	24: MutBorrowField[1](ValidatorSet.validators: VecMap<address, u64>)
+> 	25: CopyLoc[1](Arg1: address)
+> 	26: CopyLoc[2](Arg2: u64)
+> 	27: Call vec_map::insert<address, u64>(&mut VecMap<address, u64>, address, u64)
+> B6:
+> 	28: MoveLoc[1](Arg1: address)
+> 	29: MoveLoc[2](Arg2: u64)
+> 	30: Pack[0](ValidatorPriorUpdated)
+> 	31: Call event::emit<ValidatorPriorUpdated>(ValidatorPriorUpdated)
+> 	32: Ret
+382c420
+< 	31: LdConst[4](u64: 305)
+---
+> 	31: LdConst[5](u64: 305)
+957,960c995,1000
+< 	1 => u64: 300
+< 	2 => u64: 301
+< 	3 => u64: 304
+< 	4 => u64: 305
+---
+> 	1 => u64: 200
+> 	2 => u64: 300
+> 	3 => u64: 301
+> 	4 => u64: 304
+> 	5 => u64: 305
+> 	6 => u64: 306

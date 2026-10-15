@@ -1,0 +1,1071 @@
+5a6
+> use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_field;
+76a78,82
+> struct ValidatorCapBaseChangedEvent has copy, drop {
+> 	prev_value: u64,
+> 	new_value: u64
+> }
+> 
+120a127
+> L1:	loc0: NativePool
+130c137
+< 	8: LdConst[0](u64: 1)
+---
+> 	8: LdConst[0](u64: 2)
+138,140c145,154
+< 	16: Pack[16](NativePool)
+< 	17: Call transfer::share_object<NativePool>(NativePool)
+< 	18: Ret
+---
+> 	16: Pack[17](NativePool)
+> 	17: StLoc[1](loc0: NativePool)
+> 	18: MutBorrowLoc[1](loc0: NativePool)
+> 	19: MutBorrowField[0](NativePool.id: UID)
+> 	20: LdConst[25](vector<u8>: "val..)
+> 	21: LdU64(4000000000000000)
+> 	22: Call dynamic_field::add<vector<u8>, u64>(&mut UID, vector<u8>, u64)
+> 	23: MoveLoc[1](loc0: NativePool)
+> 	24: Call transfer::share_object<NativePool>(NativePool)
+> 	25: Ret
+146c160
+< 	1: ImmBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	1: ImmBorrowField[1](NativePool.pending: Balance<IOTA>)
+158c172
+< 	4: ImmBorrowField[1](NativePool.total_staked: u64)
+---
+> 	4: ImmBorrowField[2](NativePool.total_staked: u64)
+168c182
+< 	1: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	1: ImmBorrowField[3](NativePool.total_rewards: u64)
+171c185
+< 	4: ImmBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	4: ImmBorrowField[4](NativePool.collected_rewards: u64)
+181c195
+< 	2: ImmBorrowField[4](NativePool.base_reward_fee: u64)
+---
+> 	2: ImmBorrowField[5](NativePool.base_reward_fee: u64)
+191c205
+< 	1: ImmBorrowField[5](NativePool.min_stake: u64)
+---
+> 	1: ImmBorrowField[6](NativePool.min_stake: u64)
+199c213
+< 	1: ImmBorrowField[6](NativePool.validator_set: ValidatorSet)
+---
+> 	1: ImmBorrowField[7](NativePool.validator_set: ValidatorSet)
+207c221
+< 	1: ImmBorrowField[7](NativePool.max_validator_stake_per_epoch: u64)
+---
+> 	1: ImmBorrowField[8](NativePool.max_validator_stake_per_epoch: u64)
+215c229
+< 	1: ImmBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	1: ImmBorrowField[4](NativePool.collected_rewards: u64)
+219a234,243
+> public get_validator_cap_base(Arg0: &NativePool): u64 {
+> B0:
+> 	0: MoveLoc[0](Arg0: &NativePool)
+> 	1: ImmBorrowField[0](NativePool.id: UID)
+> 	2: LdConst[25](vector<u8>: "val..)
+> 	3: Call dynamic_field::borrow<vector<u8>, u64>(&UID, vector<u8>): &u64
+> 	4: ReadRef
+> 	5: Ret
+> }
+> 
+234c258
+< 	10: LdConst[9](u64: 102)
+---
+> 	10: LdConst[12](u64: 102)
+238c262
+< 	13: ImmBorrowField[5](NativePool.min_stake: u64)
+---
+> 	13: ImmBorrowField[6](NativePool.min_stake: u64)
+245c269
+< 	20: MutBorrowField[5](NativePool.min_stake: u64)
+---
+> 	20: MutBorrowField[6](NativePool.min_stake: u64)
+264c288
+< 	10: LdConst[15](u64: 109)
+---
+> 	10: LdConst[18](u64: 109)
+268c292
+< 	13: ImmBorrowField[4](NativePool.base_reward_fee: u64)
+---
+> 	13: ImmBorrowField[5](NativePool.base_reward_fee: u64)
+275c299
+< 	20: MutBorrowField[4](NativePool.base_reward_fee: u64)
+---
+> 	20: MutBorrowField[5](NativePool.base_reward_fee: u64)
+294c318
+< 	10: LdConst[9](u64: 102)
+---
+> 	10: LdConst[12](u64: 102)
+298c322
+< 	13: ImmBorrowField[7](NativePool.max_validator_stake_per_epoch: u64)
+---
+> 	13: ImmBorrowField[8](NativePool.max_validator_stake_per_epoch: u64)
+305c329
+< 	20: MutBorrowField[7](NativePool.max_validator_stake_per_epoch: u64)
+---
+> 	20: MutBorrowField[8](NativePool.max_validator_stake_per_epoch: u64)
+309a334,382
+> entry public change_validator_cap_base(Arg0: &mut NativePool, Arg1: &OwnerCap, Arg2: u64) {
+> L3:	loc0: u64
+> B0:
+> 	0: CopyLoc[0](Arg0: &mut NativePool)
+> 	1: FreezeRef
+> 	2: Call assert_version(&NativePool)
+> 	3: CopyLoc[2](Arg2: u64)
+> 	4: LdConst[7](u64: 1000..)
+> 	5: Ge
+> 	6: BrFalse(8)
+> B1:
+> 	7: Branch(12)
+> B2:
+> 	8: MoveLoc[0](Arg0: &mut NativePool)
+> 	9: Pop
+> 	10: LdConst[12](u64: 102)
+> 	11: Abort
+> B3:
+> 	12: CopyLoc[2](Arg2: u64)
+> 	13: LdConst[8](u64: 5000..)
+> 	14: Le
+> 	15: BrFalse(17)
+> B4:
+> 	16: Branch(21)
+> B5:
+> 	17: MoveLoc[0](Arg0: &mut NativePool)
+> 	18: Pop
+> 	19: LdConst[24](u64: 116)
+> 	20: Abort
+> B6:
+> 	21: CopyLoc[0](Arg0: &mut NativePool)
+> 	22: ImmBorrowField[0](NativePool.id: UID)
+> 	23: LdConst[25](vector<u8>: "val..)
+> 	24: Call dynamic_field::borrow<vector<u8>, u64>(&UID, vector<u8>): &u64
+> 	25: ReadRef
+> 	26: StLoc[3](loc0: u64)
+> 	27: CopyLoc[2](Arg2: u64)
+> 	28: MoveLoc[0](Arg0: &mut NativePool)
+> 	29: MutBorrowField[0](NativePool.id: UID)
+> 	30: LdConst[25](vector<u8>: "val..)
+> 	31: Call dynamic_field::borrow_mut<vector<u8>, u64>(&mut UID, vector<u8>): &mut u64
+> 	32: WriteRef
+> 	33: MoveLoc[3](loc0: u64)
+> 	34: MoveLoc[2](Arg2: u64)
+> 	35: Pack[12](ValidatorCapBaseChangedEvent)
+> 	36: Call event::emit<ValidatorCapBaseChangedEvent>(ValidatorCapBaseChangedEvent)
+> 	37: Ret
+> }
+> 
+321,322c394,395
+< 	9: VecLen(37)
+< 	10: Pack[13](ValidatorsUpdatedEvent)
+---
+> 	9: VecLen(44)
+> 	10: Pack[14](ValidatorsUpdatedEvent)
+325c398
+< 	13: MutBorrowField[6](NativePool.validator_set: ValidatorSet)
+---
+> 	13: MutBorrowField[7](NativePool.validator_set: ValidatorSet)
+349c422
+< 	13: LdConst[9](u64: 102)
+---
+> 	13: LdConst[12](u64: 102)
+361c434
+< 	22: LdConst[15](u64: 109)
+---
+> 	22: LdConst[18](u64: 109)
+365c438
+< 	25: ImmBorrowField[8](NativePool.rewards_threshold: u64)
+---
+> 	25: ImmBorrowField[9](NativePool.rewards_threshold: u64)
+372c445
+< 	32: MutBorrowField[8](NativePool.rewards_threshold: u64)
+---
+> 	32: MutBorrowField[9](NativePool.rewards_threshold: u64)
+386c459
+< 	4: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	4: ImmBorrowField[3](NativePool.total_rewards: u64)
+398c471
+< 	14: LdConst[16](u64: 111)
+---
+> 	14: LdConst[19](u64: 111)
+412c485
+< 	27: ImmBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	27: ImmBorrowField[4](NativePool.collected_rewards: u64)
+419c492
+< 	33: MutBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	33: MutBorrowField[4](NativePool.collected_rewards: u64)
+424c497
+< 	37: ImmBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	37: ImmBorrowField[4](NativePool.collected_rewards: u64)
+429c502
+< 	42: MutBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	42: MutBorrowField[4](NativePool.collected_rewards: u64)
+439c512
+< 	51: ImmBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	51: ImmBorrowField[4](NativePool.collected_rewards: u64)
+441c514
+< 	53: Pack[14](RewardsRevertedEvent)
+---
+> 	53: Pack[15](RewardsRevertedEvent)
+460c533
+< 	8: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	8: ImmBorrowField[3](NativePool.total_rewards: u64)
+471c544
+< 	17: LdConst[11](u64: 105)
+---
+> 	17: LdConst[14](u64: 105)
+479c552
+< 	24: ImmBorrowField[9](NativePool.rewards_update_ts: u64)
+---
+> 	24: ImmBorrowField[10](NativePool.rewards_update_ts: u64)
+490c563
+< 	33: LdConst[12](u64: 106)
+---
+> 	33: LdConst[15](u64: 106)
+495c568
+< 	37: MutBorrowField[9](NativePool.rewards_update_ts: u64)
+---
+> 	37: MutBorrowField[10](NativePool.rewards_update_ts: u64)
+501c574
+< 	43: ImmBorrowField[8](NativePool.rewards_threshold: u64)
+---
+> 	43: ImmBorrowField[9](NativePool.rewards_threshold: u64)
+508c581
+< 	50: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	50: ImmBorrowField[3](NativePool.total_rewards: u64)
+519c592
+< 	59: LdConst[13](u64: 107)
+---
+> 	59: LdConst[16](u64: 107)
+524c597
+< 	63: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	63: ImmBorrowField[3](NativePool.total_rewards: u64)
+534c607
+< 	73: ImmBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	73: ImmBorrowField[4](NativePool.collected_rewards: u64)
+539c612
+< 	78: MutBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	78: MutBorrowField[4](NativePool.collected_rewards: u64)
+561c634
+< 	2: MutBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	2: MutBorrowField[3](NativePool.total_rewards: u64)
+564c637
+< 	5: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	5: ImmBorrowField[3](NativePool.total_rewards: u64)
+575c648
+< 	2: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	2: ImmBorrowField[3](NativePool.total_rewards: u64)
+582c655
+< 	8: MutBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	8: MutBorrowField[3](NativePool.total_rewards: u64)
+587c660
+< 	12: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	12: ImmBorrowField[3](NativePool.total_rewards: u64)
+592c665
+< 	17: MutBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	17: MutBorrowField[3](NativePool.total_rewards: u64)
+596c669
+< 	20: ImmBorrowField[2](NativePool.total_rewards: u64)
+---
+> 	20: ImmBorrowField[3](NativePool.total_rewards: u64)
+635c708
+< 	11: ImmBorrowField[5](NativePool.min_stake: u64)
+---
+> 	11: ImmBorrowField[6](NativePool.min_stake: u64)
+650c723
+< 	24: LdConst[7](u64: 100)
+---
+> 	24: LdConst[10](u64: 100)
+675c748
+< 	46: LdConst[20](u64: 115)
+---
+> 	46: LdConst[23](u64: 115)
+687c760
+< 	57: MutBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	57: MutBorrowField[1](NativePool.pending: Balance<IOTA>)
+723,733d795
+< L6:	loc0: Balance<IOTA>
+< L7:	loc1: u64
+< L8:	loc2: u64
+< L9:	loc3: u64
+< L10:	loc4: u64
+< L11:	loc5: Coin<CERT>
+< L12:	loc6: u64
+< L13:	loc7: u64
+< L14:	loc8: Coin<IOTA>
+< L15:	loc9: StakedIota
+< L16:	loc10: address
+735,930c797,803
+< 	0: CopyLoc[0](Arg0: &mut NativePool)
+< 	1: FreezeRef
+< 	2: Call assert_version(&NativePool)
+< 	3: CopyLoc[0](Arg0: &mut NativePool)
+< 	4: FreezeRef
+< 	5: Call when_not_paused(&NativePool)
+< 	6: ImmBorrowLoc[3](Arg3: vector<address>)
+< 	7: VecLen(37)
+< 	8: StLoc[10](loc4: u64)
+< 	9: CopyLoc[10](loc4: u64)
+< 	10: LdU64(0)
+< 	11: Gt
+< 	12: BrFalse(14)
+< B1:
+< 	13: Branch(24)
+< B2:
+< 	14: MoveLoc[2](Arg2: &mut IotaSystemState)
+< 	15: Pop
+< 	16: MoveLoc[0](Arg0: &mut NativePool)
+< 	17: Pop
+< 	18: MoveLoc[1](Arg1: &mut Metadata<CERT>)
+< 	19: Pop
+< 	20: MoveLoc[5](Arg5: &mut TxContext)
+< 	21: Pop
+< 	22: LdConst[17](u64: 112)
+< 	23: Abort
+< B3:
+< 	24: ImmBorrowLoc[4](Arg4: Coin<IOTA>)
+< 	25: Call coin::value<IOTA>(&Coin<IOTA>): u64
+< 	26: StLoc[7](loc1: u64)
+< 	27: CopyLoc[7](loc1: u64)
+< 	28: CopyLoc[10](loc4: u64)
+< 	29: CastU64
+< 	30: Div
+< 	31: StLoc[12](loc6: u64)
+< 	32: CopyLoc[12](loc6: u64)
+< 	33: CopyLoc[0](Arg0: &mut NativePool)
+< 	34: ImmBorrowField[5](NativePool.min_stake: u64)
+< 	35: ReadRef
+< 	36: Ge
+< 	37: BrFalse(39)
+< B4:
+< 	38: Branch(49)
+< B5:
+< 	39: MoveLoc[2](Arg2: &mut IotaSystemState)
+< 	40: Pop
+< 	41: MoveLoc[0](Arg0: &mut NativePool)
+< 	42: Pop
+< 	43: MoveLoc[1](Arg1: &mut Metadata<CERT>)
+< 	44: Pop
+< 	45: MoveLoc[5](Arg5: &mut TxContext)
+< 	46: Pop
+< 	47: LdConst[7](u64: 100)
+< 	48: Abort
+< B6:
+< 	49: CopyLoc[0](Arg0: &mut NativePool)
+< 	50: FreezeRef
+< 	51: CopyLoc[1](Arg1: &mut Metadata<CERT>)
+< 	52: FreezeRef
+< 	53: CopyLoc[7](loc1: u64)
+< 	54: Call to_shares(&NativePool, &Metadata<CERT>, u64): u64
+< 	55: StLoc[13](loc7: u64)
+< 	56: CopyLoc[13](loc7: u64)
+< 	57: LdU64(0)
+< 	58: Gt
+< 	59: BrFalse(61)
+< B7:
+< 	60: Branch(71)
+< B8:
+< 	61: MoveLoc[2](Arg2: &mut IotaSystemState)
+< 	62: Pop
+< 	63: MoveLoc[0](Arg0: &mut NativePool)
+< 	64: Pop
+< 	65: MoveLoc[1](Arg1: &mut Metadata<CERT>)
+< 	66: Pop
+< 	67: MoveLoc[5](Arg5: &mut TxContext)
+< 	68: Pop
+< 	69: LdConst[20](u64: 115)
+< 	70: Abort
+< B9:
+< 	71: MoveLoc[1](Arg1: &mut Metadata<CERT>)
+< 	72: CopyLoc[13](loc7: u64)
+< 	73: CopyLoc[5](Arg5: &mut TxContext)
+< 	74: Call cert::mint(&mut Metadata<CERT>, u64, &mut TxContext): Coin<CERT>
+< 	75: StLoc[11](loc5: Coin<CERT>)
+< 	76: MoveLoc[4](Arg4: Coin<IOTA>)
+< 	77: Call coin::into_balance<IOTA>(Coin<IOTA>): Balance<IOTA>
+< 	78: StLoc[6](loc0: Balance<IOTA>)
+< 	79: LdU64(0)
+< 	80: StLoc[9](loc3: u64)
+< 	81: CopyLoc[5](Arg5: &mut TxContext)
+< 	82: FreezeRef
+< 	83: Call tx_context::epoch(&TxContext): u64
+< 	84: StLoc[8](loc2: u64)
+< B10:
+< 	85: CopyLoc[9](loc3: u64)
+< 	86: CopyLoc[10](loc4: u64)
+< 	87: Lt
+< 	88: BrFalse(151)
+< B11:
+< 	89: ImmBorrowLoc[3](Arg3: vector<address>)
+< 	90: CopyLoc[9](loc3: u64)
+< 	91: VecImmBorrow(37)
+< 	92: ReadRef
+< 	93: StLoc[16](loc10: address)
+< 	94: CopyLoc[0](Arg0: &mut NativePool)
+< 	95: ImmBorrowField[6](NativePool.validator_set: ValidatorSet)
+< 	96: CopyLoc[16](loc10: address)
+< 	97: CopyLoc[8](loc2: u64)
+< 	98: Call validator_set::get_staked_in_epoch(&ValidatorSet, address, u64): u64
+< 	99: CopyLoc[12](loc6: u64)
+< 	100: Add
+< 	101: CopyLoc[0](Arg0: &mut NativePool)
+< 	102: ImmBorrowField[7](NativePool.max_validator_stake_per_epoch: u64)
+< 	103: ReadRef
+< 	104: Le
+< 	105: BrFalse(107)
+< B12:
+< 	106: Branch(115)
+< B13:
+< 	107: MoveLoc[2](Arg2: &mut IotaSystemState)
+< 	108: Pop
+< 	109: MoveLoc[0](Arg0: &mut NativePool)
+< 	110: Pop
+< 	111: MoveLoc[5](Arg5: &mut TxContext)
+< 	112: Pop
+< 	113: LdConst[18](u64: 113)
+< 	114: Abort
+< B14:
+< 	115: MutBorrowLoc[6](loc0: Balance<IOTA>)
+< 	116: CopyLoc[12](loc6: u64)
+< 	117: Call balance::split<IOTA>(&mut Balance<IOTA>, u64): Balance<IOTA>
+< 	118: CopyLoc[5](Arg5: &mut TxContext)
+< 	119: Call coin::from_balance<IOTA>(Balance<IOTA>, &mut TxContext): Coin<IOTA>
+< 	120: StLoc[14](loc8: Coin<IOTA>)
+< 	121: CopyLoc[2](Arg2: &mut IotaSystemState)
+< 	122: MoveLoc[14](loc8: Coin<IOTA>)
+< 	123: CopyLoc[16](loc10: address)
+< 	124: CopyLoc[5](Arg5: &mut TxContext)
+< 	125: Call iota_system::request_add_stake_non_entry(&mut IotaSystemState, Coin<IOTA>, address, &mut TxContext): StakedIota
+< 	126: StLoc[15](loc9: StakedIota)
+< 	127: CopyLoc[0](Arg0: &mut NativePool)
+< 	128: MutBorrowField[6](NativePool.validator_set: ValidatorSet)
+< 	129: CopyLoc[16](loc10: address)
+< 	130: LdU64(50)
+< 	131: Call validator_set::ensure_validator_exists(&mut ValidatorSet, address, u64)
+< 	132: CopyLoc[0](Arg0: &mut NativePool)
+< 	133: MutBorrowField[6](NativePool.validator_set: ValidatorSet)
+< 	134: MoveLoc[16](loc10: address)
+< 	135: MoveLoc[15](loc9: StakedIota)
+< 	136: CopyLoc[5](Arg5: &mut TxContext)
+< 	137: Call validator_set::add_stake(&mut ValidatorSet, address, StakedIota, &mut TxContext)
+< 	138: CopyLoc[0](Arg0: &mut NativePool)
+< 	139: ImmBorrowField[1](NativePool.total_staked: u64)
+< 	140: ReadRef
+< 	141: CopyLoc[12](loc6: u64)
+< 	142: Add
+< 	143: CopyLoc[0](Arg0: &mut NativePool)
+< 	144: MutBorrowField[1](NativePool.total_staked: u64)
+< 	145: WriteRef
+< 	146: MoveLoc[9](loc3: u64)
+< 	147: LdU64(1)
+< 	148: Add
+< 	149: StLoc[9](loc3: u64)
+< 	150: Branch(85)
+< B15:
+< 	151: MoveLoc[2](Arg2: &mut IotaSystemState)
+< 	152: Pop
+< 	153: ImmBorrowLoc[6](loc0: Balance<IOTA>)
+< 	154: Call balance::value<IOTA>(&Balance<IOTA>): u64
+< 	155: LdU64(0)
+< 	156: Gt
+< 	157: BrFalse(164)
+< B16:
+< 	158: MoveLoc[0](Arg0: &mut NativePool)
+< 	159: MutBorrowField[0](NativePool.pending: Balance<IOTA>)
+< 	160: MoveLoc[6](loc0: Balance<IOTA>)
+< 	161: Call balance::join<IOTA>(&mut Balance<IOTA>, Balance<IOTA>): u64
+< 	162: Pop
+< 	163: Branch(168)
+< B17:
+< 	164: MoveLoc[0](Arg0: &mut NativePool)
+< 	165: Pop
+< 	166: MoveLoc[6](loc0: Balance<IOTA>)
+< 	167: Call balance::destroy_zero<IOTA>(Balance<IOTA>)
+< B18:
+< 	168: MoveLoc[5](Arg5: &mut TxContext)
+< 	169: FreezeRef
+< 	170: Call tx_context::sender(&TxContext): address
+< 	171: MoveLoc[3](Arg3: vector<address>)
+< 	172: MoveLoc[7](loc1: u64)
+< 	173: MoveLoc[13](loc7: u64)
+< 	174: Pack[12](StakedToValidatorsEvent)
+< 	175: Call event::emit<StakedToValidatorsEvent>(StakedToValidatorsEvent)
+< 	176: MoveLoc[11](loc5: Coin<CERT>)
+< 	177: Ret
+---
+> 	0: MoveLoc[0](Arg0: &mut NativePool)
+> 	1: MoveLoc[1](Arg1: &mut Metadata<CERT>)
+> 	2: MoveLoc[2](Arg2: &mut IotaSystemState)
+> 	3: MoveLoc[4](Arg4: Coin<IOTA>)
+> 	4: MoveLoc[5](Arg5: &mut TxContext)
+> 	5: Call stake_non_entry(&mut NativePool, &mut Metadata<CERT>, &mut IotaSystemState, Coin<IOTA>, &mut TxContext): Coin<CERT>
+> 	6: Ret
+950c823
+< 	11: LdConst[19](u64: 114)
+---
+> 	11: LdConst[22](u64: 114)
+954c827
+< 	14: ImmBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	14: ImmBorrowField[1](NativePool.pending: Balance<IOTA>)
+961c834
+< 	21: MutBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	21: MutBorrowField[1](NativePool.pending: Balance<IOTA>)
+967c840
+< 	27: ImmBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	27: ImmBorrowField[1](NativePool.pending: Balance<IOTA>)
+982c855
+< L10:	loc7: Coin<IOTA>
+---
+> L10:	loc7: u64
+984,986c857,859
+< L12:	loc9: StakedIota
+< L13:	loc10: address
+< L14:	loc11: vector<address>
+---
+> L12:	loc9: u64
+> L13:	loc10: u64
+> L14:	loc11: Coin<IOTA>
+987a861,865
+> L16:	loc13: StakedIota
+> L17:	loc14: u64
+> L18:	loc15: address
+> L19:	loc16: vector<address>
+> L20:	loc17: u64
+990c868
+< 	1: ImmBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	1: ImmBorrowField[1](NativePool.pending: Balance<IOTA>)
+992,993c870,871
+< 	3: StLoc[8](loc5: u64)
+< 	4: CopyLoc[8](loc5: u64)
+---
+> 	3: StLoc[10](loc7: u64)
+> 	4: CopyLoc[10](loc7: u64)
+1009c887
+< 	18: StLoc[6](loc3: u64)
+---
+> 	18: StLoc[7](loc4: u64)
+1011c889
+< 	20: ImmBorrowField[6](NativePool.validator_set: ValidatorSet)
+---
+> 	20: ImmBorrowField[7](NativePool.validator_set: ValidatorSet)
+1013,1016c891,894
+< 	22: StLoc[14](loc11: vector<address>)
+< 	23: ImmBorrowLoc[14](loc11: vector<address>)
+< 	24: VecLen(37)
+< 	25: StLoc[15](loc12: u64)
+---
+> 	22: StLoc[19](loc16: vector<address>)
+> 	23: ImmBorrowLoc[19](loc16: vector<address>)
+> 	24: VecLen(44)
+> 	25: StLoc[20](loc17: u64)
+1018c896,902
+< 	27: StLoc[7](loc4: u64)
+---
+> 	27: StLoc[8](loc5: u64)
+> 	28: CopyLoc[0](Arg0: &mut NativePool)
+> 	29: ImmBorrowField[0](NativePool.id: UID)
+> 	30: LdConst[25](vector<u8>: "val..)
+> 	31: Call dynamic_field::borrow<vector<u8>, u64>(&UID, vector<u8>): &u64
+> 	32: ReadRef
+> 	33: StLoc[6](loc3: u64)
+1020,1023c904,907
+< 	28: CopyLoc[8](loc5: u64)
+< 	29: LdConst[1](u64: 1000..)
+< 	30: Ge
+< 	31: BrFalse(37)
+---
+> 	34: CopyLoc[10](loc7: u64)
+> 	35: LdConst[1](u64: 1000..)
+> 	36: Ge
+> 	37: BrFalse(43)
+1025,1029c909,913
+< 	32: CopyLoc[7](loc4: u64)
+< 	33: CopyLoc[15](loc12: u64)
+< 	34: Lt
+< 	35: StLoc[3](loc0: bool)
+< 	36: Branch(39)
+---
+> 	38: CopyLoc[8](loc5: u64)
+> 	39: CopyLoc[20](loc17: u64)
+> 	40: Lt
+> 	41: StLoc[3](loc0: bool)
+> 	42: Branch(45)
+1031,1032c915,916
+< 	37: LdFalse
+< 	38: StLoc[3](loc0: bool)
+---
+> 	43: LdFalse
+> 	44: StLoc[3](loc0: bool)
+1034,1035c918,919
+< 	39: MoveLoc[3](loc0: bool)
+< 	40: BrFalse(125)
+---
+> 	45: MoveLoc[3](loc0: bool)
+> 	46: BrFalse(165)
+1037,1053c921,937
+< 	41: ImmBorrowLoc[14](loc11: vector<address>)
+< 	42: CopyLoc[7](loc4: u64)
+< 	43: VecImmBorrow(37)
+< 	44: ReadRef
+< 	45: StLoc[13](loc10: address)
+< 	46: CopyLoc[0](Arg0: &mut NativePool)
+< 	47: ImmBorrowField[6](NativePool.validator_set: ValidatorSet)
+< 	48: CopyLoc[13](loc10: address)
+< 	49: CopyLoc[6](loc3: u64)
+< 	50: Call validator_set::get_staked_in_epoch(&ValidatorSet, address, u64): u64
+< 	51: StLoc[11](loc8: u64)
+< 	52: CopyLoc[11](loc8: u64)
+< 	53: CopyLoc[0](Arg0: &mut NativePool)
+< 	54: ImmBorrowField[7](NativePool.max_validator_stake_per_epoch: u64)
+< 	55: ReadRef
+< 	56: Ge
+< 	57: BrFalse(63)
+---
+> 	47: ImmBorrowLoc[19](loc16: vector<address>)
+> 	48: CopyLoc[8](loc5: u64)
+> 	49: VecImmBorrow(44)
+> 	50: ReadRef
+> 	51: StLoc[18](loc15: address)
+> 	52: CopyLoc[0](Arg0: &mut NativePool)
+> 	53: ImmBorrowField[7](NativePool.validator_set: ValidatorSet)
+> 	54: CopyLoc[18](loc15: address)
+> 	55: CopyLoc[7](loc4: u64)
+> 	56: Call validator_set::get_staked_in_epoch(&ValidatorSet, address, u64): u64
+> 	57: StLoc[15](loc12: u64)
+> 	58: CopyLoc[15](loc12: u64)
+> 	59: CopyLoc[0](Arg0: &mut NativePool)
+> 	60: ImmBorrowField[8](NativePool.max_validator_stake_per_epoch: u64)
+> 	61: ReadRef
+> 	62: Ge
+> 	63: BrFalse(69)
+1055,1059c939,943
+< 	58: MoveLoc[7](loc4: u64)
+< 	59: LdU64(1)
+< 	60: Add
+< 	61: StLoc[7](loc4: u64)
+< 	62: Branch(28)
+---
+> 	64: MoveLoc[8](loc5: u64)
+> 	65: LdU64(1)
+> 	66: Add
+> 	67: StLoc[8](loc5: u64)
+> 	68: Branch(34)
+1061,1070c945,954
+< 	63: CopyLoc[0](Arg0: &mut NativePool)
+< 	64: ImmBorrowField[7](NativePool.max_validator_stake_per_epoch: u64)
+< 	65: ReadRef
+< 	66: MoveLoc[11](loc8: u64)
+< 	67: Sub
+< 	68: StLoc[5](loc2: u64)
+< 	69: CopyLoc[8](loc5: u64)
+< 	70: CopyLoc[5](loc2: u64)
+< 	71: Gt
+< 	72: BrFalse(76)
+---
+> 	69: CopyLoc[0](Arg0: &mut NativePool)
+> 	70: ImmBorrowField[8](NativePool.max_validator_stake_per_epoch: u64)
+> 	71: ReadRef
+> 	72: MoveLoc[15](loc12: u64)
+> 	73: Sub
+> 	74: StLoc[5](loc2: u64)
+> 	75: CopyLoc[10](loc7: u64)
+> 	76: CopyLoc[5](loc2: u64)
+> 	77: Gt
+> 	78: BrFalse(82)
+1072,1074c956,958
+< 	73: MoveLoc[5](loc2: u64)
+< 	74: StLoc[4](loc1: u64)
+< 	75: Branch(78)
+---
+> 	79: MoveLoc[5](loc2: u64)
+> 	80: StLoc[4](loc1: u64)
+> 	81: Branch(84)
+1076,1077c960,961
+< 	76: CopyLoc[8](loc5: u64)
+< 	77: StLoc[4](loc1: u64)
+---
+> 	82: CopyLoc[10](loc7: u64)
+> 	83: StLoc[4](loc1: u64)
+1079,1084c963,983
+< 	78: MoveLoc[4](loc1: u64)
+< 	79: StLoc[9](loc6: u64)
+< 	80: CopyLoc[9](loc6: u64)
+< 	81: LdConst[1](u64: 1000..)
+< 	82: Lt
+< 	83: BrFalse(89)
+---
+> 	84: MoveLoc[4](loc1: u64)
+> 	85: StLoc[13](loc10: u64)
+> 	86: CopyLoc[0](Arg0: &mut NativePool)
+> 	87: ImmBorrowField[7](NativePool.validator_set: ValidatorSet)
+> 	88: CopyLoc[18](loc15: address)
+> 	89: Call validator_set::get_validator_priority(&ValidatorSet, address): u64
+> 	90: StLoc[11](loc8: u64)
+> 	91: CopyLoc[6](loc3: u64)
+> 	92: MoveLoc[11](loc8: u64)
+> 	93: LdU64(100)
+> 	94: Call math::mul_div(u64, u64, u64): u64
+> 	95: StLoc[9](loc6: u64)
+> 	96: CopyLoc[0](Arg0: &mut NativePool)
+> 	97: ImmBorrowField[7](NativePool.validator_set: ValidatorSet)
+> 	98: CopyLoc[18](loc15: address)
+> 	99: Call validator_set::get_total_stake(&ValidatorSet, address): u64
+> 	100: StLoc[17](loc14: u64)
+> 	101: CopyLoc[17](loc14: u64)
+> 	102: CopyLoc[9](loc6: u64)
+> 	103: Ge
+> 	104: BrFalse(110)
+1086,1090c985,989
+< 	84: MoveLoc[7](loc4: u64)
+< 	85: LdU64(1)
+< 	86: Add
+< 	87: StLoc[7](loc4: u64)
+< 	88: Branch(28)
+---
+> 	105: MoveLoc[8](loc5: u64)
+> 	106: LdU64(1)
+> 	107: Add
+> 	108: StLoc[8](loc5: u64)
+> 	109: Branch(34)
+1092,1127c991,998
+< 	89: CopyLoc[0](Arg0: &mut NativePool)
+< 	90: MutBorrowField[0](NativePool.pending: Balance<IOTA>)
+< 	91: CopyLoc[9](loc6: u64)
+< 	92: Call balance::split<IOTA>(&mut Balance<IOTA>, u64): Balance<IOTA>
+< 	93: CopyLoc[2](Arg2: &mut TxContext)
+< 	94: Call coin::from_balance<IOTA>(Balance<IOTA>, &mut TxContext): Coin<IOTA>
+< 	95: StLoc[10](loc7: Coin<IOTA>)
+< 	96: CopyLoc[1](Arg1: &mut IotaSystemState)
+< 	97: MoveLoc[10](loc7: Coin<IOTA>)
+< 	98: CopyLoc[13](loc10: address)
+< 	99: CopyLoc[2](Arg2: &mut TxContext)
+< 	100: Call iota_system::request_add_stake_non_entry(&mut IotaSystemState, Coin<IOTA>, address, &mut TxContext): StakedIota
+< 	101: StLoc[12](loc9: StakedIota)
+< 	102: CopyLoc[0](Arg0: &mut NativePool)
+< 	103: MutBorrowField[6](NativePool.validator_set: ValidatorSet)
+< 	104: MoveLoc[13](loc10: address)
+< 	105: MoveLoc[12](loc9: StakedIota)
+< 	106: CopyLoc[2](Arg2: &mut TxContext)
+< 	107: Call validator_set::add_stake(&mut ValidatorSet, address, StakedIota, &mut TxContext)
+< 	108: CopyLoc[0](Arg0: &mut NativePool)
+< 	109: ImmBorrowField[1](NativePool.total_staked: u64)
+< 	110: ReadRef
+< 	111: CopyLoc[9](loc6: u64)
+< 	112: Add
+< 	113: CopyLoc[0](Arg0: &mut NativePool)
+< 	114: MutBorrowField[1](NativePool.total_staked: u64)
+< 	115: WriteRef
+< 	116: MoveLoc[8](loc5: u64)
+< 	117: MoveLoc[9](loc6: u64)
+< 	118: Sub
+< 	119: StLoc[8](loc5: u64)
+< 	120: MoveLoc[7](loc4: u64)
+< 	121: LdU64(1)
+< 	122: Add
+< 	123: StLoc[7](loc4: u64)
+< 	124: Branch(28)
+---
+> 	110: MoveLoc[9](loc6: u64)
+> 	111: MoveLoc[17](loc14: u64)
+> 	112: Sub
+> 	113: StLoc[12](loc9: u64)
+> 	114: CopyLoc[13](loc10: u64)
+> 	115: CopyLoc[12](loc9: u64)
+> 	116: Gt
+> 	117: BrFalse(120)
+1129,1135c1000,1057
+< 	125: MoveLoc[1](Arg1: &mut IotaSystemState)
+< 	126: Pop
+< 	127: MoveLoc[0](Arg0: &mut NativePool)
+< 	128: Pop
+< 	129: MoveLoc[2](Arg2: &mut TxContext)
+< 	130: Pop
+< 	131: Ret
+---
+> 	118: MoveLoc[12](loc9: u64)
+> 	119: StLoc[13](loc10: u64)
+> B16:
+> 	120: CopyLoc[13](loc10: u64)
+> 	121: LdConst[1](u64: 1000..)
+> 	122: Lt
+> 	123: BrFalse(129)
+> B17:
+> 	124: MoveLoc[8](loc5: u64)
+> 	125: LdU64(1)
+> 	126: Add
+> 	127: StLoc[8](loc5: u64)
+> 	128: Branch(34)
+> B18:
+> 	129: CopyLoc[0](Arg0: &mut NativePool)
+> 	130: MutBorrowField[1](NativePool.pending: Balance<IOTA>)
+> 	131: CopyLoc[13](loc10: u64)
+> 	132: Call balance::split<IOTA>(&mut Balance<IOTA>, u64): Balance<IOTA>
+> 	133: CopyLoc[2](Arg2: &mut TxContext)
+> 	134: Call coin::from_balance<IOTA>(Balance<IOTA>, &mut TxContext): Coin<IOTA>
+> 	135: StLoc[14](loc11: Coin<IOTA>)
+> 	136: CopyLoc[1](Arg1: &mut IotaSystemState)
+> 	137: MoveLoc[14](loc11: Coin<IOTA>)
+> 	138: CopyLoc[18](loc15: address)
+> 	139: CopyLoc[2](Arg2: &mut TxContext)
+> 	140: Call iota_system::request_add_stake_non_entry(&mut IotaSystemState, Coin<IOTA>, address, &mut TxContext): StakedIota
+> 	141: StLoc[16](loc13: StakedIota)
+> 	142: CopyLoc[0](Arg0: &mut NativePool)
+> 	143: MutBorrowField[7](NativePool.validator_set: ValidatorSet)
+> 	144: MoveLoc[18](loc15: address)
+> 	145: MoveLoc[16](loc13: StakedIota)
+> 	146: CopyLoc[2](Arg2: &mut TxContext)
+> 	147: Call validator_set::add_stake(&mut ValidatorSet, address, StakedIota, &mut TxContext)
+> 	148: CopyLoc[0](Arg0: &mut NativePool)
+> 	149: ImmBorrowField[2](NativePool.total_staked: u64)
+> 	150: ReadRef
+> 	151: CopyLoc[13](loc10: u64)
+> 	152: Add
+> 	153: CopyLoc[0](Arg0: &mut NativePool)
+> 	154: MutBorrowField[2](NativePool.total_staked: u64)
+> 	155: WriteRef
+> 	156: MoveLoc[10](loc7: u64)
+> 	157: MoveLoc[13](loc10: u64)
+> 	158: Sub
+> 	159: StLoc[10](loc7: u64)
+> 	160: MoveLoc[8](loc5: u64)
+> 	161: LdU64(1)
+> 	162: Add
+> 	163: StLoc[8](loc5: u64)
+> 	164: Branch(34)
+> B19:
+> 	165: MoveLoc[1](Arg1: &mut IotaSystemState)
+> 	166: Pop
+> 	167: MoveLoc[0](Arg0: &mut NativePool)
+> 	168: Pop
+> 	169: MoveLoc[2](Arg2: &mut TxContext)
+> 	170: Pop
+> 	171: Ret
+1190c1112
+< 	29: LdConst[7](u64: 100)
+---
+> 	29: LdConst[10](u64: 100)
+1208c1130
+< 	44: LdConst[14](u64: 108)
+---
+> 	44: LdConst[17](u64: 108)
+1219c1141
+< 	54: ImmBorrowField[6](NativePool.validator_set: ValidatorSet)
+---
+> 	54: ImmBorrowField[7](NativePool.validator_set: ValidatorSet)
+1237c1159
+< 	70: LdConst[10](u64: 103)
+---
+> 	70: LdConst[13](u64: 103)
+1259c1181
+< 	1: VecLen(37)
+---
+> 	1: VecLen(44)
+1272c1194
+< 	12: LdConst[10](u64: 103)
+---
+> 	12: LdConst[13](u64: 103)
+1276c1198
+< 	15: VecLen(37)
+---
+> 	15: VecLen(44)
+1281c1203
+< 	20: ImmBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	20: ImmBorrowField[1](NativePool.pending: Balance<IOTA>)
+1299c1221
+< 	35: MutBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	35: MutBorrowField[1](NativePool.pending: Balance<IOTA>)
+1313c1235
+< 	47: VecImmBorrow(37)
+---
+> 	47: VecImmBorrow(44)
+1317c1239
+< 	51: MutBorrowField[6](NativePool.validator_set: ValidatorSet)
+---
+> 	51: MutBorrowField[7](NativePool.validator_set: ValidatorSet)
+1329c1251
+< 	63: ImmBorrowField[1](NativePool.total_staked: u64)
+---
+> 	63: ImmBorrowField[2](NativePool.total_staked: u64)
+1334c1256
+< 	68: MutBorrowField[1](NativePool.total_staked: u64)
+---
+> 	68: MutBorrowField[2](NativePool.total_staked: u64)
+1373c1295
+< 	103: MutBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	103: MutBorrowField[1](NativePool.pending: Balance<IOTA>)
+1410c1332
+< 	7: ImmBorrowField[6](NativePool.validator_set: ValidatorSet)
+---
+> 	7: ImmBorrowField[7](NativePool.validator_set: ValidatorSet)
+1424c1346
+< 	21: ImmBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	21: ImmBorrowField[1](NativePool.pending: Balance<IOTA>)
+1431c1353
+< 	28: MutBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	28: MutBorrowField[1](NativePool.pending: Balance<IOTA>)
+1440c1362
+< 	37: ImmBorrowField[0](NativePool.pending: Balance<IOTA>)
+---
+> 	37: ImmBorrowField[1](NativePool.pending: Balance<IOTA>)
+1452c1374
+< 	49: Pack[15](RebalanceEvent)
+---
+> 	49: Pack[16](RebalanceEvent)
+1518c1440
+< 	1: ImmBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	1: ImmBorrowField[4](NativePool.collected_rewards: u64)
+1522c1444
+< 	5: ImmBorrowField[6](NativePool.validator_set: ValidatorSet)
+---
+> 	5: ImmBorrowField[7](NativePool.validator_set: ValidatorSet)
+1533c1455
+< 	16: ImmBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	16: ImmBorrowField[4](NativePool.collected_rewards: u64)
+1539c1461
+< 	22: MutBorrowField[3](NativePool.collected_rewards: u64)
+---
+> 	22: MutBorrowField[4](NativePool.collected_rewards: u64)
+1549c1471
+< 	2: MutBorrowField[10](NativePool.paused: bool)
+---
+> 	2: MutBorrowField[11](NativePool.paused: bool)
+1560c1482
+< 	1: ImmBorrowField[10](NativePool.paused: bool)
+---
+> 	1: ImmBorrowField[11](NativePool.paused: bool)
+1567c1489
+< 	6: LdConst[8](u64: 101)
+---
+> 	6: LdConst[11](u64: 101)
+1576c1498
+< 	1: ImmBorrowField[11](NativePool.version: u64)
+---
+> 	1: ImmBorrowField[12](NativePool.version: u64)
+1578c1500
+< 	3: LdConst[0](u64: 1)
+---
+> 	3: LdConst[0](u64: 2)
+1586c1508
+< 	9: LdConst[0](u64: 1)
+---
+> 	9: LdConst[9](u64: 1)
+1590,1599c1512,1526
+< 	12: ImmBorrowField[11](NativePool.version: u64)
+< 	13: ReadRef
+< 	14: LdConst[0](u64: 1)
+< 	15: Pack[8](MigratedEvent)
+< 	16: Call event::emit<MigratedEvent>(MigratedEvent)
+< 	17: LdConst[0](u64: 1)
+< 	18: MoveLoc[0](Arg0: &mut NativePool)
+< 	19: MutBorrowField[11](NativePool.version: u64)
+< 	20: WriteRef
+< 	21: Ret
+---
+> 	12: MutBorrowField[0](NativePool.id: UID)
+> 	13: LdConst[25](vector<u8>: "val..)
+> 	14: LdU64(4000000000000000)
+> 	15: Call dynamic_field::add<vector<u8>, u64>(&mut UID, vector<u8>, u64)
+> 	16: CopyLoc[0](Arg0: &mut NativePool)
+> 	17: ImmBorrowField[12](NativePool.version: u64)
+> 	18: ReadRef
+> 	19: LdConst[0](u64: 2)
+> 	20: Pack[8](MigratedEvent)
+> 	21: Call event::emit<MigratedEvent>(MigratedEvent)
+> 	22: LdConst[0](u64: 2)
+> 	23: MoveLoc[0](Arg0: &mut NativePool)
+> 	24: MutBorrowField[12](NativePool.version: u64)
+> 	25: WriteRef
+> 	26: Ret
+1606c1533
+< 	1: ImmBorrowField[11](NativePool.version: u64)
+---
+> 	1: ImmBorrowField[12](NativePool.version: u64)
+1608c1535
+< 	3: LdConst[0](u64: 1)
+---
+> 	3: LdConst[0](u64: 2)
+1621c1548
+< 	14: ImmBorrowField[11](NativePool.version: u64)
+---
+> 	14: ImmBorrowField[12](NativePool.version: u64)
+1623c1550
+< 	16: LdConst[0](u64: 1)
+---
+> 	16: LdConst[0](u64: 2)
+1632c1559
+< 	22: LdConst[0](u64: 1)
+---
+> 	22: LdConst[9](u64: 1)
+1639c1566
+< 	0 => u64: 1
+---
+> 	0 => u64: 2
+1646,1659c1573,1591
+< 	7 => u64: 100
+< 	8 => u64: 101
+< 	9 => u64: 102
+< 	10 => u64: 103
+< 	11 => u64: 105
+< 	12 => u64: 106
+< 	13 => u64: 107
+< 	14 => u64: 108
+< 	15 => u64: 109
+< 	16 => u64: 111
+< 	17 => u64: 112
+< 	18 => u64: 113
+< 	19 => u64: 114
+< 	20 => u64: 115
+---
+> 	7 => u64: 1000000000000000
+> 	8 => u64: 500000000000000000
+> 	9 => u64: 1
+> 	10 => u64: 100
+> 	11 => u64: 101
+> 	12 => u64: 102
+> 	13 => u64: 103
+> 	14 => u64: 105
+> 	15 => u64: 106
+> 	16 => u64: 107
+> 	17 => u64: 108
+> 	18 => u64: 109
+> 	19 => u64: 111
+> 	20 => u64: 112
+> 	21 => u64: 113
+> 	22 => u64: 114
+> 	23 => u64: 115
+> 	24 => u64: 116
+> 	25 => vector<u8>: "validator_cap_base" // interpreted as UTF8 string
