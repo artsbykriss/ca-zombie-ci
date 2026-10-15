@@ -1,0 +1,214 @@
+// Move bytecode v6
+module c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332.amm_entries {
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::pay;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332::amm_config;
+use c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332::amm_router;
+use c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332::amm_swap;
+
+entry public init_pool_classic<Ty0, Ty1>(Arg0: &mut GlobalCreatedPools, Arg1: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut GlobalCreatedPools)
+	1: LdConst[0](u64: 3)
+	2: LdConst[1](u64: 1000)
+	3: LdConst[2](u64: 25)
+	4: LdConst[3](u64: 100)
+	5: LdFalse
+	6: LdU64(0)
+	7: MoveLoc[1](Arg1: &mut TxContext)
+	8: Call amm_router::init_pool<Ty0, Ty1>(&mut GlobalCreatedPools, u64, u64, u64, u64, bool, u64, &mut TxContext)
+	9: Ret
+}
+
+entry public init_pool_stable<Ty0, Ty1>(Arg0: &mut GlobalCreatedPools, Arg1: u64, Arg2: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut GlobalCreatedPools)
+	1: LdConst[4](u64: 5)
+	2: LdConst[5](u64: 10000)
+	3: LdConst[2](u64: 25)
+	4: LdConst[3](u64: 100)
+	5: LdTrue
+	6: MoveLoc[1](Arg1: u64)
+	7: MoveLoc[2](Arg2: &mut TxContext)
+	8: Call amm_router::init_pool<Ty0, Ty1>(&mut GlobalCreatedPools, u64, u64, u64, u64, bool, u64, &mut TxContext)
+	9: Ret
+}
+
+entry public swap_exact_coinA_for_coinB<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &GlobalPauseStatus, Arg2: Coin<Ty0>, Arg3: u64, Arg4: u64, Arg5: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Pool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalPauseStatus)
+	2: MoveLoc[2](Arg2: Coin<Ty0>)
+	3: MoveLoc[3](Arg3: u64)
+	4: MoveLoc[4](Arg4: u64)
+	5: CopyLoc[5](Arg5: &mut TxContext)
+	6: Call amm_router::swap_exact_coinA_for_coinB_router<Ty0, Ty1>(&mut Pool<Ty0, Ty1>, &GlobalPauseStatus, Coin<Ty0>, u64, u64, &mut TxContext): Coin<Ty1>
+	7: MoveLoc[5](Arg5: &mut TxContext)
+	8: FreezeRef
+	9: Call pay::keep<Ty1>(Coin<Ty1>, &TxContext)
+	10: Ret
+}
+
+entry public swap_exact_coinB_for_coinA<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &GlobalPauseStatus, Arg2: Coin<Ty1>, Arg3: u64, Arg4: u64, Arg5: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Pool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalPauseStatus)
+	2: MoveLoc[2](Arg2: Coin<Ty1>)
+	3: MoveLoc[3](Arg3: u64)
+	4: MoveLoc[4](Arg4: u64)
+	5: CopyLoc[5](Arg5: &mut TxContext)
+	6: Call amm_router::swap_exact_coinB_for_coinA_router<Ty0, Ty1>(&mut Pool<Ty0, Ty1>, &GlobalPauseStatus, Coin<Ty1>, u64, u64, &mut TxContext): Coin<Ty0>
+	7: MoveLoc[5](Arg5: &mut TxContext)
+	8: FreezeRef
+	9: Call pay::keep<Ty0>(Coin<Ty0>, &TxContext)
+	10: Ret
+}
+
+entry public swap_coinA_for_exact_coinB<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &GlobalPauseStatus, Arg2: Coin<Ty0>, Arg3: u64, Arg4: u64, Arg5: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Pool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalPauseStatus)
+	2: MoveLoc[2](Arg2: Coin<Ty0>)
+	3: MoveLoc[3](Arg3: u64)
+	4: MoveLoc[4](Arg4: u64)
+	5: CopyLoc[5](Arg5: &mut TxContext)
+	6: Call amm_router::swap_coinA_for_exact_coinB_router<Ty0, Ty1>(&mut Pool<Ty0, Ty1>, &GlobalPauseStatus, Coin<Ty0>, u64, u64, &mut TxContext): Coin<Ty1>
+	7: MoveLoc[5](Arg5: &mut TxContext)
+	8: FreezeRef
+	9: Call pay::keep<Ty1>(Coin<Ty1>, &TxContext)
+	10: Ret
+}
+
+entry public swap_coinB_for_exact_coinA<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &GlobalPauseStatus, Arg2: Coin<Ty1>, Arg3: u64, Arg4: u64, Arg5: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Pool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalPauseStatus)
+	2: MoveLoc[2](Arg2: Coin<Ty1>)
+	3: MoveLoc[3](Arg3: u64)
+	4: MoveLoc[4](Arg4: u64)
+	5: CopyLoc[5](Arg5: &mut TxContext)
+	6: Call amm_router::swap_coinB_for_exact_coinA_router<Ty0, Ty1>(&mut Pool<Ty0, Ty1>, &GlobalPauseStatus, Coin<Ty1>, u64, u64, &mut TxContext): Coin<Ty0>
+	7: MoveLoc[5](Arg5: &mut TxContext)
+	8: FreezeRef
+	9: Call pay::keep<Ty0>(Coin<Ty0>, &TxContext)
+	10: Ret
+}
+
+entry public add_liquidity<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &GlobalPauseStatus, Arg2: Coin<Ty0>, Arg3: Coin<Ty1>, Arg4: u64, Arg5: u64, Arg6: u64, Arg7: u64, Arg8: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Pool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalPauseStatus)
+	2: MoveLoc[2](Arg2: Coin<Ty0>)
+	3: MoveLoc[3](Arg3: Coin<Ty1>)
+	4: MoveLoc[4](Arg4: u64)
+	5: MoveLoc[5](Arg5: u64)
+	6: MoveLoc[6](Arg6: u64)
+	7: MoveLoc[7](Arg7: u64)
+	8: CopyLoc[8](Arg8: &mut TxContext)
+	9: Call amm_router::add_liquidity_router<Ty0, Ty1>(&mut Pool<Ty0, Ty1>, &GlobalPauseStatus, Coin<Ty0>, Coin<Ty1>, u64, u64, u64, u64, &mut TxContext): Coin<PoolLiquidityCoin<Ty0, Ty1>>
+	10: MoveLoc[8](Arg8: &mut TxContext)
+	11: FreezeRef
+	12: Call pay::keep<PoolLiquidityCoin<Ty0, Ty1>>(Coin<PoolLiquidityCoin<Ty0, Ty1>>, &TxContext)
+	13: Ret
+}
+
+entry public remove_liquidity<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &GlobalPauseStatus, Arg2: Coin<PoolLiquidityCoin<Ty0, Ty1>>, Arg3: u64, Arg4: u64, Arg5: u64, Arg6: &mut TxContext) {
+L7:	loc0: Coin<Ty1>
+B0:
+	0: MoveLoc[0](Arg0: &mut Pool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalPauseStatus)
+	2: MoveLoc[2](Arg2: Coin<PoolLiquidityCoin<Ty0, Ty1>>)
+	3: MoveLoc[3](Arg3: u64)
+	4: MoveLoc[4](Arg4: u64)
+	5: MoveLoc[5](Arg5: u64)
+	6: CopyLoc[6](Arg6: &mut TxContext)
+	7: Call amm_router::remove_liquidity_router<Ty0, Ty1>(&mut Pool<Ty0, Ty1>, &GlobalPauseStatus, Coin<PoolLiquidityCoin<Ty0, Ty1>>, u64, u64, u64, &mut TxContext): Coin<Ty0> * Coin<Ty1>
+	8: StLoc[7](loc0: Coin<Ty1>)
+	9: CopyLoc[6](Arg6: &mut TxContext)
+	10: FreezeRef
+	11: Call pay::keep<Ty0>(Coin<Ty0>, &TxContext)
+	12: MoveLoc[7](loc0: Coin<Ty1>)
+	13: MoveLoc[6](Arg6: &mut TxContext)
+	14: FreezeRef
+	15: Call pay::keep<Ty1>(Coin<Ty1>, &TxContext)
+	16: Ret
+}
+
+entry public set_global_pause_status(Arg0: &AdminCap, Arg1: &mut GlobalPauseStatus, Arg2: bool, Arg3: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &AdminCap)
+	1: MoveLoc[1](Arg1: &mut GlobalPauseStatus)
+	2: MoveLoc[2](Arg2: bool)
+	3: MoveLoc[3](Arg3: &mut TxContext)
+	4: FreezeRef
+	5: Call amm_router::set_global_pause_status(&AdminCap, &mut GlobalPauseStatus, bool, &TxContext)
+	6: Ret
+}
+
+entry public claim_fee<Ty0, Ty1>(Arg0: &AdminCap, Arg1: &mut Pool<Ty0, Ty1>, Arg2: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &AdminCap)
+	1: MoveLoc[1](Arg1: &mut Pool<Ty0, Ty1>)
+	2: MoveLoc[2](Arg2: &mut TxContext)
+	3: Call amm_router::claim_fee<Ty0, Ty1>(&AdminCap, &mut Pool<Ty0, Ty1>, &mut TxContext)
+	4: Ret
+}
+
+entry public claim_fee_pools<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &GlobalTreasuryPoolsConfig, Arg2: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Pool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalTreasuryPoolsConfig)
+	2: MoveLoc[2](Arg2: &mut TxContext)
+	3: Call amm_router::claim_fee_pools<Ty0, Ty1>(&mut Pool<Ty0, Ty1>, &GlobalTreasuryPoolsConfig, &mut TxContext)
+	4: Ret
+}
+
+entry public create_treasury_pools_config_after_upgrade(Arg0: &AdminCap, Arg1: address, Arg2: &mut TxContext) {
+B0:
+	0: MoveLoc[1](Arg1: address)
+	1: MoveLoc[2](Arg2: &mut TxContext)
+	2: Call amm_router::create_treasury_pools_config_after_upgrade(address, &mut TxContext)
+	3: Ret
+}
+
+entry public set_new_pool_amplification_p<Ty0, Ty1>(Arg0: &AdminCap, Arg1: &mut Pool<Ty0, Ty1>, Arg2: u64) {
+B0:
+	0: MoveLoc[0](Arg0: &AdminCap)
+	1: MoveLoc[1](Arg1: &mut Pool<Ty0, Ty1>)
+	2: MoveLoc[2](Arg2: u64)
+	3: Call amm_router::set_new_pool_amplification_p<Ty0, Ty1>(&AdminCap, &mut Pool<Ty0, Ty1>, u64)
+	4: Ret
+}
+
+entry public change_pool_type<Ty0, Ty1>(Arg0: &AdminCap, Arg1: &mut Pool<Ty0, Ty1>, Arg2: bool, Arg3: u64) {
+B0:
+	0: MoveLoc[0](Arg0: &AdminCap)
+	1: MoveLoc[1](Arg1: &mut Pool<Ty0, Ty1>)
+	2: MoveLoc[2](Arg2: bool)
+	3: MoveLoc[3](Arg3: u64)
+	4: Call amm_router::change_pool_type<Ty0, Ty1>(&AdminCap, &mut Pool<Ty0, Ty1>, bool, u64)
+	5: Ret
+}
+
+entry public set_treasury_pools(Arg0: &AdminCap, Arg1: &mut GlobalTreasuryPoolsConfig, Arg2: address, Arg3: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &AdminCap)
+	1: MoveLoc[1](Arg1: &mut GlobalTreasuryPoolsConfig)
+	2: MoveLoc[2](Arg2: address)
+	3: MoveLoc[3](Arg3: &mut TxContext)
+	4: FreezeRef
+	5: Call amm_router::set_treasury_pools(&AdminCap, &mut GlobalTreasuryPoolsConfig, address, &TxContext)
+	6: Ret
+}
+
+Constants [
+	0 => u64: 3
+	1 => u64: 1000
+	2 => u64: 25
+	3 => u64: 100
+	4 => u64: 5
+	5 => u64: 10000
+]
+}
+

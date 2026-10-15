@@ -1,0 +1,718 @@
+// Move bytecode v6
+module c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332.amm_utils {
+use c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332::amm_stable_utils;
+
+public get_amount_in_classic(Arg0: u64, Arg1: u64, Arg2: u64, Arg3: u64, Arg4: u64): u64 {
+L5:	loc0: bool
+L6:	loc1: bool
+L7:	loc2: u256
+L8:	loc3: u256
+L9:	loc4: u256
+L10:	loc5: u256
+L11:	loc6: u256
+L12:	loc7: u256
+L13:	loc8: u256
+B0:
+	0: CopyLoc[0](Arg0: u64)
+	1: LdU64(0)
+	2: Gt
+	3: BrFalse(5)
+B1:
+	4: Branch(7)
+B2:
+	5: LdConst[0](u64: 1)
+	6: Abort
+B3:
+	7: CopyLoc[1](Arg1: u64)
+	8: LdU64(0)
+	9: Gt
+	10: BrFalse(16)
+B4:
+	11: CopyLoc[2](Arg2: u64)
+	12: LdU64(0)
+	13: Gt
+	14: StLoc[5](loc0: bool)
+	15: Branch(18)
+B5:
+	16: LdFalse
+	17: StLoc[5](loc0: bool)
+B6:
+	18: MoveLoc[5](loc0: bool)
+	19: BrFalse(21)
+B7:
+	20: Branch(23)
+B8:
+	21: LdConst[0](u64: 1)
+	22: Abort
+B9:
+	23: CopyLoc[3](Arg3: u64)
+	24: LdU64(0)
+	25: Gt
+	26: BrFalse(32)
+B10:
+	27: CopyLoc[4](Arg4: u64)
+	28: LdU64(0)
+	29: Gt
+	30: StLoc[6](loc1: bool)
+	31: Branch(34)
+B11:
+	32: LdFalse
+	33: StLoc[6](loc1: bool)
+B12:
+	34: MoveLoc[6](loc1: bool)
+	35: BrFalse(37)
+B13:
+	36: Branch(39)
+B14:
+	37: LdConst[0](u64: 1)
+	38: Abort
+B15:
+	39: CopyLoc[4](Arg4: u64)
+	40: CopyLoc[3](Arg3: u64)
+	41: Gt
+	42: BrFalse(44)
+B16:
+	43: Branch(46)
+B17:
+	44: LdConst[0](u64: 1)
+	45: Abort
+B18:
+	46: CopyLoc[2](Arg2: u64)
+	47: CopyLoc[0](Arg0: u64)
+	48: Gt
+	49: BrFalse(51)
+B19:
+	50: Branch(53)
+B20:
+	51: LdConst[0](u64: 1)
+	52: Abort
+B21:
+	53: MoveLoc[0](Arg0: u64)
+	54: CastU256
+	55: StLoc[8](loc3: u256)
+	56: MoveLoc[1](Arg1: u64)
+	57: CastU256
+	58: StLoc[12](loc7: u256)
+	59: MoveLoc[2](Arg2: u64)
+	60: CastU256
+	61: StLoc[13](loc8: u256)
+	62: MoveLoc[3](Arg3: u64)
+	63: CastU256
+	64: StLoc[11](loc6: u256)
+	65: MoveLoc[4](Arg4: u64)
+	66: CastU256
+	67: StLoc[10](loc5: u256)
+	68: MoveLoc[13](loc8: u256)
+	69: CopyLoc[8](loc3: u256)
+	70: Sub
+	71: CopyLoc[10](loc5: u256)
+	72: MoveLoc[11](loc6: u256)
+	73: Sub
+	74: Mul
+	75: StLoc[9](loc4: u256)
+	76: CopyLoc[9](loc4: u256)
+	77: LdU256(0)
+	78: Gt
+	79: BrFalse(81)
+B22:
+	80: Branch(83)
+B23:
+	81: LdConst[0](u64: 1)
+	82: Abort
+B24:
+	83: MoveLoc[8](loc3: u256)
+	84: MoveLoc[10](loc5: u256)
+	85: Mul
+	86: MoveLoc[12](loc7: u256)
+	87: Mul
+	88: MoveLoc[9](loc4: u256)
+	89: Div
+	90: LdU256(1)
+	91: Add
+	92: StLoc[7](loc2: u256)
+	93: CopyLoc[7](loc2: u256)
+	94: LdConst[1](u256: 1844..)
+	95: Le
+	96: BrFalse(98)
+B25:
+	97: Branch(100)
+B26:
+	98: LdConst[0](u64: 1)
+	99: Abort
+B27:
+	100: MoveLoc[7](loc2: u256)
+	101: CastU64
+	102: Ret
+}
+
+public get_amount_out_classic(Arg0: u64, Arg1: u64, Arg2: u64, Arg3: u64, Arg4: u64): u64 {
+L5:	loc0: bool
+L6:	loc1: bool
+L7:	loc2: u256
+L8:	loc3: u256
+L9:	loc4: u256
+L10:	loc5: u256
+L11:	loc6: u256
+L12:	loc7: u256
+L13:	loc8: u256
+L14:	loc9: u256
+B0:
+	0: CopyLoc[0](Arg0: u64)
+	1: LdU64(0)
+	2: Gt
+	3: BrFalse(5)
+B1:
+	4: Branch(7)
+B2:
+	5: LdConst[0](u64: 1)
+	6: Abort
+B3:
+	7: CopyLoc[1](Arg1: u64)
+	8: LdU64(0)
+	9: Gt
+	10: BrFalse(16)
+B4:
+	11: CopyLoc[2](Arg2: u64)
+	12: LdU64(0)
+	13: Gt
+	14: StLoc[5](loc0: bool)
+	15: Branch(18)
+B5:
+	16: LdFalse
+	17: StLoc[5](loc0: bool)
+B6:
+	18: MoveLoc[5](loc0: bool)
+	19: BrFalse(21)
+B7:
+	20: Branch(23)
+B8:
+	21: LdConst[0](u64: 1)
+	22: Abort
+B9:
+	23: CopyLoc[3](Arg3: u64)
+	24: LdU64(0)
+	25: Gt
+	26: BrFalse(32)
+B10:
+	27: CopyLoc[4](Arg4: u64)
+	28: LdU64(0)
+	29: Gt
+	30: StLoc[6](loc1: bool)
+	31: Branch(34)
+B11:
+	32: LdFalse
+	33: StLoc[6](loc1: bool)
+B12:
+	34: MoveLoc[6](loc1: bool)
+	35: BrFalse(37)
+B13:
+	36: Branch(39)
+B14:
+	37: LdConst[0](u64: 1)
+	38: Abort
+B15:
+	39: CopyLoc[4](Arg4: u64)
+	40: CopyLoc[3](Arg3: u64)
+	41: Gt
+	42: BrFalse(44)
+B16:
+	43: Branch(46)
+B17:
+	44: LdConst[0](u64: 1)
+	45: Abort
+B18:
+	46: MoveLoc[0](Arg0: u64)
+	47: CastU256
+	48: StLoc[7](loc2: u256)
+	49: MoveLoc[1](Arg1: u64)
+	50: CastU256
+	51: StLoc[13](loc8: u256)
+	52: MoveLoc[2](Arg2: u64)
+	53: CastU256
+	54: StLoc[14](loc9: u256)
+	55: MoveLoc[3](Arg3: u64)
+	56: CastU256
+	57: StLoc[12](loc7: u256)
+	58: MoveLoc[4](Arg4: u64)
+	59: CastU256
+	60: StLoc[11](loc6: u256)
+	61: MoveLoc[7](loc2: u256)
+	62: CopyLoc[11](loc6: u256)
+	63: MoveLoc[12](loc7: u256)
+	64: Sub
+	65: Mul
+	66: StLoc[8](loc3: u256)
+	67: MoveLoc[13](loc8: u256)
+	68: MoveLoc[11](loc6: u256)
+	69: Mul
+	70: CopyLoc[8](loc3: u256)
+	71: Add
+	72: StLoc[10](loc5: u256)
+	73: CopyLoc[10](loc5: u256)
+	74: LdU256(0)
+	75: Gt
+	76: BrFalse(78)
+B19:
+	77: Branch(80)
+B20:
+	78: LdConst[0](u64: 1)
+	79: Abort
+B21:
+	80: MoveLoc[8](loc3: u256)
+	81: CopyLoc[14](loc9: u256)
+	82: Mul
+	83: MoveLoc[10](loc5: u256)
+	84: Div
+	85: StLoc[9](loc4: u256)
+	86: CopyLoc[9](loc4: u256)
+	87: LdConst[1](u256: 1844..)
+	88: Le
+	89: BrFalse(91)
+B22:
+	90: Branch(93)
+B23:
+	91: LdConst[0](u64: 1)
+	92: Abort
+B24:
+	93: CopyLoc[9](loc4: u256)
+	94: MoveLoc[14](loc9: u256)
+	95: Le
+	96: BrFalse(98)
+B25:
+	97: Branch(100)
+B26:
+	98: LdConst[0](u64: 1)
+	99: Abort
+B27:
+	100: MoveLoc[9](loc4: u256)
+	101: CastU64
+	102: Ret
+}
+
+public quote(Arg0: u64, Arg1: u64, Arg2: u64): u64 {
+L3:	loc0: bool
+L4:	loc1: u256
+L5:	loc2: u256
+L6:	loc3: u256
+L7:	loc4: u256
+B0:
+	0: CopyLoc[0](Arg0: u64)
+	1: LdU64(0)
+	2: Gt
+	3: BrFalse(5)
+B1:
+	4: Branch(7)
+B2:
+	5: LdConst[0](u64: 1)
+	6: Abort
+B3:
+	7: CopyLoc[1](Arg1: u64)
+	8: LdU64(0)
+	9: Gt
+	10: BrFalse(16)
+B4:
+	11: CopyLoc[2](Arg2: u64)
+	12: LdU64(0)
+	13: Gt
+	14: StLoc[3](loc0: bool)
+	15: Branch(18)
+B5:
+	16: LdFalse
+	17: StLoc[3](loc0: bool)
+B6:
+	18: MoveLoc[3](loc0: bool)
+	19: BrFalse(21)
+B7:
+	20: Branch(23)
+B8:
+	21: LdConst[0](u64: 1)
+	22: Abort
+B9:
+	23: MoveLoc[0](Arg0: u64)
+	24: CastU256
+	25: StLoc[4](loc1: u256)
+	26: MoveLoc[1](Arg1: u64)
+	27: CastU256
+	28: StLoc[6](loc3: u256)
+	29: MoveLoc[2](Arg2: u64)
+	30: CastU256
+	31: StLoc[7](loc4: u256)
+	32: MoveLoc[4](loc1: u256)
+	33: MoveLoc[7](loc4: u256)
+	34: Mul
+	35: MoveLoc[6](loc3: u256)
+	36: Div
+	37: StLoc[5](loc2: u256)
+	38: CopyLoc[5](loc2: u256)
+	39: LdConst[1](u256: 1844..)
+	40: Le
+	41: BrFalse(43)
+B10:
+	42: Branch(45)
+B11:
+	43: LdConst[0](u64: 1)
+	44: Abort
+B12:
+	45: MoveLoc[5](loc2: u256)
+	46: CastU64
+	47: Ret
+}
+
+public get_amount_in_stable(Arg0: u64, Arg1: u64, Arg2: u64, Arg3: u64, Arg4: u64, Arg5: bool, Arg6: u64, Arg7: u256): u64 {
+L8:	loc0: bool
+L9:	loc1: bool
+L10:	loc2: bool
+L11:	loc3: u128
+L12:	loc4: u128
+L13:	loc5: u128
+L14:	loc6: u128
+L15:	loc7: u64
+L16:	loc8: u64
+B0:
+	0: CopyLoc[0](Arg0: u64)
+	1: LdU64(0)
+	2: Gt
+	3: BrFalse(5)
+B1:
+	4: Branch(7)
+B2:
+	5: LdConst[0](u64: 1)
+	6: Abort
+B3:
+	7: CopyLoc[1](Arg1: u64)
+	8: LdU64(0)
+	9: Gt
+	10: BrFalse(16)
+B4:
+	11: CopyLoc[2](Arg2: u64)
+	12: LdU64(0)
+	13: Gt
+	14: StLoc[8](loc0: bool)
+	15: Branch(18)
+B5:
+	16: LdFalse
+	17: StLoc[8](loc0: bool)
+B6:
+	18: MoveLoc[8](loc0: bool)
+	19: BrFalse(21)
+B7:
+	20: Branch(23)
+B8:
+	21: LdConst[0](u64: 1)
+	22: Abort
+B9:
+	23: CopyLoc[3](Arg3: u64)
+	24: LdU64(0)
+	25: Gt
+	26: BrFalse(32)
+B10:
+	27: CopyLoc[4](Arg4: u64)
+	28: LdU64(0)
+	29: Gt
+	30: StLoc[9](loc1: bool)
+	31: Branch(34)
+B11:
+	32: LdFalse
+	33: StLoc[9](loc1: bool)
+B12:
+	34: MoveLoc[9](loc1: bool)
+	35: BrFalse(37)
+B13:
+	36: Branch(39)
+B14:
+	37: LdConst[0](u64: 1)
+	38: Abort
+B15:
+	39: CopyLoc[4](Arg4: u64)
+	40: CopyLoc[3](Arg3: u64)
+	41: Gt
+	42: BrFalse(44)
+B16:
+	43: Branch(46)
+B17:
+	44: LdConst[0](u64: 1)
+	45: Abort
+B18:
+	46: CopyLoc[2](Arg2: u64)
+	47: CopyLoc[0](Arg0: u64)
+	48: Gt
+	49: BrFalse(51)
+B19:
+	50: Branch(53)
+B20:
+	51: LdConst[0](u64: 1)
+	52: Abort
+B21:
+	53: CopyLoc[6](Arg6: u64)
+	54: LdU64(0)
+	55: Gt
+	56: BrFalse(62)
+B22:
+	57: CopyLoc[7](Arg7: u256)
+	58: LdU256(0)
+	59: Gt
+	60: StLoc[10](loc2: bool)
+	61: Branch(64)
+B23:
+	62: LdFalse
+	63: StLoc[10](loc2: bool)
+B24:
+	64: MoveLoc[10](loc2: bool)
+	65: BrFalse(67)
+B25:
+	66: Branch(69)
+B26:
+	67: LdConst[0](u64: 1)
+	68: Abort
+B27:
+	69: MoveLoc[2](Arg2: u64)
+	70: MoveLoc[0](Arg0: u64)
+	71: Sub
+	72: StLoc[16](loc8: u64)
+	73: MoveLoc[5](Arg5: bool)
+	74: BrFalse(81)
+B28:
+	75: MoveLoc[6](Arg6: u64)
+	76: MoveLoc[7](Arg7: u256)
+	77: MoveLoc[16](loc8: u64)
+	78: Call amm_stable_utils::calculate_x1_amount(u64, u256, u64): u64
+	79: StLoc[15](loc7: u64)
+	80: Branch(86)
+B29:
+	81: MoveLoc[6](Arg6: u64)
+	82: MoveLoc[7](Arg7: u256)
+	83: MoveLoc[16](loc8: u64)
+	84: Call amm_stable_utils::calculate_x2_amount(u64, u256, u64): u64
+	85: StLoc[15](loc7: u64)
+B30:
+	86: CopyLoc[15](loc7: u64)
+	87: CopyLoc[1](Arg1: u64)
+	88: Ge
+	89: BrFalse(91)
+B31:
+	90: Branch(93)
+B32:
+	91: LdConst[0](u64: 1)
+	92: Abort
+B33:
+	93: MoveLoc[15](loc7: u64)
+	94: MoveLoc[1](Arg1: u64)
+	95: Sub
+	96: CastU128
+	97: StLoc[11](loc3: u128)
+	98: MoveLoc[3](Arg3: u64)
+	99: CastU128
+	100: StLoc[14](loc6: u128)
+	101: MoveLoc[4](Arg4: u64)
+	102: CastU128
+	103: StLoc[13](loc5: u128)
+	104: MoveLoc[11](loc3: u128)
+	105: CopyLoc[13](loc5: u128)
+	106: Mul
+	107: MoveLoc[13](loc5: u128)
+	108: MoveLoc[14](loc6: u128)
+	109: Sub
+	110: Div
+	111: StLoc[12](loc4: u128)
+	112: CopyLoc[12](loc4: u128)
+	113: LdConst[2](u128: 1844..)
+	114: Le
+	115: BrFalse(117)
+B34:
+	116: Branch(119)
+B35:
+	117: LdConst[0](u64: 1)
+	118: Abort
+B36:
+	119: MoveLoc[12](loc4: u128)
+	120: CastU64
+	121: Ret
+}
+
+public get_amount_out_stable(Arg0: u64, Arg1: u64, Arg2: u64, Arg3: u64, Arg4: u64, Arg5: bool, Arg6: u64, Arg7: u256): u64 {
+L8:	loc0: bool
+L9:	loc1: bool
+L10:	loc2: bool
+L11:	loc3: u128
+L12:	loc4: u64
+L13:	loc5: u128
+L14:	loc6: u128
+L15:	loc7: u128
+L16:	loc8: u128
+L17:	loc9: u64
+L18:	loc10: u64
+B0:
+	0: CopyLoc[0](Arg0: u64)
+	1: LdU64(0)
+	2: Gt
+	3: BrFalse(5)
+B1:
+	4: Branch(7)
+B2:
+	5: LdConst[0](u64: 1)
+	6: Abort
+B3:
+	7: CopyLoc[1](Arg1: u64)
+	8: LdU64(0)
+	9: Gt
+	10: BrFalse(16)
+B4:
+	11: CopyLoc[2](Arg2: u64)
+	12: LdU64(0)
+	13: Gt
+	14: StLoc[8](loc0: bool)
+	15: Branch(18)
+B5:
+	16: LdFalse
+	17: StLoc[8](loc0: bool)
+B6:
+	18: MoveLoc[8](loc0: bool)
+	19: BrFalse(21)
+B7:
+	20: Branch(23)
+B8:
+	21: LdConst[0](u64: 1)
+	22: Abort
+B9:
+	23: CopyLoc[3](Arg3: u64)
+	24: LdU64(0)
+	25: Gt
+	26: BrFalse(32)
+B10:
+	27: CopyLoc[4](Arg4: u64)
+	28: LdU64(0)
+	29: Gt
+	30: StLoc[9](loc1: bool)
+	31: Branch(34)
+B11:
+	32: LdFalse
+	33: StLoc[9](loc1: bool)
+B12:
+	34: MoveLoc[9](loc1: bool)
+	35: BrFalse(37)
+B13:
+	36: Branch(39)
+B14:
+	37: LdConst[0](u64: 1)
+	38: Abort
+B15:
+	39: CopyLoc[4](Arg4: u64)
+	40: CopyLoc[3](Arg3: u64)
+	41: Gt
+	42: BrFalse(44)
+B16:
+	43: Branch(46)
+B17:
+	44: LdConst[0](u64: 1)
+	45: Abort
+B18:
+	46: CopyLoc[6](Arg6: u64)
+	47: LdU64(0)
+	48: Gt
+	49: BrFalse(55)
+B19:
+	50: CopyLoc[7](Arg7: u256)
+	51: LdU256(0)
+	52: Gt
+	53: StLoc[10](loc2: bool)
+	54: Branch(57)
+B20:
+	55: LdFalse
+	56: StLoc[10](loc2: bool)
+B21:
+	57: MoveLoc[10](loc2: bool)
+	58: BrFalse(60)
+B22:
+	59: Branch(62)
+B23:
+	60: LdConst[0](u64: 1)
+	61: Abort
+B24:
+	62: MoveLoc[0](Arg0: u64)
+	63: CastU128
+	64: StLoc[11](loc3: u128)
+	65: CopyLoc[1](Arg1: u64)
+	66: CastU128
+	67: StLoc[16](loc8: u128)
+	68: MoveLoc[3](Arg3: u64)
+	69: CastU128
+	70: StLoc[15](loc7: u128)
+	71: MoveLoc[4](Arg4: u64)
+	72: CastU128
+	73: StLoc[14](loc6: u128)
+	74: MoveLoc[11](loc3: u128)
+	75: CopyLoc[14](loc6: u128)
+	76: MoveLoc[15](loc7: u128)
+	77: Sub
+	78: Mul
+	79: MoveLoc[14](loc6: u128)
+	80: Div
+	81: StLoc[13](loc5: u128)
+	82: CopyLoc[13](loc5: u128)
+	83: LdConst[2](u128: 1844..)
+	84: Le
+	85: BrFalse(87)
+B25:
+	86: Branch(89)
+B26:
+	87: LdConst[0](u64: 1)
+	88: Abort
+B27:
+	89: CopyLoc[13](loc5: u128)
+	90: CastU64
+	91: StLoc[12](loc4: u64)
+	92: MoveLoc[13](loc5: u128)
+	93: LdConst[2](u128: 1844..)
+	94: MoveLoc[16](loc8: u128)
+	95: Sub
+	96: Le
+	97: BrFalse(99)
+B28:
+	98: Branch(101)
+B29:
+	99: LdConst[0](u64: 1)
+	100: Abort
+B30:
+	101: MoveLoc[1](Arg1: u64)
+	102: MoveLoc[12](loc4: u64)
+	103: Add
+	104: StLoc[17](loc9: u64)
+	105: MoveLoc[5](Arg5: bool)
+	106: BrFalse(113)
+B31:
+	107: MoveLoc[6](Arg6: u64)
+	108: MoveLoc[7](Arg7: u256)
+	109: MoveLoc[17](loc9: u64)
+	110: Call amm_stable_utils::calculate_x2_amount(u64, u256, u64): u64
+	111: StLoc[18](loc10: u64)
+	112: Branch(118)
+B32:
+	113: MoveLoc[6](Arg6: u64)
+	114: MoveLoc[7](Arg7: u256)
+	115: MoveLoc[17](loc9: u64)
+	116: Call amm_stable_utils::calculate_x1_amount(u64, u256, u64): u64
+	117: StLoc[18](loc10: u64)
+B33:
+	118: CopyLoc[2](Arg2: u64)
+	119: CopyLoc[18](loc10: u64)
+	120: Ge
+	121: BrFalse(123)
+B34:
+	122: Branch(125)
+B35:
+	123: LdConst[0](u64: 1)
+	124: Abort
+B36:
+	125: MoveLoc[2](Arg2: u64)
+	126: MoveLoc[18](loc10: u64)
+	127: Sub
+	128: Ret
+}
+
+Constants [
+	0 => u64: 1
+	1 => u256: 18446744073709551615
+	2 => u128: 18446744073709551615
+]
+}
+

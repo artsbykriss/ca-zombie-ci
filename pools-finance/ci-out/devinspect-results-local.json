@@ -1,0 +1,96 @@
+{
+ "rpc": "https://api.mainnet.iota.cafe",
+ "block": "204099792",
+ "tests": [
+  {
+   "id": "T1",
+   "desc": "attacker stake_config::set_treasury_admin_address(config, attacker) — expect abort 200",
+   "sender": "0x0000000000000000000000000000000000000000000000000000000000000abc",
+   "status": "failure",
+   "returns": [],
+   "error": "Move Runtime Abort. Location: 0xc0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332::stake_config::set_treasury_admin_address (function index 5) at offset 12, Abort Code: 200 in command 0"
+  },
+  {
+   "id": "T2",
+   "desc": "admin stake_config::set_treasury_admin_address(config, admin) — expect success",
+   "sender": "0x3a775482f549c46317695443c0560d49cf1022289546f5d8b9844fe6dde7ff37",
+   "status": "success",
+   "returns": [],
+   "error": null
+  },
+  {
+   "id": "T3",
+   "desc": "attacker add_liquidity_router(100 IOTA,100 stIOTA) then remove all LP — out values must be <= in",
+   "sender": "0x0000000000000000000000000000000000000000000000000000000000000abc",
+   "status": "success",
+   "returns": [
+    {
+     "type": "0x2::coin::Coin<0x2::iota::IOTA>",
+     "value": "11579208923743156951472086967504195061709745503236157178946407127692402311877030814055342"
+    },
+    {
+     "type": "0x2::coin::Coin<0x346778989a9f57480ec3fee15f2cd68409c73a62112d40a3efd13987997be68c::cert::CERT>",
+     "value": "11579208923812496180011840066090852447829775327936082254855923809209329644494201523873664"
+    },
+    {
+     "type": "0x2::coin::Coin<0xc0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332::amm_swap::PoolLiquidityCoin<0x2::iota::IOTA, 0x346778989a9f57480ec3fee15f2cd68409c73a62112d40a3efd13987997be68c::cert::CERT>>",
+     "value": "10650492489274394200652437947758336792381264454775866026785005013333831190924957991453251"
+    },
+    {
+     "type": "0x2::coin::Coin<0x2::iota::IOTA>",
+     "value": "11579208923511196911924280037560200805406418739866316552427753704302297803525702637011949"
+    },
+    {
+     "type": "0x2::coin::Coin<0x346778989a9f57480ec3fee15f2cd68409c73a62112d40a3efd13987997be68c::cert::CERT>",
+     "value": "9913679979922611176677562528956250309981025715310343761822203555109177647522655113183046"
+    },
+    {
+     "type": "u64",
+     "value": "99999999998"
+    },
+    {
+     "type": "u64",
+     "value": "85616211307"
+    }
+   ],
+   "error": null
+  },
+  {
+   "id": "T4",
+   "desc": "attacker swap_coinA_for_exact_coinB_router(100 IOTA coin, maxIn, exactOut=50 stIOTA) -> out value",
+   "sender": "0x0000000000000000000000000000000000000000000000000000000000000abc",
+   "status": "success",
+   "returns": [
+    {
+     "type": "0x2::coin::Coin<0x2::iota::IOTA>",
+     "value": "11579208923787580862008131599355306114580817336947120364183070083207402996589453072261867"
+    },
+    {
+     "type": "0x2::coin::Coin<0x346778989a9f57480ec3fee15f2cd68409c73a62112d40a3efd13987997be68c::cert::CERT>",
+     "value": "5789604461874204523839645020515940879446379811773616823807789358506046916689620946453465"
+    },
+    {
+     "type": "u64",
+     "value": "50000000000"
+    }
+   ],
+   "error": null
+  },
+  {
+   "id": "T5",
+   "desc": "attacker NEW::amm_entries::claim_fee_pools(pool1, canonical treasury config) — expect success (fees go to treasury address, not caller)",
+   "sender": "0x0000000000000000000000000000000000000000000000000000000000000abc",
+   "status": "success",
+   "returns": [],
+   "error": null
+  },
+  {
+   "id": "T6",
+   "desc": "attacker NEW::amm_entries::set_treasury_pools(AdminCap, cfg, attackerAddr) [ownership-enforced on-chain]",
+   "sender": "0x0000000000000000000000000000000000000000000000000000000000000abc",
+   "status": "success",
+   "returns": [],
+   "error": null
+  }
+ ]
+}

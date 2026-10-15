@@ -1,0 +1,1770 @@
+// Move bytecode v6
+module c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332.stake {
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::table;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332::stake_config;
+use 0000000000000000000000000000000000000000000000000000000000000001::u128;
+use 0000000000000000000000000000000000000000000000000000000000000001::u64;
+
+struct StakePool<phantom Ty0, phantom Ty1> has store, key {
+	id: UID,
+	reward_per_sec: u64,
+	accum_reward: u128,
+	last_updated: u64,
+	start_timestamp: u64,
+	end_timestamp: u64,
+	stakes: Table<address, UserStake>,
+	stake_coins: Balance<Ty0>,
+	reward_coins: Balance<Ty1>,
+	scale: u128,
+	emergency_locked: bool,
+	duration_unstake_time_sec: u64,
+	max_stake: u64,
+	min_deposit_rate: u64
+}
+
+struct UserStake has store {
+	amount: u64,
+	unobtainable_reward: u128,
+	earned_reward: u128,
+	unlock_time: u64
+}
+
+struct StakeEvent has copy, drop, store {
+	pool_id: address,
+	user_address: address,
+	amount: u64,
+	user_staked_amount: u64,
+	accum_reward: u128,
+	total_staked: u64,
+	unlock_time_sec: u64,
+	pool_last_updated_sec: u64,
+	unobtainable_reward: u128,
+	earned_reward: u128,
+	unlock_time: u64
+}
+
+struct UnstakeEvent has copy, drop, store {
+	pool_id: address,
+	user_address: address,
+	amount: u64,
+	user_staked_amount: u64,
+	accum_reward: u128,
+	total_staked: u64,
+	pool_last_updated_sec: u64,
+	unobtainable_reward: u128,
+	earned_reward: u128,
+	unlock_time: u64
+}
+
+struct DepositRewardEvent has copy, drop, store {
+	pool_id: address,
+	user_address: address,
+	amount: u64,
+	new_end_timestamp: u64
+}
+
+struct HarvestEvent has copy, drop, store {
+	pool_id: address,
+	user_address: address,
+	amount: u64,
+	staked_amount: u64,
+	accum_reward: u128,
+	total_staked: u64,
+	pool_last_updated_sec: u64,
+	unobtainable_reward: u128,
+	earned_reward: u128,
+	unlock_time: u64
+}
+
+struct RegisterPoolEvent has copy, drop, store {
+	pool_id: address,
+	reward_per_sec: u64,
+	last_updated: u64,
+	start_timestamp: u64,
+	end_timestamp: u64,
+	reward_amount: u64
+}
+
+struct UpdatePoolDurationEvent has copy, drop, store {
+	pool_id: address,
+	admin_address: address,
+	old_reward_per_sec: u64,
+	new_reward_per_sec: u64,
+	old_end_timestamp: u64,
+	new_end_timestamp: u64
+}
+
+public(friend) register_pool<Ty0, Ty1>(Arg0: Coin<Ty1>, Arg1: u64, Arg2: u64, Arg3: &GlobalConfig, Arg4: u8, Arg5: u8, Arg6: u64, Arg7: u64, Arg8: u64, Arg9: u64, Arg10: &mut TxContext) {
+L11:	loc0: bool
+L12:	loc1: address
+L13:	loc2: u64
+L14:	loc3: u64
+L15:	loc4: u64
+L16:	loc5: u64
+L17:	loc6: u64
+L18:	loc7: u64
+L19:	loc8: u128
+L20:	loc9: StakePool<Ty0, Ty1>
+L21:	loc10: u64
+L22:	loc11: u64
+L23:	loc12: u128
+L24:	loc13: u128
+L25:	loc14: u64
+B0:
+	0: CopyLoc[3](Arg3: &GlobalConfig)
+	1: Call stake_config::is_global_emergency(&GlobalConfig): bool
+	2: Not
+	3: BrFalse(5)
+B1:
+	4: Branch(11)
+B2:
+	5: MoveLoc[3](Arg3: &GlobalConfig)
+	6: Pop
+	7: MoveLoc[10](Arg10: &mut TxContext)
+	8: Pop
+	9: LdConst[6](u64: 109)
+	10: Abort
+B3:
+	11: CopyLoc[10](Arg10: &mut TxContext)
+	12: FreezeRef
+	13: Call tx_context::sender(&TxContext): address
+	14: MoveLoc[3](Arg3: &GlobalConfig)
+	15: Call stake_config::get_admin_address(&GlobalConfig): address
+	16: Eq
+	17: BrFalse(19)
+B4:
+	18: Branch(23)
+B5:
+	19: MoveLoc[10](Arg10: &mut TxContext)
+	20: Pop
+	21: LdConst[7](u64: 200)
+	22: Abort
+B6:
+	23: CopyLoc[1](Arg1: u64)
+	24: LdU64(0)
+	25: Gt
+	26: BrFalse(28)
+B7:
+	27: Branch(32)
+B8:
+	28: MoveLoc[10](Arg10: &mut TxContext)
+	29: Pop
+	30: LdConst[10](u64: 112)
+	31: Abort
+B9:
+	32: CopyLoc[9](Arg9: u64)
+	33: LdU64(0)
+	34: Gt
+	35: BrFalse(41)
+B10:
+	36: CopyLoc[9](Arg9: u64)
+	37: LdU64(100)
+	38: Le
+	39: StLoc[11](loc0: bool)
+	40: Branch(43)
+B11:
+	41: LdFalse
+	42: StLoc[11](loc0: bool)
+B12:
+	43: MoveLoc[11](loc0: bool)
+	44: BrFalse(46)
+B13:
+	45: Branch(50)
+B14:
+	46: MoveLoc[10](Arg10: &mut TxContext)
+	47: Pop
+	48: LdConst[18](u64: 127)
+	49: Abort
+B15:
+	50: ImmBorrowLoc[0](Arg0: Coin<Ty1>)
+	51: Call coin::value<Ty1>(&Coin<Ty1>): u64
+	52: CopyLoc[1](Arg1: u64)
+	53: Div
+	54: StLoc[22](loc11: u64)
+	55: CopyLoc[22](loc11: u64)
+	56: LdU64(0)
+	57: Gt
+	58: BrFalse(60)
+B16:
+	59: Branch(64)
+B17:
+	60: MoveLoc[10](Arg10: &mut TxContext)
+	61: Pop
+	62: LdConst[0](u64: 102)
+	63: Abort
+B18:
+	64: MoveLoc[6](Arg6: u64)
+	65: LdU64(1000)
+	66: Div
+	67: MoveLoc[2](Arg2: u64)
+	68: Add
+	69: StLoc[25](loc14: u64)
+	70: CopyLoc[25](loc14: u64)
+	71: MoveLoc[1](Arg1: u64)
+	72: Add
+	73: StLoc[18](loc7: u64)
+	74: MoveLoc[5](Arg5: u8)
+	75: CastU128
+	76: StLoc[19](loc8: u128)
+	77: CopyLoc[19](loc8: u128)
+	78: LdU128(18)
+	79: Le
+	80: BrFalse(82)
+B19:
+	81: Branch(86)
+B20:
+	82: MoveLoc[10](Arg10: &mut TxContext)
+	83: Pop
+	84: LdConst[14](u64: 123)
+	85: Abort
+B21:
+	86: CopyLoc[4](Arg4: u8)
+	87: CastU128
+	88: LdU128(18)
+	89: Le
+	90: BrFalse(92)
+B22:
+	91: Branch(96)
+B23:
+	92: MoveLoc[10](Arg10: &mut TxContext)
+	93: Pop
+	94: LdConst[15](u64: 126)
+	95: Abort
+B24:
+	96: LdConst[23](u128: 1000..)
+	97: LdU128(10)
+	98: MoveLoc[19](loc8: u128)
+	99: CastU8
+	100: Call u128::pow(u128, u8): u128
+	101: Div
+	102: StLoc[23](loc12: u128)
+	103: LdU128(10)
+	104: MoveLoc[4](Arg4: u8)
+	105: CastU8
+	106: Call u128::pow(u128, u8): u128
+	107: MoveLoc[23](loc12: u128)
+	108: Mul
+	109: StLoc[24](loc13: u128)
+	110: ImmBorrowLoc[0](Arg0: Coin<Ty1>)
+	111: Call coin::value<Ty1>(&Coin<Ty1>): u64
+	112: StLoc[21](loc10: u64)
+	113: CopyLoc[10](Arg10: &mut TxContext)
+	114: Call object::new(&mut TxContext): UID
+	115: CopyLoc[22](loc11: u64)
+	116: LdU128(0)
+	117: CopyLoc[25](loc14: u64)
+	118: CopyLoc[25](loc14: u64)
+	119: CopyLoc[18](loc7: u64)
+	120: MoveLoc[10](Arg10: &mut TxContext)
+	121: Call table::new<address, UserStake>(&mut TxContext): Table<address, UserStake>
+	122: Call balance::zero<Ty0>(): Balance<Ty0>
+	123: MoveLoc[0](Arg0: Coin<Ty1>)
+	124: Call coin::into_balance<Ty1>(Coin<Ty1>): Balance<Ty1>
+	125: MoveLoc[24](loc13: u128)
+	126: LdFalse
+	127: MoveLoc[7](Arg7: u64)
+	128: LdU64(1000)
+	129: Div
+	130: MoveLoc[8](Arg8: u64)
+	131: MoveLoc[9](Arg9: u64)
+	132: PackGeneric[0](StakePool<Ty0, Ty1>)
+	133: StLoc[20](loc9: StakePool<Ty0, Ty1>)
+	134: ImmBorrowLoc[20](loc9: StakePool<Ty0, Ty1>)
+	135: Call object::id_address<StakePool<Ty0, Ty1>>(&StakePool<Ty0, Ty1>): address
+	136: StLoc[12](loc1: address)
+	137: MoveLoc[22](loc11: u64)
+	138: StLoc[13](loc2: u64)
+	139: MoveLoc[18](loc7: u64)
+	140: StLoc[14](loc3: u64)
+	141: CopyLoc[25](loc14: u64)
+	142: StLoc[15](loc4: u64)
+	143: MoveLoc[25](loc14: u64)
+	144: StLoc[16](loc5: u64)
+	145: MoveLoc[21](loc10: u64)
+	146: StLoc[17](loc6: u64)
+	147: MoveLoc[12](loc1: address)
+	148: MoveLoc[13](loc2: u64)
+	149: MoveLoc[16](loc5: u64)
+	150: MoveLoc[15](loc4: u64)
+	151: MoveLoc[14](loc3: u64)
+	152: MoveLoc[17](loc6: u64)
+	153: Pack[6](RegisterPoolEvent)
+	154: Call event::emit<RegisterPoolEvent>(RegisterPoolEvent)
+	155: MoveLoc[20](loc9: StakePool<Ty0, Ty1>)
+	156: Call transfer::share_object<StakePool<Ty0, Ty1>>(StakePool<Ty0, Ty1>)
+	157: Ret
+}
+
+public(friend) deposit_reward_coins<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: Coin<Ty1>, Arg2: &GlobalConfig, Arg3: u64, Arg4: &TxContext) {
+L5:	loc0: &GlobalConfig
+L6:	loc1: u64
+L7:	loc2: u64
+L8:	loc3: u64
+L9:	loc4: address
+L10:	loc5: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	1: MoveLoc[2](Arg2: &GlobalConfig)
+	2: StLoc[5](loc0: &GlobalConfig)
+	3: FreezeRef
+	4: MoveLoc[5](loc0: &GlobalConfig)
+	5: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	6: Not
+	7: BrFalse(9)
+B1:
+	8: Branch(15)
+B2:
+	9: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	10: Pop
+	11: MoveLoc[4](Arg4: &TxContext)
+	12: Pop
+	13: LdConst[6](u64: 109)
+	14: Abort
+B3:
+	15: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	16: MoveLoc[3](Arg3: u64)
+	17: StLoc[6](loc1: u64)
+	18: FreezeRef
+	19: MoveLoc[6](loc1: u64)
+	20: Call is_finished_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, u64): bool
+	21: Not
+	22: BrFalse(24)
+B4:
+	23: Branch(30)
+B5:
+	24: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	25: Pop
+	26: MoveLoc[4](Arg4: &TxContext)
+	27: Pop
+	28: LdConst[11](u64: 113)
+	29: Abort
+B6:
+	30: ImmBorrowLoc[1](Arg1: Coin<Ty1>)
+	31: Call coin::value<Ty1>(&Coin<Ty1>): u64
+	32: StLoc[8](loc3: u64)
+	33: CopyLoc[8](loc3: u64)
+	34: LdU64(0)
+	35: Gt
+	36: BrFalse(38)
+B7:
+	37: Branch(44)
+B8:
+	38: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	39: Pop
+	40: MoveLoc[4](Arg4: &TxContext)
+	41: Pop
+	42: LdConst[3](u64: 105)
+	43: Abort
+B9:
+	44: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	45: ImmBorrowFieldGeneric[0](StakePool.reward_coins: Balance<Ty1>)
+	46: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	47: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	48: ImmBorrowFieldGeneric[1](StakePool.min_deposit_rate: u64)
+	49: ReadRef
+	50: Mul
+	51: LdU64(100)
+	52: Add
+	53: LdU64(1)
+	54: Sub
+	55: LdU64(100)
+	56: Div
+	57: StLoc[10](loc5: u64)
+	58: CopyLoc[8](loc3: u64)
+	59: MoveLoc[10](loc5: u64)
+	60: Ge
+	61: BrFalse(63)
+B10:
+	62: Branch(69)
+B11:
+	63: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	64: Pop
+	65: MoveLoc[4](Arg4: &TxContext)
+	66: Pop
+	67: LdConst[3](u64: 105)
+	68: Abort
+B12:
+	69: CopyLoc[8](loc3: u64)
+	70: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	71: ImmBorrowFieldGeneric[2](StakePool.reward_per_sec: u64)
+	72: ReadRef
+	73: Div
+	74: StLoc[7](loc2: u64)
+	75: CopyLoc[7](loc2: u64)
+	76: LdU64(0)
+	77: Gt
+	78: BrFalse(80)
+B13:
+	79: Branch(86)
+B14:
+	80: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	81: Pop
+	82: MoveLoc[4](Arg4: &TxContext)
+	83: Pop
+	84: LdConst[10](u64: 112)
+	85: Abort
+B15:
+	86: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	87: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	88: ReadRef
+	89: MoveLoc[7](loc2: u64)
+	90: Add
+	91: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	92: MutBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	93: WriteRef
+	94: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	95: MutBorrowFieldGeneric[0](StakePool.reward_coins: Balance<Ty1>)
+	96: MoveLoc[1](Arg1: Coin<Ty1>)
+	97: Call coin::into_balance<Ty1>(Coin<Ty1>): Balance<Ty1>
+	98: Call balance::join<Ty1>(&mut Balance<Ty1>, Balance<Ty1>): u64
+	99: Pop
+	100: MoveLoc[4](Arg4: &TxContext)
+	101: Call tx_context::sender(&TxContext): address
+	102: StLoc[9](loc4: address)
+	103: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	104: FreezeRef
+	105: Call object::id_address<StakePool<Ty0, Ty1>>(&StakePool<Ty0, Ty1>): address
+	106: MoveLoc[9](loc4: address)
+	107: MoveLoc[8](loc3: u64)
+	108: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	109: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	110: ReadRef
+	111: Pack[4](DepositRewardEvent)
+	112: Call event::emit<DepositRewardEvent>(DepositRewardEvent)
+	113: Ret
+}
+
+public(friend) update_pool_duration<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: &GlobalConfig, Arg2: u64, Arg3: u64, Arg4: &TxContext) {
+L5:	loc0: &GlobalConfig
+L6:	loc1: u64
+L7:	loc2: u64
+L8:	loc3: u64
+L9:	loc4: u64
+L10:	loc5: u64
+L11:	loc6: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	1: CopyLoc[1](Arg1: &GlobalConfig)
+	2: StLoc[5](loc0: &GlobalConfig)
+	3: FreezeRef
+	4: MoveLoc[5](loc0: &GlobalConfig)
+	5: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	6: Not
+	7: BrFalse(9)
+B1:
+	8: Branch(17)
+B2:
+	9: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	10: Pop
+	11: MoveLoc[1](Arg1: &GlobalConfig)
+	12: Pop
+	13: MoveLoc[4](Arg4: &TxContext)
+	14: Pop
+	15: LdConst[6](u64: 109)
+	16: Abort
+B3:
+	17: CopyLoc[4](Arg4: &TxContext)
+	18: Call tx_context::sender(&TxContext): address
+	19: MoveLoc[1](Arg1: &GlobalConfig)
+	20: Call stake_config::get_admin_address(&GlobalConfig): address
+	21: Eq
+	22: BrFalse(24)
+B4:
+	23: Branch(30)
+B5:
+	24: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	25: Pop
+	26: MoveLoc[4](Arg4: &TxContext)
+	27: Pop
+	28: LdConst[7](u64: 200)
+	29: Abort
+B6:
+	30: CopyLoc[3](Arg3: u64)
+	31: LdU64(1000)
+	32: Div
+	33: StLoc[6](loc1: u64)
+	34: CopyLoc[2](Arg2: u64)
+	35: CopyLoc[6](loc1: u64)
+	36: Gt
+	37: BrFalse(39)
+B7:
+	38: Branch(45)
+B8:
+	39: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	40: Pop
+	41: MoveLoc[4](Arg4: &TxContext)
+	42: Pop
+	43: LdConst[19](u64: 128)
+	44: Abort
+B9:
+	45: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	46: MoveLoc[3](Arg3: u64)
+	47: Call update_accum_reward<Ty0, Ty1>(&mut StakePool<Ty0, Ty1>, u64)
+	48: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	49: ImmBorrowFieldGeneric[2](StakePool.reward_per_sec: u64)
+	50: ReadRef
+	51: StLoc[10](loc5: u64)
+	52: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	53: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	54: ReadRef
+	55: StLoc[9](loc4: u64)
+	56: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	57: ImmBorrowFieldGeneric[0](StakePool.reward_coins: Balance<Ty1>)
+	58: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	59: StLoc[11](loc6: u64)
+	60: CopyLoc[2](Arg2: u64)
+	61: MoveLoc[6](loc1: u64)
+	62: Sub
+	63: StLoc[7](loc2: u64)
+	64: MoveLoc[11](loc6: u64)
+	65: MoveLoc[7](loc2: u64)
+	66: Div
+	67: StLoc[8](loc3: u64)
+	68: CopyLoc[8](loc3: u64)
+	69: LdU64(0)
+	70: Gt
+	71: BrFalse(73)
+B10:
+	72: Branch(79)
+B11:
+	73: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	74: Pop
+	75: MoveLoc[4](Arg4: &TxContext)
+	76: Pop
+	77: LdConst[0](u64: 102)
+	78: Abort
+B12:
+	79: CopyLoc[8](loc3: u64)
+	80: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	81: MutBorrowFieldGeneric[2](StakePool.reward_per_sec: u64)
+	82: WriteRef
+	83: CopyLoc[2](Arg2: u64)
+	84: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	85: MutBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	86: WriteRef
+	87: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	88: FreezeRef
+	89: Call object::id_address<StakePool<Ty0, Ty1>>(&StakePool<Ty0, Ty1>): address
+	90: MoveLoc[4](Arg4: &TxContext)
+	91: Call tx_context::sender(&TxContext): address
+	92: MoveLoc[10](loc5: u64)
+	93: MoveLoc[8](loc3: u64)
+	94: MoveLoc[9](loc4: u64)
+	95: MoveLoc[2](Arg2: u64)
+	96: Pack[7](UpdatePoolDurationEvent)
+	97: Call event::emit<UpdatePoolDurationEvent>(UpdatePoolDurationEvent)
+	98: Ret
+}
+
+public(friend) stake<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: Coin<Ty0>, Arg2: &GlobalConfig, Arg3: u64, Arg4: &TxContext) {
+L5:	loc0: &GlobalConfig
+L6:	loc1: u64
+L7:	loc2: u128
+L8:	loc3: u64
+L9:	loc4: u64
+L10:	loc5: UserStake
+L11:	loc6: address
+L12:	loc7: &mut UserStake
+L13:	loc8: &UserStake
+B0:
+	0: ImmBorrowLoc[1](Arg1: Coin<Ty0>)
+	1: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	2: StLoc[8](loc3: u64)
+	3: CopyLoc[8](loc3: u64)
+	4: LdU64(0)
+	5: Gt
+	6: BrFalse(8)
+B1:
+	7: Branch(16)
+B2:
+	8: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	9: Pop
+	10: MoveLoc[2](Arg2: &GlobalConfig)
+	11: Pop
+	12: MoveLoc[4](Arg4: &TxContext)
+	13: Pop
+	14: LdConst[3](u64: 105)
+	15: Abort
+B3:
+	16: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	17: MoveLoc[2](Arg2: &GlobalConfig)
+	18: StLoc[5](loc0: &GlobalConfig)
+	19: FreezeRef
+	20: MoveLoc[5](loc0: &GlobalConfig)
+	21: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	22: Not
+	23: BrFalse(25)
+B4:
+	24: Branch(31)
+B5:
+	25: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	26: Pop
+	27: MoveLoc[4](Arg4: &TxContext)
+	28: Pop
+	29: LdConst[6](u64: 109)
+	30: Abort
+B6:
+	31: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	32: CopyLoc[3](Arg3: u64)
+	33: StLoc[6](loc1: u64)
+	34: FreezeRef
+	35: MoveLoc[6](loc1: u64)
+	36: Call is_finished_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, u64): bool
+	37: Not
+	38: BrFalse(40)
+B7:
+	39: Branch(46)
+B8:
+	40: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	41: Pop
+	42: MoveLoc[4](Arg4: &TxContext)
+	43: Pop
+	44: LdConst[11](u64: 113)
+	45: Abort
+B9:
+	46: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	47: CopyLoc[3](Arg3: u64)
+	48: Call update_accum_reward<Ty0, Ty1>(&mut StakePool<Ty0, Ty1>, u64)
+	49: MoveLoc[3](Arg3: u64)
+	50: LdU64(1000)
+	51: Div
+	52: StLoc[9](loc4: u64)
+	53: MoveLoc[4](Arg4: &TxContext)
+	54: Call tx_context::sender(&TxContext): address
+	55: StLoc[11](loc6: address)
+	56: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	57: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	58: ReadRef
+	59: StLoc[7](loc2: u128)
+	60: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	61: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	62: CopyLoc[11](loc6: address)
+	63: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	64: Not
+	65: BrFalse(93)
+B10:
+	66: CopyLoc[8](loc3: u64)
+	67: LdU128(0)
+	68: LdU128(0)
+	69: CopyLoc[9](loc4: u64)
+	70: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	71: ImmBorrowFieldGeneric[6](StakePool.duration_unstake_time_sec: u64)
+	72: ReadRef
+	73: Add
+	74: Pack[1](UserStake)
+	75: StLoc[10](loc5: UserStake)
+	76: MoveLoc[7](loc2: u128)
+	77: CopyLoc[8](loc3: u64)
+	78: CastU128
+	79: Mul
+	80: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	81: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	82: ReadRef
+	83: Div
+	84: MutBorrowLoc[10](loc5: UserStake)
+	85: MutBorrowField[8](UserStake.unobtainable_reward: u128)
+	86: WriteRef
+	87: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	88: MutBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	89: CopyLoc[11](loc6: address)
+	90: MoveLoc[10](loc5: UserStake)
+	91: Call table::add<address, UserStake>(&mut Table<address, UserStake>, address, UserStake)
+	92: Branch(132)
+B11:
+	93: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	94: MutBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	95: CopyLoc[11](loc6: address)
+	96: Call table::borrow_mut<address, UserStake>(&mut Table<address, UserStake>, address): &mut UserStake
+	97: StLoc[12](loc7: &mut UserStake)
+	98: CopyLoc[7](loc2: u128)
+	99: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	100: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	101: ReadRef
+	102: CopyLoc[12](loc7: &mut UserStake)
+	103: Call update_user_earnings(u128, u128, &mut UserStake)
+	104: CopyLoc[12](loc7: &mut UserStake)
+	105: ImmBorrowField[9](UserStake.amount: u64)
+	106: ReadRef
+	107: CopyLoc[8](loc3: u64)
+	108: Add
+	109: CopyLoc[12](loc7: &mut UserStake)
+	110: MutBorrowField[9](UserStake.amount: u64)
+	111: WriteRef
+	112: MoveLoc[7](loc2: u128)
+	113: CopyLoc[12](loc7: &mut UserStake)
+	114: FreezeRef
+	115: Call user_stake_amount(&UserStake): u128
+	116: Mul
+	117: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	118: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	119: ReadRef
+	120: Div
+	121: CopyLoc[12](loc7: &mut UserStake)
+	122: MutBorrowField[8](UserStake.unobtainable_reward: u128)
+	123: WriteRef
+	124: CopyLoc[9](loc4: u64)
+	125: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	126: ImmBorrowFieldGeneric[6](StakePool.duration_unstake_time_sec: u64)
+	127: ReadRef
+	128: Add
+	129: MoveLoc[12](loc7: &mut UserStake)
+	130: MutBorrowField[10](UserStake.unlock_time: u64)
+	131: WriteRef
+B12:
+	132: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	133: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	134: CopyLoc[11](loc6: address)
+	135: Call table::borrow<address, UserStake>(&Table<address, UserStake>, address): &UserStake
+	136: StLoc[13](loc8: &UserStake)
+	137: CopyLoc[13](loc8: &UserStake)
+	138: ImmBorrowField[9](UserStake.amount: u64)
+	139: ReadRef
+	140: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	141: ImmBorrowFieldGeneric[8](StakePool.max_stake: u64)
+	142: ReadRef
+	143: Le
+	144: BrFalse(146)
+B13:
+	145: Branch(152)
+B14:
+	146: MoveLoc[13](loc8: &UserStake)
+	147: Pop
+	148: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	149: Pop
+	150: LdConst[16](u64: 124)
+	151: Abort
+B15:
+	152: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	153: MutBorrowFieldGeneric[9](StakePool.stake_coins: Balance<Ty0>)
+	154: MoveLoc[1](Arg1: Coin<Ty0>)
+	155: Call coin::into_balance<Ty0>(Coin<Ty0>): Balance<Ty0>
+	156: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	157: Pop
+	158: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	159: FreezeRef
+	160: Call object::id_address<StakePool<Ty0, Ty1>>(&StakePool<Ty0, Ty1>): address
+	161: MoveLoc[11](loc6: address)
+	162: MoveLoc[8](loc3: u64)
+	163: CopyLoc[13](loc8: &UserStake)
+	164: ImmBorrowField[9](UserStake.amount: u64)
+	165: ReadRef
+	166: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	167: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	168: ReadRef
+	169: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	170: ImmBorrowFieldGeneric[9](StakePool.stake_coins: Balance<Ty0>)
+	171: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	172: MoveLoc[9](loc4: u64)
+	173: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	174: ImmBorrowFieldGeneric[6](StakePool.duration_unstake_time_sec: u64)
+	175: ReadRef
+	176: Add
+	177: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	178: ImmBorrowFieldGeneric[10](StakePool.last_updated: u64)
+	179: ReadRef
+	180: CopyLoc[13](loc8: &UserStake)
+	181: ImmBorrowField[8](UserStake.unobtainable_reward: u128)
+	182: ReadRef
+	183: CopyLoc[13](loc8: &UserStake)
+	184: ImmBorrowField[14](UserStake.earned_reward: u128)
+	185: ReadRef
+	186: MoveLoc[13](loc8: &UserStake)
+	187: ImmBorrowField[10](UserStake.unlock_time: u64)
+	188: ReadRef
+	189: Pack[2](StakeEvent)
+	190: Call event::emit<StakeEvent>(StakeEvent)
+	191: Ret
+}
+
+public(friend) unstake<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: u64, Arg2: &GlobalConfig, Arg3: u64, Arg4: &mut TxContext): Coin<Ty0> {
+L5:	loc0: &GlobalConfig
+L6:	loc1: Coin<Ty0>
+L7:	loc2: u64
+L8:	loc3: address
+L9:	loc4: &mut UserStake
+B0:
+	0: CopyLoc[1](Arg1: u64)
+	1: LdU64(0)
+	2: Gt
+	3: BrFalse(5)
+B1:
+	4: Branch(13)
+B2:
+	5: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	6: Pop
+	7: MoveLoc[2](Arg2: &GlobalConfig)
+	8: Pop
+	9: MoveLoc[4](Arg4: &mut TxContext)
+	10: Pop
+	11: LdConst[3](u64: 105)
+	12: Abort
+B3:
+	13: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	14: MoveLoc[2](Arg2: &GlobalConfig)
+	15: StLoc[5](loc0: &GlobalConfig)
+	16: FreezeRef
+	17: MoveLoc[5](loc0: &GlobalConfig)
+	18: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	19: Not
+	20: BrFalse(22)
+B4:
+	21: Branch(28)
+B5:
+	22: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	23: Pop
+	24: MoveLoc[4](Arg4: &mut TxContext)
+	25: Pop
+	26: LdConst[6](u64: 109)
+	27: Abort
+B6:
+	28: CopyLoc[4](Arg4: &mut TxContext)
+	29: FreezeRef
+	30: Call tx_context::sender(&TxContext): address
+	31: StLoc[8](loc3: address)
+	32: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	33: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	34: CopyLoc[8](loc3: address)
+	35: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	36: BrFalse(38)
+B7:
+	37: Branch(44)
+B8:
+	38: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	39: Pop
+	40: MoveLoc[4](Arg4: &mut TxContext)
+	41: Pop
+	42: LdConst[1](u64: 103)
+	43: Abort
+B9:
+	44: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	45: CopyLoc[3](Arg3: u64)
+	46: Call update_accum_reward<Ty0, Ty1>(&mut StakePool<Ty0, Ty1>, u64)
+	47: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	48: MutBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	49: CopyLoc[8](loc3: address)
+	50: Call table::borrow_mut<address, UserStake>(&mut Table<address, UserStake>, address): &mut UserStake
+	51: StLoc[9](loc4: &mut UserStake)
+	52: CopyLoc[1](Arg1: u64)
+	53: CopyLoc[9](loc4: &mut UserStake)
+	54: ImmBorrowField[9](UserStake.amount: u64)
+	55: ReadRef
+	56: Le
+	57: BrFalse(59)
+B10:
+	58: Branch(67)
+B11:
+	59: MoveLoc[9](loc4: &mut UserStake)
+	60: Pop
+	61: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	62: Pop
+	63: MoveLoc[4](Arg4: &mut TxContext)
+	64: Pop
+	65: LdConst[2](u64: 104)
+	66: Abort
+B12:
+	67: MoveLoc[3](Arg3: u64)
+	68: LdU64(1000)
+	69: Div
+	70: StLoc[7](loc2: u64)
+	71: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	72: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	73: ReadRef
+	74: CopyLoc[7](loc2: u64)
+	75: Ge
+	76: BrFalse(92)
+B13:
+	77: MoveLoc[7](loc2: u64)
+	78: CopyLoc[9](loc4: &mut UserStake)
+	79: ImmBorrowField[10](UserStake.unlock_time: u64)
+	80: ReadRef
+	81: Ge
+	82: BrFalse(84)
+B14:
+	83: Branch(92)
+B15:
+	84: MoveLoc[9](loc4: &mut UserStake)
+	85: Pop
+	86: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	87: Pop
+	88: MoveLoc[4](Arg4: &mut TxContext)
+	89: Pop
+	90: LdConst[5](u64: 108)
+	91: Abort
+B16:
+	92: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	93: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	94: ReadRef
+	95: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	96: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	97: ReadRef
+	98: CopyLoc[9](loc4: &mut UserStake)
+	99: Call update_user_earnings(u128, u128, &mut UserStake)
+	100: CopyLoc[9](loc4: &mut UserStake)
+	101: ImmBorrowField[9](UserStake.amount: u64)
+	102: ReadRef
+	103: CopyLoc[1](Arg1: u64)
+	104: Sub
+	105: CopyLoc[9](loc4: &mut UserStake)
+	106: MutBorrowField[9](UserStake.amount: u64)
+	107: WriteRef
+	108: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	109: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	110: ReadRef
+	111: CopyLoc[9](loc4: &mut UserStake)
+	112: FreezeRef
+	113: Call user_stake_amount(&UserStake): u128
+	114: Mul
+	115: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	116: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	117: ReadRef
+	118: Div
+	119: CopyLoc[9](loc4: &mut UserStake)
+	120: MutBorrowField[8](UserStake.unobtainable_reward: u128)
+	121: WriteRef
+	122: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	123: MutBorrowFieldGeneric[9](StakePool.stake_coins: Balance<Ty0>)
+	124: CopyLoc[1](Arg1: u64)
+	125: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	126: MoveLoc[4](Arg4: &mut TxContext)
+	127: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	128: StLoc[6](loc1: Coin<Ty0>)
+	129: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	130: ImmBorrowFieldGeneric[11](StakePool.id: UID)
+	131: Call object::uid_to_address(&UID): address
+	132: MoveLoc[8](loc3: address)
+	133: MoveLoc[1](Arg1: u64)
+	134: CopyLoc[9](loc4: &mut UserStake)
+	135: ImmBorrowField[9](UserStake.amount: u64)
+	136: ReadRef
+	137: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	138: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	139: ReadRef
+	140: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	141: ImmBorrowFieldGeneric[9](StakePool.stake_coins: Balance<Ty0>)
+	142: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	143: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	144: ImmBorrowFieldGeneric[10](StakePool.last_updated: u64)
+	145: ReadRef
+	146: CopyLoc[9](loc4: &mut UserStake)
+	147: ImmBorrowField[8](UserStake.unobtainable_reward: u128)
+	148: ReadRef
+	149: CopyLoc[9](loc4: &mut UserStake)
+	150: ImmBorrowField[14](UserStake.earned_reward: u128)
+	151: ReadRef
+	152: MoveLoc[9](loc4: &mut UserStake)
+	153: ImmBorrowField[10](UserStake.unlock_time: u64)
+	154: ReadRef
+	155: Pack[3](UnstakeEvent)
+	156: Call event::emit<UnstakeEvent>(UnstakeEvent)
+	157: MoveLoc[6](loc1: Coin<Ty0>)
+	158: Ret
+}
+
+public(friend) harvest<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: &GlobalConfig, Arg2: u64, Arg3: &mut TxContext): Coin<Ty1> {
+L4:	loc0: &GlobalConfig
+L5:	loc1: u128
+L6:	loc2: Coin<Ty1>
+L7:	loc3: u64
+L8:	loc4: address
+L9:	loc5: &mut UserStake
+B0:
+	0: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalConfig)
+	2: StLoc[4](loc0: &GlobalConfig)
+	3: FreezeRef
+	4: MoveLoc[4](loc0: &GlobalConfig)
+	5: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	6: Not
+	7: BrFalse(9)
+B1:
+	8: Branch(15)
+B2:
+	9: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	10: Pop
+	11: MoveLoc[3](Arg3: &mut TxContext)
+	12: Pop
+	13: LdConst[6](u64: 109)
+	14: Abort
+B3:
+	15: CopyLoc[3](Arg3: &mut TxContext)
+	16: FreezeRef
+	17: Call tx_context::sender(&TxContext): address
+	18: StLoc[8](loc4: address)
+	19: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	20: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	21: CopyLoc[8](loc4: address)
+	22: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	23: BrFalse(25)
+B4:
+	24: Branch(31)
+B5:
+	25: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	26: Pop
+	27: MoveLoc[3](Arg3: &mut TxContext)
+	28: Pop
+	29: LdConst[1](u64: 103)
+	30: Abort
+B6:
+	31: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	32: MoveLoc[2](Arg2: u64)
+	33: Call update_accum_reward<Ty0, Ty1>(&mut StakePool<Ty0, Ty1>, u64)
+	34: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	35: MutBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	36: CopyLoc[8](loc4: address)
+	37: Call table::borrow_mut<address, UserStake>(&mut Table<address, UserStake>, address): &mut UserStake
+	38: StLoc[9](loc5: &mut UserStake)
+	39: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	40: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	41: ReadRef
+	42: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	43: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	44: ReadRef
+	45: CopyLoc[9](loc5: &mut UserStake)
+	46: Call update_user_earnings(u128, u128, &mut UserStake)
+	47: CopyLoc[9](loc5: &mut UserStake)
+	48: ImmBorrowField[14](UserStake.earned_reward: u128)
+	49: ReadRef
+	50: LdU128(0)
+	51: Gt
+	52: BrFalse(54)
+B7:
+	53: Branch(62)
+B8:
+	54: MoveLoc[9](loc5: &mut UserStake)
+	55: Pop
+	56: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	57: Pop
+	58: MoveLoc[3](Arg3: &mut TxContext)
+	59: Pop
+	60: LdConst[4](u64: 106)
+	61: Abort
+B9:
+	62: CopyLoc[9](loc5: &mut UserStake)
+	63: ImmBorrowField[14](UserStake.earned_reward: u128)
+	64: ReadRef
+	65: LdConst[21](u128: 1844..)
+	66: Call u128::min(u128, u128): u128
+	67: StLoc[5](loc1: u128)
+	68: CopyLoc[9](loc5: &mut UserStake)
+	69: ImmBorrowField[14](UserStake.earned_reward: u128)
+	70: ReadRef
+	71: CopyLoc[5](loc1: u128)
+	72: Sub
+	73: CopyLoc[9](loc5: &mut UserStake)
+	74: MutBorrowField[14](UserStake.earned_reward: u128)
+	75: WriteRef
+	76: MoveLoc[5](loc1: u128)
+	77: CastU64
+	78: StLoc[7](loc3: u64)
+	79: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	80: MutBorrowFieldGeneric[0](StakePool.reward_coins: Balance<Ty1>)
+	81: CopyLoc[7](loc3: u64)
+	82: Call balance::split<Ty1>(&mut Balance<Ty1>, u64): Balance<Ty1>
+	83: MoveLoc[3](Arg3: &mut TxContext)
+	84: Call coin::from_balance<Ty1>(Balance<Ty1>, &mut TxContext): Coin<Ty1>
+	85: StLoc[6](loc2: Coin<Ty1>)
+	86: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	87: ImmBorrowFieldGeneric[11](StakePool.id: UID)
+	88: Call object::uid_to_address(&UID): address
+	89: MoveLoc[8](loc4: address)
+	90: MoveLoc[7](loc3: u64)
+	91: CopyLoc[9](loc5: &mut UserStake)
+	92: ImmBorrowField[9](UserStake.amount: u64)
+	93: ReadRef
+	94: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	95: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	96: ReadRef
+	97: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	98: ImmBorrowFieldGeneric[9](StakePool.stake_coins: Balance<Ty0>)
+	99: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	100: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	101: ImmBorrowFieldGeneric[10](StakePool.last_updated: u64)
+	102: ReadRef
+	103: CopyLoc[9](loc5: &mut UserStake)
+	104: ImmBorrowField[8](UserStake.unobtainable_reward: u128)
+	105: ReadRef
+	106: CopyLoc[9](loc5: &mut UserStake)
+	107: ImmBorrowField[14](UserStake.earned_reward: u128)
+	108: ReadRef
+	109: MoveLoc[9](loc5: &mut UserStake)
+	110: ImmBorrowField[10](UserStake.unlock_time: u64)
+	111: ReadRef
+	112: Pack[5](HarvestEvent)
+	113: Call event::emit<HarvestEvent>(HarvestEvent)
+	114: MoveLoc[6](loc2: Coin<Ty1>)
+	115: Ret
+}
+
+public(friend) enable_emergency<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: &GlobalConfig, Arg2: &TxContext) {
+L3:	loc0: &GlobalConfig
+B0:
+	0: MoveLoc[2](Arg2: &TxContext)
+	1: Call tx_context::sender(&TxContext): address
+	2: CopyLoc[1](Arg1: &GlobalConfig)
+	3: Call stake_config::get_emergency_admin_address(&GlobalConfig): address
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(13)
+B2:
+	7: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	8: Pop
+	9: MoveLoc[1](Arg1: &GlobalConfig)
+	10: Pop
+	11: LdConst[9](u64: 111)
+	12: Abort
+B3:
+	13: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	14: MoveLoc[1](Arg1: &GlobalConfig)
+	15: StLoc[3](loc0: &GlobalConfig)
+	16: FreezeRef
+	17: MoveLoc[3](loc0: &GlobalConfig)
+	18: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	19: Not
+	20: BrFalse(22)
+B4:
+	21: Branch(26)
+B5:
+	22: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	23: Pop
+	24: LdConst[6](u64: 109)
+	25: Abort
+B6:
+	26: LdTrue
+	27: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	28: MutBorrowFieldGeneric[12](StakePool.emergency_locked: bool)
+	29: WriteRef
+	30: Ret
+}
+
+public(friend) emergency_unstake<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: &GlobalConfig, Arg2: &mut TxContext): Coin<Ty0> {
+L3:	loc0: &GlobalConfig
+L4:	loc1: u64
+L5:	loc2: address
+B0:
+	0: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalConfig)
+	2: StLoc[3](loc0: &GlobalConfig)
+	3: FreezeRef
+	4: MoveLoc[3](loc0: &GlobalConfig)
+	5: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	6: BrFalse(8)
+B1:
+	7: Branch(14)
+B2:
+	8: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	9: Pop
+	10: MoveLoc[2](Arg2: &mut TxContext)
+	11: Pop
+	12: LdConst[8](u64: 110)
+	13: Abort
+B3:
+	14: CopyLoc[2](Arg2: &mut TxContext)
+	15: FreezeRef
+	16: Call tx_context::sender(&TxContext): address
+	17: StLoc[5](loc2: address)
+	18: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	19: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	20: CopyLoc[5](loc2: address)
+	21: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	22: BrFalse(24)
+B4:
+	23: Branch(30)
+B5:
+	24: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	25: Pop
+	26: MoveLoc[2](Arg2: &mut TxContext)
+	27: Pop
+	28: LdConst[1](u64: 103)
+	29: Abort
+B6:
+	30: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	31: MutBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	32: MoveLoc[5](loc2: address)
+	33: Call table::remove<address, UserStake>(&mut Table<address, UserStake>, address): UserStake
+	34: Unpack[1](UserStake)
+	35: Pop
+	36: Pop
+	37: Pop
+	38: StLoc[4](loc1: u64)
+	39: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	40: MutBorrowFieldGeneric[9](StakePool.stake_coins: Balance<Ty0>)
+	41: MoveLoc[4](loc1: u64)
+	42: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	43: MoveLoc[2](Arg2: &mut TxContext)
+	44: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	45: Ret
+}
+
+public(friend) withdraw_to_treasury<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: u64, Arg2: &GlobalConfig, Arg3: u64, Arg4: &mut TxContext): Coin<Ty1> {
+L5:	loc0: &GlobalConfig
+B0:
+	0: CopyLoc[4](Arg4: &mut TxContext)
+	1: FreezeRef
+	2: Call tx_context::sender(&TxContext): address
+	3: CopyLoc[2](Arg2: &GlobalConfig)
+	4: Call stake_config::get_treasury_admin_address(&GlobalConfig): address
+	5: Eq
+	6: BrFalse(8)
+B1:
+	7: Branch(16)
+B2:
+	8: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	9: Pop
+	10: MoveLoc[2](Arg2: &GlobalConfig)
+	11: Pop
+	12: MoveLoc[4](Arg4: &mut TxContext)
+	13: Pop
+	14: LdConst[13](u64: 115)
+	15: Abort
+B3:
+	16: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	17: MoveLoc[2](Arg2: &GlobalConfig)
+	18: StLoc[5](loc0: &GlobalConfig)
+	19: FreezeRef
+	20: MoveLoc[5](loc0: &GlobalConfig)
+	21: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	22: Not
+	23: BrFalse(41)
+B4:
+	24: MoveLoc[3](Arg3: u64)
+	25: LdU64(1000)
+	26: Div
+	27: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	28: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	29: ReadRef
+	30: LdConst[22](u64: 7257..)
+	31: Add
+	32: Ge
+	33: BrFalse(35)
+B5:
+	34: Branch(41)
+B6:
+	35: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	36: Pop
+	37: MoveLoc[4](Arg4: &mut TxContext)
+	38: Pop
+	39: LdConst[12](u64: 114)
+	40: Abort
+B7:
+	41: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	42: MutBorrowFieldGeneric[0](StakePool.reward_coins: Balance<Ty1>)
+	43: MoveLoc[1](Arg1: u64)
+	44: Call balance::split<Ty1>(&mut Balance<Ty1>, u64): Balance<Ty1>
+	45: MoveLoc[4](Arg4: &mut TxContext)
+	46: Call coin::from_balance<Ty1>(Balance<Ty1>, &mut TxContext): Coin<Ty1>
+	47: Ret
+}
+
+public get_start_timestamp<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[13](StakePool.start_timestamp: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public is_finished<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: u64): bool {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: u64)
+	2: Call is_finished_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, u64): bool
+	3: Ret
+}
+
+public get_end_timestamp<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public stake_exists<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: address): bool {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	2: MoveLoc[1](Arg1: address)
+	3: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	4: Ret
+}
+
+public get_pool_total_stake<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[9](StakePool.stake_coins: Balance<Ty0>)
+	2: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	3: Ret
+}
+
+public get_user_stake<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: address): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	2: CopyLoc[1](Arg1: address)
+	3: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(10)
+B2:
+	6: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	7: Pop
+	8: LdConst[1](u64: 103)
+	9: Abort
+B3:
+	10: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	11: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	12: MoveLoc[1](Arg1: address)
+	13: Call table::borrow<address, UserStake>(&Table<address, UserStake>, address): &UserStake
+	14: ImmBorrowField[9](UserStake.amount: u64)
+	15: ReadRef
+	16: Ret
+}
+
+public get_pending_user_rewards<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: address, Arg2: u64): u128 {
+L3:	loc0: u64
+L4:	loc1: u128
+L5:	loc2: u128
+L6:	loc3: &UserStake
+B0:
+	0: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	2: CopyLoc[1](Arg1: address)
+	3: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(10)
+B2:
+	6: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	7: Pop
+	8: LdConst[1](u64: 103)
+	9: Abort
+B3:
+	10: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	11: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	12: MoveLoc[1](Arg1: address)
+	13: Call table::borrow<address, UserStake>(&Table<address, UserStake>, address): &UserStake
+	14: StLoc[6](loc3: &UserStake)
+	15: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	16: MoveLoc[2](Arg2: u64)
+	17: Call get_time_for_last_update<Ty0, Ty1>(&StakePool<Ty0, Ty1>, u64): u64
+	18: StLoc[3](loc0: u64)
+	19: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	20: MoveLoc[3](loc0: u64)
+	21: Call accum_rewards_since_last_updated<Ty0, Ty1>(&StakePool<Ty0, Ty1>, u64): u128
+	22: StLoc[5](loc2: u128)
+	23: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	24: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	25: ReadRef
+	26: MoveLoc[5](loc2: u128)
+	27: Add
+	28: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	29: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	30: ReadRef
+	31: CopyLoc[6](loc3: &UserStake)
+	32: Call user_earned_since_last_update(u128, u128, &UserStake): u128
+	33: StLoc[4](loc1: u128)
+	34: MoveLoc[6](loc3: &UserStake)
+	35: ImmBorrowField[14](UserStake.earned_reward: u128)
+	36: ReadRef
+	37: MoveLoc[4](loc1: u128)
+	38: Add
+	39: Ret
+}
+
+public get_unlock_time<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: address): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	2: CopyLoc[1](Arg1: address)
+	3: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(10)
+B2:
+	6: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	7: Pop
+	8: LdConst[1](u64: 103)
+	9: Abort
+B3:
+	10: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	11: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	12: ReadRef
+	13: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	14: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	15: MoveLoc[1](Arg1: address)
+	16: Call table::borrow<address, UserStake>(&Table<address, UserStake>, address): &UserStake
+	17: ImmBorrowField[10](UserStake.unlock_time: u64)
+	18: ReadRef
+	19: Call u64::min(u64, u64): u64
+	20: Ret
+}
+
+public is_unlocked<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: address, Arg2: u64): bool {
+L3:	loc0: u64
+L4:	loc1: u64
+B0:
+	0: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	2: CopyLoc[1](Arg1: address)
+	3: Call table::contains<address, UserStake>(&Table<address, UserStake>, address): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(10)
+B2:
+	6: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	7: Pop
+	8: LdConst[1](u64: 103)
+	9: Abort
+B3:
+	10: MoveLoc[2](Arg2: u64)
+	11: LdU64(1000)
+	12: Div
+	13: StLoc[3](loc0: u64)
+	14: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	15: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	16: ReadRef
+	17: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	18: ImmBorrowFieldGeneric[5](StakePool.stakes: Table<address, UserStake>)
+	19: MoveLoc[1](Arg1: address)
+	20: Call table::borrow<address, UserStake>(&Table<address, UserStake>, address): &UserStake
+	21: ImmBorrowField[10](UserStake.unlock_time: u64)
+	22: ReadRef
+	23: Call u64::min(u64, u64): u64
+	24: StLoc[4](loc1: u64)
+	25: MoveLoc[3](loc0: u64)
+	26: MoveLoc[4](loc1: u64)
+	27: Ge
+	28: Ret
+}
+
+public is_emergency<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: &GlobalConfig): bool {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: &GlobalConfig)
+	2: Call is_emergency_inner<Ty0, Ty1>(&StakePool<Ty0, Ty1>, &GlobalConfig): bool
+	3: Ret
+}
+
+public is_local_emergency<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>): bool {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[12](StakePool.emergency_locked: bool)
+	2: ReadRef
+	3: Ret
+}
+
+is_emergency_inner<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: &GlobalConfig): bool {
+L2:	loc0: bool
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[12](StakePool.emergency_locked: bool)
+	2: ReadRef
+	3: BrFalse(9)
+B1:
+	4: MoveLoc[1](Arg1: &GlobalConfig)
+	5: Pop
+	6: LdTrue
+	7: StLoc[2](loc0: bool)
+	8: Branch(12)
+B2:
+	9: MoveLoc[1](Arg1: &GlobalConfig)
+	10: Call stake_config::is_global_emergency(&GlobalConfig): bool
+	11: StLoc[2](loc0: bool)
+B3:
+	12: MoveLoc[2](loc0: bool)
+	13: Ret
+}
+
+is_finished_inner<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: u64): bool {
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: LdU64(1000)
+	2: Div
+	3: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	4: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	5: ReadRef
+	6: Ge
+	7: Ret
+}
+
+update_accum_reward<Ty0, Ty1>(Arg0: &mut StakePool<Ty0, Ty1>, Arg1: u64) {
+L2:	loc0: u64
+L3:	loc1: u64
+L4:	loc2: u64
+L5:	loc3: u128
+B0:
+	0: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	1: MoveLoc[1](Arg1: u64)
+	2: StLoc[2](loc0: u64)
+	3: FreezeRef
+	4: MoveLoc[2](loc0: u64)
+	5: Call get_time_for_last_update<Ty0, Ty1>(&StakePool<Ty0, Ty1>, u64): u64
+	6: StLoc[4](loc2: u64)
+	7: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	8: CopyLoc[4](loc2: u64)
+	9: StLoc[3](loc1: u64)
+	10: FreezeRef
+	11: MoveLoc[3](loc1: u64)
+	12: Call accum_rewards_since_last_updated<Ty0, Ty1>(&StakePool<Ty0, Ty1>, u64): u128
+	13: StLoc[5](loc3: u128)
+	14: CopyLoc[5](loc3: u128)
+	15: LdU128(0)
+	16: Neq
+	17: BrFalse(31)
+B1:
+	18: MoveLoc[4](loc2: u64)
+	19: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	20: MutBorrowFieldGeneric[10](StakePool.last_updated: u64)
+	21: WriteRef
+	22: CopyLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	23: ImmBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	24: ReadRef
+	25: MoveLoc[5](loc3: u128)
+	26: Add
+	27: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	28: MutBorrowFieldGeneric[4](StakePool.accum_reward: u128)
+	29: WriteRef
+	30: Branch(33)
+B2:
+	31: MoveLoc[0](Arg0: &mut StakePool<Ty0, Ty1>)
+	32: Pop
+B3:
+	33: Ret
+}
+
+accum_rewards_since_last_updated<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: u64): u128 {
+L2:	loc0: bool
+L3:	loc1: bool
+L4:	loc2: u128
+L5:	loc3: u128
+L6:	loc4: u64
+L7:	loc5: u128
+L8:	loc6: u128
+B0:
+	0: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[13](StakePool.start_timestamp: u64)
+	2: ReadRef
+	3: CopyLoc[1](Arg1: u64)
+	4: Ge
+	5: BrFalse(10)
+B1:
+	6: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	7: Pop
+	8: LdU128(0)
+	9: Ret
+B2:
+	10: MoveLoc[1](Arg1: u64)
+	11: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	12: ImmBorrowFieldGeneric[10](StakePool.last_updated: u64)
+	13: ReadRef
+	14: Sub
+	15: StLoc[6](loc4: u64)
+	16: CopyLoc[6](loc4: u64)
+	17: LdU64(0)
+	18: Eq
+	19: BrFalse(24)
+B3:
+	20: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	21: Pop
+	22: LdU128(0)
+	23: Ret
+B4:
+	24: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	25: Call pool_total_staked<Ty0, Ty1>(&StakePool<Ty0, Ty1>): u128
+	26: StLoc[8](loc6: u128)
+	27: CopyLoc[8](loc6: u128)
+	28: LdU128(0)
+	29: Eq
+	30: BrFalse(35)
+B5:
+	31: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	32: Pop
+	33: LdU128(0)
+	34: Ret
+B6:
+	35: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	36: ImmBorrowFieldGeneric[2](StakePool.reward_per_sec: u64)
+	37: ReadRef
+	38: CastU128
+	39: StLoc[4](loc2: u128)
+	40: MoveLoc[6](loc4: u64)
+	41: CastU128
+	42: StLoc[7](loc5: u128)
+	43: CopyLoc[7](loc5: u128)
+	44: LdU128(0)
+	45: Eq
+	46: BrFalse(50)
+B7:
+	47: LdTrue
+	48: StLoc[2](loc0: bool)
+	49: Branch(56)
+B8:
+	50: CopyLoc[4](loc2: u128)
+	51: LdConst[20](u128: 3402..)
+	52: CopyLoc[7](loc5: u128)
+	53: Div
+	54: Le
+	55: StLoc[2](loc0: bool)
+B9:
+	56: MoveLoc[2](loc0: bool)
+	57: BrFalse(59)
+B10:
+	58: Branch(63)
+B11:
+	59: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	60: Pop
+	61: LdConst[17](u64: 125)
+	62: Abort
+B12:
+	63: MoveLoc[4](loc2: u128)
+	64: MoveLoc[7](loc5: u128)
+	65: Mul
+	66: StLoc[5](loc3: u128)
+	67: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	68: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	69: ReadRef
+	70: LdU128(0)
+	71: Eq
+	72: BrFalse(76)
+B13:
+	73: LdTrue
+	74: StLoc[3](loc1: bool)
+	75: Branch(84)
+B14:
+	76: CopyLoc[5](loc3: u128)
+	77: LdConst[20](u128: 3402..)
+	78: CopyLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	79: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	80: ReadRef
+	81: Div
+	82: Le
+	83: StLoc[3](loc1: bool)
+B15:
+	84: MoveLoc[3](loc1: bool)
+	85: BrFalse(87)
+B16:
+	86: Branch(91)
+B17:
+	87: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	88: Pop
+	89: LdConst[17](u64: 125)
+	90: Abort
+B18:
+	91: MoveLoc[5](loc3: u128)
+	92: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	93: ImmBorrowFieldGeneric[7](StakePool.scale: u128)
+	94: ReadRef
+	95: Mul
+	96: MoveLoc[8](loc6: u128)
+	97: Div
+	98: Ret
+}
+
+update_user_earnings(Arg0: u128, Arg1: u128, Arg2: &mut UserStake) {
+L3:	loc0: u128
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: MoveLoc[1](Arg1: u128)
+	2: CopyLoc[2](Arg2: &mut UserStake)
+	3: FreezeRef
+	4: Call user_earned_since_last_update(u128, u128, &UserStake): u128
+	5: StLoc[3](loc0: u128)
+	6: CopyLoc[2](Arg2: &mut UserStake)
+	7: ImmBorrowField[14](UserStake.earned_reward: u128)
+	8: ReadRef
+	9: CopyLoc[3](loc0: u128)
+	10: Add
+	11: CopyLoc[2](Arg2: &mut UserStake)
+	12: MutBorrowField[14](UserStake.earned_reward: u128)
+	13: WriteRef
+	14: CopyLoc[2](Arg2: &mut UserStake)
+	15: ImmBorrowField[8](UserStake.unobtainable_reward: u128)
+	16: ReadRef
+	17: MoveLoc[3](loc0: u128)
+	18: Add
+	19: MoveLoc[2](Arg2: &mut UserStake)
+	20: MutBorrowField[8](UserStake.unobtainable_reward: u128)
+	21: WriteRef
+	22: Ret
+}
+
+user_earned_since_last_update(Arg0: u128, Arg1: u128, Arg2: &UserStake): u128 {
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: CopyLoc[2](Arg2: &UserStake)
+	2: Call user_stake_amount(&UserStake): u128
+	3: Mul
+	4: MoveLoc[1](Arg1: u128)
+	5: Div
+	6: MoveLoc[2](Arg2: &UserStake)
+	7: ImmBorrowField[8](UserStake.unobtainable_reward: u128)
+	8: ReadRef
+	9: Sub
+	10: Ret
+}
+
+get_time_for_last_update<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>, Arg1: u64): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[3](StakePool.end_timestamp: u64)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: u64)
+	4: LdU64(1000)
+	5: Div
+	6: Call u64::min(u64, u64): u64
+	7: Ret
+}
+
+pool_total_staked<Ty0, Ty1>(Arg0: &StakePool<Ty0, Ty1>): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &StakePool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[9](StakePool.stake_coins: Balance<Ty0>)
+	2: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	3: CastU128
+	4: Ret
+}
+
+user_stake_amount(Arg0: &UserStake): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &UserStake)
+	1: ImmBorrowField[9](UserStake.amount: u64)
+	2: ReadRef
+	3: CastU128
+	4: Ret
+}
+
+Constants [
+	0 => u64: 102
+	1 => u64: 103
+	2 => u64: 104
+	3 => u64: 105
+	4 => u64: 106
+	5 => u64: 108
+	6 => u64: 109
+	7 => u64: 200
+	8 => u64: 110
+	9 => u64: 111
+	10 => u64: 112
+	11 => u64: 113
+	12 => u64: 114
+	13 => u64: 115
+	14 => u64: 123
+	15 => u64: 126
+	16 => u64: 124
+	17 => u64: 125
+	18 => u64: 127
+	19 => u64: 128
+	20 => u128: 340282366920938463463374607431768211455
+	21 => u128: 18446744073709551615
+	22 => u64: 7257600
+	23 => u128: 1000000000000
+]
+}
+

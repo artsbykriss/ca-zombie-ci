@@ -1,0 +1,197 @@
+// Move bytecode v6
+module c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332.stake_config {
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+
+struct STAKE_CONFIG has drop {
+	dummy_field: bool
+}
+
+struct GlobalConfig has store, key {
+	id: UID,
+	admin_address: address,
+	emergency_admin_address: address,
+	treasury_admin_address: address,
+	global_emergency_locked: bool
+}
+
+init(Arg0: STAKE_CONFIG, Arg1: &mut TxContext) {
+B0:
+	0: CopyLoc[1](Arg1: &mut TxContext)
+	1: FreezeRef
+	2: Call tx_context::sender(&TxContext): address
+	3: LdConst[2](address: 0x51..)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(11)
+B2:
+	7: MoveLoc[1](Arg1: &mut TxContext)
+	8: Pop
+	9: LdConst[0](u64: 200)
+	10: Abort
+B3:
+	11: MoveLoc[1](Arg1: &mut TxContext)
+	12: Call object::new(&mut TxContext): UID
+	13: LdConst[2](address: 0x51..)
+	14: LdConst[2](address: 0x51..)
+	15: LdConst[2](address: 0x51..)
+	16: LdFalse
+	17: Pack[1](GlobalConfig)
+	18: Call transfer::share_object<GlobalConfig>(GlobalConfig)
+	19: Ret
+}
+
+public set_admin_address(Arg0: &mut GlobalConfig, Arg1: address, Arg2: &mut TxContext) {
+B0:
+	0: MoveLoc[2](Arg2: &mut TxContext)
+	1: FreezeRef
+	2: Call tx_context::sender(&TxContext): address
+	3: CopyLoc[0](Arg0: &mut GlobalConfig)
+	4: ImmBorrowField[0](GlobalConfig.admin_address: address)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(13)
+B2:
+	9: MoveLoc[0](Arg0: &mut GlobalConfig)
+	10: Pop
+	11: LdConst[0](u64: 200)
+	12: Abort
+B3:
+	13: MoveLoc[1](Arg1: address)
+	14: MoveLoc[0](Arg0: &mut GlobalConfig)
+	15: MutBorrowField[0](GlobalConfig.admin_address: address)
+	16: WriteRef
+	17: Ret
+}
+
+public get_admin_address(Arg0: &GlobalConfig): address {
+B0:
+	0: MoveLoc[0](Arg0: &GlobalConfig)
+	1: ImmBorrowField[0](GlobalConfig.admin_address: address)
+	2: ReadRef
+	3: Ret
+}
+
+public set_emergency_admin_address(Arg0: &mut GlobalConfig, Arg1: address, Arg2: &mut TxContext) {
+B0:
+	0: MoveLoc[2](Arg2: &mut TxContext)
+	1: FreezeRef
+	2: Call tx_context::sender(&TxContext): address
+	3: CopyLoc[0](Arg0: &mut GlobalConfig)
+	4: ImmBorrowField[1](GlobalConfig.emergency_admin_address: address)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(13)
+B2:
+	9: MoveLoc[0](Arg0: &mut GlobalConfig)
+	10: Pop
+	11: LdConst[0](u64: 200)
+	12: Abort
+B3:
+	13: MoveLoc[1](Arg1: address)
+	14: MoveLoc[0](Arg0: &mut GlobalConfig)
+	15: MutBorrowField[1](GlobalConfig.emergency_admin_address: address)
+	16: WriteRef
+	17: Ret
+}
+
+public get_emergency_admin_address(Arg0: &GlobalConfig): address {
+B0:
+	0: MoveLoc[0](Arg0: &GlobalConfig)
+	1: ImmBorrowField[1](GlobalConfig.emergency_admin_address: address)
+	2: ReadRef
+	3: Ret
+}
+
+public set_treasury_admin_address(Arg0: &mut GlobalConfig, Arg1: address, Arg2: &mut TxContext) {
+B0:
+	0: MoveLoc[2](Arg2: &mut TxContext)
+	1: FreezeRef
+	2: Call tx_context::sender(&TxContext): address
+	3: CopyLoc[0](Arg0: &mut GlobalConfig)
+	4: ImmBorrowField[2](GlobalConfig.treasury_admin_address: address)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(13)
+B2:
+	9: MoveLoc[0](Arg0: &mut GlobalConfig)
+	10: Pop
+	11: LdConst[0](u64: 200)
+	12: Abort
+B3:
+	13: MoveLoc[1](Arg1: address)
+	14: MoveLoc[0](Arg0: &mut GlobalConfig)
+	15: MutBorrowField[2](GlobalConfig.treasury_admin_address: address)
+	16: WriteRef
+	17: Ret
+}
+
+public get_treasury_admin_address(Arg0: &GlobalConfig): address {
+B0:
+	0: MoveLoc[0](Arg0: &GlobalConfig)
+	1: ImmBorrowField[2](GlobalConfig.treasury_admin_address: address)
+	2: ReadRef
+	3: Ret
+}
+
+public enable_global_emergency(Arg0: &mut GlobalConfig, Arg1: &mut TxContext) {
+B0:
+	0: MoveLoc[1](Arg1: &mut TxContext)
+	1: FreezeRef
+	2: Call tx_context::sender(&TxContext): address
+	3: CopyLoc[0](Arg0: &mut GlobalConfig)
+	4: ImmBorrowField[1](GlobalConfig.emergency_admin_address: address)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(13)
+B2:
+	9: MoveLoc[0](Arg0: &mut GlobalConfig)
+	10: Pop
+	11: LdConst[0](u64: 200)
+	12: Abort
+B3:
+	13: CopyLoc[0](Arg0: &mut GlobalConfig)
+	14: ImmBorrowField[3](GlobalConfig.global_emergency_locked: bool)
+	15: ReadRef
+	16: Not
+	17: BrFalse(19)
+B4:
+	18: Branch(23)
+B5:
+	19: MoveLoc[0](Arg0: &mut GlobalConfig)
+	20: Pop
+	21: LdConst[1](u64: 202)
+	22: Abort
+B6:
+	23: LdTrue
+	24: MoveLoc[0](Arg0: &mut GlobalConfig)
+	25: MutBorrowField[3](GlobalConfig.global_emergency_locked: bool)
+	26: WriteRef
+	27: Ret
+}
+
+public is_global_emergency(Arg0: &GlobalConfig): bool {
+B0:
+	0: MoveLoc[0](Arg0: &GlobalConfig)
+	1: ImmBorrowField[3](GlobalConfig.global_emergency_locked: bool)
+	2: ReadRef
+	3: Ret
+}
+
+Constants [
+	0 => u64: 200
+	1 => u64: 202
+	2 => address: 0x519ebf6b900943042259f34bb17a6782061c5b6997d6c545c95a03271956800c
+]
+}
+

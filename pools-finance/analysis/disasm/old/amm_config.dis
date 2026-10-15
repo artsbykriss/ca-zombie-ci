@@ -1,0 +1,77 @@
+// Move bytecode v6
+module c0d0341970ed92ff0d72f7419b8a812d9a98708dd8078dcc6f9d26c1b9c62332.amm_config {
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+
+struct GlobalPauseStatus has key {
+	id: UID,
+	pause: bool
+}
+
+struct SetPauseEvent has copy, drop {
+	sender: address,
+	status: bool
+}
+
+public(friend) new_global_pause_status_and_shared(Arg0: &mut TxContext): ID {
+L1:	loc0: GlobalPauseStatus
+L2:	loc1: ID
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: LdFalse
+	3: Pack[0](GlobalPauseStatus)
+	4: StLoc[1](loc0: GlobalPauseStatus)
+	5: ImmBorrowLoc[1](loc0: GlobalPauseStatus)
+	6: Call object::id<GlobalPauseStatus>(&GlobalPauseStatus): ID
+	7: StLoc[2](loc1: ID)
+	8: MoveLoc[1](loc0: GlobalPauseStatus)
+	9: Call transfer::share_object<GlobalPauseStatus>(GlobalPauseStatus)
+	10: MoveLoc[2](loc1: ID)
+	11: Ret
+}
+
+get_pause_status(Arg0: &GlobalPauseStatus): bool {
+B0:
+	0: MoveLoc[0](Arg0: &GlobalPauseStatus)
+	1: ImmBorrowField[0](GlobalPauseStatus.pause: bool)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) set_status_and_emit_event(Arg0: &mut GlobalPauseStatus, Arg1: bool, Arg2: &TxContext) {
+B0:
+	0: CopyLoc[1](Arg1: bool)
+	1: MoveLoc[0](Arg0: &mut GlobalPauseStatus)
+	2: MutBorrowField[0](GlobalPauseStatus.pause: bool)
+	3: WriteRef
+	4: MoveLoc[2](Arg2: &TxContext)
+	5: Call tx_context::sender(&TxContext): address
+	6: MoveLoc[1](Arg1: bool)
+	7: Pack[1](SetPauseEvent)
+	8: Call event::emit<SetPauseEvent>(SetPauseEvent)
+	9: Ret
+}
+
+public assert_pause(Arg0: &GlobalPauseStatus) {
+B0:
+	0: MoveLoc[0](Arg0: &GlobalPauseStatus)
+	1: Call get_pause_status(&GlobalPauseStatus): bool
+	2: Not
+	3: BrFalse(5)
+B1:
+	4: Branch(7)
+B2:
+	5: LdConst[0](u64: 1)
+	6: Abort
+B3:
+	7: Ret
+}
+
+Constants [
+	0 => u64: 1
+]
+}
+
