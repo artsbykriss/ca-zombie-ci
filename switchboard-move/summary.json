@@ -1,0 +1,49 @@
+{
+  "finding": "Z3-C2",
+  "title": "Switchboard 'Move' oracle (Sui/Aptos) — empty-comparand signature bypass + unguarded guardian/oracle creation; live E-U $0 (state-blocked), code-level residual on Sui v6 attestation path",
+  "chains": ["sui", "aptos"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.0, "H-O": 0.0, "P": 0.0, "S": 0.0},
+  "latest_block": 334455503,
+  "block_numbers": {"sui_checkpoint": 334455503, "aptos_ledger_version": 7633017953},
+  "targets_checked": 3,
+  "live_targets": 0,
+  "closed_reasons": [
+    "Sui: all 48 oracles expired (0 with expiration_time_ms > now); no valid guardian exists -> oracle_attest_action bootstrap (needs guardian.expiration_time_ms > now) is blocked; 42/48 oracles have empty secp256k1_key but are invalid.",
+    "Sui: Mainnet Oracle Queue is paused (v6 pause flag = fee_types empty), so aggregator_submit_result_action is additionally blocked; no price flow since 2026-08-29T05:55Z.",
+    "Sui v6 (current) price path was patched: requires oracle.secp256k1_key.length() == 64, which blocks empty-key signatures.",
+    "Aptos: deployed oracle_attest_action compares a 64-byte recovered pubkey with the 32-byte oracle_key using exact != (no check_subvec anywhere in deployed modules) -> attestation path can never validate (dead); update path uses exact 64-byte compare. No unprivileged enable path.",
+    "Aptos: unguarded oracle_init_action::run is live (verified by transactions/simulate -> OracleCreated) but inert; feeds stale since 2026-08-29."
+  ],
+  "poc": {
+    "tests_passed": 24,
+    "tests_total": 24,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Sui package family: original 0xc3c7e6eb7202e9fb0389a2f7542b91cc40e4f7a33c02554fec11c4c92f938ea3, 6 versions; v2 = 0xe6717fb7c9d44706bf8ce8a651e25c0a7902d32cb0ff40c0976251ce8ac25655 (the finding's ID); v4 = 0xa81086572822d67a1559942f23481de9a60c7709c08defafbb1ca8dffc44e210 (live at incident); v6 = 0xf347253e6aa6f81e9da16e841c089fb09c42f7b6ec9514eeee1b5606e23f64f9 (current).",
+    "Sui queues: Mainnet Oracle Queue 0x6e43354b8ea2dfad98eadb33db94dcc9b1175e70ee82e42abc605f6b7de9e910 (23 oracles, min_attestations=3, PAUSED, authority 0x697998fa...), Mainnet Guardian Queue 0x662f5642dc730289b5c8084b67e4e092428e825a97071c5cb5c691dfb2cc88f7 (17 oracles, self-guardian, not paused).",
+    "Sui deployed v6 oracle_attest_action STILL calls hash::check_subvec(&recovered_pubkey, &guardian.secp256k1_key(), 1) with NO guardian-key length check -> empty-key guardians are still forgeable; it now requires guardian.expiration_time_ms > now (none exist).",
+    "Sui deployed v4 oracle_attest_action (incident-era) checked the TARGET oracle expiration and used check_subvec -> the exploit was executable then; v6 changed the check to the guardian.",
+    "EXECUTED ON SUI PRODUCTION 2026-08-29: sender 0x9104d073e1fdfd... created 3 guardian oracles (0x4ee9d2a2..., 0xcbce2731..., 0x5c506926..., all empty keys), attested production oracle 0x0f307cb2c7e1fe98587f7022ed327e2b5e8372bfa17b8a7a5f1ce6f56f911b81 three times, and AttestationResolved installed attacker key ew8qAZ2l... (txs UsP84xhW6xs7u1hHAqGx..., Cd2iRJsJ2u5iZ3Ed4J6m..., H6d13yy4JdQKn764uhMS...).",
+    "Containment: vendor 0x697998fa... overrode all main-queue oracles at 2026-08-29 06:03/06:35 UTC (keys cleared, expiration=1); v5 published 06:37, v6 09:29. No price submissions through the hijacked oracle in the event record; no Sui fund loss visible.",
+    "Sui feeds: 160 aggregators (136 main queue) across 30 authority wallets; last main-queue update 2026-08-29T05:55Z (LBTC/USD et al.); feed names include SUI/USD, USDC/USD, BTC/USD, DEEP/USD, LBTC/USD, SAIL/USDC, SAIL AWAY, TimeVyn SUI/USD, IKA/USD, ALKIMI/USD, WAL/USD, SuperSUI/USDC, mETH/mUSD/USDC, 'surge proxy' (Switchboard-managed).",
+    "Scallop core package 0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf (20 modules) does NOT reference the Switchboard package in any module address-identifier table.",
+    "Aptos: package 0xfea54925b5ac1912331e2e62049849b37842efaea298118b66f85a59057752b8; main queue 0x7fdf7235bf3bd872ad093927deb2ff5f1645d1b6dabbfd4a03c3e0442788ce12 (23 oracles, 58 feeds, min_attestations=3); guardian queue 0x3434a45114f5f8fc577557a9a3dda54c1799fee5271313f2599a1093c4a8ba01 (14 oracles, self-guardian).",
+    "Aptos deployed oracle_init_action::run has no authority check; chain-native simulation on the LIVE package emitted OracleCreated for an arbitrary key from an arbitrary sender (vm_status 'Executed successfully', gas 10350).",
+    "Aptos deployed oracle_attest_action::validate: guardian expiration check + exact Neq of ecdsa_raw_public_key_to_bytes (64B, aptos-stdlib ECDSARawPublicKey) vs 32B oracle_key -> always false; no check_subvec call in any deployed module (identifier-pool + disassembly verified).",
+    "Aptos feeds: newest update 2026-08-29 (15 feeds that day: APT/USD, ETH/USD, USDT/USD, THL_USD, LSD_USD, AMI/USD, MKL_USD, GUI_USD, RESERVE_USD, APE/USD, ...); none since. 17/58 feeds never updated.",
+    "Third-party test queues 'weiss-*' (authority 0xadc948a1d32c59..., min_attestations=1, self-guardian) created 2026-09-13/14 on Sui — expired today; they look like a post-incident reproduction/verification harness.",
+    "Latent: any Sui oracle with expiration_time_ms > now AND empty secp256k1_key in a non-paused queue re-arms the hijack (3 self-registered guardians -> enable_oracle -> attacker key). Vendor disable ops empty the keys, so a sloppy revive (expiration without key) re-arms it. Corpus value behind the feeds while operational: ~$26M (Bucket CDP ~$15.8M + Scallop Lend ~$10.2M)."
+  ],
+  "caveats": [
+    "No Move fork tooling in this environment: Sui public JSON-RPC devInspect is deprecated and GraphQL exposes no simulate mutation, so Sui verification is by deployed-bytecode disassembly + on-chain event/tx forensics (the 2026-08-29 attack is itself the end-to-end proof).",
+    "Aptos indexer (api.mainnet.aptoslabs.com/v1/graphql) rate-limited (HTTP 429) during the consumer-transaction census; the per-transaction consumer census was replaced by feed-owner + feed-staleness evidence. Which consumer contracts still call aggregator::current_result was not enumerated for all integrators.",
+    "Sui GraphQL event filters key events by the package version that was latest when indexed; all 6 version IDs were scanned to recover history.",
+    "IOTA/Movement deployments not assessed (suspended per vendor post-mortem; no endpoints/tooling used here).",
+    "Consumer USD values (~$26M) are corpus figures, not re-priced in this pass; no live extraction exists so no value is realizable today.",
+    "Aptos oracle expiration values are stored in milliseconds while the framework timestamp check uses seconds; the update-path expiration check therefore effectively never expires — this does not create an unprivileged path because the signature key compare is exact."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live on Sui and Aptos today: the Switchboard Move bypass was real and was executed on Sui production on 2026-08-29 (3 self-registered empty-key guardians -> enable_oracle hijack), but the vendor disabled/rotated every oracle within ~5h and shipped partial patches (v5/v6) — all 48 Sui oracles are expired and the main queue is paused, while Aptos' deployed attestation compare is 64B-vs-32B and can never validate; residual CRITICAL latent on the Sui v6 attestation path if any valid oracle with an empty key is ever revived."
+}

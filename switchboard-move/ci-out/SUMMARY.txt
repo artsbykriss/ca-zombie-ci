@@ -1,0 +1,33 @@
+Z3-C2 Switchboard-Move verification run 2026-10-15T23:32:57.271786+00:00
+
+PASS sui.main_queue_alive | Mainnet Oracle Queue
+PASS sui.guardian_queue_alive | Mainnet Guardian Queue
+PASS sui.main_queue_paused | fee_types=[]
+PASS sui.main_queue_min_attestations_3
+PASS sui.guardian_queue_self_referential
+PASS sui.all_oracles_expired | valid=0/48
+PASS sui.empty_key_oracles_exist | empty_key=42
+PASS sui.feeds_stale_since_suspension | last main-queue update 2026-08-29T05:55Z (queue suspended 2026-08-29)
+PASS sui.v6_attestation_still_uses_check_subvec
+PASS sui.v6_attestation_requires_valid_guardian | guardian expiration check present
+PASS sui.v6_price_path_has_key_len64_check
+PASS sui.v6_price_path_uses_check_subvec
+PASS sui.v6_oracle_init_has_no_authority_check
+PASS sui.v4_attestation_uses_check_subvec
+PASS sui.aug2026_attestation_exploit_onsui | AttestationResolved 2026-08-29T01:32:47.160Z
+PASS aptos.main_queue_alive | Mainnet Oracle Queue
+PASS aptos.main_queue_min_attestations_3
+PASS aptos.guardian_queue_self_referential
+PASS aptos.oracles_have_64b_keys
+PASS aptos.feeds_stale_since_suspension | newest feed ts 1787987108
+PASS aptos.oracle_init_unguarded_live | vm_status=Executed successfully events=['OracleCreated', 'FeeStatement']
+PASS aptos.attestation_no_check_subvec
+PASS aptos.attestation_exact_neq_compare
+PASS aptos.attestation_checks_guardian_expiration
+
+Sui main-queue feeds: {"total": 160, "main_queue": 136, "authorities": 30, "last_main_update": "2026-08-29T05:55Z"}
+Sui oracles: {"total": 48, "valid_now": 0, "empty_key": 42}
+Aptos feeds: {"count": 58, "newest_update_ms": 1787987108}
+Sui Aug-2026 attack forensics: {"attestation_events": 4, "resolved": 4, "first": "2026-08-29T01:32:47.160Z", "last": "2026-08-29T01:32:55.088Z", "senders": ["0x9104d073e1fdfd76a6b756f61c5684e4affa0b3d124d383afc64aabbd87934cc"]}
+
+HEADLINE: live E-U = $0 on both chains (state-blocked); code-level residual on Sui v6 attestation path.
