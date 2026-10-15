@@ -1,0 +1,45 @@
+{
+  "finding": "C2-40",
+  "title": "Saber stable-swap pools (dead DEX) — fake-LP class and arbitrary-CPI surface closed; $0 E-U",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "H-O": 7428731.06,
+    "P": 0.0,
+    "S": 0.0
+  },
+  "latest_block": 457257871,
+  "block_numbers": {"solana": 457257871},
+  "targets_checked": 172,
+  "live_targets": 165,
+  "closed_reasons": [
+    "Withdraw validates pool_mint == swap.pool_mint (SwapError::IncorrectMint) — fake LP mints rejected (proven on deployed bytecode, CI test T1)",
+    "Vaults are bound to stored reserves; vault owner == PDA(swap, nonce) for all 172 pools; crafted SwapInfo cannot redirect real vaults (test T3)",
+    "Unvalidated token_program CPI target is doubly closed: the SPL-Token instruction builders call check_program_account() and return IncorrectProgramId for any id != Tokenkeg before any CPI (proven on the deployed bytecode, test T2 — attacker program never invoked); additionally the runtime requires the CPI callee to be in the caller's account list (agave program-runtime/src/cpi.rs + invoke_context.rs verify_instruction_accounts)",
+    "All admin instructions require the admin key signature and cannot move funds (pause/fees/admin rotation only)",
+    "Rounding leak from the pre-2022-02-25 deployed code is <=1 raw unit per swap, economically nil vs 5000-lamport tx fees (test T4)"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 5,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Program SSwpkEEcbUqx4vtoEByFjSkhKdCT862DNVb52nZg1UZ; ProgramData 54aePuBcYcf8G3CDrWWd2MEiw6Q7UGy2kjgQBDhqoMdt; last upgrade slot 119721738 (2022-02-07) — pre-dates the 2022-02-25 rounding patch",
+    "Upgrade authority EVmbDJCTGeExFGUKxmZwrfnzw4zpf7SPhPgfiLDJkUEV (off-curve PDA, Goki smart-wallet style; set via SetAuthority in May 2026) — latent risk: one approved upgrade could redirect all pool funds (P-class power, not counted in categories to avoid double counting the H-O custody value)",
+    "172 initialized pools at slot 457257871; 165 funded; 109 with >$1 live value; 0 structural anomalies (vault owners == LP mint authority == PDA(swap,nonce))",
+    "Gross DefiLlama value $56,481,748.60; dead Cashio sCASH accounts for $49,042,260.43 -> $7,428,731.06 excluding sCASH (prior hunt: $8.26M)",
+    "10 pools are paused but withdraw is not pause-gated, so LP holders can still exit",
+    "USDC/USDT pool YAkoNb6HKmSxQN9L8hiBE5tPJRsniSSMzND1boHmZxe is actively traded (Jupiter route tx 3Y3f5GzQLA18PjWSuyBdTUHM8Q1iXGSrCzNDqBZUqUw2S21BDxjBEhRHYYsvG4V8WkQoBLxhq7RT5scCecQP7H4c, slot 457259071)",
+    "No vault has a delegate or close authority (344 vaults checked); no LP mint has a freeze authority"
+  ],
+  "caveats": [
+    "Deployed binary is verified behaviorally (pool-mint check, rounding, CPI block) against the dumped mainnet bytecode in LiteSVM, not by byte-for-byte rebuild",
+    "LiteSVM uses the same agave runtime crates as the validator but is not a full validator",
+    "USD figures are DefiLlama prices at slot 457257871; renBTC/sBTC/aeFEI/aeMIM/UXD/USDH are dead or illiquid, so recoverable value is below $7.43M",
+    "H-O and P are the same underlying value: LP holders can withdraw it; the Goki multisig can upgrade the program and redirect it"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Saber: fake LP mints are rejected by the deployed program, and the unvalidated token_program CPI target cannot reach SPL Token because the runtime forbids CPI to a program not in the caller's account list; $7.43M (sCASH-excluded) is LP-holder-withdrawable (H-O) under a multisig-upgradeable program (P)."
+}
