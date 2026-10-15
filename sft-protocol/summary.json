@@ -1,0 +1,43 @@
+{
+  "finding": "L2-P2-sft-protocol",
+  "title": "SFT Protocol (Filecoin FEVM) — live extractability deep dive",
+  "chains": ["filecoin"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 1097.08, "P": 59.0, "S": 0},
+  "latest_block": 6457969,
+  "block_numbers": {"filecoin": 6457969},
+  "targets_checked": 10,
+  "live_targets": 6,
+  "closed_reasons": [
+    "lending pool deposit() reverts 'paused!'",
+    "lending pool withdraw() reverts POOL_FIL_BALANCE_NOT_ENOUGH for every holder (withdrawals frozen; internal accounting gate; contract FIL balance irrelevant)",
+    "lending pool borrow() reverts NOT_PLEDGE_THIS_ORDER; pledge() reverts for arbitrary callers; utilization 99.99% > borrowThreshold 95%",
+    "reward pool batchClaim is per-user per-order credit accounting: fresh stake earns 0; cross-user claim reverts Panic(0x32); unstake of fresh orders reverts 'it is not time to unlock' (6-month lock)",
+    "reward pool deposit()/withdraw() revert for fresh callers",
+    "mint/withdraw pool deposit() reverts and pool holds 0 FIL",
+    "SFT mint gated ('Only minter can call'); SFT/rSFT/rSPD have no DEX market",
+    "admin/upgrade paths owner-gated (ProxyAdmin owner = EOA 0x0E29…32C)"
+  ],
+  "poc": {"tests_passed": 30, "tests_total": 30, "ci_run_urls": []},
+  "key_facts": [
+    "Lending pool 0x147122D1EBdA76E4910ccdC53aEb6a58605Eb58E holds 53.7862261354336 FIL; totalPooledFIL = rSFT totalSupply = 234477.718487329089234903 (rate exactly 1:1)",
+    "Reward pool 0xE86D3dBd8233F1BFA22679cB57FaB3428E9654f7 holds 1000.0751373305601 FIL + 854354.36103 staked SFT",
+    "Total live EVM-visible value 1054.23 FIL = $1156.49 at FIL $1.097 (CoinGecko 2026-10-15)",
+    "Fork test: fresh attacker gets $0 from every path; holder withdrawal reverts POOL_FIL_BALANCE_NOT_ENOUGH (last successful withdrawal block 5472905)",
+    "Fork test: existing credited stakers can still claim small FIL amounts from the reward pool (H-O): observed 1e-5, 9.96e-12, 3.79e-12 FIL",
+    "Storage bisection: withdrawal freeze is gated by pool storage slot 2 (=185868.916202 FIL internal accounting), not by the contract's FIL balance",
+    "Only 1 borrow ever succeeded on the lending pool (block 4512413, 0.11 FIL); 4 later attempts reverted",
+    "SFT token 0xC5eA96Dd365983cfEc90E72b6A2daC9562f458Ba: supply 1388939.198, mint minter-gated, no market price/volume",
+    "ProxyAdmin 0x98002559DC58B1c1ba01f6c5F309a9e92af589DD owner = EOA 0x0E294a09Ab6d03597A79e52c951410955097c32C controls all three pool proxies",
+    "Miner-actor FIL (dashboard ww8.sftproject.io dead) is not enumerable and not EVM-reachable"
+  ],
+  "caveats": [
+    "Lending-pool implementation is unverified; the exact withdraw gate was isolated by storage bisection, not source review",
+    "Native FIL at Filecoin miner actors (the protocol's staked FIL) cannot be enumerated (dashboard dead) and is outside FEVM reach; excluded from totals",
+    "SFT/rSFT/rSPD have no observable market; values are FIL balances only",
+    "H-O figure assumes the 1000 FIL reward reserve is unclaimed staker credits (credit accounting observed); individual claim sizes are small",
+    "P figure: lending-pool FIL is reachable by the owner EOA via proxy upgrade/rescue; frozen (S) for everyone else"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live from SFT Protocol: deposits are paused, all holder withdrawals revert POOL_FIL_BALANCE_NOT_ENOUGH (frozen by internal accounting), borrows require pledges that cannot be created, and farm claims are per-order credits that a fresh staker never earns; ~$1.1K is holder/owner-bound."
+}

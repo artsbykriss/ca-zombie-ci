@@ -1,0 +1,471 @@
+Compiling 11 files with Solc 0.8.24
+Solc 0.8.24 finished in 84.03s
+Compiler run successful with warnings:
+Warning (2072): Unused local variable.
+   --> test/SFTLive.t.sol:206:10:
+    |
+206 |         (bool okDep, ) = logCall("I1: mint.deposit{1 FIL}()", MINT, abi.encodeWithSelector(IMintPool.deposit.selector));
+    |          ^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/SFTLive.t.sol:277:10:
+    |
+277 |         (bool ok, ) = logCall("M1: withdraw(53e18) with dust shares", POOL, abi.encodeWithSelector(ILendingPool.withdraw.selector, 53e18));
+    |          ^^^^^^^
+
+Warning (2072): Unused local variable.
+  --> test/SlotThreshold.t.sol:32:14:
+   |
+32 |             (bool ok, string memory r) = tryW();
+   |              ^^^^^^^
+
+Warning (2072): Unused local variable.
+  --> test/SlotThreshold.t.sol:43:10:
+   |
+43 |         (bool ok, string memory r) = tryW();
+   |          ^^^^^^^
+
+Warning (2072): Unused local variable.
+  --> test/WithdrawGateBisect.t.sol:56:10:
+   |
+56 |         (bool ok1, string memory r1) = _tryWithdrawAt(53.79e18);
+   |          ^^^^^^^^
+
+Warning (2072): Unused local variable.
+  --> test/WithdrawGateBisect.t.sol:61:10:
+   |
+61 |         (bool ok2, string memory r2) = _tryWithdrawAt(53.79e18);
+   |          ^^^^^^^^
+
+Warning (2072): Unused local variable.
+  --> test/WithdrawGateBisect.t.sol:66:10:
+   |
+66 |         (bool ok3, string memory r3) = _tryWithdrawAt(53.79e18);
+   |          ^^^^^^^^
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/SlotProbe.t.sol:15:5:
+   |
+15 |     function util() internal returns (uint256) {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+
+Ran 2 tests for test/WithdrawDebug.t.sol:WithdrawDebugTest
+[PASS] test_debug_withdraw_amount() (gas: 442236)
+Logs:
+  ---: before
+  attacker FIL: 100000000000000000000
+  pool FIL: 53786226135433597936
+  rSFT supply: 234477718487329089234903
+  attacker rSFT: 0
+  withdraw(1e18) ok: yes
+  ret: 0x0000000000000000000000000000000000000000000000000000000000000000
+  ---: after withdraw(1e18)
+  attacker FIL: 100000000000000000000
+  pool FIL: 53786226135433597936
+  rSFT supply: 234477718487329089234903
+  attacker rSFT: 0
+  withdraw(10e18) ok: yes
+  ---: after withdraw(10e18)
+  attacker FIL: 100000000000000000000
+  pool FIL: 53786226135433597936
+  rSFT supply: 234477718487329089234903
+  attacker rSFT: 0
+  withdraw(53e18) ok: yes
+  ---: after withdraw(53e18)
+  attacker FIL: 100000000000000000000
+  pool FIL: 53786226135433597936
+  rSFT supply: 234477718487329089234903
+  attacker rSFT: 0
+
+[PASS] test_debug_withdraw_with_dust_shares() (gas: 373792)
+Logs:
+  dust transfer ok: yes
+  ---: after dust
+  attacker FIL: 100000000000000000000
+  pool FIL: 53786226135433597936
+  rSFT supply: 234477718487329089234903
+  attacker rSFT: 0
+  withdraw(53e18) with 1 wei ok: yes
+  ---: after withdraw(53e18) with dust
+  attacker FIL: 100000000000000000000
+  pool FIL: 53786226135433597936
+  rSFT supply: 234477718487329089234903
+  attacker rSFT: 0
+  withdraw(1 wei) ok: yes
+  ---: after withdraw(1 wei)
+  attacker FIL: 100000000000000000000
+  pool FIL: 53786226135433597936
+  rSFT supply: 234477718487329089234903
+  attacker rSFT: 0
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 2.73s (7.52ms CPU time)
+
+Ran 2 tests for test/WithdrawGateBisect.t.sol:WithdrawGateBisectTest
+[PASS] test_bisect() (gas: 365467)
+Logs:
+  totalPooledFIL: 234477718487329089234903
+  dealt pool FIL (wei): 234478000000000000000000
+  balance 234478 FIL -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  dealt pool FIL (wei): 500000000000000000000000
+  balance 500000 FIL -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  dealt pool FIL (wei): 1000000000000000000000000
+  balance 1000000 FIL -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  dealt pool FIL (wei): 5000000000000000000000000
+  balance 5000000 FIL -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  dealt pool FIL (wei): 50000000000000000000000000
+  balance 50000000 FIL -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  dealt pool FIL (wei): 500000000000000000000000000
+  balance 500000000 FIL -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+
+[PASS] test_other_balances() (gas: 165834)
+Logs:
+  mint=100 FIL -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  reward=5000 FIL -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  both topped -> withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 2.99s (57.70ms CPU time)
+
+Ran 1 test for test/StorageDump.t.sol:StorageDumpTest
+[PASS] test_dump() (gas: 242690)
+Logs:
+  slot 2: 185868916202049843059980
+     addr view: 0x00000000000000000000275BF9610E0a6C115d0C
+  slot 3: 1
+     addr view: 0x0000000000000000000000000000000000000001
+  slot 54: 80846650944237777008005718746584127988290798380
+     addr view: 0x0E294a09Ab6d03597A79e52c951410955097c32C
+  slot 154: 1733892480
+     addr view: 0x0000000000000000000000000000000067591980
+  slot 155: 27139729833333362240
+     addr view: 0x00000000000000000000000178A3B07dAFe80E40
+  slot 156: 721417592592592
+     addr view: 0x000000000000000000000000000290201f5758D0
+  slot 157: 1733892480
+     addr view: 0x0000000000000000000000000000000067591980
+  slot 158: 22313194279511930319
+     addr view: 0x00000000000000000000000135A863fa129635cF
+  slot 159: 593120528429344
+     addr view: 0x00000000000000000000000000021B70a267F120
+  slot 160: 1129902698346288505315342535913384162741397510330
+     addr view: 0xC5eA96Dd365983cfEc90E72b6A2daC9562f458Ba
+  slot 161: 1326922018393649142812232757469707549623694284023
+     addr view: 0xE86D3dBd8233F1BFA22679cB57FaB3428E9654f7
+  slot 162: 1174263201016294438297757679447217398415814673477
+     addr view: 0xcdAfc875eed0f346D5D2584fc6C37B539459C445
+  slot 163: 1053772744048182301268991416424115377367491164726
+     addr view: 0xb894CDd932A610e7096b06Ef5177Ca601D0e3a36
+  slot 164 <== ltv?: 6000
+     addr view: 0x0000000000000000000000000000000000001770
+  slot 165: 286900006640449975190599
+     addr view: 0x000000000000000000003cc0E16a0A1B703b8447
+  slot 166 <== rSFT supply / totalPooledFIL: 234477718487329089234903
+     addr view: 0x0000000000000000000031A71005d807aD8fA7D7
+  slot 167: 167836782518449975190599
+     addr view: 0x00000000000000000000238A73410f253de5E447
+  slot 168 <== slope1?: 5000
+     addr view: 0x0000000000000000000000000000000000001388
+  slot 169: 6600
+     addr view: 0x00000000000000000000000000000000000019c8
+  slot 170 <== slope1?: 5000
+     addr view: 0x0000000000000000000000000000000000001388
+  slot 171: 418
+     addr view: 0x00000000000000000000000000000000000001A2
+  slot 174 <== borrowThreshold?: 9500
+     addr view: 0x000000000000000000000000000000000000251c
+  slot 175 <== borrowThreshold?: 9500
+     addr view: 0x000000000000000000000000000000000000251c
+  slot 176: 52422288157329685444081
+     addr view: 0x000000000000000000000B19d16435E7B2Ab75f1
+  slot 177 <== startTime: 1733895600
+     addr view: 0x00000000000000000000000000000000675925b0
+  slot 179: 194169646
+     addr view: 0x000000000000000000000000000000000b92Cb2e
+  slot 181: 20
+     addr view: 0x0000000000000000000000000000000000000014
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 3.15s (193.12ms CPU time)
+
+Ran 2 tests for test/MiscProbe.t.sol:MiscProbeTest
+[PASS] test_new_proxy() (gas: 122149)
+Logs:
+  NEW.owner: 341104183837895729836026307317780557722983353281
+  NEW.sftToken: 1129902698346288505315342535913384162741397510330
+  NEW.name (revert): 0x
+  NEW.totalSupply (revert): 0x
+  NEW.paused (revert): 0x
+  NEW.rewardContract (revert): 0x
+  NEW.redeemPool (revert): 0x
+  NEW impl slot: 0x00000000000000000000000089b9dbff0e87ba605bc2044385fffed33b54cd0a
+  NEW FIL balance: 370000000000000000
+
+[PASS] test_reward_deposit_roundtrip() (gas: 88107)
+Logs:
+  reward.deposit{1 FIL} ok: no
+    ret: 0x
+    attacker FIL delta: 0
+  reward.withdraw(1e18) ok: no
+    ret: 0x
+    attacker FIL delta: 0
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 3.42s (26.23ms CPU time)
+
+Ran 1 test for test/WithdrawGate.t.sol:WithdrawGateTest
+[PASS] test_gate_amounts() (gas: 411602)
+Logs:
+  pool FIL: 53786226135433597936
+  withdraw(10000000000000) ok/reason: POOL_FIL_BALANCE_NOT_ENOUGH
+    payout: 0
+  withdraw(1000000000000000) ok/reason: POOL_FIL_BALANCE_NOT_ENOUGH
+    payout: 0
+  withdraw(100000000000000000) ok/reason: POOL_FIL_BALANCE_NOT_ENOUGH
+    payout: 0
+  withdraw(1000000000000000000) ok/reason: POOL_FIL_BALANCE_NOT_ENOUGH
+    payout: 0
+  withdraw(50000000000000000000) ok/reason: POOL_FIL_BALANCE_NOT_ENOUGH
+    payout: 0
+  withdraw(10000000000000) ok/reason: POOL_FIL_BALANCE_NOT_ENOUGH
+    payout: 0
+  withdraw(1000000000000000000) ok/reason: POOL_FIL_BALANCE_NOT_ENOUGH
+    payout: 0
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.38s (32.31ms CPU time)
+
+Ran 1 test for test/SlotProbe.t.sol:SlotProbeTest
+[PASS] test_slots() (gas: 783270)
+Logs:
+  baseline util: 9999
+  baseline withdraw: POOL_FIL_BALANCE_NOT_ENOUGH
+  slot 2 ->0: util: 9999
+  slot 2 ->0: withdraw: OK
+  slot 3 ->0: util: 9999
+  slot 3 ->0: withdraw: POOL_FIL_BALANCE_NOT_ENOUGH
+  slot 165 ->0: util: 0
+  slot 165 ->0: withdraw: OK
+  slot 166 ->0: util: 54728
+  slot 166 ->0: withdraw: 0x4e487b710000000000000000000000000000000000000000000000000000000000000011
+  slot 167 ->0: util: 10000
+  slot 167 ->0: withdraw: 0x4e487b710000000000000000000000000000000000000000000000000000000000000011
+  slot 176 ->0: util: 12235
+  slot 176 ->0: withdraw: 0x4e487b710000000000000000000000000000000000000000000000000000000000000011
+  slot 179 ->0: util: 10000
+  slot 179 ->0: withdraw: 0x4e487b710000000000000000000000000000000000000000000000000000000000000011
+  slot 181 ->0: util: 10000
+  slot 181 ->0: withdraw: 0x4e487b710000000000000000000000000000000000000000000000000000000000000011
+  slot 54 ->0: util: 10000
+  slot 54 ->0: withdraw: 0x4e487b710000000000000000000000000000000000000000000000000000000000000011
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.32s (61.05ms CPU time)
+
+Ran 15 tests for test/SFTLive.t.sol:SFTLiveTest
+[PASS] test_A_live_state() (gas: 315292)
+Logs:
+  block.number: 6457969
+  pool FIL (wei): 53786226135433597936
+  reward FIL (wei): 1000075137330560065504
+  mint FIL (wei): 0
+  pool totalPooledFIL: 234477718487329089234903
+  pool rSFT totalSupply: 234477718487329089234903
+  pool utilization: 9999
+  pool borrowThreshold: 9500
+  pool ltv: 6000
+  pool startTime: 1733895600
+  pool owner: 0x0E294a09Ab6d03597A79e52c951410955097c32C
+  pool rewardContract: 0xE86D3dBd8233F1BFA22679cB57FaB3428E9654f7
+  pool redeemPool: 0xcdAfc875eed0f346D5D2584fc6C37B539459C445
+  SFT totalSupply: 1388939198431490000040000
+  SFT bal pool: 167836782518449975190599
+  SFT bal reward: 854354361030000000000000
+  SFT bal mint: 216128274648250024809401
+  rSPD totalSupply: 236807942548941043438775
+
+[PASS] test_B_fresh_withdraw_reverts() (gas: 201248)
+Logs:
+  B: withdraw(1e18) fresh OK: 0x0000000000000000000000000000000000000000000000000000000000000000
+  B2: withdraw(53e18) fresh OK: 0x0000000000000000000000000000000000000000000000000000000000000000
+  B: withdraw returned: no-op success
+  B2: withdraw returned: no-op success
+
+[PASS] test_C_fresh_deposit_reverts_paused() (gas: 51033)
+Logs:
+  C: deposit() fresh REVERT: paused!
+
+[PASS] test_D_fresh_borrow_reverts() (gas: 55050)
+Logs:
+  D: borrow(0,1e18) fresh REVERT: NOT_PLEDGE_THIS_ORDER
+
+[PASS] test_E_fresh_claim_reverts() (gas: 55999)
+Logs:
+  E: batchClaim([4],[0],[1e13]) fresh REVERT(raw): 0x4e487b710000000000000000000000000000000000000000000000000000000000000032
+
+[PASS] test_F_fresh_unstake_reverts() (gas: 54921)
+Logs:
+  F: unstake(4,0,1e18) fresh REVERT(raw): 0x4e487b710000000000000000000000000000000000000000000000000000000000000032
+
+[PASS] test_G_fresh_pledge_probe() (gas: 79088)
+Logs:
+  G1: pledge(attacker,4,0,100e18) REVERT(raw): 0x
+  G2: pledge(attacker,0,0,0) REVERT(raw): 0x
+
+[PASS] test_H_stake_then_claim_borrow_unstake() (gas: 536209)
+Logs:
+  H1: stake(4,100e18) OK: 0x
+  H1: attacker SFT after stake: 900000000000000000000
+  H2: batchClaim after fresh stake OK: 0x
+  H2: attacker FIL delta: 0
+  H3: borrow(0,1e18) after stake REVERT: NOT_PLEDGE_THIS_ORDER
+  H3b: borrow(1,1e18) after stake REVERT: NOT_PLEDGE_THIS_ORDER
+  H4: unstake(4,0,100e18) REVERT: it is not time to unlock
+  H4: attacker SFT after unstake: 900000000000000000000
+  H1 stake ok: yes
+  H2 claim ok: yes
+  H3 borrow ok: no
+  H3b borrow ok: no
+  H4 unstake ok: no
+
+[PASS] test_I_mint_pool_roundtrip() (gas: 87663)
+Logs:
+  I1: mint.deposit{1 FIL}() REVERT(raw): 0x
+  I1: attacker SFT after deposit: 0
+  I1: attacker FIL delta: 0
+  I: net FIL delta: 0
+
+[PASS] test_J_admin_gates() (gas: 110393)
+Logs:
+  J1: pool.rescueTokens(SFT,attacker,1) REVERT: Ownable: caller is not the owner
+  J2: mint.pause() REVERT: Ownable: caller is not the owner
+  admin proxy owner: 0x0E294a09Ab6d03597A79e52c951410955097c32C
+
+[PASS] test_K_cross_user_claim() (gas: 56032)
+Logs:
+  K: cross-user batchClaim([4],[0]) REVERT(raw): 0x4e487b710000000000000000000000000000000000000000000000000000000000000032
+
+[PASS] test_L_fresh_withdraw_on_reward_pool() (gas: 44278)
+Logs:
+  L: reward.withdraw(1e18) REVERT(raw): 0x
+
+[PASS] test_M_dust_shares_no_overwithdraw() (gas: 240575)
+Logs:
+  M0: transferShares(attacker,1) OK: 0x0000000000000000000000000000000000000000000000000000000000000001
+  M0: attacker rSFT after transferShares: 1
+  M1: withdraw(53e18) with dust shares OK: 0x0000000000000000000000000000000000000000000000000000000000000001
+  M1: attacker FIL delta: 1
+  M1: pool FIL delta: -1
+
+[PASS] test_N_holder_withdraw_is_frozen() (gas: 69417)
+Logs:
+  N: holder withdraw(1e18) REVERT: POOL_FIL_BALANCE_NOT_ENOUGH
+  N: holder FIL delta: 0
+  N: ok: no
+
+[PASS] test_O_existing_staker_claim_is_live() (gas: 67448)
+Logs:
+  O: staker batchClaim([4],[0],[1e13]) OK: 0x
+  O: staker FIL delta: 0
+  O: ok: yes
+
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 2.64s (314.05ms CPU time)
+
+Ran 1 test for test/WithdrawTrace.t.sol:WithdrawTraceTest
+[PASS] test_trace_failing_withdraw() (gas: 53376)
+Logs:
+  ok: no
+  ret: 0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001b504f4f4c5f46494c5f42414c414e43455f4e4f545f454e4f5547480000000000
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.01s (1.04ms CPU time)
+
+Ran 2 tests for test/SlotThreshold.t.sol:SlotThresholdTest
+[PASS] test_payout_when_slot2_zero() (gas: 108096)
+Logs:
+  withdraw: OK
+  holder FIL delta: 0
+  pool FIL delta: 0
+  holder rSFT delta: 0
+
+[PASS] test_threshold() (gas: 455611)
+Logs:
+  slot2=0 ->: OK
+  slot2=1 ->: POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=1000 ->: POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=10000000000000 ->: POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=1000000000000000 ->: POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=100000000000000000 ->: POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=1000000000000000000 ->: POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=10000000000000000000 ->: POOL_FIL_BALANCE_NOT_ENOUGH
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 2.14s (3.42ms CPU time)
+
+Ran 1 test for test/SlotGate.t.sol:SlotGateTest
+[PASS] test_relation() (gas: 578893)
+Logs:
+  orig slot2: 185868916202049843059980
+  pool balance: 53786226135433597936
+  slot2=0 bal=1wei withdraw: OK
+  slot2=0 bal=0 withdraw: OK
+  slot2=0 withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=53 withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=53 withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=54 withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=100 withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=1000 withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+  slot2=185868 bal=500000 withdraw: POOL_FIL_BALANCE_NOT_ENOUGH
+  restored withdraw: POOL_FIL_BALANCE_NOT_ENOUGH
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 1.94s (14.28ms CPU time)
+
+Ran 1 test for test/StakerClaim.t.sol:StakerClaimTest
+[PASS] test_claims() (gas: 953683)
+Logs:
+  staker 0xDE6A9fbfD752DbbA8d90E735D7960CEA4290afFB idx 0 ok: yes
+    FIL delta: 10000000000000
+  staker 0xDE6A9fbfD752DbbA8d90E735D7960CEA4290afFB idx 1 ok: yes
+    FIL delta: 0
+  staker 0xd9f1eB19C096b0e826e892265616eb3Bd95f6037 idx 0 ok: yes
+    FIL delta: 0
+  staker 0xd9f1eB19C096b0e826e892265616eb3Bd95f6037 idx 1 ok: no
+    FIL delta: 0
+  staker 0x9B6Fa2A3373422C1c6EebE9329069e357B196061 idx 0 ok: yes
+    FIL delta: 0
+  staker 0x9B6Fa2A3373422C1c6EebE9329069e357B196061 idx 1 ok: yes
+    FIL delta: 0
+  staker 0x449710aadf0a1d8275445436e40451411613eB22 idx 0 ok: yes
+    FIL delta: 0
+  staker 0x449710aadf0a1d8275445436e40451411613eB22 idx 1 ok: yes
+    FIL delta: 0
+  staker 0x0698Fa3B48313c5160619bDB970dEB98e558Ea75 idx 0 ok: yes
+    FIL delta: 10000000000000
+  staker 0x0698Fa3B48313c5160619bDB970dEB98e558Ea75 idx 1 ok: no
+    FIL delta: 0
+  staker 0xA50D269835De99b430825375Bcc90b4269C0D77f idx 0 ok: yes
+    FIL delta: 0
+  staker 0xA50D269835De99b430825375Bcc90b4269C0D77f idx 1 ok: yes
+    FIL delta: 0
+  staker 0x8F64E277Bcb6B9d49cc1CaDdf3ebb189aE844eB1 idx 0 ok: yes
+    FIL delta: 0
+  staker 0x8F64E277Bcb6B9d49cc1CaDdf3ebb189aE844eB1 idx 1 ok: yes
+    FIL delta: 9957444444470
+  staker 0xc0F5c68dDCA769d4ABEAEe1406Fa49Fb671d1D4C idx 0 ok: yes
+    FIL delta: 0
+  staker 0xc0F5c68dDCA769d4ABEAEe1406Fa49Fb671d1D4C idx 1 ok: yes
+    FIL delta: 3794346103040
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 1.79s (45.69ms CPU time)
+
+Ran 1 test for test/WithdrawHistory.t.sol:WithdrawHistoryTest
+[PASS] test_history() (gas: 99638)
+Logs:
+  block: 5472904
+    fork failed: no archive state
+  block: 6026753
+    fork failed: no archive state
+  block: 6200000
+    fork failed: no archive state
+  block: 6457969
+    pool FIL: 53786226135433597936
+    totalPooledFIL: 234477718487329089234903
+    withdraw(1e13): POOL_FIL_BALANCE_NOT_ENOUGH
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 6.21s (6.20s CPU time)
+
+Ran 12 test suites in 9.31s (33.72s CPU time): 30 tests passed, 0 failed, 0 skipped (30 total tests)
+EXIT 0
