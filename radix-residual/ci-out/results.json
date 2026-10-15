@@ -1,0 +1,92 @@
+{
+  "finding": "radix-residual (L2-16 + L2-17)",
+  "run_utc": "2026-10-15T12:09:47Z",
+  "ledger_state": {
+    "state_version": 563385687,
+    "epoch": 349696,
+    "timestamp": "2026-10-15T12:09:22.396Z",
+    "xrd_usd": 0.00045195468387751914
+  },
+  "checks": [
+    {
+      "check": "W1_hUSDC_supply",
+      "ok": true,
+      "detail": "hUSDC total supply = 1092.793964"
+    },
+    {
+      "check": "W2_underwater_cdps",
+      "ok": true,
+      "detail": "liq_ltv = {\"#1015#\": 1.1373137648827571, \"#517#\": 1.0695634689164013, \"#100#\": 1.0590592711957216, \"#1029#\": 1.1692273030201596}",
+      "liq_ltv": {
+        "#1015#": 1.1373137648827571,
+        "#517#": 1.0695634689164013,
+        "#100#": 1.0590592711957216,
+        "#1029#": 1.1692273030201596
+      }
+    },
+    {
+      "check": "W3_zero_capital_flash_liq",
+      "ok": true,
+      "detail": "status=Succeeded net_xrd=0.05874153337534726 err=",
+      "net_xrd": 0.05874153337534726
+    },
+    {
+      "check": "W4_liq_1015_husdc",
+      "ok": true,
+      "detail": "status=Succeeded repaid=45.0 net_xrd=108797.46254358793 err=",
+      "net_xrd": 108797.46254358793,
+      "repaid_husdc": 45.0
+    },
+    {
+      "check": "L1a_justlock_live",
+      "ok": true,
+      "detail": "locker fungible resources = 100"
+    },
+    {
+      "check": "L1b_justlock_no_withdraw",
+      "ok": true,
+      "detail": "status=Failed err=SystemError(TypeCheckError(BlueprintPayloadDoesNotExist(BlueprintInfo { blueprint_id: BlueprintId { package_address: PackageAddress(\"package_rdx1p4k2vlr6rejahqf"
+    },
+    {
+      "check": "L2a_radlock_fee_vault",
+      "ok": true,
+      "detail": "get_xrd_fee_vault = 10500 XRD",
+      "xrd_fee_vault": "10500"
+    },
+    {
+      "check": "L2b_radlock_admin_gate",
+      "ok": true,
+      "detail": "status=Failed err=SystemModuleError(AuthError(Unauthorized(Unauthorized { failed_access_rules: RoleList([Tuple(RoleKey(\"admin_auth\"), [Protected(ProofRule(Require(Resource(ResourceAddress(\"resource_"
+    },
+    {
+      "check": "L3a_rlyfun_fee_vault",
+      "ok": true,
+      "detail": "check_fee_vault = 633433.3438073930709526 XRD",
+      "pump_fee_vault": "633433.3438073930709526"
+    },
+    {
+      "check": "L3b_rlyfun_fresh_dev_claim_rejected",
+      "ok": true,
+      "detail": "status=Failed err=ApplicationError(PanicMessage(\"Invalid proof: Expected ResourceAddress(9aedd18556ebd70d787a2bf8854a5ad4e0d8400039f161c1d8146e61f891), but got ResourceAddress(9a23a51ac3d05761850e714a015c026388b4155d69"
+    },
+    {
+      "check": "D1_ociswap_roundtrip_negative",
+      "ok": true,
+      "detail": "status=Succeeded net_xrd=-0.19899892431186572",
+      "net_xrd": -0.19899892431186572
+    },
+    {
+      "check": "D2_defiplaza_roundtrip_negative",
+      "ok": true,
+      "detail": "status=Succeeded net_xrd=-0.1877847750278221",
+      "net_xrd": -0.1877847750278221
+    },
+    {
+      "check": "D3_ociswap_flash_takeonly_fails",
+      "ok": true,
+      "detail": "status=Failed err=ApplicationError(NonFungibleResourceManagerError(DropNonEmptyBucket))"
+    }
+  ],
+  "passed": 13,
+  "total": 13
+}

@@ -1,0 +1,2339 @@
+{
+ "items": [
+  {
+   "address": "component_rdx1cppd8rq7gfwad75z56mz9tldqmw4aps48hqnx2stf4eeew8v6tyd72",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 19624716,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+     },
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 19624716,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4lnurhaffzjeg3gu0k27g06ngkvxvyuksczmk9k6gqvztfpks8r7l",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "2"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.004"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "0.674510101120692717"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "2",
+         "variant_name": "QuoteShortage",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "1.017348600364655018"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1791945120"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "0.632192028489918078"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1chxn0nqj840r78t2ah5agchq4ue9p65q23nc9ckqfe0mmjstq8fyg0"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1c4547fnprjhlp2m27aycmf8rzrkrfzcck58jt2706r85gpcaeapz7k"
+      },
+      {
+       "kind": "Map",
+       "field_name": "min_liquidity",
+       "key_kind": "Reference",
+       "key_type_name": "ComponentAddress",
+       "value_kind": "Own",
+       "value_type_name": "Vault",
+       "entries": [
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1c4547fnprjhlp2m27aycmf8rzrkrfzcck58jt2706r85gpcaeapz7k"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1tzdn5mp0n009da3zqyjyp6e0rwffjwfl9hcnqnvec6ptw9w6l07st0"
+         }
+        },
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1chxn0nqj840r78t2ah5agchq4ue9p65q23nc9ckqfe0mmjstq8fyg0"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1tqa0gsz4f249897ae9auru47utlks7346fetvkh07d66vnc26ytpfu"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6",
+            "simple_rep": "[c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1cpr3gvk0r3nauc24kt0y0w5cpvjcxe54z07nu26z83qk2tgeangmdl",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 36445202,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+     },
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 36445202,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5xv44c0u99z096q00mv74emwmxwjw26m98lwlzq6ddlpe9f5cuc7s"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4lnurhaffzjeg3gu0k27g06ngkvxvyuksczmk9k6gqvztfpks8r7l",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "2"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.004"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "0.042340678248319564"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "2",
+         "variant_name": "QuoteShortage",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "1.99502617216266135"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1792051320"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "0.010590917383621845"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1t5xv44c0u99z096q00mv74emwmxwjw26m98lwlzq6ddlpe9f5cuc7s"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1c4n9xxzxqxupdlgesyj075lnt88e8dzcykxcx7l0wz2q5kdw53cq8f"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1c5cvl8qy0rmkhk9twe2ra2qgr87a7zx2hkk77utyczyym735rw96fu"
+      },
+      {
+       "kind": "Map",
+       "field_name": "min_liquidity",
+       "key_kind": "Reference",
+       "key_type_name": "ComponentAddress",
+       "value_kind": "Own",
+       "value_type_name": "Vault",
+       "entries": [
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1c5cvl8qy0rmkhk9twe2ra2qgr87a7zx2hkk77utyczyym735rw96fu"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1tpumc4m87sdfmxn4tk9gsjutz6wwu96ncg5tx242tkawfgsw5zauwq"
+         }
+        },
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1c4n9xxzxqxupdlgesyj075lnt88e8dzcykxcx7l0wz2q5kdw53cq8f"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1tpxme7ssq8x2yegzkq0aumnsj8vv6maaw83flfg9q09dhgzzyvwq8k"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6",
+            "simple_rep": "[c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1cq77k5vwv90fp6fllkp650zhs92vvy6pvcdvm3cwvnha2zz62rg7l9",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 22354641,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk3fxrz75ghllrqhyq8e574rkf4lsq2x5a0vegxwlh3defv225cth3"
+     },
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 22354641,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4lnurhaffzjeg3gu0k27g06ngkvxvyuksczmk9k6gqvztfpks8r7l",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "2"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.004"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "0.194996440237015719"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "2",
+         "variant_name": "QuoteShortage",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "1.110230980612501174"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1791945120"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "0.157290650927876233"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1tk3fxrz75ghllrqhyq8e574rkf4lsq2x5a0vegxwlh3defv225cth3"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1c56ws8tmvw2ggk8hpfq4uvn9vthhv4g2cqs4htj3tc6r9w835te3fs"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1c4tzllfgu66axcr9q4uk36frpyfuuw97wlp298xvll6x38ac092mwp"
+      },
+      {
+       "kind": "Map",
+       "field_name": "min_liquidity",
+       "key_kind": "Reference",
+       "key_type_name": "ComponentAddress",
+       "value_kind": "Own",
+       "value_type_name": "Vault",
+       "entries": [
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1c56ws8tmvw2ggk8hpfq4uvn9vthhv4g2cqs4htj3tc6r9w835te3fs"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1tr243af4uwa2g84hmnzq02t4guqxhqkxlhwja7rac27pj9w606vuh7"
+         }
+        },
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1c4tzllfgu66axcr9q4uk36frpyfuuw97wlp298xvll6x38ac092mwp"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1tz02j3jp2dvucfh5xd2v32wlqnhwjsc2af5jmh5q3hd4rsvke3882n"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6",
+            "simple_rep": "[c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1cq8nefdv75yqkgwqe9rhj436yr3z09du7g797y90prmwf9ugv0m8u2",
+   "fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4dhfl7qwthqqu6p2267m5nedlqnzdvfxdl6q7h8g85dflx8n06p93",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "2"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.01"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "2219729.863834270306720325"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "1",
+         "variant_name": "Equilibrium",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "1"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1788197580"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "2219729.863834270306720325"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1th09yvv7tgsrv708ffsgqjjf2mhy84mscmj5jwu4g670fh3e5zgef0"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1ckfa8h47ghy8enmz29k6cxgl5x87qy3gkzetsw82fpuvrdzc6563q2"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1chawt3wgkpe0jkdhgrysw9dducx3032nse8r9tfl4gsxfqp2z2alx5"
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220e6c999650f4f1f03ee2d5037a295ee0b262b38fd2186ac46fe85b45932a198ec",
+            "simple_rep": "[e6c999650f4f1f03ee2d5037a295ee0b262b38fd2186ac46fe85b45932a198ec]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1cqs6t5t70fcgrva6ws6gs84u29w3kecn6j0zkjg0u0x9szx0xnusxj",
+   "fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4dhfl7qwthqqu6p2267m5nedlqnzdvfxdl6q7h8g85dflx8n06p93",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "2"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.01"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "1161.460444498386213301"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "2",
+         "variant_name": "QuoteShortage",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "1.000000000018634106"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1788196440"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "1161.46044441177968294"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1thxj9m87sn5cc9ehgp9qxp6vzeqxtce90xm5cp33373tclyp4et4gv"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "6"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1chxzajmur7p67h0uvk7etgnm9m67ptzfv7ysfdvq35ck2zz6zuttqq"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1c5t2v0jac6sdyv9qs5hur76uc5kjr70sl8dftc5aa92k0tsuc06r04"
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220cec70ec3ecb12ed85e8d7e3ac86fe86411add2accc916e0ac1234aef72a0d184",
+            "simple_rep": "[cec70ec3ecb12ed85e8d7e3ac86fe86411add2accc916e0ac1234aef72a0d184]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1cqvxkaazmpnvg3f9ufc5n2msv6x7ztjdusdm06lhtf5n7wr8guggg5",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 19635465,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+     },
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 19635465,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4tjx4g3qzd98nayqxm7qdpj0a0u8ns6a0jrchq49dyfevgh6u0gj3"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4lnurhaffzjeg3gu0k27g06ngkvxvyuksczmk9k6gqvztfpks8r7l",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "2"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.004"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "2.26761272379885807"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "0",
+         "variant_name": "BaseShortage",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "1.456205833335642195"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1792051320"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "4.829294508043388305"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1t4tjx4g3qzd98nayqxm7qdpj0a0u8ns6a0jrchq49dyfevgh6u0gj3"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1c47jlmd9stptfy2a7e39wnjfechu72q9ggus29x0mqf98m8xt70rx2"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1c4xm5wfm92vh39dzszzv3huvdmvz73juhkw8vls0z4fg2vfr0wkv93"
+      },
+      {
+       "kind": "Map",
+       "field_name": "min_liquidity",
+       "key_kind": "Reference",
+       "key_type_name": "ComponentAddress",
+       "value_kind": "Own",
+       "value_type_name": "Vault",
+       "entries": [
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1c4xm5wfm92vh39dzszzv3huvdmvz73juhkw8vls0z4fg2vfr0wkv93"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1trq2klyk4rt2flzvct84n9ck3j58g8a9q87uhmv5ngqxx3unxpndy8"
+         }
+        },
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1c47jlmd9stptfy2a7e39wnjfechu72q9ggus29x0mqf98m8xt70rx2"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1tq5pf8ylypuy2eg3sgg0k4d78jp7rxjmp7h8cknaje96vt5dtj6c9x"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6",
+            "simple_rep": "[c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1crz9nv7mvp3lamx3kl4xq8lgwyalvn7rgmlzse2rfs4r9u5sdq0vzh",
+   "fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4dhfl7qwthqqu6p2267m5nedlqnzdvfxdl6q7h8g85dflx8n06p93",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "2"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.01"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "731.552512064769504529"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "1",
+         "variant_name": "Equilibrium",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "1"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1788197520"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "731.552512064769504529"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1th4v03gezwgzkuma6p38lnum8ww8t4ds9nvcrkr2p9ft6kxx3kxvhe"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "6"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1ch5zj8tlarxz38kwh4ss3jn5mphd98rssalkmfut6mhzvswezzg3vd"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1ckvu5wqp2pc284yj7jssckueqtcvt72gjjwz4sv4rl5kdtk70etg2n"
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220e6c999650f4f1f03ee2d5037a295ee0b262b38fd2186ac46fe85b45932a198ec",
+            "simple_rep": "[e6c999650f4f1f03ee2d5037a295ee0b262b38fd2186ac46fe85b45932a198ec]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1cze0fyjulz7t623x3qjreprj44rtqyjh4272xxq8uwv829p97rh9fj",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 85061953,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4v2jke9xkcrqra9sf3lzgpxwdr590npkt03vufty4pwuu205q03az"
+     },
+     {
+      "amount": "0.0001",
+      "last_updated_at_state_version": 85061953,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4lnurhaffzjeg3gu0k27g06ngkvxvyuksczmk9k6gqvztfpks8r7l",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "2"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.01"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "0.000005243845476387"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "0",
+         "variant_name": "BaseShortage",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "1.007390854497132306"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1791278760"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "0.000005378934038241"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1t4v2jke9xkcrqra9sf3lzgpxwdr590npkt03vufty4pwuu205q03az"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1c42e87tp7efjugjrqgq6crlr578f4r82qfpqgq2mdefn8qdrx7uggn"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1ch4afj3p8ddvgz2p2sa9625le7qumwj7czux2ww423npm453rwqjg9"
+      },
+      {
+       "kind": "Map",
+       "field_name": "min_liquidity",
+       "key_kind": "Reference",
+       "key_type_name": "ComponentAddress",
+       "value_kind": "Own",
+       "value_type_name": "Vault",
+       "entries": [
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1c42e87tp7efjugjrqgq6crlr578f4r82qfpqgq2mdefn8qdrx7uggn"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1trwje43fkc588wp40etdpjzfmtcsjgyrt4204k29quk6aqffs4qr52"
+         }
+        },
+        {
+         "key": {
+          "kind": "Reference",
+          "type_name": "ComponentAddress",
+          "value": "pool_rdx1ch4afj3p8ddvgz2p2sa9625le7qumwj7czux2ww423npm453rwqjg9"
+         },
+         "value": {
+          "kind": "Own",
+          "type_name": "Vault",
+          "value": "internal_vault_rdx1trptfn7nqg0nwfqpj02fklml3xvxh35wd3ludcsm0y3p9k20uywjlc"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6",
+            "simple_rep": "[c409e8d36ca34029ca0a3127dbe3751ccccd767e88990fa76a38089e30ec5ec6]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1czmha58h7vw0e4qpxz8ga68cq6h5fjm27w2z43r0n6k9x65nvrjp4g",
+   "fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4dhfl7qwthqqu6p2267m5nedlqnzdvfxdl6q7h8g85dflx8n06p93",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "1.5"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.01"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "43.663930487477072813"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "0",
+         "variant_name": "BaseShortage",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "6.267367378227177678"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1792036020"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "1734.516594512379886059"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1t4upr78guuapv5ept7d7ptekk9mqhy605zgms33mcszen8l9fac8vf"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "6"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1c5z06xda4gjykyhupj4fjszdfhsye7h3mcsgwe5cvuz2vemwn7yjax"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1ch62axcl22gnmhe5ajtwraukrxstxxqlq5c6p9n2y5qv0pgyqnhfry"
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220cec70ec3ecb12ed85e8d7e3ac86fe86411add2accc916e0ac1234aef72a0d184",
+            "simple_rep": "[cec70ec3ecb12ed85e8d7e3ac86fe86411add2accc916e0ac1234aef72a0d184]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1czzqr5m40x3sklwntcmx8uw3ld5nj7marq66nm6erp3prw7rv8zu29",
+   "fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4dhfl7qwthqqu6p2267m5nedlqnzdvfxdl6q7h8g85dflx8n06p93",
+    "blueprint_name": "PlazaPair",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "PlazaPair",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "PairConfig",
+       "field_name": "config",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "k_in",
+         "value": "1"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "k_out",
+         "value": "1.5"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "fee",
+         "value": "0.01"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "decay_factor",
+         "value": "0.9995"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "PairState",
+       "field_name": "state",
+       "fields": [
+        {
+         "kind": "Decimal",
+         "field_name": "p0",
+         "value": "1752232.914958143932783004"
+        },
+        {
+         "kind": "Enum",
+         "type_name": "Shortage",
+         "field_name": "shortage",
+         "variant_id": "0",
+         "variant_name": "BaseShortage",
+         "fields": []
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "target_ratio",
+         "value": "6.930117091843774171"
+        },
+        {
+         "kind": "I64",
+         "field_name": "last_outgoing",
+         "value": "1789411020"
+        },
+        {
+         "kind": "Decimal",
+         "field_name": "last_out_spot",
+         "value": "84154561.416748391822687691"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "base_address",
+       "value": "resource_rdx1t580qxc7upat7lww4l2c4jckacafjeudxj5wpjrrct0p3e82sq4y75"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "quote_address",
+       "value": "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrd"
+      },
+      {
+       "kind": "U8",
+       "field_name": "base_divisibility",
+       "value": "8"
+      },
+      {
+       "kind": "U8",
+       "field_name": "quote_divisibility",
+       "value": "18"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "base_pool",
+       "value": "pool_rdx1c5xlqz5uc62fzlsyl2f3ql6lx8upc75tdpe4f8cmys83lpqrrul976"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTwoResourcePool",
+       "field_name": "quote_pool",
+       "value": "pool_rdx1cht7hqhcnj2la96cygema5l32xwz26luunr9umlszy3s9gr78ppdzv"
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "NonFungible",
+          "non_fungible": {
+           "local_id": {
+            "id_type": "Bytes",
+            "sbor_hex": "5cc00220cec70ec3ecb12ed85e8d7e3ac86fe86411add2accc916e0ac1234aef72a0d184",
+            "simple_rep": "[cec70ec3ecb12ed85e8d7e3ac86fe86411add2accc916e0ac1234aef72a0d184]"
+           },
+           "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+          }
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  }
+ ]
+}

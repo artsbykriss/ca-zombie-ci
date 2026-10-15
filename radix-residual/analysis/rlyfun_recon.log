@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/heisenberg/CA/radix-residual/analysis/recon_rlyfun.py", line 9, in <module>
+    keys = kvs_keys(RLY_KVS)
+  File "/home/heisenberg/CA/radix-residual/analysis/rdx.py", line 103, in kvs_keys
+    page = post("/state/key-value-store/keys", body)
+  File "/home/heisenberg/CA/radix-residual/analysis/rdx.py", line 39, in post
+    raise RuntimeError(f"POST {path} failed after {retries} retries: {last}")
+RuntimeError: POST /state/key-value-store/keys failed after 4 retries: HTTP 400: {"message":"One or more validation errors occurred","code":400,"details":{"validation_errors":[{"path":"AtLedgerState","errors":["AtLedgerState.StateVersion is required if cursor is provided"]}],"type":"InvalidRequestError"},"trace_id":"00-7c373037bd96c74294e888e753641dce-2c3e70f5e911cffb-00"}
+RLYFUN DONE 1

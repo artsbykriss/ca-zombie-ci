@@ -1,0 +1,156 @@
+{
+  "campaign": "radix-residual / zombie-hunt II — Radix DEX targets (Ociswap + DefiPlaza)",
+  "generated_at": "2026-10-15T11:20Z",
+  "network": "radix-mainnet (public Gateway https://mainnet.radixdlt.com, read-only)",
+  "ledger_state_version": 563377525,
+  "ledger_epoch": 349685,
+  "method": "live enumeration + on-chain state/interface extraction + adversarial Radix Gateway PREVIEW simulations (never signed, never submitted; flags use_free_credit + assume_all_signature_proofs)",
+  "simulation_funding_account": "account_rdx16ydf4jd8rljv4h238nfjr4uadq84jzclr6sfl7j3jpd02r7gsxydkk (real live account used only as a funding source inside simulations; ~1.29M XRD)",
+  "xrd_price_usd": 0.0004519766729587112,
+  "price_source": "coins.llama.fi/prices/current/coingecko:radix",
+  "headline": "No external-unprivileged value-extraction path found on either protocol. E-U total = $0. Live TVL at risk (both protocols) = $81,467.36.",
+  "targets": [
+    {
+      "name": "Ociswap (Radix)",
+      "components": {
+        "packages": {
+          "BasicPool (legacy line, 4-field state)": "package_rdx1p5l6dp3slnh9ycd7gk700czwlck9tujn0zpdnd0efw09n2zdnn0lzx",
+          "Pool (repo v2.1.0, FlexPool renamed)": "package_rdx1phyk2tszvfhz2ukht6pkg3f3q3ww3fsuwku4uyyzctslpfp6dqksqq",
+          "FlexPool (pre-rename build of same repo)": "package_rdx1pkzxm6nw55wvz0e2fn79hd8t07834cxa8kpdlhq8s5lp5ldqpcglwe",
+          "PrecisionPool (Uniswap-v3 style)": "package_rdx1pkl8tdw43xqx64etxwdf8rjtvptqurq4c3fky0kaj6vwa0zrkfmcmc",
+          "Registry": "package_rdx1phguuspvkaqh8gprgzv5nxkpax9dg9wktzhnmt2jsq67ss5qzefcfe (component_rdx1crdy3ut4f78nxjpum37kl0682nq0vee9ntwrz8eg7mtxe8kyanwjmv)"
+        },
+        "top_tested_components": [
+          "component_rdx1cpwwhuxpe2npedx0axkj4nae8uv5222r0syjtu5fxuaxaj78rf30v9 (PrecisionPool REDDICKS/XRD)",
+          "component_rdx1crm530ath85gcwm4gvwq8m70ay07df085kmupp6gte3ew94vg5pdcp (PrecisionPool OCI/XRD)",
+          "component_rdx1cpmacy5gwzswse56jprvlfhrpnt3mplswupu7qtq8pdz2hywy5uaqd (Pool v2.1.0 fUSD/XRD)",
+          "component_rdx1cpj25l4f8v2n4xl2auhwsagwmt5mmxsavxttmkpl90cr2qnyejqcmt (BasicPool legacy DFP2/XRD)",
+          "component_rdx1cpzydtpn2pvq5xp584mk5hz0nakq4dr5e6xv8mwhpuzd4flu6t2jv5 (BasicPool legacy EARLY/XRD)",
+          "component_rdx1czrks23pt35cmapgt9amv6haxagpzds5pdqp6jxt97dm2azrtxvdch (FlexPool ASTRL/XRD)"
+        ]
+      },
+      "state_version": 563377525,
+      "enumeration": {"pools_enumerated": 1847, "live_pools_tvl_gt_0.01usd": 578,
+                      "tvl_usd_total": 44927.75,
+                      "tvl_by_blueprint_usd": {"PrecisionPool": 21918.61, "BasicPool": 17670.28,
+                                               "Pool": 2716.91, "FlexPool": 2621.95}},
+      "public_surface": {
+        "BasicPool_legacy": ["swap", "add_liquidity", "remove_liquidity", "price_sqrt", "liquidity_pool", "set_liquidity_pool_meta(RESTRICTED)", "instantiate*"],
+        "Pool_v2_1_0_and_FlexPool": ["swap", "add_liquidity", "remove_liquidity", "removable_liquidity", "flash_loan", "repay_loan", "sync_registry", "hook", "all getters", "set_liquidity_pool_meta(RESTRICTED)", "execute_after_instantiate(RESTRICTED)"],
+        "PrecisionPool": ["swap", "add_liquidity", "add_liquidity_shape", "remove_liquidity", "removable_liquidity", "claim_fees", "claimable_fees", "total_fees", "seconds_in_position", "flash_loan", "repay_loan", "sync_registry", "hook", "all getters", "execute_after_instantiate(RESTRICTED)"],
+        "Registry": ["sync (PUBLIC, deposits caller-supplied buckets)", "update_config(OWNER)", "withdraw_protocol_fees(OWNER)"]
+      },
+      "paths": [
+        {"name": "flash_loan taken without repayment (drain pool)", "verdict": "no-exposure", "usd": 0,
+         "would_have_been_usd": 3983.93,
+         "gate": "none needed (public method); blocked by Radix engine rule that a minted RUID non-fungible ('loan terms') cannot be dropped unspent",
+         "confidence": "very-high",
+         "evidence": "receipts/fl_precision_oci_takeonly.json -> status=Failed, error=ApplicationError(NonFungibleResourceManagerError(DropNonEmptyBucket)); same for component_rdx1cpmacy5... (Pool v2.1.0). Taking+repaying with the exact due amount works (fl_precision_oci_take_repay manifest), i.e. the borrow path functions but cannot be exited without repayment."},
+        {"name": "flash_loan on legacy BasicPool", "verdict": "no-exposure", "usd": 0, "gate": "method does not exist",
+         "confidence": "very-high",
+         "evidence": "receipts/probe_legacy_basicpool_flash_loan.json -> Failed, SystemModuleError(AuthError(NoMethodMapping ... blueprint_name: BasicPool, package_rdx1p5l6...))"},
+        {"name": "swap rounding / micro-swap round trip", "verdict": "no-exposure", "usd": 0, "gate": "input fee (0.01 / 0.003) + floor-rounded output",
+         "confidence": "high",
+         "evidence": "Round trip in one tx loses exactly 2x fee; tested in BOTH directions: BasicPool DFP2/XRD 10 XRD -> -0.199 XRD and 1 DFP2 -> -0.0199 DFP2; BasicPool EARLY/XRD 10 XRD -> -0.199; Pool v2.1.0 fUSD/XRD 10 XRD -> -0.0599; PrecisionPool REDDICKS/XRD 10 XRD -> -0.199; PrecisionPool OCI/XRD 10 XRD -> -0.0599 and 1 OCI -> -0.005991 OCI. Code: BasicPool input_amount_net ceil_to(divisibility), output_amount floor_to(divisibility); PrecisionPool new_price/amount rounding explicitly biased to the pool (ATTO/POW_ERROR_MARGIN + floor_to). Receipts: receipts/{precision_reddicks,precision_oci,basic_dfp2,basic_early,poolv2_fusd}_rt_*.json"},
+        {"name": "add_liquidity -> remove_liquidity round trip (currency-share attacks)", "verdict": "no-exposure", "usd": 0,
+         "gate": "native TwoResourcePool contribute/redeem (BasicPool, Pool) / v3-style addable_amounts ceil + removable_amounts floor (PrecisionPool)",
+         "confidence": "high",
+         "evidence": "BasicPool DFP2/XRD: deposit 1 X + 1.5 XRD, add, remove -> account net delta 0.0 (receipts/basic_dfp2_addremove_1_1.5.json). Dust-sized add reverts (TwoResourcePoolError(LargerContributionRequiredToMeetRatio)). PrecisionPool OCI/XRD full range (-887220,887220) and narrow range (-600,600): 20 OCI + 5 XRD -> add -> remove -> account net delta 0.0 both tokens (receipts/pp_oci_addremove_fullrange.json, receipts/pp_oci_addremove_narrow.json)."},
+        {"name": "PrecisionPool claim_fees with fresh position (historical fee theft)", "verdict": "no-exposure", "usd": 0,
+         "gate": "position fee checkpoints initialised to current in-range fee growth at mint",
+         "confidence": "high",
+         "evidence": "receipts/pp_oci_add_claim_fees.json -> ClaimFeesEvent x_amount=0, y_amount=0 for a freshly minted position; code path add_liquidity_internal computes x_fee_checkpoint/y_fee_checkpoint via value_in_range() AFTER tick insert, and update_or_insert_tick initialises x_fee_outside = 0 above price / = x_lp_fee at-or-below price (correct v3 semantics)."},
+        {"name": "hook-based extraction (malicious/stale pool hook)", "verdict": "no-exposure", "usd": 0, "gate": "no hooks registered on ANY live pool",
+         "confidence": "very-high (complete)",
+         "evidence": "hooks metadata is an empty locked array on all examined Pool/PrecisionPool live components. COMPLETE SWEEP: all 578 live Ociswap pools ($44,927.83 TVL) checked individually -> 0 pools with hooks (ociswap_hooks_sweep.json, hooks_full.log). Hook registration is only possible at instantiation by the pool creator via hook badges, so no outsider path exists at all."},
+        {"name": "registry admin (protocol fee theft / config change)", "verdict": "P (privileged)", "usd": 0,
+         "gate": "OWNER badge resource_rdx1thrpc7q0ryhpdas6dvfccp29tr4shv082rxlln9zzl7fur9uprm4nh",
+         "confidence": "very-high",
+         "evidence": "receipts/registry_update_config.json and registry_withdraw_protocol_fees.json -> SystemModuleError(AuthError(Unauthorized ... Require(Resource(resource_rdx1thrpc7...))))"},
+        {"name": "set_liquidity_pool_meta metadata tampering", "verdict": "no-exposure", "usd": 0, "gate": "blueprint role",
+         "confidence": "very-high",
+         "evidence": "receipts/legacy_bp_set_liquidity_pool_meta.json and v2pool_set_liquidity_pool_meta.json -> AuthError(Unauthorized ... RoleKey(\"blueprint\"))"},
+        {"name": "sync_registry (public) as a payout", "verdict": "no-exposure", "usd": 0, "gate": "public but pays nothing",
+         "confidence": "very-high",
+         "evidence": "receipts/v2pool_sync_registry.json -> status=Succeeded, account net deltas {} (caller receives nothing; it pushes the pool's protocol-fee vaults to the registry, whose withdrawal is OWNER-only)"},
+        {"name": "Direct drainage of the underlying native TwoResourcePools (bypassing the DEX wrapper)", "verdict": "no-exposure", "usd": 0,
+         "gate": "pool_manager_role requires the DEX component's global-caller badge",
+         "confidence": "very-high",
+         "evidence": "receipts/native_protected_deposit_ociswap_basic_dfp2.json and native_protected_deposit_defiplaza_xrd_dfp2.json -> SystemModuleError(AuthError(Unauthorized ... RoleKey(\"pool_manager_role\") ...))) on package_rdx1pkgxxxxxxxxxplxxxxxxxxxxxxx020379220524xxxxxxxxxplxxxx/TwoResourcePool. Owner role of every examined native pool is a Protected NF-badge rule; the DEX wrapper holds the manager badge."}
+      ],
+      "totals": {"E-U": 0, "H-O": 0, "P": 1, "S": 0}
+    },
+    {
+      "name": "DefiPlaza (Radix)",
+      "components": {
+        "packages": {
+          "PlazaDex v1.0.0 (main, 135 pairs)": "package_rdx1p4lnurhaffzjeg3gu0k27g06ngkvxvyuksczmk9k6gqvztfpks8r7l (code 223b40454b5735434a969475fb9958d442b847b00e6392a226a3dabcebb13215) + PlazaPair (older build, no get_state/get_pools/get_tokens)",
+          "PlazaDex v1.0.0 (5 smaller DEX instances, 21 pairs)": "package_rdx1p4dhfl7qwthqqu6p2267m5nedlqnzdvfxdl6q7h8g85dflx8n06p93 (code 0550aa4d6d935323b67d6b3632ac0489a391ed3320bfeb6ccff4ceba65f03590) + PlazaPair (newer build with view functions)"
+        },
+        "tested_components": [
+          "component_rdx1cqy7sq3mxj2whhlqlryy05hzs96m0ajnv23e7j7vanmdwwlccnmz68 (main PlazaDex)",
+          "component_rdx1cppd8rq7gfwad75z56mz9tldqmw4aps48hqnx2stf4eeew8v6tyd72 (PlazaPair XRD/DFP2, QuoteShortage, fee 0.4%, k_in=1, k_out=2, decay 0.9995)",
+          "component_rdx1cqvxkaazmpnvg3f9ufc5n2msv6x7ztjdusdm06lhtf5n7wr8guggg5 (PlazaPair ASTRL/DFP2, BaseShortage, fee 0.4%)",
+          "native pools pool_rdx1chxn0nqj840r78t2ah5agchq4ue9p65q23nc9ckqfe0mmjstq8fyg0 (7,905,910 XRD) and pool_rdx1c4547fnprjhlp2m27aycmf8rzrkrfzcck58jt2706r85gpcaeapz7k (5,568,831 DFP2)"
+        ]
+      },
+      "state_version": 563377525,
+      "enumeration": {"pairs_enumerated": 156, "live_pairs": 149, "tvl_usd_total": 36539.61,
+                      "tvl_by_dex_usd": {"component_rdx1cqy7sq3mxj2whhlqlryy05hzs96m0ajnv23e7j7vanmdwwlccnmz68": "majority (135 pairs)",
+                                          "component_rdx1cputx5thrnh29mup6ajz0x7v90g4dznvxwzwzvd9ngg8tuqvqlxmlh": "9 pairs",
+                                          "component_rdx1cqdj07epvhfynfe6qkxcgwu48n9ax0rs36ek2gphry443zd2chq6n5": "6 pairs",
+                                          "others": "6 pairs"}},
+      "public_surface": {
+        "PlazaDex": ["swap", "quote", "add_liquidity", "remove_liquidity", "get_lp_tokens", "create_pair (PUBLIC)", "delist/blacklist/deblacklist/relist/update_lp_metadata/withdraw_owned_liquidity/set_min_dfp2 (OWNER)"],
+        "PlazaPair": ["swap", "quote", "add_liquidity", "remove_liquidity", "instantiate_pair", "(newer build) get_state/get_pools/get_tokens"],
+        "auth": "PlazaPair auth_template = AllowAll (all methods callable by anyone, including directly bypassing PlazaDex). PlazaDex owner methods are role-protected (owner badge resource_rdx1nfmknrk53gqqqrg45u4rut0kw72697xfj7nsw4tw9y8kthlmj4qd2j)."
+      },
+      "paths": [
+        {"name": "swap round trip via PlazaDex / direct PlazaPair (curve manipulation)", "verdict": "no-exposure", "usd": 0,
+         "gate": "fee 0.4% + away-from-zero input rounding + curve state",
+         "confidence": "high",
+         "evidence": "XRD->DFP2->XRD in one tx: 10 XRD -> net -0.19144 XRD; 100 -> -1.91531; 1000 -> -19.24502 (≈1.92% = 2x0.96%). Direct pair.swap identical (-0.19144). 2-hop XRD->ASTRL->XRD -> -0.30759 (3.07%). Receipts: receipts/dp_dex_rt_xrd_dfp2_{10,100,1000}.json, receipts/dp_pair_rt_xrd_dfp2_10.json, receipts/dp_dex_rt_xrd_astrl_10.json. Code: quote() rounds trader output ToZero and input consumed AwayFromZero (favours pool)."},
+        {"name": "add_liquidity -> remove_liquidity round trip (both shortage and non-shortage paths)", "verdict": "no-exposure", "usd": 0,
+         "gate": "native TwoResourcePool contribute/redeem",
+         "confidence": "high",
+         "evidence": "Non-shortage side (XRD): 100 XRD -> 3.960967 LP -> redeem 99.999999999999999982 XRD, account net delta 0.0 (receipts/dp_addremove_lp_xrd_100_0f4ju8.json). Shortage side (DFP2 with XRD co-liquidity): 100 DFP2 + 60 XRD -> LP -> redeem, account net delta 0.0 (receipts/dp_add_DFP2_shortage.json). Omitting co-liquidity while in shortage reverts: PanicMessage(\"In shortage: requires counter liquidity. @ src/pair.rs:290:60\") (receipts/dp_add_DFP2_shortage_no_coliq.json) - the audit-H01 area is guarded live."},
+        {"name": "PlazaDex admin (owned-liquidity withdrawal / blacklist / min_dfp2)", "verdict": "P (privileged)", "usd": 0,
+         "gate": "OWNER badge resource_rdx1nfmknrk53gqqqrg45u4rut0kw72697xfj7nsw4tw9y8kthlmj4qd2j",
+         "confidence": "very-high",
+         "evidence": "receipts/dp_dex_withdraw_owned_liquidity.json, dp_dex_set_min_dfp2.json, dp_dex_blacklist.json -> AuthError(Unauthorized ... Require(Resource(resource_rdx1nfmknrk53gqqqrg45u4rut0kw72697xfj7nsw4tw9y8kthlmj4qd2j)))"},
+        {"name": "package royalties / swap fee as an extraction lever", "verdict": "no-exposure", "usd": 0,
+         "gate": "royalty is charged TO the trader (USD 0.05 per PlazaPair swap), not payable to an outsider",
+         "confidence": "high",
+         "evidence": "Deployed blueprint royalty_config: PlazaPair royalty enabled with swap => USD 0.05; PlazaDex royalties disabled. This only increases attacker cost."}
+      ],
+      "totals": {"E-U": 0, "H-O": 0, "P": 1, "S": 2}
+    }
+  ],
+  "negatives": [
+    {"test": "Ociswap flash loan without repayment (PrecisionPool OCI/XRD)", "result": "Failed", "error": "ApplicationError(NonFungibleResourceManagerError(DropNonEmptyBucket))", "receipt": "receipts/fl_precision_oci_takeonly.json"},
+    {"test": "Ociswap flash loan without repayment (Pool v2.1.0 fUSD/XRD)", "result": "Failed", "error": "ApplicationError(NonFungibleResourceManagerError(DropNonEmptyBucket))", "receipt": "receipts/fl_poolv2_fusd_takeonly.json"},
+    {"test": "Ociswap flash loan without repayment (FlexPool ASTRL/XRD)", "result": "Failed", "error": "ApplicationError(NonFungibleResourceManagerError(DropNonEmptyBucket))", "receipt": "receipts/fl_flexpool_astrl_takeonly.json"},
+    {"test": "Ociswap legacy BasicPool flash_loan", "result": "Failed", "error": "SystemModuleError(AuthError(NoMethodMapping(BlueprintId{package_rdx1p5l6..., BasicPool} ...", "receipt": "receipts/probe_legacy_basicpool_flash_loan.json"},
+    {"test": "Ociswap swap round trip (3 pools x 2 sizes)", "result": "Succeeded but negative for attacker (exact fee loss)", "receipt": "receipts/*_rt_*.json"},
+    {"test": "Ociswap BasicPool add/remove liquidity", "result": "Succeeded, net 0.0", "receipt": "receipts/basic_dfp2_addremove_1_1.5.json"},
+    {"test": "Ociswap BasicPool dust add/remove", "result": "Failed", "error": "ApplicationError(TwoResourcePoolError(LargerContributionRequiredToMeetRatio))", "receipt": "receipts/basic_dfp2_addremove_dust.json"},
+    {"test": "Ociswap PrecisionPool add/remove (full + narrow range)", "result": "Succeeded, net 0.0 both tokens", "receipt": "receipts/pp_oci_addremove_*.json"},
+    {"test": "Ociswap PrecisionPool fresh-position fee claim", "result": "Succeeded with x_amount=0, y_amount=0", "receipt": "receipts/pp_oci_add_claim_fees.json"},
+    {"test": "Ociswap set_liquidity_pool_meta (legacy + v2)", "result": "Failed", "error": "SystemModuleError(AuthError(Unauthorized ... RoleKey(\"blueprint\")))", "receipt": "receipts/legacy_bp_set_liquidity_pool_meta.json, receipts/v2pool_set_liquidity_pool_meta.json"},
+    {"test": "Ociswap registry update_config / withdraw_protocol_fees", "result": "Failed", "error": "SystemModuleError(AuthError(Unauthorized ... Require(Resource(resource_rdx1thrpc7...))))", "receipt": "receipts/registry_update_config.json, receipts/registry_withdraw_protocol_fees.json"},
+    {"test": "Ociswap sync_registry called by outsider", "result": "Succeeded, caller delta 0", "receipt": "receipts/v2pool_sync_registry.json"},
+    {"test": "DefiPlaza swap round trips (10/100/1000 XRD, 1-hop and 2-hop)", "result": "Succeeded, attacker always negative (-1.91% / -3.07%)", "receipt": "receipts/dp_*.json"},
+    {"test": "DefiPlaza add/remove LP (XRD path and DFP2 shortage path)", "result": "Succeeded, net 0.0", "receipt": "receipts/dp_addremove_lp_xrd_100_0f4ju8.json, receipts/dp_add_DFP2_shortage.json"},
+    {"test": "DefiPlaza PlazaDex restricted methods", "result": "Failed (AuthError, owner badge)", "receipt": "receipts/dp_dex_*.json"},
+    {"test": "DefiPlaza PlazaPair.get_state on main DEX pairs", "result": "Failed with TypeCheckError(BlueprintPayloadDoesNotExist ... Function(\"get_state\")) - deployed main-DEX pair build is older than the audited final version (also fingerprinted by panic text \"In shortage: requires counter liquidity.\" vs repo \"In shortage: co-liquidity required.\")", "receipt": "receipts/dp_pair_get_state.json"}
+  ],
+  "caveats": [
+    "Previews are simulations at the current state version; they are never signed or submitted. No private keys or secrets were used or written.",
+    "USD values are the protocols' own API valuations (Ociswap api.ociswap.com/pools, DefiPlaza radix.defiplaza.net/api/pairs) cross-checked against on-chain vault balances for the top pools; XRD=$0.00045198 (coins.llama.fi / CoinGecko). Memecoin legs of long-tail pools may be illiquid and the API's USD TVL should be treated as an upper bound.",
+    "Ociswap long-tail coverage: hooks were verified empty for the 45 largest live pools ($34.3k of $44.9k TVL). The remaining ~533 live pools hold ~$10.6k combined; their public surface is the same 4 blueprints (no per-pool custom code), so hook-free status is expected but not individually verified for every one.",
+    "The legacy Ociswap 'BasicPool' package (package_rdx1p5l6...) source is not present in the public Ociswap repositories found (ociswap/pool is the v2 line); its interface was enumerated from the on-chain blueprint schema and its public methods were probed live (no flash_loan, no hooks, 4-field state, add/remove are native TwoResourcePool contribute/redeem).",
+    "The DefiPlaza main-DEX PlazaPair build is older than the repo HEAD/audit-final commit (roken by the missing get_state view functions and a different panic string). The audit's H01 (token loss on add_liquidity during shortage) is fixed in the audited final code; the live older build could not be diffed (audit commits are not public), so it is flagged as a residual unknown, mitigated by the live value-conserving test of exactly that path (net 0.0).",
+    "No cross-transaction price-manipulation (TWAP decay) or multi-epoch tests were run: previews execute at the current clock, so only same-transaction manipulations could be simulated.",
+    "Nothing was written outside analysis/dex_audit/."
+  ]
+}

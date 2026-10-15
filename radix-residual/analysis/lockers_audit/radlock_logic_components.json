@@ -1,0 +1,708 @@
+{
+ "ledger_state": {
+  "network": "mainnet",
+  "state_version": 563383329,
+  "proposer_round_timestamp": "2026-10-15T11:49:00.913Z",
+  "epoch": 349691,
+  "round": 871
+ },
+ "items": [
+  {
+   "address": "component_rdx1cp0vessexwwrfvs3e7al93xkyjef9yj4tffprw72mnpenh5k5rn5er",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "1",
+      "last_updated_at_state_version": 201255856,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thy5r0vgfk7gckjcsrld9jlmasd95mvckyffwkwdpplx0av582as3t"
+     },
+     {
+      "amount": "1",
+      "last_updated_at_state_version": 201255856,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 0,
+    "items": []
+   },
+   "details": {
+    "package_address": "package_rdx1p4pz6ws6atcedpn3lw3lrcjen8as7amdg4snp6snhhc3uwgfyjzz3r",
+    "blueprint_name": "TokenVestService",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "TokenVestService",
+     "fields": [
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "service_auth_vault",
+       "value": "internal_vault_rdx1trrl35qt7rdx6z6wqyqstpa505ylvy6nx0nh0y5wu3gz22t20djglc"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "storage_access_vault",
+       "value": "internal_vault_rdx1tqcxqgv7rpu2qrc2rym74guze4n4tnqf6dqn4nyh2twfyauk82aa5w"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalRadlockService",
+       "field_name": "radlock_service",
+       "value": "component_rdx1cptszkemad39h6avf03tz06new2ve80dfyr66ve9yyzdxvtt3j5kgs"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTokenVestServiceStorage",
+       "field_name": "vest_storage",
+       "value": "component_rdx1cp7vsz98w06urq3n00rf9xz9jrlppyk0sukqrm4kvqvkjwucne6puh"
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "UserService",
+       "field_name": "user_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nf2ddsqmp9n0y4kl8lgege709hxkemahpktdtzkcnay7l76upssq9f"
+        },
+        {
+         "kind": "U64",
+         "field_name": "latest_user_id",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "lock_eligible_discount_no",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "vest_eligible_discount_no",
+         "value": "0"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "personal_vest_resource",
+       "value": "resource_rdx1ng3hxz66dklc8n7snhdfr8kzkdhgepss7w4qpnqe8mpuv8mq0hxhey"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "vest_schedule_resource",
+       "value": "resource_rdx1nfkwleqccre92w8rwy235ahkv8yvlrkhjhwjndnry20qf5ht4xt6hg"
+      },
+      {
+       "kind": "Bool",
+       "field_name": "service_enabled",
+       "value": false
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "DenyAll"
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "component_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "NonFungible",
+            "non_fungible": {
+             "local_id": {
+              "id_type": "Bytes",
+              "sbor_hex": "5cc0022028eb08b41c3cf8fa0245f93e121f9e705acffb3e34c5694cf76acfc676f4b962",
+              "simple_rep": "[28eb08b41c3cf8fa0245f93e121f9e705acffb3e34c5694cf76acfc676f4b962]"
+             },
+             "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+            }
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1cqvjerqdt5lmfqhzekhxzjm0dyjmr6d29rra843cxqk9z6epva2xwa",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "1",
+      "last_updated_at_state_version": 201255856,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thy5r0vgfk7gckjcsrld9jlmasd95mvckyffwkwdpplx0av582as3t"
+     },
+     {
+      "amount": "1",
+      "last_updated_at_state_version": 201255856,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 1,
+    "items": [
+     {
+      "key": "dapp_definition",
+      "value": {
+       "raw_hex": "5c220801805197d24be3141ed28d1d579d53aa9a694e4c20616e7441803beb36418df9",
+       "programmatic_json": {
+        "variant_id": "8",
+        "fields": [
+         {
+          "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+          "kind": "Reference"
+         }
+        ],
+        "kind": "Enum"
+       },
+       "typed": {
+        "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+        "type": "GlobalAddress"
+       }
+      },
+      "is_locked": false,
+      "last_updated_at_state_version": 201255856
+     }
+    ]
+   },
+   "details": {
+    "package_address": "package_rdx1p4pz6ws6atcedpn3lw3lrcjen8as7amdg4snp6snhhc3uwgfyjzz3r",
+    "blueprint_name": "TokenLockService",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "TokenLockService",
+     "fields": [
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "service_auth_vault",
+       "value": "internal_vault_rdx1tz9j2hna5cau6yvc3q07vy6q9lcamyq6z7a9j6wcsyd4cw7ewrq6gl"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "storage_access_vault",
+       "value": "internal_vault_rdx1tqm9u35mcep5sdtzxv328zn2atry7f6aj8l4uu49kt04v8zjzyy069"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalRadlockService",
+       "field_name": "radlock_service",
+       "value": "component_rdx1cptszkemad39h6avf03tz06new2ve80dfyr66ve9yyzdxvtt3j5kgs"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTokenLockServiceStorage",
+       "field_name": "token_lock_service_storage",
+       "value": "component_rdx1crn49lcmzyuqpz4lgx8fulegk4pdzjz89lhegs4g5attrgxqjp4amc"
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "UserService",
+       "field_name": "user_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nf2ddsqmp9n0y4kl8lgege709hxkemahpktdtzkcnay7l76upssq9f"
+        },
+        {
+         "kind": "U64",
+         "field_name": "latest_user_id",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "lock_eligible_discount_no",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "vest_eligible_discount_no",
+         "value": "0"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "LockResourceService",
+       "field_name": "lock_resource_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nfkacdapa9j2wr6jj874f0x07shygxheaj5hew7a5c8348fth6e6vx"
+        },
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "address",
+         "value": "resource_rdx1nfkacdapa9j2wr6jj874f0x07shygxheaj5hew7a5c8348fth6e6vx"
+        }
+       ]
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "Resource",
+          "resource": "resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff"
+         }
+        }
+       }
+      },
+      "updater": "Owner"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "component_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "NonFungible",
+            "non_fungible": {
+             "local_id": {
+              "id_type": "Bytes",
+              "sbor_hex": "5cc0022028eb08b41c3cf8fa0245f93e121f9e705acffb3e34c5694cf76acfc676f4b962",
+              "simple_rep": "[28eb08b41c3cf8fa0245f93e121f9e705acffb3e34c5694cf76acfc676f4b962]"
+             },
+             "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+            }
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1crgajrmu68utmpwzzw78h2spauv34zff860txphz7llvcplvkmn8dx",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 201255856,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thy5r0vgfk7gckjcsrld9jlmasd95mvckyffwkwdpplx0av582as3t"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 201255856,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 1,
+    "items": [
+     {
+      "key": "dapp_definition",
+      "value": {
+       "raw_hex": "5c220801805197d24be3141ed28d1d579d53aa9a694e4c20616e7441803beb36418df9",
+       "programmatic_json": {
+        "variant_id": "8",
+        "fields": [
+         {
+          "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+          "kind": "Reference"
+         }
+        ],
+        "kind": "Enum"
+       },
+       "typed": {
+        "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+        "type": "GlobalAddress"
+       }
+      },
+      "is_locked": false,
+      "last_updated_at_state_version": 199013819
+     }
+    ]
+   },
+   "details": {
+    "package_address": "package_rdx1p55gsljrk6j23mn3qhvz4gkylvwps9j2v4ztk62n3y8f6htpx98597",
+    "blueprint_name": "TokenLockService",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "TokenLockService",
+     "fields": [
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "service_auth_vault",
+       "value": "internal_vault_rdx1tr4ywpjnn0rufn8whd7t0q0mzegd5hw67sst0nl62l6acawgtargmc"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "storage_access_vault",
+       "value": "internal_vault_rdx1tq79fx272z5em5kddhyzc97a23v8yudh4mzca6mmnjate3cd685fpz"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalRadlockService",
+       "field_name": "radlock_service",
+       "value": "component_rdx1cptszkemad39h6avf03tz06new2ve80dfyr66ve9yyzdxvtt3j5kgs"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTokenLockServiceStorage",
+       "field_name": "token_lock_service_storage",
+       "value": "component_rdx1crn49lcmzyuqpz4lgx8fulegk4pdzjz89lhegs4g5attrgxqjp4amc"
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "UserService",
+       "field_name": "user_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nf2ddsqmp9n0y4kl8lgege709hxkemahpktdtzkcnay7l76upssq9f"
+        },
+        {
+         "kind": "U64",
+         "field_name": "latest_user_id",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "lock_eligible_discount_no",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "vest_eligible_discount_no",
+         "value": "0"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "LockResourceService",
+       "field_name": "lock_resource_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nfkacdapa9j2wr6jj874f0x07shygxheaj5hew7a5c8348fth6e6vx"
+        },
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "address",
+         "value": "resource_rdx1nfkacdapa9j2wr6jj874f0x07shygxheaj5hew7a5c8348fth6e6vx"
+        }
+       ]
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "Resource",
+          "resource": "resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff"
+         }
+        }
+       }
+      },
+      "updater": "Owner"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "component_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "NonFungible",
+            "non_fungible": {
+             "local_id": {
+              "id_type": "Bytes",
+              "sbor_hex": "5cc0022028eb08b41c3cf8fa0245f93e121f9e705acffb3e34c5694cf76acfc676f4b962",
+              "simple_rep": "[28eb08b41c3cf8fa0245f93e121f9e705acffb3e34c5694cf76acfc676f4b962]"
+             },
+             "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+            }
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  }
+ ]
+}

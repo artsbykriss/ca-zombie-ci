@@ -1,0 +1,16 @@
+resources: 133
+[20/133] resource_rdx1t4r2yswd032039s2m holders=22 comps=1
+[40/133] resource_rdx1t5f6kfr50pmdl9l37 holders=2 comps=0
+[60/133] resource_rdx1t5tgw8a3xqxn8vdaq holders=15 comps=1
+[80/133] resource_rdx1thc7rlr7hc9xh57q4 holders=8 comps=5
+[100/133] resource_rdx1thzncxk8zu2ph9l60 holders=7 comps=2
+[120/133] resource_rdx1tkjuz6ucl5fq53swf holders=11 comps=1
+unique component holders: 986
+Traceback (most recent call last):
+  File "/home/heisenberg/CA/radix-residual/analysis/scan_radlock_holders.py", line 53, in <module>
+    r = entity_details(allc[i:i+20], opt_ins={"explicit_metadata": ["name", "dapp_definitions"]})
+  File "/home/heisenberg/CA/radix-residual/analysis/rdx.py", line 60, in entity_details
+    return post("/state/entity/details", body)
+  File "/home/heisenberg/CA/radix-residual/analysis/rdx.py", line 39, in post
+    raise RuntimeError(f"POST {path} failed after {retries} retries: {last}")
+RuntimeError: POST /state/entity/details failed after 4 retries: <urlopen error [Errno -3] Temporary failure in name resolution>

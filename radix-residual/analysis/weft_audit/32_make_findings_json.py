@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+"""Build findings.json for the Weft V2 audit."""
+import json
+
+XRD_USD = 0.0004519744788105959
+
+findings = {
+    "target": "Weft V2 lending protocol (Radix mainnet)",
+    "components": {
+        "lending_pool": "component_rdx1czmr02yl4da709ceftnm9dnmag7rthu0tu78wmtsn5us9j02d9d0xn",
+        "lending_market": "component_rdx1cpy6putj5p7937clqgcgutza7k53zpha039n9u5hkk0ahh4stdmq4w",
+        "cdp_nft_resource": "resource_rdx1nt22yfvhuuhxww7jnnml5ec3yt5pkxh0qlghm6f0hz46z2wfk80s9r",
+        "pool_package": "package_rdx1p5uwrs3heg37n5zyzate8xtc440l2x3l59ywya4jl2na6em25qjnfj",
+        "market_package": "package_rdx1pktdrmwan4mcugates06wwcvspn4y0hsapm9zkyg4clh0sf8qn7c6t",
+        "price_feed_used": "component_rdx1czdvvanvdy6495phfgz8uv6n2semp2cpexcg6vvty6uaycc82adgyv",
+        "resource_pools_kvs": "internal_keyvaluestore_rdx1kzjr763caq96j0kv883vy8gnf3jvrrp7dfm9zr5n0akryvzsxvyujc",
+        "nft_liquidation_fees_vault": "internal_vault_rdx1trtvkytt68fm2g729dyd834cteg447x7ulh3fsaeal46tedml9exvm",
+    },
+    "state_version": 563382553,
+    "state_timestamp": "2026-10-15T11:45:20Z",
+    "xrd_price_usd": XRD_USD,
+    "xrd_price_source": "https://coins.llama.fi/prices/current/coingecko:radix @2026-10-15T11:22Z",
+    "paths": [
+        {
+            "name": "fungible-collateral liquidation (XRD-funded, zero capital via pool flash loan)",
+            "verdict": "E-U",
+            "usd": round(0.058741533375347259 * XRD_USD, 8),
+            "confidence": "high (mechanics) — preview Succeeded end-to-end",
+            "gate": "none beyond holding/borrowing the debt asset; can_liquidate=AllowAll",
+            "evidence": "preview_flashliq.json: flash 10 XRD -> liquidate #447 (repay 2.550022 XRD, seize 2.626523 XRD, protocol fee 0.015759) -> repay flash 10.002 -> final account delta +0.058741533375347259 XRD. Formula net = repay*(1+b)*(1-0.2b).",
+        },
+        {
+            "name": "fungible-collateral liquidation of top CDPs (#1015/#517/#100/#1029 + 122 others)",
+            "verdict": "E-U",
+            "usd": 119.46,
+            "confidence": "high on mechanics (2 live previews Succeeded); medium on full realization (hUSDC acquisition)",
+            "gate": "repayment asset acquisition: #1015 needs <=676.46 hUSDC; #517 <=385.71; #100 <=211.67; total repay need 1,273.8 hUSDC > total hUSDC supply 1,092.79 -> practical cap ~225,060 XRD (~$101.5)",
+            "evidence": "preview_liq1015.json: paid 45.0 hUSDC, seized 111,471.124 XRD, protocol fee 2,675.307, net received 108,795.817 XRD (+9,269.23 XRD profit, 9.31% ROI); debt 1352.919647->1307.919647 verified same-tx. 126/901 CDPs liquidatable (get_cdp scan weft_cdp_health_raw.json); quant: weft_extract_quant.json total net bonus 264,327.70 XRD.",
+        },
+        {
+            "name": "borrow against mispriced/stale collateral",
+            "verdict": "S",
+            "usd": 0,
+            "confidence": "high",
+            "gate": "market Borrow service inactive; oracle prices accurate and permissioned",
+            "evidence": "[weft2-market] Error in batch CDP operation: The service is not active: (Borrow); market_service_status map has only CreateCDP/UpdateCDP/BurnCDP enabled.",
+        },
+        {
+            "name": "NFT-collateral liquidation (liquidate_nft)",
+            "verdict": "S",
+            "usd": 0,
+            "confidence": "high (blocks ~52 NFT positions incl. big XRD-debt CDPs #523/#530)",
+            "gate": "nft_liquidation_fees vault balance = 0 XRD; 'Insufficient NFT liquidation protocol fees| missing: -17.517497386440870937' even with over-payment",
+            "evidence": "preview_liqnft_failed.json; vault balance query details.balance.amount=0.",
+        },
+        {
+            "name": "oracle manipulation (push bogus price)",
+            "verdict": "P",
+            "usd": 0,
+            "confidence": "high",
+            "gate": "PriceFeed admin/updater roles require badges resource_rdx1nfvglpg.../resource_rdx1ngrrjr2...",
+            "evidence": "role_assignments on component_rdx1czdvvanvdy6495phfgz8uv6n2semp2cpexcg6vvty6uaycc82adgyv (weft_feeds_live.json).",
+        },
+        {
+            "name": "flash loan accounting / loop",
+            "verdict": "H-O",
+            "usd": 0,
+            "confidence": "high",
+            "gate": "fee charged correctly (XRD 0.02%, others 0.1%); repay enforced; cross-asset self-funded loop impossible without dust top-up",
+            "evidence": "preview_flash_take_failed.json (NFT terms not depositable), preview_flash_full (InsufficientBalance 0.001 hUSDC).",
+        },
+        {
+            "name": "repay/withdraw confusion, rounding, donation",
+            "verdict": "H-O",
+            "usd": 0,
+            "confidence": "medium (not exhaustively fuzzed)",
+            "gate": "unit ratios tracked exactly; CDP ops need Wefty proof",
+            "evidence": "get_pool_state ratio/units vs unit supplies match; cdp_batch_operation requires proof.",
+        },
+        {
+            "name": "bad debt / pool insolvency",
+            "verdict": "S",
+            "usd": 0,
+            "confidence": "high",
+            "gate": "not attacker-extractable; e.g. CDP #1138 71.5M XRD-value debt, ~0 collateral; aggregate adjusted loans 111.87M XRD vs 5.15M XRD seizable fungible collateral; xUSDC/xwBTC/xETH deposits frozen (enabled=false, locked=true)",
+            "evidence": "weft_liquidatable_cdps.json, weft_cdp_health_summary.json, pool_lending_service_manager_entries in weft_all_kvs_live.json.",
+        },
+    ],
+    "totals": {
+        "E-U": {"usd_theoretical": 119.46, "usd_practical_cap": 101.5, "xrd": 264327.70,
+                "note": "liquidation bonuses net of 20% protocol cut; cap from hUSDC supply 1,092.79"},
+        "H-O": {"usd": 0.0},
+        "P": {"usd": 0.0, "note": "badge-gated admin/oracle/config/fee roles exist but are not externally accessible"},
+        "S": {"usd": 0.0, "stuck_value_estimate_xrd_value": 111867376.29,
+              "note": "bad debt + blocked NFT liquidations + frozen deposits; lenders' loss, not outsider-extractable"},
+    },
+    "key_facts": {
+        "cdp_counter": 1142,
+        "live_cdps": 901,
+        "liquidatable_cdps": 126,
+        "cdps_with_loans": 298,
+        "market_roles_allowall": ["can_borrow", "can_liquidate", "can_refinance", "can_create_cdp", "can_flash_borrow"],
+        "market_services_enabled": ["CreateCDP", "UpdateCDP", "BurnCDP"],
+        "market_services_inactive": ["Borrow (verified error)", "Liquidate active", "Repay untested externally (proof-gated)"],
+        "pool_services_frozen": {"xUSDC": ["Deposit disabled+locked"], "xwBTC": ["Deposit disabled+locked"], "xETH": ["Deposit disabled+locked"]},
+        "pool_available_liquidity_xrd": 4744042.896,
+        "pool_available_liquidity_husdc": 32.724767,
+        "total_husdc_supply": 1092.793964,
+        "price_feed_cadence_minutes": 10,
+        "oracle_sources": ["pyth", "coingecko", "caviarNine", "astrolescent"],
+        "liquidation_formula": "net = repay * (1 + bonus) * (1 - 0.2*bonus) - repay; close factor 0.5 per call",
+        "fee_config": {"protocol_liquidation_bonus_fee_rate": 0.2, "protocol_flash_loan_fee_rate": 0.5, "protocol_interest_fee_rate": 0.2},
+        "collateral_configs": {"3": 0.10, "4": 0.10, "5": 0.03, "6": 0.05, "7": 0.12, "0/1/2": 0.07},
+    },
+    "negatives": [
+        {"path": "borrow (create_cdp with borrow map)", "evidence": "The service is not active: (Borrow) @ packages/lending_market/src/blueprint.rs:740"},
+        {"path": "liquidate_nft (#523)", "evidence": "Insufficient NFT liquidation protocol fees| missing: -17.517497386440870937 @ blueprint.rs:1271; vault balance 0"},
+        {"path": "fungible liquidate with NFT collateral requested", "evidence": "Error liquidating collateral: || Collateral Pool not found @ blueprint.rs:1223"},
+        {"path": "flash loan repay without principal+fee", "evidence": "VaultError(ResourceError(InsufficientBalance ...))"},
+        {"path": "deposit flash-loan NFT terms into account", "evidence": "AuthError(Unauthorized RoleKey('depositor') DenyAll) NonFungibleVault.put"},
+        {"path": "oracle price push", "evidence": "updater/admin badge-gated roles"},
+        {"path": "stale market price_cache (xUSDC 3319.7 vs live 2211.7)", "evidence": "market.get_price returns live value 2211.719804; ops demonstrably used live prices"},
+        {"path": "deposit into xUSDC/xwBTC/xETH pools", "evidence": "OperatingStatus enabled=false locked=true (pool_lending_service_manager_entries)"},
+        {"path": "self-liquidation gain", "evidence": "net zero by construction (repay+seize nets to same equity)"},
+    ],
+    "blisters_and_caveats": [
+        "All tests are previews; nothing submitted; no keys.",
+        "hUSDC is not on DefiLlama; valued at protocol oracle ($0.9996).",
+        "hUSDC acquisition at >9.31% premium over oracle erases the top-3 profit.",
+        "get_cdp previews can return empty during concurrent oracle-updater commits (retry).",
+        "N8/N10 paths not exhaustively fuzzed.",
+    ],
+}
+
+json.dump(findings, open("findings.json", "w"), indent=1)
+print("findings.json written")
+print(json.dumps(findings["totals"], indent=1))

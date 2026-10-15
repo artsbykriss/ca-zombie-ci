@@ -1,0 +1,163 @@
+==============================================================================================================
+component_rdx1cpy6putj5p7937clqgcgutza7k53zpha039n9u5hkk0ahh4stdmq4w | LendingMarket 1.0.0 | pkg: package_rdx1pktdrmwan4mcugates06wwcvspn4y0hsapm9zkyg4clh0sf8qn7c6t
+---------------------------------------- STATE (flattened)
+  lending_pool_proxylending_pool_proxy.lending_pool = Reference:ComponentAddress=component_rdx1czmr02yl4da709ceftnm9dnmag7rthu0tu78wmtsn5us9j02d9d0xn
+  lending_pool_proxylending_pool_proxy.client_badge = Own:NonFungibleVault=internal_vault_rdx1nrknwpf9q7gszl5qxhzdsy6yr5n42269arnzwr3t574mv8tuvwpg75
+  lending_pool_proxylending_pool_proxy.loan_unit_ratio_cache = Own:KeyValueStore=internal_keyvaluestore_rdx1kpgl6hmg4nml9yhgh6adtxtljdelfkstsqwt5fwtzhzfj9nermchvu
+  lending_pool_proxylending_pool_proxy.deposit_unit_ratio_cache = Own:KeyValueStore=internal_keyvaluestore_rdx1kzecg0lj4du9yl03dqge24yer28qy3mcjuqnrz22mpn0u8cvv7ywge
+  cdp_res_manager = Reference:ResourceAddress=resource_rdx1nt22yfvhuuhxww7jnnml5ec3yt5pkxh0qlghm6f0hz46z2wfk80s9r
+  transient_res_manager = Reference:ResourceAddress=resource_rdx1ng4qjg5yec433ckp2xpdgvc6j4gpjexx42svly67dmyt5mx80f68as
+  cdp_counter = U64:=1142
+  configconfig.cdp_max_positions = U16:=8
+  configconfig.cdp_with_nft_collateral_max_positions = U16:=2
+  configconfig.price_expiration_period = U64:=14400
+  configconfig.price_cache_mode = Enum::Hash
+  configconfig.default_efficiency_config_id[Some].None = U16:=5
+  configconfig.max_claim_nft_value[Some].None = Decimal:=1000000
+  fee_configfee_config.protocol_cdp_creation_fee = Decimal:=0
+  fee_configfee_config.protocol_liquidation_bonus_fee_rate = Decimal:=0.2
+  market_service_statusmarket_service_status.None[CreateCDP].enabled = Bool:=True
+  market_service_statusmarket_service_status.None[CreateCDP].locked = Bool:=False
+  market_service_statusmarket_service_status.None[UpdateCDP].enabled = Bool:=True
+  market_service_statusmarket_service_status.None[UpdateCDP].locked = Bool:=False
+  market_service_statusmarket_service_status.None[BurnCDP].enabled = Bool:=True
+  market_service_statusmarket_service_status.None[BurnCDP].locked = Bool:=False
+  loan_service_managerloan_service_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1krqp74wz473l3d7v08m3v66kv46fe03aq5retc7hhy7ha9vgedfha7
+  collateral_service_managercollateral_service_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1kzsa48ew4vwj7l3y0wdxkkgz6lrrg50lyultllruqzaqawkesf2gre
+  price_feed_managerprice_feed_manager.track_history = Bool:=False
+  price_feed_managerprice_feed_manager.get_config_error_message = String:=|| Mission price feed
+  price_feed_managerprice_feed_manager.default_expiration_time = Enum::None
+  price_feed_managerprice_feed_manager.version_count = U64:=0
+  price_feed_managerprice_feed_manager.entry_count = U16:=4
+  price_feed_managerprice_feed_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1kpgamdkry93m0g6y0p6txdeyxrwq9f7fhaxpgg96x4h4y5kc642yc6
+  price_feed_managerprice_feed_manager.phantom_data = Enum::None
+  loan_config_managerloan_config_manager.track_history = Bool:=True
+  loan_config_managerloan_config_manager.get_config_error_message = String:=|| Missing loan config
+  loan_config_managerloan_config_manager.default_expiration_time = Enum::None
+  loan_config_managerloan_config_manager.version_count = U64:=1
+  loan_config_managerloan_config_manager.entry_count = U16:=1
+  loan_config_managerloan_config_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1kqhrmxz9dltruje0z2flxy86v9gm58vs38y3kjqxcazhy63z94zmre
+  loan_config_managerloan_config_manager.phantom_data = Enum::None
+  collateral_config_managercollateral_config_manager.track_history = Bool:=True
+  collateral_config_managercollateral_config_manager.get_config_error_message = String:=|| Missing collateral config
+  collateral_config_managercollateral_config_manager.default_expiration_time = Enum::None
+  collateral_config_managercollateral_config_manager.version_count = U64:=11
+  collateral_config_managercollateral_config_manager.entry_count = U16:=8
+  collateral_config_managercollateral_config_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1krp789s9vy4rny9c6wsm2hs3nxgxxnhafxs2t2lv9qpkdze6rna8qe
+  collateral_config_managercollateral_config_manager.phantom_data = Enum::None
+  isolation_group_managerisolation_group_manager.track_history = Bool:=False
+  isolation_group_managerisolation_group_manager.get_config_error_message = String:=|| Missing  Isolation Group
+  isolation_group_managerisolation_group_manager.default_expiration_time = Enum::None
+  isolation_group_managerisolation_group_manager.version_count = U64:=0
+  isolation_group_managerisolation_group_manager.entry_count = U16:=0
+  isolation_group_managerisolation_group_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1kqc0xygg9aq4hxg9aa7m4cvr2n2xdx0em50du3myld434xtv8lzgfn
+  isolation_group_managerisolation_group_manager.phantom_data = Enum::None
+  efficiency_group_managerefficiency_group_manager.track_history = Bool:=False
+  efficiency_group_managerefficiency_group_manager.get_config_error_message = String:=|| Missing efficiency pair config
+  efficiency_group_managerefficiency_group_manager.default_expiration_time = Enum::None
+  efficiency_group_managerefficiency_group_manager.version_count = U64:=0
+  efficiency_group_managerefficiency_group_manager.entry_count = U16:=2
+  efficiency_group_managerefficiency_group_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1kpcw9se76zuryjp2ju7jl3xk9mea32fgj7w83mxq8tx0fgl8a4w7mc
+  efficiency_group_managerefficiency_group_manager.phantom_data = Enum::None
+  resource_configs = Own:KeyValueStore=internal_keyvaluestore_rdx1kr89xu06dc83cqvevjs22hg202pkm4xmh5qeka29rc94r2af7vc55n
+  nft_collateral_resource_configs = Own:KeyValueStore=internal_keyvaluestore_rdx1kzxpyuga4gvsqxfv98s3adw9dw8rqg43v2d6rwc8eg9zhhqr0ce7f3
+  price_cache = Own:KeyValueStore=internal_keyvaluestore_rdx1krnvw2lrk6jdhemskgsjldjahq2aatvycpwuuccaap93880hr2s0dh
+  resource_type_cache = Own:KeyValueStore=internal_keyvaluestore_rdx1kqw5mfqmjjxm6uzx2evpumy22jjw65qa9d8r5xg5sgqpejyam9amag
+  nft_resource_type_cache = Own:KeyValueStore=internal_keyvaluestore_rdx1kp0x2dwzmsw79t2medjk5duh88qqmkxryzqe62ryvhlansky2s4ha7
+  nft_valuation_cache = Own:KeyValueStore=internal_keyvaluestore_rdx1kzvpfm08mv3gxtx3vc42lasq9kw4vg929eljp9u03ktkajwyh67eda
+  collateral_assets = Own:KeyValueStore=internal_keyvaluestore_rdx1kpy6kzepwfpddlm23w6arsv40uxypn6dszqdf36sl3wgzwwn294qm0
+  nft_collateral_assets = Own:KeyValueStore=internal_keyvaluestore_rdx1kztjqxdpc24thmhctrwjcuzvne390dqvml966xrj9nns49vadd7kqy
+  cdp_creation_fees = Own:FungibleVault=internal_vault_rdx1tz44cgd6cwfpzdg6huzq95ntxy5d8rs6v7xspchzs8mjc3lg7wypv9
+  liquidation_fees = Own:KeyValueStore=internal_keyvaluestore_rdx1kpk8h5t8xlcvkghtfnpnrarrd0sw0anf90p8mspju238ee4l4jtlz9
+  nft_liquidation_fees = Own:FungibleVault=internal_vault_rdx1trtvkytt68fm2g729dyd834cteg447x7ulh3fsaeal46tedml9exvm
+---------------------------------------- ROLES
+  role=fee_admin rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['fee_admin']
+  role=can_borrow rule=AllowAll  resolution=Explicit updaters=['config_admin']
+  role=config_admin rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1n2n2tc0luapylxj07h3t000r9yw89fvszz9gdxnudqp5ytqfa0lk0z"}} resolution=Explicit updaters=['config_admin']
+  role=can_liquidate rule=AllowAll  resolution=Explicit updaters=['config_admin']
+  role=can_refinance rule=AllowAll  resolution=Explicit updaters=['config_admin']
+  role=fee_collector rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1ng0tevl94jkmnsmznwkjghsu9pfzd9wflhepxn3wyymaup856q9w0s"}} resolution=Explicit updaters=['fee_admin']
+  role=can_create_cdp rule=AllowAll  resolution=Explicit updaters=['config_admin']
+  role=can_flash_borrow rule=AllowAll  resolution=Explicit updaters=['config_admin']
+  role=config_moderator rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1n24gntyg6ffr8q9fg6lwjq5suafj6j962hwpuejgcm43cjwh2uqsyp"}} resolution=Explicit updaters=['config_admin']
+  role=client_badge_setter rule=Protected {"type": "Require", "requirement": {"type": "NonFungible", "non_fungible": {"local_id": {"id_type": "Bytes", "sbor_hex": "5cc0022082008e523de3067e03b694481517060baa341ca5c668b5fcde3947fd90c90a48", "si resolution=Explicit updaters=[]
+  role=metadata_locker rule=None  resolution=Owner updaters=['metadata_locker_updater']
+  role=metadata_locker_updater rule=None  resolution=Owner updaters=['metadata_locker_updater']
+  role=metadata_setter rule=None  resolution=Owner updaters=['metadata_setter_updater']
+  role=metadata_setter_updater rule=None  resolution=Owner updaters=['metadata_setter_updater']
+  role=royalty_setter rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_setter_updater']
+  role=royalty_setter_updater rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_setter_updater']
+  role=royalty_locker rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_locker_updater']
+  role=royalty_locker_updater rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_locker_updater']
+  role=royalty_claimer rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1ng0tevl94jkmnsmznwkjghsu9pfzd9wflhepxn3wyymaup856q9w0s"}} resolution=Explicit updaters=['royalty_claimer_updater']
+  role=royalty_claimer_updater rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_claimer_updater']
+---------------------------------------- OWNED ADDRESSES
+  client_badge [NonFungibleVault] = internal_vault_rdx1nrknwpf9q7gszl5qxhzdsy6yr5n42269arnzwr3t574mv8tuvwpg75
+  loan_unit_ratio_cache [KeyValueStore] = internal_keyvaluestore_rdx1kpgl6hmg4nml9yhgh6adtxtljdelfkstsqwt5fwtzhzfj9nermchvu
+  deposit_unit_ratio_cache [KeyValueStore] = internal_keyvaluestore_rdx1kzecg0lj4du9yl03dqge24yer28qy3mcjuqnrz22mpn0u8cvv7ywge
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1krqp74wz473l3d7v08m3v66kv46fe03aq5retc7hhy7ha9vgedfha7
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1kzsa48ew4vwj7l3y0wdxkkgz6lrrg50lyultllruqzaqawkesf2gre
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1kpgamdkry93m0g6y0p6txdeyxrwq9f7fhaxpgg96x4h4y5kc642yc6
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1kqhrmxz9dltruje0z2flxy86v9gm58vs38y3kjqxcazhy63z94zmre
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1krp789s9vy4rny9c6wsm2hs3nxgxxnhafxs2t2lv9qpkdze6rna8qe
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1kqc0xygg9aq4hxg9aa7m4cvr2n2xdx0em50du3myld434xtv8lzgfn
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1kpcw9se76zuryjp2ju7jl3xk9mea32fgj7w83mxq8tx0fgl8a4w7mc
+  resource_configs [KeyValueStore] = internal_keyvaluestore_rdx1kr89xu06dc83cqvevjs22hg202pkm4xmh5qeka29rc94r2af7vc55n
+  nft_collateral_resource_configs [KeyValueStore] = internal_keyvaluestore_rdx1kzxpyuga4gvsqxfv98s3adw9dw8rqg43v2d6rwc8eg9zhhqr0ce7f3
+  price_cache [KeyValueStore] = internal_keyvaluestore_rdx1krnvw2lrk6jdhemskgsjldjahq2aatvycpwuuccaap93880hr2s0dh
+  resource_type_cache [KeyValueStore] = internal_keyvaluestore_rdx1kqw5mfqmjjxm6uzx2evpumy22jjw65qa9d8r5xg5sgqpejyam9amag
+  nft_resource_type_cache [KeyValueStore] = internal_keyvaluestore_rdx1kp0x2dwzmsw79t2medjk5duh88qqmkxryzqe62ryvhlansky2s4ha7
+  nft_valuation_cache [KeyValueStore] = internal_keyvaluestore_rdx1kzvpfm08mv3gxtx3vc42lasq9kw4vg929eljp9u03ktkajwyh67eda
+  collateral_assets [KeyValueStore] = internal_keyvaluestore_rdx1kpy6kzepwfpddlm23w6arsv40uxypn6dszqdf36sl3wgzwwn294qm0
+  nft_collateral_assets [KeyValueStore] = internal_keyvaluestore_rdx1kztjqxdpc24thmhctrwjcuzvne390dqvml966xrj9nns49vadd7kqy
+  cdp_creation_fees [FungibleVault] = internal_vault_rdx1tz44cgd6cwfpzdg6huzq95ntxy5d8rs6v7xspchzs8mjc3lg7wypv9
+  liquidation_fees [KeyValueStore] = internal_keyvaluestore_rdx1kpk8h5t8xlcvkghtfnpnrarrd0sw0anf90p8mspju238ee4l4jtlz9
+  nft_liquidation_fees [FungibleVault] = internal_vault_rdx1trtvkytt68fm2g729dyd834cteg447x7ulh3fsaeal46tedml9exvm
+==============================================================================================================
+component_rdx1czmr02yl4da709ceftnm9dnmag7rthu0tu78wmtsn5us9j02d9d0xn | LendingPool 1.0.0 | pkg: package_rdx1p5uwrs3heg37n5zyzate8xtc440l2x3l59ywya4jl2na6em25qjnfj
+---------------------------------------- STATE (flattened)
+  lending_service_managerlending_service_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1krz350jhmvvuw2cctslmg3axnxagqas4muf5rxvfd8jcqru7s4v9a3
+  transient_res_manager = Reference:ResourceAddress=resource_rdx1nfeyk5cmjep98zae9vhg067elm2necwsvdnngp3je62ahqstsa8x2x
+  client_badge_res_manager = Reference:ResourceAddress=resource_rdx1ntv5kdgjq5dmg2j6pljyz05efv35rsfnygdsw0ka8w7swmusvp9vvv
+  deposit_unit_owner_role[Fixed].None[Protected].None[ProofRule].None[Require].None[Resource].None = Reference:ResourceAddress=resource_rdx1nf7cy4ynz7dqwhhqwql7el9puyg85hvc2hfgk5ztduf5gr803u254c
+  component_address = Reference:ComponentAddress=component_rdx1czmr02yl4da709ceftnm9dnmag7rthu0tu78wmtsn5us9j02d9d0xn
+  resource_pools = Own:KeyValueStore=internal_keyvaluestore_rdx1kzjr763caq96j0kv883vy8gnf3jvrrp7dfm9zr5n0akryvzsxvyujc
+  deposit_unit_lookup = Own:KeyValueStore=internal_keyvaluestore_rdx1krvgtms6a4erg0vmly6lx6pdskcxa4fnh8r9s3lhwh3q4m98zcnj46
+  fee_configfee_config.protocol_loan_fee_rate = Decimal:=0
+  fee_configfee_config.protocol_flash_loan_fee_rate = Decimal:=0.5
+  fee_configfee_config.protocol_interest_fee_rate = Decimal:=0.2
+  interest_strategy_managerinterest_strategy_manager.track_history = Bool:=False
+  interest_strategy_managerinterest_strategy_manager.get_config_error_message = String:=|| Interest Strategy not found
+  interest_strategy_managerinterest_strategy_manager.default_expiration_time = Enum::None
+  interest_strategy_managerinterest_strategy_manager.version_count = U64:=0
+  interest_strategy_managerinterest_strategy_manager.entry_count = U16:=3
+  interest_strategy_managerinterest_strategy_manager.entries = Own:KeyValueStore=internal_keyvaluestore_rdx1krx5aq2h74pdyj99r3rpztr2ahvd9xdtfcfujrm079zw279sse68ck
+  interest_strategy_managerinterest_strategy_manager.phantom_data = Enum::None
+  client_badge_activation_delay = I64:=172800
+  client_badges = Own:NonFungibleVault=internal_vault_rdx1nzv0pj59qnsq3kecme9arl6vsm7hqykaxmu8x9g2tlpz5xs3pzuach
+  internal_auth_badge = Own:NonFungibleVault=internal_vault_rdx1nr2fknkmw9kz70344w8dhslfyvyv9xmtdjvyx2kpwgzm4yv2jwzsum
+---------------------------------------- ROLES
+  role=can_lend rule=AllowAll  resolution=Explicit updaters=['config_admin']
+  role=fee_admin rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['fee_admin']
+  role=client_app rule=AllowAll  resolution=Explicit updaters=['config_admin']
+  role=config_admin rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1n2n2tc0luapylxj07h3t000r9yw89fvszz9gdxnudqp5ytqfa0lk0z"}} resolution=Explicit updaters=['config_admin']
+  role=fee_collector rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1ng0tevl94jkmnsmznwkjghsu9pfzd9wflhepxn3wyymaup856q9w0s"}} resolution=Explicit updaters=['fee_admin']
+  role=config_moderator rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1n24gntyg6ffr8q9fg6lwjq5suafj6j962hwpuejgcm43cjwh2uqsyp"}} resolution=Explicit updaters=['config_admin']
+  role=can_take_flash_loan rule=AllowAll  resolution=Explicit updaters=['config_admin']
+  role=metadata_locker rule=None  resolution=Owner updaters=['metadata_locker_updater']
+  role=metadata_locker_updater rule=None  resolution=Owner updaters=['metadata_locker_updater']
+  role=metadata_setter rule=None  resolution=Owner updaters=['metadata_setter_updater']
+  role=metadata_setter_updater rule=None  resolution=Owner updaters=['metadata_setter_updater']
+  role=royalty_setter rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_setter_updater']
+  role=royalty_setter_updater rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_setter_updater']
+  role=royalty_locker rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_locker_updater']
+  role=royalty_locker_updater rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_locker_updater']
+  role=royalty_claimer rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1ng0tevl94jkmnsmznwkjghsu9pfzd9wflhepxn3wyymaup856q9w0s"}} resolution=Explicit updaters=['royalty_claimer_updater']
+  role=royalty_claimer_updater rule=Protected {"type": "Require", "requirement": {"type": "Resource", "resource": "resource_rdx1nfylfsfjl0p263ark7c8l4rl8pykae20673kw5g6n89vncep7y3uzg"}} resolution=Explicit updaters=['royalty_claimer_updater']
+---------------------------------------- OWNED ADDRESSES
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1krz350jhmvvuw2cctslmg3axnxagqas4muf5rxvfd8jcqru7s4v9a3
+  resource_pools [KeyValueStore] = internal_keyvaluestore_rdx1kzjr763caq96j0kv883vy8gnf3jvrrp7dfm9zr5n0akryvzsxvyujc
+  deposit_unit_lookup [KeyValueStore] = internal_keyvaluestore_rdx1krvgtms6a4erg0vmly6lx6pdskcxa4fnh8r9s3lhwh3q4m98zcnj46
+  entries [KeyValueStore] = internal_keyvaluestore_rdx1krx5aq2h74pdyj99r3rpztr2ahvd9xdtfcfujrm079zw279sse68ck
+  client_badges [NonFungibleVault] = internal_vault_rdx1nzv0pj59qnsq3kecme9arl6vsm7hqykaxmu8x9g2tlpz5xs3pzuach
+  internal_auth_badge [NonFungibleVault] = internal_vault_rdx1nr2fknkmw9kz70344w8dhslfyvyv9xmtdjvyx2kpwgzm4yv2jwzsum

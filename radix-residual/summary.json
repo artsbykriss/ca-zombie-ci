@@ -1,0 +1,66 @@
+{
+  "finding": "L2-16 + L2-17 (radix-residual)",
+  "title": "Radix residual cluster: Weft V2 / lockers (JustLock, RadLock, RlyFun) + Ociswap / DefiPlaza",
+  "chains": ["radix"],
+  "headline_extractable_usd": 101.5,
+  "headline_confidence": "medium",
+  "headline_note": "E-U is 100% Weft V2 liquidation-bonus capture (designed mechanism in a distressed market; no protocol bug). Practical cap = 1,092.79 hUSDC supply x hUSDC-oracle-XRD x 0.09312 x XRD_USD: $101.5 at the 11:45-12:11Z snapshot (hUSDC=2211.70 XRD), $96.2 at the 12:18Z re-check (hUSDC=2090.73 XRD) - the cap moves with the hUSDC oracle and is spread over 473 holders (largest 45.55), so realistic capture is a fraction; any partial repayment is profitable proportionally (verified live: 45-hUSDC call profit +$4.19 at 12:03Z and +$3.96 at 12:16Z; zero-capital flash path works). Theoretical bonus pool $119.5. Bug-based E-U = $0 on every target.",
+  "categories": {
+    "E-U": 101.5,
+    "H-O": 181400,
+    "P": 291,
+    "S": 172200
+  },
+  "category_notes": {
+    "E-U": "Weft liquidations only ($119.5 theoretical gross / $101.5 practical cap). JustLock, RadLock, RlyFun, Ociswap, DefiPlaza = $0.",
+    "H-O": "Nominal: JustLock 65.8k (173 time-locks) + RadLock 115.6k (316 live locks); illiquid memecoins (DCKS/ASTRL/BEER), realistically a fraction.",
+    "P": "RlyFun pump fee vault 633,433 XRD = $286.3; RadLock xrd fee vault 10,500 XRD = $4.75; Weft admin/oracle badges; Ociswap registry/DefiPlaza owner badges (unquantified fees).",
+    "S": "JustLock 'forever' locks (unlockable_at=None) $121.6k nominal + Weft bad debt ~111.87M XRD-valued loans vs 5.15M XRD seizable ($50.6k nominal)."
+  },
+  "latest_block": 563385804,
+  "block_numbers": {"radix": 563385804},
+  "targets_checked": 6,
+  "live_targets": 6,
+  "closed_reasons": [
+    "JustLock: unlock requires caller-presented LockReceipt NFT; used receipts unrecoverable; DenyAll receipt updaters",
+    "RadLock: withdraw needs two caller-owned proofs; proxies/admin gated by storage_access_auth/admin_auth badges (Unauthorized in preview)",
+    "RlyFun: curves reject foreign resources (InvalidDropAccess); pump fee vault requires pump-owner badge (fresh dev badge rejected)",
+    "Ociswap: swap/LP math rounds against trader; flash take-only engine-blocked (DropNonEmptyBucket); 0/578 pools have hooks; admin owner-gated",
+    "DefiPlaza: round-trips and add/remove conserve value; shortage path net 0.0; admin methods AuthError",
+    "Weft V2: no bug-based path - oracle badge-gated and fresh; Borrow disabled; NFT-collateral liquidation bricked by empty protocol-fee vault; borrow/withdraw proof-gated"
+  ],
+  "poc": {
+    "tests_passed": 13,
+    "tests_total": 13,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38732758186",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38733399198",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38733912782"
+    ],
+    "artifact": "result-radix-residual (ci-out/results.json)",
+    "ci_state_versions": [563385804, 563386042, 563386868]
+  },
+  "key_facts": [
+    "Weft V2: 126 of 901 live CDPs underwater (liq_ltv > 1); #1015 1.1373, #517 1.0696, #100 1.0591, #1029 1.1692 at state 563,384,952",
+    "Weft V2 verified live: zero-capital flash-loan liquidation Succeeded (net +0.0587415 XRD); 45 hUSDC -> #1015 Succeeded (seized 111,472.14 XRD, fee 2,675.33 XRD, net +108,796.81 XRD, profit +$4.19); re-run 13 min later net +102,843.76 XRD, profit +$3.96 (hUSDC oracle 2211.70 -> 2090.73 XRD)",
+    "Weft drift (12:18Z): #1015/#517/#100 liq_ltv = 1.0751/1.0110/1.0011 with debt & collateral UNCHANGED - the cap moves with the hUSDC oracle price, not with liquidations; practical cap = supply x oracle x 0.09312 x XRD_USD",
+    "Weft hUSDC total supply = 1,092.793964 (state 563,384,935); largest single holder 45.55; top-3 repay needs exceed total supply",
+    "Weft bad debt: 111.87M XRD-valued adjusted loans in liquidatable set vs 5.15M XRD seizable fungible collateral",
+    "JustLock: 423 receipts (173 time-locks ~$65.8k nominal H-O; 30 forever-locks ~$121.6k nominal S); no withdraw entry point; foreign-bucket unlock panics; empty-bucket unlock no-op",
+    "RadLock v2 recovered: RadlockService component_rdx1cptszkemad..., TokenLockService component_rdx1crn49lcmzyu.../component_rdx1cqvjerqdt5...; get_xrd_fee_vault = 10,500 XRD; admin withdrawals Unauthorized (resource_rdx1th5shlln...); 426 Locked-Resource NFTs, 316 locked ~ $115.6k nominal",
+    "RlyFun: 1,166 EarlyCurves hold 1,219,862 XRD (~$551); pump fee vault check_fee_vault = 633,433.343807393 XRD (~$286, P); fresh dev badge claim_fee rejected: 'Invalid proof: Expected ResourceAddress(9aedd185...) but got (9a23a51a...)'",
+    "Ociswap: 578 live pools / $44,928 TVL; 10-XRD round-trip = -0.199 XRD; flash take-only Failed DropNonEmptyBucket; 0/578 pools have hooks; registry owner badge resource_rdx1thrpc7...",
+    "DefiPlaza: 149 live pairs / $36,540 TVL; 10-XRD round-trip = -0.188 XRD (DEX) and identical via direct pair; add->remove net 0.0 incl. shortage path; owner badge resource_rdx1nfmknrk...",
+    "All numbers independently re-verified by CI job 13/13 at state 563,385,804 (read-only previews only; nothing signed or submitted)"
+  ],
+  "caveats": [
+    "Weft practical E-U cap assumes acquiring up to the full 1,092.79 hUSDC supply at ~oracle; supply is spread over 473 holders and the largest holds 45.55, so realistic capture is a fraction (any partial repayment is profitable proportionally; verified profits +$4.19 on a 45-hUSDC call at 12:03Z and +$3.96 at 12:16Z as the hUSDC oracle fell)",
+    "The Weft E-U is liquidation-bonus capture - the designed liquidation mechanism working in a distressed market - not a protocol vulnerability; the cap is price-dependent (hUSDC oracle 2211.70 -> 2090.73 XRD in 15 min cut it from $101.5 to $96.2)",
+    "H-O/S/P USD values are nominal (thin liquidity; DCKS/ASTRL/BEER memecoins; Astrolescent last-trade prices)",
+    "Main DefiPlaza pair build predates the public audit repo (un-diffable); mitigated by live value-conservation test of the exact shortage path",
+    "Ociswap legacy BasicPool source not public; interface/behaviour verified on-chain",
+    "USD values move with XRD ($0.00045195 on 2026-10-15); state is point-in-time (state_version 563,384,952-563,385,804)",
+    "RadLock lock withdrawal not exercised end-to-end with a real receipt+user-badge pair (no public id<->holder map); owned-proof signature requirement is decisive"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$101.5 practical at the snapshot (~$96 at the latest re-check; <= $119.5 theoretical) live on Radix - all of it Weft V2 liquidation bonuses on 126 underwater CDPs (verified +$4.19 profit per 45-hUSDC call at 12:03Z, +$3.96 at 12:16Z; zero-capital flash path works), bounded by the 1,092.79 hUSDC supply and moving with the hUSDC oracle; JustLock/RadLock/RlyFun/Ociswap/DefiPlaza = $0 E-U (all value-moving paths preview-proven gated)."
+}

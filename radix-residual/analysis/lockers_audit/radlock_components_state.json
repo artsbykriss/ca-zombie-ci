@@ -1,0 +1,2241 @@
+{
+ "ledger_state": {
+  "network": "mainnet",
+  "state_version": 563382436,
+  "proposer_round_timestamp": "2026-10-15T11:43:54.553Z",
+  "epoch": 349690,
+  "round": 870
+ },
+ "items": [
+  {
+   "address": "component_rdx1cp7vsz98w06urq3n00rf9xz9jrlppyk0sukqrm4kvqvkjwucne6puh",
+   "fungible_resources": {
+    "total_count": 2,
+    "items": [
+     {
+      "amount": "1",
+      "last_updated_at_state_version": 113813364,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thy5r0vgfk7gckjcsrld9jlmasd95mvckyffwkwdpplx0av582as3t"
+     },
+     {
+      "amount": "1",
+      "last_updated_at_state_version": 113813364,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 1,
+    "items": [
+     {
+      "amount": 0,
+      "last_updated_at_state_version": 113813364,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1nfkwleqccre92w8rwy235ahkv8yvlrkhjhwjndnry20qf5ht4xt6hg"
+     }
+    ]
+   },
+   "metadata": {
+    "total_count": 1,
+    "items": [
+     {
+      "key": "dapp_definition",
+      "value": {
+       "raw_hex": "5c220801805197d24be3141ed28d1d579d53aa9a694e4c20616e7441803beb36418df9",
+       "programmatic_json": {
+        "variant_id": "8",
+        "fields": [
+         {
+          "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+          "kind": "Reference"
+         }
+        ],
+        "kind": "Enum"
+       },
+       "typed": {
+        "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+        "type": "GlobalAddress"
+       }
+      },
+      "is_locked": false,
+      "last_updated_at_state_version": 113822089
+     }
+    ]
+   },
+   "details": {
+    "package_address": "package_rdx1p53g7gvj96xphlgeuzn4c4njlmrkvpqw94hxstrpdn4u2swu9t2qpp",
+    "blueprint_name": "TokenVestService",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "TokenVestService",
+     "fields": [
+      {
+       "kind": "Reference",
+       "type_name": "GlobalRadlockService",
+       "field_name": "radlock_service",
+       "value": "component_rdx1cptszkemad39h6avf03tz06new2ve80dfyr66ve9yyzdxvtt3j5kgs"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalTokenLockService",
+       "field_name": "token_lock_service",
+       "value": "component_rdx1crn49lcmzyuqpz4lgx8fulegk4pdzjz89lhegs4g5attrgxqjp4amc"
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "UserService",
+       "field_name": "user_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nf2ddsqmp9n0y4kl8lgege709hxkemahpktdtzkcnay7l76upssq9f"
+        },
+        {
+         "kind": "U64",
+         "field_name": "latest_user_id",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "lock_eligible_discount_no",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "vest_eligible_discount_no",
+         "value": "0"
+        }
+       ]
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "service_auth",
+       "value": "internal_vault_rdx1tzrc6hk6mkdes6e9kj3nuc07zgyczccfjtjagw28fh4n53pjj3e9mq"
+      },
+      {
+       "kind": "U64",
+       "field_name": "schedule_limit",
+       "value": "750"
+      },
+      {
+       "kind": "U64",
+       "field_name": "members_limit",
+       "value": "15"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "storage_access_auth",
+       "value": "internal_vault_rdx1tz8zuuh894sz0t595l8dpxtr4vqrf8ctqnzfeddsu4pvsrw656quqk"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "shareholder_ids",
+       "value": "internal_keyvaluestore_rdx1kp7xhl35qu78jf0qxcduztskllda6dga8g66yv0f2w6mgha72y82dm"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "vested_tokens_vault",
+       "value": "internal_keyvaluestore_rdx1kp0cdv2q9wdetzptd6mqyg3ee882trgkyqu93cntzqsn8k0czvdqmx"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "vest_latest_id",
+       "value": "internal_keyvaluestore_rdx1kr2tu5t5zxvm7at8mna44prsfze3fulc3lrcdqqusuj7vg72tfjxs6"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "vest_schedule_vault",
+       "value": "internal_vault_rdx1np3nvx7ng74vm67gh50uvyhsx3xpj7mwy30pecznxtn940t4v98ymx"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "personal_vest_schedule_vault",
+       "value": "internal_keyvaluestore_rdx1kz7s0gu23zp2nt4xewfryhv8sua3xn2lfgyzpznrc97erapyq65s5y"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "personal_vest",
+       "value": "resource_rdx1ng3hxz66dklc8n7snhdfr8kzkdhgepss7w4qpnqe8mpuv8mq0hxhey"
+      },
+      {
+       "kind": "Bool",
+       "field_name": "service_enabled",
+       "value": false
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "Resource",
+          "resource": "resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff"
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "admin_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "Resource",
+            "resource": "resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff"
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "service_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "Resource",
+            "resource": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "radlock_component"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "NonFungible",
+            "non_fungible": {
+             "local_id": {
+              "id_type": "Bytes",
+              "sbor_hex": "5cc0022028eb08b41c3cf8fa0245f93e121f9e705acffb3e34c5694cf76acfc676f4b962",
+              "simple_rep": "[28eb08b41c3cf8fa0245f93e121f9e705acffb3e34c5694cf76acfc676f4b962]"
+             },
+             "resource_address": "resource_rdx1nfxxxxxxxxxxglcllrxxxxxxxxx002350006550xxxxxxxxxglcllr"
+            }
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "storage_access_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "Resource",
+            "resource": "resource_rdx1thy5r0vgfk7gckjcsrld9jlmasd95mvckyffwkwdpplx0av582as3t"
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1cptszkemad39h6avf03tz06new2ve80dfyr66ve9yyzdxvtt3j5kgs",
+   "fungible_resources": {
+    "total_count": 201,
+    "next_cursor": "eyJzdiI6MTc2ODE4OTIwLCJpZCI6Mjg3NzA5MH0=",
+    "items": [
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 557870877,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thkj9ktdt9tn9x28jx8czv0fr6m42gnypmcl97v8c0khvr3ycrc25f"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 517179774,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t46jpmzf97s7q5h4tv42hcjyalhq84znevngtsul5wcumxfdprnlp3"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 435472216,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk3aqu9y6qpwflrcyr7s6prm2faaah9ztct5dlctedn3kxcvqgnk0n"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 396984181,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1theju6prjcuufnk30dfr3ezt85n97kwayr7ak2zvgavw2nyc3vq8ll"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 383631032,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4jyta5ejx7dp3cud6k089fq86ejpe9pv9ygncshzd9alkvvqsduqn"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 382282320,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4a4c4l430z45zyhvkwltdsrfexwejzxsvtnhlt53gl530yqa4qzy4"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 377657661,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk50jjt39maghkr3av5vcw69qx7599hnvjvtkmjfruqrgrfwmm5uv2"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 377657240,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thewvarthfm0fxv7vjt8l7sqd086hmyj0hzrfzjhhk7c2rsunnh6ug"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 376989776,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4mthq86ck3tc05eqwsu6538m2a5nv0wc40ysmpk4fp6nwra80glpw"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 376120149,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thpx6647jz6kz3szkav2a9wr0h4dhcvxdeyp6euqzt6ymy8vg88q2t"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 372273063,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkslx4sx55yezl9wkjpuywku3jcq2r46gjs0achmq6zs4s4f8afyg5"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 370681615,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5drzvqs33jzc7jprheey6jlcf3um5vcd75exrm0x0lz3tw34vkw2v"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 370272609,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4su40ldphn92tsf9wh3ukj4xuzve3c88l7f0ahxaydwx4ln3qkhht"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 356767951,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkff46jkeu98jgl8naxpzfkn0m0hytysxzex3l3a8m7qps49f7m45c"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 351535992,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4l8xctuuzggzrvue8lpl4wksja3a0h7u7q2pv4mxrffpn5ntw04fq"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 332275641,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1th9e9swexvvr0hs0seq9fw8tp238l847cp6h2e5glsd9zrgtgky3j3"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 329849382,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5kfjyyysxj7z0tjvhur48mjfff26knyj3hzajr6u0ld3wya0mxglz"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328822393,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5vjqccrdtvxruu0p2hwqpts326kpz674grrzulcquly5ue0sg7wxk"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328821896,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk4y4ct50fzgyjygm7j3y6r3cw5rgsatyfnwdz64yp5t388v0atw8w"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328820825,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk7g72c0uv2g83g3dqtkg6jyjwkre6qnusgjhrtz0cj9u54djgnk3c"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328820035,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5l954908vmg465pkj7j37z0fn4j33cdjt2g6czavjde406y4uxdy9"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328819088,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4qfgjm35dkwdrpzl3d8pc053uw9v4pj5wfek0ffuzsp73evye6wu6"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328805200,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4v2jke9xkcrqra9sf3lzgpxwdr590npkt03vufty4pwuu205q03az"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328804643,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t52pvtk5wfhltchwh3rkzls2x0r98fw9cjhpyrf3vsykhkuwrf7jg8"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328803158,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk3fxrz75ghllrqhyq8e574rkf4lsq2x5a0vegxwlh3defv225cth3"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328802741,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk2ekrvckgptrtls6zp0uautg8t34nzl3h93vagt66k49vh757w5px"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328801564,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkk83magp3gjyxrpskfsqwkg4g949rmcjee4tu2xmw93ltw2cz94sq"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328800867,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5pyvlaas0ljxy0wytm5gvyamyv896m69njqdmm2stukr3xexc2up9"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328799007,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 328796518,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tka3kqqkjxcpddvcx0u300qt66z3tlzv7swqx9rklp60m5yqry6yzk"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 322666875,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4r86qqjtzl8620ahvsxuxaf366s6rf6cpy24psdkmrlkdqvzn47c2"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 317255162,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thtd4a4t4fakkll9el6g6e0ssyydz24havsj2dfv9hm7kknrhr09ka"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 315498854,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t55t776pw2srzxve5tfjzexdp2hyc2num93meq6834nsx9svwjypyk"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 310054378,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thxtekr4rkqknwv28xjf2hlag27rzl37xdtgr9glvaxqzjenzchy2g"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 305975260,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tktx0radynzcv8s45jt8tf88jyhanvsctda35yuug94559208rj7fp"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 298251604,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4awwpf76vujkhmqquyyctuannjw8yt4c8k9pnyu7j9d3ugc090nf3"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 282961606,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5z0vnpj33s5x8nkqef530hh6ygngx5r77u05ullv5gfaljdx27zg0"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 268335108,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkc3awevlsyxe6rg02a20kr9m3dhagkun8jcd9avqjufep4n9srsuu"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 262918142,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4uw7rjr393v7atqhvwl5w70uwmwrr00hlvc3kf2mkn7xzzeuswqnt"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 258543553,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkrjpj72gytmpqp7gduvf0yxs0atlm2jk22f7hpf52zyw5n4rh4zaq"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 244932418,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5qfksj2sc2zjsmae46ukpf03ludvzefqk3mrjpysnmqww8uujpxj0"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 243415715,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5g9m9xj88lj2je53fal2ft5ytyk9agx5dqaffumu74zxgg0s6tv5h"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 226720047,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk0mg0pfewq5ydg4r3vxmuf4fz2349vhgphm64fhf7sn5yshvjcmq8"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 223886898,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thgmzrfkc3x6zr0rq2q6z6c6a3npsdmt9tdm9l98447regqaczy2ng"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 222470740,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5qegwhwah06h7ggl7rrngj2ctmp4295t8u7tvfga3yqnfgcvmp574"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 214194976,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk624ja8rgc97mu98cdc3xsm6cy0zsf73p50vk4syd0x8sh095p7nu"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 212929161,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t466mhd2l2jmmzxr8cg3mkwjqhs7zmjgtder2utnh0ue5msxrhyk3t"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 211700977,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkddh3vvw89zc4ex2qe3x9t3ak84jq5hfs90flxstk5x0aqhhs3c98"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 208253832,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4nzt954lxmx6jtg78h7tr4u3gj89ja4he7nqmfjdn4w7wea8x8r2v"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 198546595,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4vw6tmlghlrvr36vxlm4rsgqks0uz3nfp9ynmnvnd8fnsr8vrq5xe"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 198324569,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thv7pwec679vk4xzmmnvu727gg6362zj78uhl8pzttnsvewj0guxv5"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 197424419,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5wtydxkxfhftr73vd4s5nppw9zr4zhw2kuzmdjjlfj9euq025l9am"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 197320360,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5jc80ddg7n6lapj5fyf6tr7lk8jy0u6c27fr8j0yesr2rpacz8ckp"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 197049505,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkmr0wqa3p0v684gvqqt39t8vk8uh84434lrsfndk2n63y98hf3p9z"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 196507693,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thltfts5qmszfzfnglfe9tplahwyq4gvmx7nayjhnxe9904nrautmq"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 196481235,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t55vvrwdk65a776mcn60lp3hnacuhu8hxfp6xw36n887jew75nusue"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 196121535,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1th5xpksn0zqzmqnsvqt66kd6sh60685yz5t5rpdnq8l8h0v9ra9579"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 196121148,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1th5pe5lhn8v033ddsytxuya5jd9t5h7nvsltyxjvpfunlj66m482qt"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 195638848,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4ze0rncry5y6vmwwmmjqmxuwskuekk9chz5ytkpup3a982pdc73z6"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 195493270,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thtnnzjwk2yslxu44kakc2ywjvxg4a7mc38e0ckfg4c3ngk2yd7jqs"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 195456492,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkp3z52zaxjud3my7h9jfwyr38yte68092qc843nzxayp7hsjh6tjy"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 194908618,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thxjxg43t29884et6399qvgjd485nm49gundpe02ew6wd3m20jcavq"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 194689610,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5lenm5rr0p7urmcfjpzq5syt7cpges3wv3hzefckqe49ga6wutrhf"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 194094160,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkkw6jzpvjl5an4uwqsg4da3v938vljnqfkrtpkm2s38n2uunfnp3j"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 193463762,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5jcrugpvdh6gewt9tjngtuaxqke8wpq27trl4ymv5w4pa39n79mjw"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 189627951,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1th04p2c55884yytgj0e8nq79ze9wjnvu4rpg9d7nh3t698cxdt0cr9"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 189625679,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk2jmfv44ky5rqaq3cdukcch4mja0m94awxtvg572n9f3jtzcafyw5"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 188930996,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thzgd7mr7j0kq7j6nq0psmtxy3m34h0jpvenax8teccet5n5x4w0c7"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 188141648,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkmr0mrud053sfjmxawdx72j8yljdlfrt07l632ndscshgva3sscau"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 188070311,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thksg5ng70g9mmy9ne7wz0sc7auzrrwy7fmgcxzel2gvp8pj0xxfmf"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 186897692,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk0dqmkhh50y984jcsmvxsm2e5qscqc0hqakhcxdl9xum8mu87at0h"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 186153752,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ytkq525wkzk6ja9fu59nn4tc0260tzjch02k9ufcq07rgt0tcdcf"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 186065211,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4499j660ckxrnfa6mzkxaq503teqk8n67a4tvjytk803pe8nee4vv"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 185779887,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t42mgf5vlkln4n2rwqe274jw5cnk47kr2jfsyxskttm7a0d6ce8kax"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 185307215,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkjcqxh4ufmlyp9aaa000c7zuasg8luwdd9azdw9tujwdvst30t7fp"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 185087243,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4dsaa07eaytq0asfe774maqzhrakfjkpxyng2ud4j6y2tdm5l7a76"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 184944632,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5z59zyn9tjzw9e6t7nlzrnpx49eg0c9mhpprszwmpd2ttnxdt0csl"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 183237001,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5uyf7s9rpde7pezhthsuygl0sk3gj0e09zzsvsmga69zxdd8y4lvq"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 182791288,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4l780r9utmnekr6sh20vfu87nsw92cs8r399r4jezwx4k5g4mrp2r"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 181809924,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4xly8qfg7lxjhptk7w0feuxpnkqu3sp0rtl3f7uave7w2ss39w609"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 181453480,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4pmuw6qjf9yalxnggfja6nth8a43f9w602v5c7ckux2ap6fm8za8p"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 181305963,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thva87lxne4z2qg74eh0sza0q4u7sk3x2ew5hdvhextdj0uexfsst3"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 180823563,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4q2kwj6upphxaqn5fk49v5mqmu230uuej8aptdqflp4y4j8knfw9p"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 180795096,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4fya9a6f6eavrr44xlyxpwssq83q770f90ch6r2qcja8aq9eygr55"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 180623985,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t48nlyuqh3pyy7xhrdud7gag398sejyxnp8q9mu3hzp8dur4mefnta"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 180589631,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4zhahqu36n67095ys25chvjsfrhe2ma234fx3uu863vn7ytwmg5vp"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 180148994,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5s9ax6faex8dqjyg07l5tf20xmsnqcg604xrf687uqxnu7w3274p6"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 179531803,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5k9yfd7mkkwede5d66qauepm9vt2l605442mnjp0lcedupyel40hf"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 179462831,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4dvaw206027htew3ej8nvlnyf206s7nq0unf4fgql7xe77smf2r77"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 178826150,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk8axnxm3nphywtxq9535p5qkv804luetmjj3gfmsyjklg8r0nj74h"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 178491348,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5c2yy9wx488swcjd2fdw645hea3s5sn0xygk7nwkdrye2afs2m3l5"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 178353630,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t50enkjq3k0lvg8dh4v3z7crw40xay97e5xzxs2436yfn5e53z83rv"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 178022828,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkrtptcw76rzfcmgvawv80780a4zmg8ljhu62kj92c7krnlxg4dk62"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 177979703,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thapl0zv497t608jchm238fqdr0xxj3gfwwnq9hnlwaaymgdtpm74g"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 177775317,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkaal53azemtfax0es4g6xfy9mpj2x683hh6fey7gm4lcj53u2h2lx"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 177521844,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5tadgg55gufeuhhl920sa3falc4gunkl5pwd57aah3j9nchwxtkha"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 177425868,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk2rty5tzrmmw5yfv75p5v753yt2nfscdvpnp9z33sxn2txx5nzznr"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 177197774,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4q7rt40ptl0eh225uw8drzgeakgg5k20y02wmgk4tp8tgs4sckt4v"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 177166699,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkuydrl33nww3p8mr6wv5dsxpewjwd9rjtazuthscsjrankymy5n8m"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 177066939,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1theujy0gwa05u6qlez9u7gl3y8d8ruhd7gvy39hrcf9pkv3y9vzx3w"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 0,
+    "items": []
+   },
+   "metadata": {
+    "total_count": 1,
+    "items": [
+     {
+      "key": "dapp_definition",
+      "value": {
+       "raw_hex": "5c220801805197d24be3141ed28d1d579d53aa9a694e4c20616e7441803beb36418df9",
+       "programmatic_json": {
+        "variant_id": "8",
+        "fields": [
+         {
+          "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+          "kind": "Reference"
+         }
+        ],
+        "kind": "Enum"
+       },
+       "typed": {
+        "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+        "type": "GlobalAddress"
+       }
+      },
+      "is_locked": false,
+      "last_updated_at_state_version": 113821307
+     }
+    ]
+   },
+   "details": {
+    "package_address": "package_rdx1p53g7gvj96xphlgeuzn4c4njlmrkvpqw94hxstrpdn4u2swu9t2qpp",
+    "blueprint_name": "RadlockService",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "RadlockService",
+     "fields": [
+      {
+       "kind": "Tuple",
+       "type_name": "UserService",
+       "field_name": "user_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nf2ddsqmp9n0y4kl8lgege709hxkemahpktdtzkcnay7l76upssq9f"
+        },
+        {
+         "kind": "U64",
+         "field_name": "latest_user_id",
+         "value": "553"
+        },
+        {
+         "kind": "U64",
+         "field_name": "lock_eligible_discount_no",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "vest_eligible_discount_no",
+         "value": "0"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "ServiceFee",
+       "field_name": "service_fee",
+       "fields": [
+        {
+         "kind": "Tuple",
+         "type_name": "Fee",
+         "field_name": "lock",
+         "fields": [
+          {
+           "kind": "Decimal",
+           "field_name": "xrd",
+           "value": "1500"
+          },
+          {
+           "kind": "Decimal",
+           "field_name": "token_percentage",
+           "value": "0"
+          }
+         ]
+        },
+        {
+         "kind": "Tuple",
+         "type_name": "Fee",
+         "field_name": "vest",
+         "fields": [
+          {
+           "kind": "Decimal",
+           "field_name": "xrd",
+           "value": "1500"
+          },
+          {
+           "kind": "Decimal",
+           "field_name": "token_percentage",
+           "value": "0"
+          }
+         ]
+        },
+        {
+         "kind": "Tuple",
+         "type_name": "Fee",
+         "field_name": "membership",
+         "fields": [
+          {
+           "kind": "Decimal",
+           "field_name": "xrd",
+           "value": "1500"
+          },
+          {
+           "kind": "Decimal",
+           "field_name": "token_percentage",
+           "value": "0"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "kind": "Decimal",
+       "field_name": "vesting_member_addition_fee",
+       "value": "1500"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "service_auth",
+       "value": "internal_vault_rdx1tq58a7xmgt0nz9qxrrrvg0hch9n57w0xt7fq3plkvn8t8ckkemmc9s"
+      },
+      {
+       "kind": "Enum",
+       "type_name": "Option",
+       "field_name": "token_lock_service",
+       "variant_id": "1",
+       "variant_name": "Some",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "GlobalTokenLockService",
+         "value": "component_rdx1crn49lcmzyuqpz4lgx8fulegk4pdzjz89lhegs4g5attrgxqjp4amc"
+        }
+       ]
+      },
+      {
+       "kind": "Enum",
+       "type_name": "Option",
+       "field_name": "token_vest_service",
+       "variant_id": "1",
+       "variant_name": "Some",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "GlobalTokenVestService",
+         "value": "component_rdx1cp7vsz98w06urq3n00rf9xz9jrlppyk0sukqrm4kvqvkjwucne6puh"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "admin_badge",
+       "value": "resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "service_badge",
+       "value": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "percentage_fee_vault",
+       "value": "internal_keyvaluestore_rdx1kzpvgu64vmhufvw8hxf8hrxq4rayg4c490edqzmn6k8l8v46hqtmz8"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "xrd_fee_vault",
+       "value": "internal_vault_rdx1trektmaq0hlr9ran468fzdh4p0fdffef74vketc29cm0f0a64yqmqz"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "lock_volume",
+       "value": "internal_keyvaluestore_rdx1kptgusl8gdcg8lu4nj82muf2c6a83tt7wn2rtj22qzhukmwa7eyvcf"
+      },
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "storage_access_auth",
+       "value": "resource_rdx1thy5r0vgfk7gckjcsrld9jlmasd95mvckyffwkwdpplx0av582as3t"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "service_versions",
+       "value": "internal_keyvaluestore_rdx1kp63k3xq8afu9u9l8z6mjl74n3s0m9m8slnsrweuee0ac6y4q5nv80"
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "Resource",
+          "resource": "resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff"
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "admin_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "Resource",
+            "resource": "resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff"
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "service_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "Resource",
+            "resource": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  },
+  {
+   "address": "component_rdx1crn49lcmzyuqpz4lgx8fulegk4pdzjz89lhegs4g5attrgxqjp4amc",
+   "fungible_resources": {
+    "total_count": 164,
+    "next_cursor": "eyJzdiI6MTc2NTMxMzM1LCJpZCI6Mjg3NTk2NX0=",
+    "items": [
+     {
+      "amount": "10828330",
+      "last_updated_at_state_version": 557870877,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thkj9ktdt9tn9x28jx8czv0fr6m42gnypmcl97v8c0khvr3ycrc25f"
+     },
+     {
+      "amount": "40015850",
+      "last_updated_at_state_version": 517179774,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t46jpmzf97s7q5h4tv42hcjyalhq84znevngtsul5wcumxfdprnlp3"
+     },
+     {
+      "amount": "449066056.671340599995573191",
+      "last_updated_at_state_version": 521305082,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk3aqu9y6qpwflrcyr7s6prm2faaah9ztct5dlctedn3kxcvqgnk0n"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 481735462,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1theju6prjcuufnk30dfr3ezt85n97kwayr7ak2zvgavw2nyc3vq8ll"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 447761351,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4jyta5ejx7dp3cud6k089fq86ejpe9pv9ygncshzd9alkvvqsduqn"
+     },
+     {
+      "amount": "90640798.610864629090623184",
+      "last_updated_at_state_version": 382992090,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4a4c4l430z45zyhvkwltdsrfexwejzxsvtnhlt53gl530yqa4qzy4"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 481734028,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk50jjt39maghkr3av5vcw69qx7599hnvjvtkmjfruqrgrfwmm5uv2"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 481734618,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thewvarthfm0fxv7vjt8l7sqd086hmyj0hzrfzjhhk7c2rsunnh6ug"
+     },
+     {
+      "amount": "5000000",
+      "last_updated_at_state_version": 376989776,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4mthq86ck3tc05eqwsu6538m2a5nv0wc40ysmpk4fp6nwra80glpw"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 481702074,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thpx6647jz6kz3szkav2a9wr0h4dhcvxdeyp6euqzt6ymy8vg88q2t"
+     },
+     {
+      "amount": "27157041.732514625461874807",
+      "last_updated_at_state_version": 372273063,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkslx4sx55yezl9wkjpuywku3jcq2r46gjs0achmq6zs4s4f8afyg5"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 437920030,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5drzvqs33jzc7jprheey6jlcf3um5vcd75exrm0x0lz3tw34vkw2v"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 481702171,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkff46jkeu98jgl8naxpzfkn0m0hytysxzex3l3a8m7qps49f7m45c"
+     },
+     {
+      "amount": "80089931",
+      "last_updated_at_state_version": 351536412,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4l8xctuuzggzrvue8lpl4wksja3a0h7u7q2pv4mxrffpn5ntw04fq"
+     },
+     {
+      "amount": "11007.190799300180823522",
+      "last_updated_at_state_version": 400194073,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1th9e9swexvvr0hs0seq9fw8tp238l847cp6h2e5glsd9zrgtgky3j3"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 417060168,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5kfjyyysxj7z0tjvhur48mjfff26knyj3hzajr6u0ld3wya0mxglz"
+     },
+     {
+      "amount": "2627991426.721466433662391284",
+      "last_updated_at_state_version": 328822393,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5vjqccrdtvxruu0p2hwqpts326kpz674grrzulcquly5ue0sg7wxk"
+     },
+     {
+      "amount": "2341907917.922199176072608839",
+      "last_updated_at_state_version": 341442752,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk4y4ct50fzgyjygm7j3y6r3cw5rgsatyfnwdz64yp5t388v0atw8w"
+     },
+     {
+      "amount": "1.015754551546441369",
+      "last_updated_at_state_version": 328820825,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk7g72c0uv2g83g3dqtkg6jyjwkre6qnusgjhrtz0cj9u54djgnk3c"
+     },
+     {
+      "amount": "137322.264534147192220643",
+      "last_updated_at_state_version": 328820035,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5l954908vmg465pkj7j37z0fn4j33cdjt2g6czavjde406y4uxdy9"
+     },
+     {
+      "amount": "52687451.469558717468585313",
+      "last_updated_at_state_version": 328819088,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4qfgjm35dkwdrpzl3d8pc053uw9v4pj5wfek0ffuzsp73evye6wu6"
+     },
+     {
+      "amount": "16852785675.710638732139065964",
+      "last_updated_at_state_version": 328805200,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4v2jke9xkcrqra9sf3lzgpxwdr590npkt03vufty4pwuu205q03az"
+     },
+     {
+      "amount": "203970.729479488900450027",
+      "last_updated_at_state_version": 328804643,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t52pvtk5wfhltchwh3rkzls2x0r98fw9cjhpyrf3vsykhkuwrf7jg8"
+     },
+     {
+      "amount": "546079.864947264040056606",
+      "last_updated_at_state_version": 328803158,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk3fxrz75ghllrqhyq8e574rkf4lsq2x5a0vegxwlh3defv225cth3"
+     },
+     {
+      "amount": "745757.272614588603812151",
+      "last_updated_at_state_version": 328802741,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk2ekrvckgptrtls6zp0uautg8t34nzl3h93vagt66k49vh757w5px"
+     },
+     {
+      "amount": "2613799.14046200958445852",
+      "last_updated_at_state_version": 328801564,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkk83magp3gjyxrpskfsqwkg4g949rmcjee4tu2xmw93ltw2cz94sq"
+     },
+     {
+      "amount": "3.054382047658950925",
+      "last_updated_at_state_version": 328800867,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5pyvlaas0ljxy0wytm5gvyamyv896m69njqdmm2stukr3xexc2up9"
+     },
+     {
+      "amount": "602857.6365526567630326",
+      "last_updated_at_state_version": 328799007,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ywq4c6nd2lxkemkv4uzt8v7x7smjcguzq5sgafwtasa6luq7fclq"
+     },
+     {
+      "amount": "327338.676217730777258638",
+      "last_updated_at_state_version": 328796518,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tka3kqqkjxcpddvcx0u300qt66z3tlzv7swqx9rklp60m5yqry6yzk"
+     },
+     {
+      "amount": "1123227.554270421184479561",
+      "last_updated_at_state_version": 328797770,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4r86qqjtzl8620ahvsxuxaf366s6rf6cpy24psdkmrlkdqvzn47c2"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 321943069,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thtd4a4t4fakkll9el6g6e0ssyydz24havsj2dfv9hm7kknrhr09ka"
+     },
+     {
+      "amount": "77000000",
+      "last_updated_at_state_version": 382159200,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t55t776pw2srzxve5tfjzexdp2hyc2num93meq6834nsx9svwjypyk"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 376460662,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thxtekr4rkqknwv28xjf2hlag27rzl37xdtgr9glvaxqzjenzchy2g"
+     },
+     {
+      "amount": "111912628",
+      "last_updated_at_state_version": 305975260,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tktx0radynzcv8s45jt8tf88jyhanvsctda35yuug94559208rj7fp"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 320069895,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4awwpf76vujkhmqquyyctuannjw8yt4c8k9pnyu7j9d3ugc090nf3"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 348234230,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5z0vnpj33s5x8nkqef530hh6ygngx5r77u05ullv5gfaljdx27zg0"
+     },
+     {
+      "amount": "9778551.79223217",
+      "last_updated_at_state_version": 268335108,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkc3awevlsyxe6rg02a20kr9m3dhagkun8jcd9avqjufep4n9srsuu"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 263757245,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4uw7rjr393v7atqhvwl5w70uwmwrr00hlvc3kf2mkn7xzzeuswqnt"
+     },
+     {
+      "amount": "255000",
+      "last_updated_at_state_version": 397622974,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5qfksj2sc2zjsmae46ukpf03ludvzefqk3mrjpysnmqww8uujpxj0"
+     },
+     {
+      "amount": "81989068.54871285453969464",
+      "last_updated_at_state_version": 246382623,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5g9m9xj88lj2je53fal2ft5ytyk9agx5dqaffumu74zxgg0s6tv5h"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 305063076,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk0mg0pfewq5ydg4r3vxmuf4fz2349vhgphm64fhf7sn5yshvjcmq8"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 326077132,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thgmzrfkc3x6zr0rq2q6z6c6a3npsdmt9tdm9l98447regqaczy2ng"
+     },
+     {
+      "amount": "200000000",
+      "last_updated_at_state_version": 222470740,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5qegwhwah06h7ggl7rrngj2ctmp4295t8u7tvfga3yqnfgcvmp574"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 261632505,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk624ja8rgc97mu98cdc3xsm6cy0zsf73p50vk4syd0x8sh095p7nu"
+     },
+     {
+      "amount": "312604977.399726552469104358",
+      "last_updated_at_state_version": 328821378,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t466mhd2l2jmmzxr8cg3mkwjqhs7zmjgtder2utnh0ue5msxrhyk3t"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 305074002,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkddh3vvw89zc4ex2qe3x9t3ak84jq5hfs90flxstk5x0aqhhs3c98"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 279160900,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4nzt954lxmx6jtg78h7tr4u3gj89ja4he7nqmfjdn4w7wea8x8r2v"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 219168837,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4vw6tmlghlrvr36vxlm4rsgqks0uz3nfp9ynmnvnd8fnsr8vrq5xe"
+     },
+     {
+      "amount": "2441583",
+      "last_updated_at_state_version": 198324569,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thv7pwec679vk4xzmmnvu727gg6362zj78uhl8pzttnsvewj0guxv5"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 217840283,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5wtydxkxfhftr73vd4s5nppw9zr4zhw2kuzmdjjlfj9euq025l9am"
+     },
+     {
+      "amount": "10094673",
+      "last_updated_at_state_version": 197320360,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5jc80ddg7n6lapj5fyf6tr7lk8jy0u6c27fr8j0yesr2rpacz8ckp"
+     },
+     {
+      "amount": "21300000000",
+      "last_updated_at_state_version": 227976513,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkmr0wqa3p0v684gvqqt39t8vk8uh84434lrsfndk2n63y98hf3p9z"
+     },
+     {
+      "amount": "31885093.576437977619323778",
+      "last_updated_at_state_version": 196809470,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thltfts5qmszfzfnglfe9tplahwyq4gvmx7nayjhnxe9904nrautmq"
+     },
+     {
+      "amount": "116137777.203926304798218436",
+      "last_updated_at_state_version": 196481235,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t55vvrwdk65a776mcn60lp3hnacuhu8hxfp6xw36n887jew75nusue"
+     },
+     {
+      "amount": "133212.587224594468919293",
+      "last_updated_at_state_version": 196121535,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1th5xpksn0zqzmqnsvqt66kd6sh60685yz5t5rpdnq8l8h0v9ra9579"
+     },
+     {
+      "amount": "37193253.17419522961505638",
+      "last_updated_at_state_version": 195638848,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4ze0rncry5y6vmwwmmjqmxuwskuekk9chz5ytkpup3a982pdc73z6"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 236034789,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thtnnzjwk2yslxu44kakc2ywjvxg4a7mc38e0ckfg4c3ngk2yd7jqs"
+     },
+     {
+      "amount": "209999999",
+      "last_updated_at_state_version": 195460564,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkp3z52zaxjud3my7h9jfwyr38yte68092qc843nzxayp7hsjh6tjy"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 261851343,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thxjxg43t29884et6399qvgjd485nm49gundpe02ew6wd3m20jcavq"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 367022050,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5lenm5rr0p7urmcfjpzq5syt7cpges3wv3hzefckqe49ga6wutrhf"
+     },
+     {
+      "amount": "49823104.78137287781929285",
+      "last_updated_at_state_version": 194094160,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkkw6jzpvjl5an4uwqsg4da3v938vljnqfkrtpkm2s38n2uunfnp3j"
+     },
+     {
+      "amount": "40000",
+      "last_updated_at_state_version": 341229742,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1th04p2c55884yytgj0e8nq79ze9wjnvu4rpg9d7nh3t698cxdt0cr9"
+     },
+     {
+      "amount": "48436222",
+      "last_updated_at_state_version": 189625679,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk2jmfv44ky5rqaq3cdukcch4mja0m94awxtvg572n9f3jtzcafyw5"
+     },
+     {
+      "amount": "80000000",
+      "last_updated_at_state_version": 188930996,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thzgd7mr7j0kq7j6nq0psmtxy3m34h0jpvenax8teccet5n5x4w0c7"
+     },
+     {
+      "amount": "2010715.301941248671437916",
+      "last_updated_at_state_version": 188141648,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkmr0mrud053sfjmxawdx72j8yljdlfrt07l632ndscshgva3sscau"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 320371006,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thksg5ng70g9mmy9ne7wz0sc7auzrrwy7fmgcxzel2gvp8pj0xxfmf"
+     },
+     {
+      "amount": "18301853",
+      "last_updated_at_state_version": 186897692,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk0dqmkhh50y984jcsmvxsm2e5qscqc0hqakhcxdl9xum8mu87at0h"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 206028410,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ytkq525wkzk6ja9fu59nn4tc0260tzjch02k9ufcq07rgt0tcdcf"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 331282488,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4499j660ckxrnfa6mzkxaq503teqk8n67a4tvjytk803pe8nee4vv"
+     },
+     {
+      "amount": "47141461.383968820643919393",
+      "last_updated_at_state_version": 185779887,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t42mgf5vlkln4n2rwqe274jw5cnk47kr2jfsyxskttm7a0d6ce8kax"
+     },
+     {
+      "amount": "101287416.04665627356418415",
+      "last_updated_at_state_version": 185307215,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkjcqxh4ufmlyp9aaa000c7zuasg8luwdd9azdw9tujwdvst30t7fp"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 476329783,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4dsaa07eaytq0asfe774maqzhrakfjkpxyng2ud4j6y2tdm5l7a76"
+     },
+     {
+      "amount": "1956537.741710491105852714",
+      "last_updated_at_state_version": 184944632,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5z59zyn9tjzw9e6t7nlzrnpx49eg0c9mhpprszwmpd2ttnxdt0csl"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 253154727,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5uyf7s9rpde7pezhthsuygl0sk3gj0e09zzsvsmga69zxdd8y4lvq"
+     },
+     {
+      "amount": "84354713",
+      "last_updated_at_state_version": 182791288,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4l780r9utmnekr6sh20vfu87nsw92cs8r399r4jezwx4k5g4mrp2r"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 242808085,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4xly8qfg7lxjhptk7w0feuxpnkqu3sp0rtl3f7uave7w2ss39w609"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 199882835,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thva87lxne4z2qg74eh0sza0q4u7sk3x2ew5hdvhextdj0uexfsst3"
+     },
+     {
+      "amount": "38400000000",
+      "last_updated_at_state_version": 180795096,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4fya9a6f6eavrr44xlyxpwssq83q770f90ch6r2qcja8aq9eygr55"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 240756232,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t48nlyuqh3pyy7xhrdud7gag398sejyxnp8q9mu3hzp8dur4mefnta"
+     },
+     {
+      "amount": "47141461",
+      "last_updated_at_state_version": 214142065,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4zhahqu36n67095ys25chvjsfrhe2ma234fx3uu863vn7ytwmg5vp"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 275395085,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5s9ax6faex8dqjyg07l5tf20xmsnqcg604xrf687uqxnu7w3274p6"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 341242953,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5k9yfd7mkkwede5d66qauepm9vt2l605442mnjp0lcedupyel40hf"
+     },
+     {
+      "amount": "8627467",
+      "last_updated_at_state_version": 199237696,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tk8axnxm3nphywtxq9535p5qkv804luetmjj3gfmsyjklg8r0nj74h"
+     },
+     {
+      "amount": "50000000",
+      "last_updated_at_state_version": 178491348,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5c2yy9wx488swcjd2fdw645hea3s5sn0xygk7nwkdrye2afs2m3l5"
+     },
+     {
+      "amount": "32450929",
+      "last_updated_at_state_version": 178353630,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t50enkjq3k0lvg8dh4v3z7crw40xay97e5xzxs2436yfn5e53z83rv"
+     },
+     {
+      "amount": "16773024.35215375",
+      "last_updated_at_state_version": 178022828,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkrtptcw76rzfcmgvawv80780a4zmg8ljhu62kj92c7krnlxg4dk62"
+     },
+     {
+      "amount": "10000000",
+      "last_updated_at_state_version": 177979703,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1thapl0zv497t608jchm238fqdr0xxj3gfwwnq9hnlwaaymgdtpm74g"
+     },
+     {
+      "amount": "31756923743.42185623",
+      "last_updated_at_state_version": 177775317,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkaal53azemtfax0es4g6xfy9mpj2x683hh6fey7gm4lcj53u2h2lx"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 181831843,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5tadgg55gufeuhhl920sa3falc4gunkl5pwd57aah3j9nchwxtkha"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 238198040,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4q7rt40ptl0eh225uw8drzgeakgg5k20y02wmgk4tp8tgs4sckt4v"
+     },
+     {
+      "amount": "100000000",
+      "last_updated_at_state_version": 177166699,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkuydrl33nww3p8mr6wv5dsxpewjwd9rjtazuthscsjrankymy5n8m"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 287004443,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1theujy0gwa05u6qlez9u7gl3y8d8ruhd7gvy39hrcf9pkv3y9vzx3w"
+     },
+     {
+      "amount": "62712694.80267122022382332",
+      "last_updated_at_state_version": 176818920,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkj6879t6w4m5kw20y48qtn99asne48wevtdeznawjtlz595khp6py"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 238516885,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4mw39xk72aulhjszpktq3fgrddx7ylclpeup2nek0thu6560nr4xq"
+     },
+     {
+      "amount": "30468611",
+      "last_updated_at_state_version": 176644151,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkkzdmnltk389t2q5ge5hpl66x637yyejrmkk9sf579eqempp7l763"
+     },
+     {
+      "amount": "40000000",
+      "last_updated_at_state_version": 176620668,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4p2pa0s7thxjs5ap6chey34q02tgy9qdg0we6r784y48k4lezd7qy"
+     },
+     {
+      "amount": "49937116.97372593757371177",
+      "last_updated_at_state_version": 264832736,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5wuuwfg3uk2y5l88rya553t3v4zyepf7wjekphryw6yepedyf7pug"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 182832663,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t4vyxp9nn70km4x9f6atnpy744juyd5wcuw2fdrp4yj03lj8av5t96"
+     },
+     {
+      "amount": "1396309",
+      "last_updated_at_state_version": 176557132,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1tkgs3fwkpj83c0672xrlepn4y7pjy42hra94ag30qd9meeyjjg5ehp"
+     },
+     {
+      "amount": "0",
+      "last_updated_at_state_version": 240094841,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1t5ga4hl9ufj9zmjh8lqupdmesu60tl2zy5wnk28wsldgqd6xja4nyh"
+     }
+    ]
+   },
+   "non_fungible_resources": {
+    "total_count": 6,
+    "items": [
+     {
+      "amount": 0,
+      "last_updated_at_state_version": 369736045,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1ntpkcfe5ny37wk487ruuxj8wrgk6qg8rjq80m08un4yg98dmyj6msq"
+     },
+     {
+      "amount": 0,
+      "last_updated_at_state_version": 236835243,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1nfcf90emj9e2ujyuywwa0dsnqxlruar54gz4z7zjxmwtpx67xsrmnc"
+     },
+     {
+      "amount": 1,
+      "last_updated_at_state_version": 163756010,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1ngys4epecv8val7y4fjdanzherkjzxcj6e7c0dvxk7c7p3apr6q7zj"
+     },
+     {
+      "amount": 8,
+      "last_updated_at_state_version": 155798411,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1ng3vtr9f06vvzp2zjmg7pujtkkrcgrh72sls5d9jep0he9f0r7qrqh"
+     },
+     {
+      "amount": 1,
+      "last_updated_at_state_version": 151802087,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1n27w78l3ey3n984706szejny3j4jruxzu59njyglp7tgdjmgervz9s"
+     },
+     {
+      "amount": 117,
+      "last_updated_at_state_version": 400194073,
+      "aggregation_level": "Global",
+      "resource_address": "resource_rdx1nfkacdapa9j2wr6jj874f0x07shygxheaj5hew7a5c8348fth6e6vx"
+     }
+    ]
+   },
+   "metadata": {
+    "total_count": 1,
+    "items": [
+     {
+      "key": "dapp_definition",
+      "value": {
+       "raw_hex": "5c220801805197d24be3141ed28d1d579d53aa9a694e4c20616e7441803beb36418df9",
+       "programmatic_json": {
+        "variant_id": "8",
+        "fields": [
+         {
+          "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+          "kind": "Reference"
+         }
+        ],
+        "kind": "Enum"
+       },
+       "typed": {
+        "value": "account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy",
+        "type": "GlobalAddress"
+       }
+      },
+      "is_locked": false,
+      "last_updated_at_state_version": 113821636
+     }
+    ]
+   },
+   "details": {
+    "package_address": "package_rdx1p53g7gvj96xphlgeuzn4c4njlmrkvpqw94hxstrpdn4u2swu9t2qpp",
+    "blueprint_name": "TokenLockService",
+    "blueprint_version": "1.0.0",
+    "state": {
+     "kind": "Tuple",
+     "type_name": "TokenLockService",
+     "fields": [
+      {
+       "kind": "Reference",
+       "type_name": "ResourceAddress",
+       "field_name": "service_badge",
+       "value": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "UserService",
+       "field_name": "user_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nf2ddsqmp9n0y4kl8lgege709hxkemahpktdtzkcnay7l76upssq9f"
+        },
+        {
+         "kind": "U64",
+         "field_name": "latest_user_id",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "lock_eligible_discount_no",
+         "value": "0"
+        },
+        {
+         "kind": "U64",
+         "field_name": "vest_eligible_discount_no",
+         "value": "0"
+        }
+       ]
+      },
+      {
+       "kind": "Tuple",
+       "type_name": "LockResourceService",
+       "field_name": "lock_resource_service",
+       "fields": [
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "resource_manager",
+         "value": "resource_rdx1nfkacdapa9j2wr6jj874f0x07shygxheaj5hew7a5c8348fth6e6vx"
+        },
+        {
+         "kind": "Reference",
+         "type_name": "ResourceAddress",
+         "field_name": "address",
+         "value": "resource_rdx1nfkacdapa9j2wr6jj874f0x07shygxheaj5hew7a5c8348fth6e6vx"
+        }
+       ]
+      },
+      {
+       "kind": "Reference",
+       "type_name": "GlobalRadlockService",
+       "field_name": "radlock_service",
+       "value": "component_rdx1cptszkemad39h6avf03tz06new2ve80dfyr66ve9yyzdxvtt3j5kgs"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "service_auth",
+       "value": "internal_vault_rdx1tr8ra4lj0cj6q7z8wq5cvd5znyyp69mukj3ur0tx952y0gmgxlgvhn"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "locks",
+       "value": "internal_keyvaluestore_rdx1kqs4uugcxlkfxmspmw8qngcsu9hk34e5ee62cqnxzex7tshplnuw3h"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "lock_amount_withdrawn",
+       "value": "internal_keyvaluestore_rdx1kqku9c2ux6slg3xu6swuymq50qts24eadfjhgllrru08vdemny55tx"
+      },
+      {
+       "kind": "I64",
+       "field_name": "max_years",
+       "value": "10"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "storage_access_auth",
+       "value": "internal_vault_rdx1tzdlamy03k5eg6wx2ndsk0c2alm4ruaqdqtqvpf9s4g54qcmy69pge"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "latest_id_per_resource",
+       "value": "internal_keyvaluestore_rdx1kpjnmdhn9kchdt7cchqs23sfdldu82cqz37j55vu5xrf6vrr4r07c7"
+      },
+      {
+       "kind": "Own",
+       "type_name": "Vault",
+       "field_name": "locks_vault",
+       "value": "internal_vault_rdx1nr4mms7fmmjaxp2ahvgd58unwkdg0969ysdk74207tqu7hh3pr06k7"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "lp_token_pairs_vault",
+       "value": "internal_keyvaluestore_rdx1kzq4c0t7pww4run8dxsp5yy58dgyq8t6awffn3s873z0zdl3jp5tzr"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "lock_accounts",
+       "value": "internal_keyvaluestore_rdx1kp98vjswsn07ukctpteefv2acu5c86eza0atpurydmccdleu7cy5he"
+      },
+      {
+       "kind": "Own",
+       "type_name": "KeyValueStore",
+       "field_name": "whitelisted_resource",
+       "value": "internal_keyvaluestore_rdx1kqfc6u4u8xe9qx27j4gdmsxptse35r9uh3xsmuxh38uxmmftmyxct2"
+      }
+     ]
+    },
+    "role_assignments": {
+     "owner": {
+      "rule": {
+       "type": "Protected",
+       "access_rule": {
+        "type": "ProofRule",
+        "proof_rule": {
+         "type": "Require",
+         "requirement": {
+          "type": "Resource",
+          "resource": "resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff"
+         }
+        }
+       }
+      },
+      "updater": "None"
+     },
+     "entries": [
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "service_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "Resource",
+            "resource": "resource_rdx1t5rrujkldrzhrl4pu3ftt8hltdft8lrxcwqqv90nyu5exnhwu6k28m"
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Main",
+        "name": "storage_access_auth"
+       },
+       "assignment": {
+        "explicit_rule": {
+         "type": "Protected",
+         "access_rule": {
+          "type": "ProofRule",
+          "proof_rule": {
+           "type": "Require",
+           "requirement": {
+            "type": "Resource",
+            "resource": "resource_rdx1thy5r0vgfk7gckjcsrld9jlmasd95mvckyffwkwdpplx0av582as3t"
+           }
+          }
+         }
+        },
+        "resolution": "Explicit"
+       },
+       "updater_roles": []
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_locker_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_locker_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      },
+      {
+       "role_key": {
+        "module": "Metadata",
+        "name": "metadata_setter_updater"
+       },
+       "assignment": {
+        "resolution": "Owner"
+       },
+       "updater_roles": [
+        {
+         "module": "Metadata",
+         "name": "metadata_setter_updater"
+        }
+       ]
+      }
+     ]
+    },
+    "type": "Component"
+   }
+  }
+ ]
+}

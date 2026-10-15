@@ -1,0 +1,206 @@
+{
+  "campaign": "radix-residual / zombie-hunt II / lockers",
+  "date": "2026-10-15",
+  "xrd_price_usd": 0.0004519403550191712,
+  "xrd_price_source": "DefiLlama coingecko:radix (2026-10-15)",
+  "method": "Radix Gateway public reads + /transaction/preview simulations (never signed/submitted); source review (JustLock); live frontend bundle config (RadLock addresses); empirical signature probing via type-check errors",
+  "targets": [
+    {
+      "name": "JustLock Locker",
+      "components": ["component_rdx1cpae8nqhyeu2pz6z89vwca8085xels52lhsfrutnvagxz53u3p4yvl"],
+      "package": "package_rdx1p4k2vlr6rejahqfdazv2qff7dl5d88dxkpechapfx77exgv96wu8mk",
+      "state_version": 563365553,
+      "paths": [
+        {
+          "name": "unlock foreign/other lock without receipt",
+          "verdict": "E-U",
+          "usd": 0,
+          "confidence": "high",
+          "gate": "unlock requires a Bucket of the LockReceipt resource (resource_rdx1nfajj55xgl6dm4ecfv9hru2xnr45ydtuuecs7phgvctuarcvzcrkr6) presented by the caller; receipts only minted to the lock depositor (global_caller(this)); used receipts go to used_lock_receipts vault which has NO withdrawal method; only lock/unlock exist; no fees/royalties",
+          "evidence": [
+            "N1: fresh account withdraw receipt -> Failed AccountError(VaultDoesNotExist{resource_rdx1nfajj55...})",
+            "N2: unlock with empty receipt bucket -> Succeeded, no events",
+            "N4: CALL_METHOD locker 'withdraw' -> Failed BlueprintPayloadDoesNotExist",
+            "D: unlock with 1 XRD bucket -> PanicMessage(\"Invalid lock receipts @ src/lib.rs:200:13\")",
+            "receipt resmgr roles: minter=require(global_caller(locker)), minter_updater=DenyAll, burner=DenyAll, nf_data_updater_updater=DenyAll; owner badge only has Metadata roles",
+            "A: full lock->unlock round trip Succeeded (EventLock, EventUnlock) for receipt holder"
+          ]
+        },
+        {
+          "name": "time-locked receipts held by users (H-O recoverable by receipt holders)",
+          "verdict": "H-O",
+          "usd": 65700,
+          "usd_note": "nominal: ~$43.7k Astrolescent-priced + sREDDICKS 67.6M ~$22.0k (pool-implied 1 sREDDICKS~1.052 DCKS); DCKS-family ~92% and liquidity-bound (Ociswap DCKS/XRD pool has ~6.04M XRD depth)",
+          "confidence": "class high / price medium",
+          "gate": "holder of the LockReceipt NFT can call permissionless unlock once current >= unlockable_at (173 locks; many already past unlock time)",
+          "evidence": [
+            "live lock table jl_summary.json / jl_valuation.json",
+            "C: future unlock -> panic with timestamp (time gate works)",
+            "holder discovery: unlock attempts by receipt-holders succeed where receipts are unlockable-now (e.g. account_rdx128j5fvp... EventUnlock #239)"
+          ]
+        },
+        {
+          "name": "forever locks (unlockable_at = None)",
+          "verdict": "S",
+          "usd": 121620.59,
+          "usd_note": "nominal; 402,296,722 DCKS ~ $120.9k dominates (Astrolescent last price; thin liquidity)",
+          "confidence": "high",
+          "gate": "contract assert requires unlockable_at.is_some(); receipt resmgr minter/updater roles are DenyAll so no replacement receipt can ever be minted, even by the owner badge",
+          "evidence": [
+            "B: lock(None) then unlock -> PanicMessage(\"Item can not yet be unlocked, unlockable at: None @ src/lib.rs:216:17\")",
+            "30 live locks with unlockable_at=None; receipt holders' unlock attempts panic with the same message"
+          ]
+        },
+        {
+          "name": "owner badge abilities (metadata only)",
+          "verdict": "P",
+          "usd": 0,
+          "confidence": "high",
+          "gate": "owner badge resource_rdx1t4fh3lqvn0qrwnzl059enrfh2046spv5u6eg6tq2jgaw9eu7yn9cg5 held by account_rdx12xthsg9usgcewtwszlcs5y02wwp6sl6teufwhk8hsuq3q840wajtt; component exposes only Metadata owner roles; no value-moving owner method",
+          "evidence": ["role_assignments from jl_component_raw.json / jl_receipt_res_raw.json"]
+        }
+      ],
+      "totals": {"E-U": 0, "H-O": 65700, "P": 0, "S": 121620.59}
+    },
+    {
+      "name": "RlyFun EarlyCurves + EarlyPump",
+      "components": ["1166 EarlyCurves components", "EarlyPump component_rdx1cz78ld4409v7l8nawmeqr6wj4f5nvmpzdaulwpdqg3hps56mmgzzmy"],
+      "package": "package_rdx1p56v9ljlxygqafjlmdd7m9k8u6c02gwjk0zy5gf5etsddng30xxvn9",
+      "registry_kvs": "internal_keyvaluestore_rdx1krtyftm7ly5fcwj7p9n4ksan9atxcvwhdpg3mnuc42atsdtc5nyu3v",
+      "state_version": 563379000,
+      "paths": [
+        {
+          "name": "sell/buy with foreign token (curve drain)",
+          "verdict": "E-U",
+          "usd": 0,
+          "confidence": "high",
+          "gate": "curve vaults reject foreign resources implicitly (InvalidDropAccess); sell returns XRD only for the curve's own token",
+          "evidence": [
+            "S2: sell 1,000,000 DCKS on COKE curve -> Failed SystemError(InvalidDropAccess ...)",
+            "F3: buy with 1,000,000 DCKS -> Failed InvalidDropAccess",
+            "S1: sell 100 COKE -> Succeeded, 0.0181876 XRD (0.99x last price)"
+          ]
+        },
+        {
+          "name": "buy->sell round trip",
+          "verdict": "E-U",
+          "usd": 0,
+          "confidence": "high",
+          "gate": "fees (2.5% dev + 1% platform + 1% jeety + 0.9% bull) prevent round-trip profit",
+          "evidence": ["F4: buy 10 XRD -> 53,937.42 COKE -> sell -> 9.8109 XRD back (-1.89%)"]
+        },
+        {
+          "name": "curve XRD reserves (640 curves)",
+          "verdict": "market-liquidity",
+          "usd": 551.31,
+          "usd_note": "1,219,862.44 XRD total; AMM reserve for token holders, not extractable by an attacker and not a recoverable position",
+          "confidence": "high",
+          "gate": "buy/sell mechanics only; no admin/creator path; set_curve_filled() is a no-op on filled curves and panics on unfilled",
+          "evidence": [
+            "F1: set_curve_filled() on filled curve -> Succeeded, no value events",
+            "set_curve_filled on unfilled -> panic 'EarlyCurve is not yet fulfilled @ src/valhalla.rs:349:13'",
+            "F2: buy_from_pool 1 XRD -> SwapEvent 0.99 XRD -> tokens (market price)"
+          ]
+        },
+        {
+          "name": "EarlyPump fee vault claim_fee",
+          "verdict": "P",
+          "usd": 286.28,
+          "usd_note": "633,433.343807393 XRD in fee_vault (check_fee_vault() getter); early_fee_vault 14,280 EARLY not USD-priced",
+          "confidence": "high",
+          "gate": "proof of the pump OWNER badge required; E-U attempt with a freshly minted dev badge explicitly rejected",
+          "evidence": [
+            "E-U attempt: launch(...) fresh token+dev badge then claim_fee(devproof) -> PanicMessage(\"Invalid proof: Expected ResourceAddress(9aedd18556ebd70d787a2bf8854a5ad4e0d8400039f161c1d8146e61f891) but got ResourceAddress(9a23a51ac3d05761850e714a015c026388b4155d69d8663242c80dd3dc6b (=dev badge))\")",
+            "control: claim_fee(owner-badge proof) Succeeded: resource changes -633433.3438073930709526 from fee vault, +same to caller account_rdx1280jw5unz0w3ktmrfpenym6fjxfs7gqedf2rsyqnsgc888ue66ktwl"
+          ]
+        }
+      ],
+      "totals": {"E-U": 0, "H-O": 0, "P": 286.28, "S": 0},
+      "note": "dev_claim_reward / claim_lp_fees / buy_pre require a dev-NFT proof per live frontend manifests; not attacker-accessible"
+    },
+    {
+      "name": "RadLock",
+      "components": [
+        "component_rdx1cptszkemad39h6avf03tz06new2ve80dfyr66ve9yyzdxvtt3j5kgs (RadlockService)",
+        "component_rdx1crn49lcmzyuqpz4lgx8fulegk4pdzjz89lhegs4g5attrgxqjp4amc (TokenLockService proxy)",
+        "component_rdx1cp7vsz98w06urq3n00rf9xz9jrlppyk0sukqrm4kvqvkjwucne6puh (TokenVestService proxy)",
+        "component_rdx1cqvjerqdt5lmfqhzekhxzjm0dyjmr6d29rra843cxqk9z6epva2xwa (LOCK logic v4)",
+        "component_rdx1cp0vessexwwrfvs3e7al93xkyjef9yj4tffprw72mnpenh5k5rn5er (VEST logic v4)"
+      ],
+      "packages": {
+        "original_from_brief": "package_rdx1pk65frtcahcv0tnllnmucshajj7jl2q3nga0ds9de900nh9yc7vtsq",
+        "live_proxy": "package_rdx1p53g7gvj96xphlgeuzn4c4njlmrkvpqw94hxstrpdn4u2swu9t2qpp",
+        "live_logic": "package_rdx1p4pz6ws6atcedpn3lw3lrcjen8as7amdg4snp6snhhc3uwgfyjzz3r"
+      },
+      "recovery": "components recovered from the live app.radlock.io bundle config (chunk-53QNWZMU.js RESOURCES_AND_COMPONENTS) and verified on-ledger; v2 architecture = storage proxy components + versioned logic components (service_versions KVS)",
+      "state_version": 563383451,
+      "paths": [
+        {
+          "name": "withdraw a lock the attacker does not own",
+          "verdict": "E-U",
+          "usd": 0,
+          "confidence": "high",
+          "gate": "LOCK logic withdraw signature: withdraw(lock_proof: own, lock_ids: option/array, user_proof: own) — requires two caller-owned proofs/buckets (Locked-Resource receipt NFT + user badge); proxy TokenLockService.method_call requires storage_access_auth badge (supply 4, held only by RadLock components)",
+          "evidence": [
+            "type-error probes reveal fields [0|lock_proof]: expected Own, [2|user_proof]: expected Own",
+            "fresh account TokenLockService.method_call -> Unauthorized{ role storage_access_auth, requires resource_rdx1thy5r0vgfk7gckjcsrld9jlmasd95mvckyffwkwdpplx0av582as3t }",
+            "withdraw_auth_badge / deposit_auth_badge -> Unauthorized{ role component_auth, NonFungible requirement }"
+          ]
+        },
+        {
+          "name": "fee vault withdrawals (withdraw_flat_xrd_fees / withdraw_liquidity_fees)",
+          "verdict": "P",
+          "usd": 4.75,
+          "usd_note": "xrd_fee_vault = 10,500 XRD (public getter); percentage_fee_vault KVS has 200 per-resource vaults, not individually priced",
+          "confidence": "high",
+          "gate": "hard role admin_auth = proof of admin badge resource_rdx1th5shllnhx33m5jkcqxsrgztp72yuxpg54cyxj2vcj3lpdup7f33ff (supply 1, held by RadLock dApp account account_rdx12xtayjlrzs0d9rga27w48256d98ycgrpde6yrqpmavmyrr0e4svsqy)",
+          "evidence": [
+            "get_xrd_fee_vault() -> Succeeded, output Decimal 10500",
+            "withdraw_flat_xrd_fees() fresh -> Unauthorized{ role admin_auth, requires resource_rdx1th5shl... }",
+            "withdraw_liquidity_fees() fresh -> Unauthorized{ role admin_auth }"
+          ]
+        },
+        {
+          "name": "user locks (316 live Locked Resource NFTs)",
+          "verdict": "H-O",
+          "usd": 115615.24,
+          "usd_note": "nominal Astrolescent prices; top ASTRL 17.2M ~$58.5k, BEER 487M ~$37.5k, XRD 8.05M (50 locks) ~$3.6k, DELIVER ~$3.2k, WOWO ~$2.6k; 100 tokens unpriced; thin liquidity",
+          "confidence": "class high / price medium",
+          "gate": "Locked-Resource NFT holder (+ user badge proof) withdraws after unlock_timestamp; 33 locks already expired/unlockable; admin cannot take user locks via public methods",
+          "evidence": [
+            "426 Locked Resource NFTs (316 Locked, 110 Withdrawn), unlock timestamps in NFT data",
+            "per-lock vaults in TokenLockService.locks KVS (266 entries)"
+          ]
+        }
+      ],
+      "totals": {"E-U": 0, "H-O": 115615.24, "P": 4.75, "S": 0}
+    }
+  ],
+  "key_facts": [
+    "JustLock unlock is permissionless but requires possession of the LockReceipt NFT; used receipts are locked in an unwithdrawable vault; receipt resmgr mint/update roles are DenyAll (no forgery, no owner override)",
+    "JustLock forever locks (unlockable_at=None) are provably stuck for EVERYONE (panic reproduced in preview; no replacement receipt possible)",
+    "RlyFun claim_fee moves the entire 633,433 XRD EarlyPump fee vault to the holder of the pump owner badge (P); a self-minted dev badge is rejected by an explicit resource check",
+    "RlyFun curve reserves cannot be drained with foreign tokens (vault-level DropAccess protection) and round-trips are fee-negative",
+    "RadLock live system is the v2 proxy/logic deployment (NOT the package in the brief); all value paths are badge-role gated: admin badge (supply 1, dApp account), storage_access_auth (supply 4, components only), component_auth (component badge)",
+    "RadLock user withdrawals require two owned proofs (receipt NFT + user badge); ~$115.6k nominal sits in user locks recoverable only by their holders after unlock time",
+    "Public gateway stream filter field is affected_global_entities_filter (not filter); package addresses only register on publish/upgrade transactions"
+  ],
+  "negatives": [
+    "JustLock N1 fresh account withdraw receipt -> AccountError(VaultDoesNotExist)",
+    "JustLock N2 empty receipt bucket unlock -> Succeeded no-op",
+    "JustLock N4 locker 'withdraw' -> BlueprintPayloadDoesNotExist",
+    "JustLock D foreign bucket -> PanicMessage Invalid lock receipts (src/lib.rs:200:13)",
+    "JustLock B None lock -> PanicMessage unlockable at: None (src/lib.rs:216:17)",
+    "JustLock C future lock -> PanicMessage unlockable at Some(2082700000)",
+    "RlyFun sell foreign DCKS -> InvalidDropAccess",
+    "RlyFun buy foreign DCKS -> InvalidDropAccess",
+    "RlyFun launch+dev-badge claim_fee -> PanicMessage Invalid proof: Expected 9aedd185... but got 9a23a51a...",
+    "RlyFun buy 10 XRD then sell -> 9.8109 XRD back (fee-negative)",
+    "RadLock withdraw_flat_xrd_fees fresh -> Unauthorized admin_auth",
+    "RadLock withdraw_liquidity_fees fresh -> Unauthorized admin_auth",
+    "RadLock TokenLockService.method_call fresh -> Unauthorized storage_access_auth",
+    "RadLock TokenVestService.withdraw_auth fresh -> Unauthorized admin_auth",
+    "RadLock LOCK logic withdraw 3-field signature requires Own lock_proof + Own user_proof"
+  ],
+  "totals_overall": {"E-U": 0, "H-O": 181315.24, "P": 291.03, "S": 121620.59, "market_liquidity": 551.31}
+}
