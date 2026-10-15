@@ -1,0 +1,51 @@
+{
+  "finding": "hashmix-fil",
+  "title": "HashMix FIL (cWFIL) V1/V2 pools on Filecoin FEVM — fresh-attacker extractable $0; live value is holders' redeemable claim (H-O) + feeCollector-controlled reserves (P)",
+  "chains": ["filecoin"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.00,
+    "H-O": 1467.61,
+    "P": 528.53,
+    "S": 0.00
+  },
+  "latest_block": 6457181,
+  "block_numbers": {"filecoin": 6457181},
+  "targets_checked": 20,
+  "live_targets": 3,
+  "closed_reasons": [
+    "V1 pool privileged functions (_reduceReserves, _addReserves, _setReserveFactor, sweepToken) require msg.sender == feeCollector EOA 0xD59060790f28EcD10Be2d23cEc88a39461A8d0cd (decompiled bytecode; fork-verified revert for attacker)",
+    "borrowBehalf / repayBorrowBehalf on the pool require msg.sender == controller 0xFA33F3866e7eF32F79734BCC5e011d767F8E574b; controller.borrow requires ownership of the miner-certificate NFT (NotAllowed() otherwise)",
+    "updateFeeCollector on the pool requires msg.sender == controller; controller.setFeeCollector/5a446a28 are OnlyAdmin (admin = timelock/multisig 0x358Cc936fc3035A49E02d670Ec9b8E0061E97979)",
+    "controller.initialize reverts (OpenZeppelin Initializable already initialized); unmatched selectors hit a no-op fallback (0xdeadbeef behaves identically)",
+    "EIP-2612 permit validates ECDSA signatures (forged permits revert); redeem requires cWFIL balance (burn exceeds balance otherwise); mint is a deposit (mint(0) + msg.value, historical convention)",
+    "Full selector sweep from a fresh attacker: all 46 pool + 33 controller selectors produce no FIL gain (only views, zero-amount no-ops, accrueInterest, and the no-op fallback succeed)",
+    "V2 pool has the same Compound-fork gating; _reduceReserves/sweepToken/updateFeeCollector revert for the attacker"
+  ],
+  "poc": {
+    "tests_passed": 27,
+    "tests_total": 27,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38692193294"]
+  },
+  "key_facts": [
+    "V1 pool 0x587A7eaE9b461ad724391Aa7195210e0547eD11d is the cWFIL ERC-20 itself (name/symbol cWFIL, 18 dec) with native FIL underlying (underlying()=0x0); NOT a proxy; 22,338-byte Compound-v2 cToken fork (solc 0.8.18), source unverified (Blockscout/Sourcify), audited repo HashMixProject/hashmix-fevm is 404",
+    "V1 pool cash = 1,581.864473017953114284 FIL = holders' claim 1,099.186236557782 FIL (102,637.9610674784 cWFIL x exchangeRate 0.010709353782224222) + reserves 482.678236460184996056 FIL; totalBorrows ~0.000000014 FIL; dormant since 2024-02-23 (accrualBlockNumber 3,678,820)",
+    "12 cWFIL holders; largest 0x256fA19F49661d166D58d9CF8D23c60711535413 holds 97,341.44 cWFIL (94.84%, 1,042.46 FIL); a live fork test redeemed 973.414 cWFIL for 10.424638998325516102 FIL (H-O path works)",
+    "V2 pool 0x85e77391C3dDe4fee572A79CFef7f710c7476f82: cash 241.09629576477042 FIL, totalBorrows 560.5718224714605 FIL, reserves 0.0000759 FIL, totalSupply 75,729.43577725258 cWFIL, exchangeRate 0.010585950286250716; same feeCollector EOA; controller 0x10D81c7a... (impl 0x8f468C3e... upgraded 2025-04-11)",
+    "Privilege chain: pool privileged role = feeCollector EOA 0xD590... (can drain 482.678 FIL reserves; fork-verified 1 wei); controller admin = timelock/multisig 0x358Cc936... (fork-verified setFeeCollector succeeds); ProxyAdmin 0x13ce9eB1... owner = deployer EOA 0x06A4c652... (can upgrade the controller)",
+    "Controller storage layout (decompiled): admin @slot52, feeCollector @slot53, pool @slot55, minter @56, loanNFT @57, minter-registry @58, core @59; all admin functions revert OnlyAdmin()",
+    "Complete pool history: 282 txs, only mint/redeem/redeemUnderlying/transfer by users plus one accrueInterest (2023-05-29) and one _reduceReserves (2023-05-26, from EOA 0xcF89b3A29499229E35d4fe71dFE54BEC2C1EbA48); no activity since 2024-02-23",
+    "stFIL (0x3C3501E6c353DbaEDDFA90376975Ce7aCe4Ac7a8) is a separate protocol (STFIL DAO, April 2024 incident, ~2.27M FIL at f410falck...); zero on-chain linkage to HashMix",
+    "Total HashMix-related on-chain FIL ~1,826.06 (V1 pool 1,581.86 + V2 pool 241.10 + feeCollector 0.235 + deployer 2.81 + others); USD at FIL=$1.095 (CoinGecko 2026-10-15)"
+  ],
+  "caveats": [
+    "Contract source is private; conclusions rest on bytecode decompilation (panoramix) cross-checked by live fork behavior; positive controls (feeCollector drains 1 wei, multisig re-points feeCollector, holder redeems) confirm the guard semantics",
+    "H-O = liquid self-service now: V1 holders 1,099.19 FIL + V2 cash 241.10 FIL; V2 holders' full claim is 801.67 FIL, of which 560.57 FIL depends on SP loan repayment (borrowers hold miner-certificate NFTs)",
+    "P = V1 reserves 482.68 FIL controlled by the feeCollector EOA; V2 reserves are ~0.000076 FIL",
+    "Fork tests used latest block (no pin); each test logs its fork block (~6,457,12x-6,457,18x)",
+    "USD conversion at FIL=$1.095 (CoinGecko 2026-10-15); triage used $1.1037 (DefiLlama 2026-10-11)",
+    "Latent (not E-U): feeCollector EOA key compromise would drain reserves; deployer EOA still owns the controller ProxyAdmin (upgrade risk)"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live from HashMix FIL (high confidence): the V1 pool's 1,581.86 FIL is exactly holders' redeemable cWFIL claim (1,099.19 FIL, H-O) plus feeCollector-controlled reserves (482.68 FIL, P) — every payout path is gated by feeCollector/controller roles or miner-certificate ownership, and a full 46+33 selector sweep from a fresh attacker yields no FIL."
+}
