@@ -1,0 +1,85 @@
+{
+  "finding": "gnosis-residual / 1Hive Gardens v2 (zombie-hunt II)",
+  "chain": "gnosis",
+  "latest_block": 48767754,
+  "block_numbers": {"gnosis": 48767754},
+  "targets": {
+    "cv_pool_27_strategy": "0x9Fb2f1813228a97f559E29A6492EE27357FAF8A2",
+    "registry_community_1hive": "0xE2396fe2169ca026962971d3B2E373Ba925B6257",
+    "garden_token_HNY": "0x71850b7E9Ee3f13Ab46d67167341E4bDc905Eef9",
+    "allo": "0x1133eA7Af70876e64665ecD07C0A0476d09465a1",
+    "registry_factory": "0x08Df82f74D1f56F650E98da2dd4240F1A31711bc",
+    "global_pause_controller": "0xce853207ce3e16e268f572ea982801b8045f0afc"
+  },
+  "hny_usd": 0.978918,
+  "live_values_hny": {
+    "pool_27_balance": 5496.398014,
+    "pool_27_usd": 5380.52,
+    "registry_community_balance": 5694.657446,
+    "registry_community_usd": 5574.65,
+    "member_stake_reconciliation_diff": 0.0,
+    "total_points_activated": 5069.627792,
+    "pool_threshold_points": 5073.182611,
+    "cv_params": {"maxRatio": 8160578, "weight": 998926, "decay": 9999958, "minThresholdPoints": "100e18"},
+    "point_system": "Unlimited",
+    "allowlist_open_to_all": true,
+    "isKickEnabled": false,
+    "pause_wired": false,
+    "proposals": {"total": 4, "cancelled": 3, "executed": 1, "active": 0}
+  },
+  "categories": {
+    "E-U": 0,
+    "E-U_conditional_holder_funded_usd": 800,
+    "H-O": 5755.66,
+    "P": 645.16,
+    "S": 31.01
+  },
+  "headline": "E-U fresh-attacker net = $0 (conviction-drain path is LIVE and permissionless, but required stake S_min ~ 1.0-1.7x X and total usable HNY market depth $4.7k-11k make round-trip costs exceed the take: realistic net -$291..-$832, best-case +$174, worst -$2007). One-shot cap X < 0.5*F = 2748 HNY ($2690). Holder-funded variant ~ +$800 (X=1000) for holders of >=1676 HNY; blocked trivially by council setPoolParams (P).",
+  "key_numbers": {
+    "x_cap_feasible_hny": 2748,
+    "x_cap_usd": 2690,
+    "s_min_for_x1000_hny": 1676,
+    "wait_days_at_min": 167,
+    "wait_days_at_1_25x": 22,
+    "hny_dex_depth_total_hny": 11202,
+    "hny_dex_depth_liquid_hny": 4845,
+    "round_trip_net_realistic_usd": {"x250_s1025": -291, "x500_s1189": -324, "x1000_s1676": -832},
+    "round_trip_net_optimistic_usd": {"x500_s1189": 127, "x1000_s1676": 174},
+    "round_trip_net_pessimistic_usd": {"x500_s1189": -770, "x1000_s1676": -2007}
+  },
+  "gates_open": [
+    "stakeAndRegisterMember is permissionless (3 HNY, 0 fees)",
+    "activatePoints self-service; ALLOWLIST||27 granted to address(0) (open) and never revoked; verified by successful eth_call from non-activated member",
+    "proposal creation requires membership + 20 xDAI refundable collateral only",
+    "allocate support gated only by own power",
+    "Allo.distribute permissionless; verified reaches strategy gate (ProposalNotActive on executed P4)"
+  ],
+  "gates_closed": [
+    "economics: S_min ~= 1.0-1.7x X; X < 0.5*F = 2748 HNY; HNY market too thin -> round-trip cost > take",
+    "time: 22 days (1.25x stake) to ~167 days (S_min)",
+    "griefable: any member restaking raises T; council setPoolParams (P) can raise threshold arbitrarily",
+    "RC collateral: only self-unstake; kick council-only and disabled; balance reconciles exactly with member stakes",
+    "no permissionless mint (MiniMe controller = 1Hive DAO agent)",
+    "no flash-loan route (multi-week lockup); no HNY lending market found"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": [], "note": "poc not required: no positive-EV path to prove; math validated exactly against on-chain calculateProposalConviction and historical P4 execution"},
+  "caveats": [
+    "Gnosis 5s blocks assumed",
+    "non-stable counter-assets modelled at pool parity; optimistic row overstates routability",
+    "holder-funded net assumes patient liquidation",
+    "HNY price 0.978918 USD (DefiLlama 2026-10-15)"
+  ],
+  "evidence_files": [
+    "analysis/gardens-live-state.json",
+    "analysis/gardens-logs-transfers.json",
+    "analysis/gardens-enumeration.json",
+    "analysis/gardens-communities.json",
+    "analysis/gardens-pool-balances.json",
+    "analysis/gardens-math-constants.json",
+    "analysis/gardens-attack-sim.json",
+    "analysis/gardens-hny-liquidity.json",
+    "analysis/gardens-market-cost.json",
+    "analysis/gardens-market-final.json",
+    "analysis/gardens-v2.md"
+  ]
+}

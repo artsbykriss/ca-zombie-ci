@@ -1,0 +1,59 @@
+{
+  "section": "10. Sibling sDAI pools (8 & 67)",
+  "date": "2026-10-15",
+  "chain": "gnosis",
+  "blocks": [48768354, 48768370, 48768396, 48768532, 48768818],
+  "read_only": true,
+  "targets": {
+    "pool8_strategy": "0xaa0195986ffe8f3371444fa77ee3ed04ac787eea",
+    "pool67_strategy": "0x96dee4849a6ab9e51ae36712794318001515dc91",
+    "registryCommunity": "0xE2396fe2169ca026962971d3B2E373Ba925B6257",
+    "sdai": "0xaf204776c7245bF4147c2612BF6e5972Ee483701",
+    "sdai_supertoken": "0xd30aa2f6fc32c4dc8bf3bd5994d89c8f9e81fcd1",
+    "allo": "0x1133eA7Af70876e64665ecD07C0A0476d09465a1"
+  },
+  "sdai_usd": 1.2617,
+  "hny_usd": 0.978918,
+  "live_state": {
+    "pool8": {"getPoolAmount_sdai": 1309.876004, "balance_sdai": 1308.804032, "supertoken_sdai": 1.071971,
+              "usd": 1652.73, "pointSystem": "Quadratic(3)", "totalPointsActivated": 132.3489,
+              "proposalCounter": 32, "activeProposalCount": 0,
+              "cvParams": {"maxRatio": 1.2880072, "weight": 0.0829481, "decay": 0.9999939, "minThresholdPoints": 10},
+              "arbitrableConfig": {"arbitrator": "0x92bc0af737f55ff7b677cd942aafd52934fc751d", "tribunalSafe": "0x1b8c7f06f537711a7caf6770051a43b4f3e69a7e",
+                "submitterCollateral": "10 xDAI", "challengerCollateral": "10 xDAI", "defaultRuling": 1, "timeout": "7d", "version": 2}},
+    "pool67": {"getPoolAmount_sdai": 10545.18, "balance_sdai": 8599.061575, "supertoken_sdai": 1945.98,
+              "usd": 13304.85, "pointSystem": "Quadratic(3)", "totalPointsActivated": 122.6874,
+              "proposalCounter": 21, "activeProposalCount": 0,
+              "cvParams": {"maxRatio": 1.6321157, "weight": 0.3995702, "decay": 0.9999939, "minThresholdPoints": 19},
+              "arbitrableConfig": {"arbitrator": "0x92bc0af737f55ff7b677cd942aafd52934fc751d", "tribunalSafe": "0xc6c2e9efb898a42db4137b07b727b45e0c353d81",
+                "submitterCollateral": "10 xDAI", "challengerCollateral": "10 xDAI", "defaultRuling": 1, "timeout": "7d", "version": 1}}
+  },
+  "e_u_verdict": {
+    "net_positive_fresh_attacker": false,
+    "reason": "ALLOWLIST role gate closed: hasRole(keccak('ALLOWLIST'||poolId), address(0)) = false for pools 8 and 67 (true for pool 27). Only 15 explicitly listed member EOAs can activatePoints()/allocate(); every probe from non-listed members reverts UserCannotExecuteAction(0xeee56a60); role admin held by the strategies -> only council/owner can change the list.",
+    "confidence": "high",
+    "counterfactual_if_allowlist_open": {
+      "net_positive": true,
+      "pool67_best_realistic_x4000": {"X_sdai": 4000, "X_usd": 5046.80, "S30_hny": 1915, "capital_usd": 3109, "wait_days": 30, "net_real_usd": 3278.31, "net_opt_usd": 4375.59},
+      "pool8_best_realistic_x750": {"X_sdai": 750, "X_usd": 946.27, "S30_hny": 715, "capital_usd": 823, "wait_days": 30, "net_real_usd": 731.22, "net_opt_usd": 852.49},
+      "binding_constraint_after_allowlist": "HNY DEX depth ($4.7k liquid / $11.2k all pools) + quadratic stake scaling"
+    }
+  },
+  "h_o_p_exposure": {
+    "total_at_risk_usd": 14957.6,
+    "largest_single_key": {"address": "0x809c9f8dd8ca93a41c3adca4972fa234c28f7714", "stake_hny": 4000, "points": 63.25,
+      "max_drain_30d_sdai": 8852.6, "max_drain_30d_usd": 11169, "asymptote_usd": 11442},
+    "second": {"address": "0xa25211b64d041f690c0c818183e32f28ba9647dd", "max_drain_30d_usd": 3478},
+    "allowlist_holders": 15,
+    "historical": {"pool8_executed": "25/32 (4466.26 sDAI)", "pool67_executed": "19/21 (48202.32 sDAI)"}
+  },
+  "gates": {
+    "agreement_0x59a15718": "getDisputableInfo(strategies 8/67/27) = (false,0) - CV strategies NOT registered; the id-3 / 6.061864241695410850 HNY / 3-day requirement belongs to the old ConvictionVoting app 0x0b21081c6f8b1990f53fc76279cc41ba22d7afe2 (verified (true,3))",
+    "celeste_0x44E4fCf": "AragonCourt live but NOT wired to CV pools (0 logs in last ~200k blocks); CV arbitrator = gardens proxy 0x92bc0af737f55ff7b677cd942aafd52934fc751d (impl 0x106fA428c8D0BB19136A03DC024f1a48e4daBe31, unverified)",
+    "dispute": "member-only challenge (10 xDAI + arb fee); Disputed -> distribute blocked; defaultRuling=1 after 7d -> Active (delay, not block); zero disputes ever on pools 8/67/27",
+    "council": "setPoolParams onlyCouncilSafe (can raise thresholds/close allowlist); isKickEnabled=false; pauseController=0; owner 0x00BcC26e792E393217bA895f5e85AE628FC994E9; syncPower reverts SyncDisabledForInternalRegistry"
+  },
+  "files": ["gardens-sdai-live.json", "gardens-sdai-allowlist.json", "gardens-sdai-allowlist-probes.json",
+            "gardens-sdai-params-live.json", "gardens-sdai-attack-sim.json", "gardens-sdai-insider.json",
+            "sdai_read.py", "sdai_allowlist.py", "sdai_probes.py", "sdai_attack_sim.py", "sdai_insider_sim.py"]
+}

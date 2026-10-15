@@ -1,0 +1,116 @@
+{
+ "model": "constant-product (UniV2, 0.3% fee) across all HNY pools on Gnosis; attacker buys S HNY, holds for accrual, sells S back (round trip ~0.4% loss), then sells extracted R HNY into pools. Sell-side quote tokens converted to USD with realizability weights (WXDAI/WETH/WBTC=1.0, LINK .95, FOX .90, AGVE .85, BREAD .88, EURe/USDT .95, BRIGHT/GIV .40, UNI .35, dead tokens .02-.30).",
+ "date": "2026-10-15",
+ "blocks": "48767111 (state), pool reserves same",
+ "params": {
+  "vault_HNY": 21398.66,
+  "vault_after_permissionless_refill": 22628.98,
+  "supply": 76660.26,
+  "T_floor_20pct_supply": 15332.05,
+  "max_request_per_CV_proposal": 4525.8,
+  "HNY_usd": 0.978918
+ },
+ "conviction_math": {
+  "S_min_formula": "S_min(R) = 1e-3 * T / (0.2 - R/F)^2  [HNY]; need S > S_min; time to conviction t = ln(rho/(rho-1))/2.01e-5 blocks with S = rho*S_min; rho=1.1 -> ~6.9 days, rho=2 -> ~2.0 days (5s blocks)",
+  "S_min_table": {
+   "500": 484.4,
+   "750": 550.7,
+   "1000": 631.6,
+   "1500": 857.5,
+   "2000": 1230.6,
+   "2500": 1913.1,
+   "3000": 3372.4,
+   "3500": 7461.2,
+   "4000": 28398.5
+  }
+ },
+ "cv_path_realistic": {
+  "note": "S=1.1*S_min held ~6.9 days; buy/sell back from 16 buyable pools (11,408 HNY inventory); loot sold into all pools with weights",
+  "rows": [
+   {
+    "R": 1000,
+    "S": 694.7,
+    "buy_usd": 724,
+    "sellback_usd": 720,
+    "loot_usd": 844,
+    "net_usd": 840
+   },
+   {
+    "R": 1500,
+    "S": 943.3,
+    "buy_usd": 1006,
+    "sellback_usd": 1001,
+    "loot_usd": 1209,
+    "net_usd": 1204
+   },
+   {
+    "R": 2000,
+    "S": 1353.7,
+    "buy_usd": 1503,
+    "sellback_usd": 1495,
+    "loot_usd": 1545,
+    "net_usd": 1536
+   },
+   {
+    "R": 2500,
+    "S": 2104.4,
+    "buy_usd": 2526,
+    "sellback_usd": 2512,
+    "loot_usd": 1854,
+    "net_usd": 1841
+   },
+   {
+    "R": 3000,
+    "S": 3709.6,
+    "buy_usd": 5382,
+    "sellback_usd": 5356,
+    "loot_usd": 2141,
+    "net_usd": 2115
+   },
+   {
+    "R": 3500,
+    "S": 8207.3,
+    "buy_usd": 28687,
+    "sellback_usd": 28602,
+    "loot_usd": 2407,
+    "net_usd": 2322
+   },
+   {
+    "R": 4000,
+    "S": 31238.4,
+    "feasible": false
+   }
+  ]
+ },
+ "vote_path_realistic": {
+  "note": "3000+35 HNY buffered to 7,600; buy 7,600 HNY (67% of buyable inventory), one-block snapshot hold, sell back, then vote passes 10% quorum vs 75,430 totalPower; execute transfers whole vault (incl. 1,230 refill); dump 21,398 HNY",
+  "V_HNY": 7600,
+  "buy_usd": 22320,
+  "sellback_usd": 22246,
+  "roundtrip_net_usd": -74,
+  "loot_dump_usd": 6515,
+  "total_net_usd": 6442,
+  "min_yea_needed": "7543.0 HNY (>10% of totalSupplyAt(snapshot))"
+ },
+ "hard_currency_only_scenario": {
+  "pools": "WXDAI/WETH/WBTC/EURe/USDT/USDC only ($4,863 quote side, 4,993 HNY inventory)",
+  "cv_single_round_net_usd": {
+   "R=1000": 806,
+   "R=1500": 1116,
+   "R=2000": 1381,
+   "R=2500": 1608
+  },
+  "vote_path": "not feasible: cannot buy 7,543 HNY from hard-currency pools (only 4,993 HNY exist there)",
+  "ceiling_if_whole_vault_dumped": 3938
+ },
+ "ceiling_notes": [
+  "Aggregate HNY in all Gnosis pools ~13,200 (11,889 in the 20 pools >= $15 + ~1,310 BREAD pool).",
+  "Realistic total cash recoverable from dumping ALL HNY (21,398) into all pools with weights: ~$6.5k.",
+  "Total quote-side USD across the 6 hard-currency pools: $4,863.",
+  "Selling HNY can never recover more than the pools' quote-side inventory."
+ ],
+ "historic_precedent": {
+  "latest": "proposal 213 executed 2026-06-26, 1,000 HNY to 0x625236038836CecC532664915BD0399647E7826b (stake 995.66 HNY)",
+  "largest": "0xc6c2E9EF... extracted ~13,300 HNY via CV proposals 206-213 (2024)"
+ }
+}

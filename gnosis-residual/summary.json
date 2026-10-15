@@ -1,0 +1,46 @@
+{
+  "finding": "L2-13 + L2-15 (gnosis-residual)",
+  "title": "1Hive Aragon DAO governance capture (HNY vault) + Gardens v2 (HNY/sDAI pools) + Orchid Lottery1 (xDAI escrow)",
+  "chains": ["gnosis"],
+  "headline_extractable_usd": 6442.00,
+  "headline_confidence": "medium",
+  "categories": {"E-U": 6442.00, "H-O": 105577.66, "P": 20517.30, "S": 217.97},
+  "latest_block": 48767754,
+  "block_numbers": {"gnosis": 48767754},
+  "targets_checked": 8,
+  "live_targets": 8,
+  "closed_reasons": [
+    "Gardens v2 pool 27: path fully permissionless (open allowlist, member proposal, permissionless distribute) but net-negative for a fresh market-funded attacker (realistic -$291..-$832; S_min ~1.0-1.7x X vs $4.7k-11k usable HNY DEX depth; max X < 0.5*F = 2,748 HNY)",
+    "Gardens v2 RegistryCommunity: balance reconciles exactly with 65 members' stakedAmount (H-O); kickMember council-only and disabled (isKickEnabled=false)",
+    "Gardens v2 sDAI pools 8/67 ($14,957): closed 15-address ALLOWLIST per pool; address(0) not granted; non-listed members revert UserCannotExecuteAction",
+    "Orchid Lottery1: claim() requires ECDSA signature by the escrow account signer; 30,407 Create events, 0 accounts with signer=0; forged sig -> ecrecover(0) -> no account; self-signed -> no account; replay blocked by tracks_[keccak(digest,signer)]; digest binds chainid+address(this)+token+recipient; PoC proves $0",
+    "1Hive Aragon: gated only by community passivity (ANY can challenge for 6.0618 HNY, pauses) and thin HNY exit depth (only ~$4.9k hard-currency quote-side; no HNY lending market for flash leverage)"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/PENDING"]
+  },
+  "key_facts": [
+    "1Hive Aragon vault 0x4ba7362F9189572CbB1216819a45aba0d0B2D1CB holds 21,398.659784944634936554 HNY ($20,947.20 at $0.978918) - fork PoC: fresh unprivileged address created CV proposal 214 and vault paid it 1,000 HNY (negative control reverts CV_INSUFFICIENT_CONVICION pre-conviction; bystander executed)",
+    "Fork PoC: fresh unprivileged address with 7,600 HNY held across one snapshot block created DV vote 21 (script 0x00000001 + Agent.execute(HNY,0,transfer(attacker,21398.66e18))), passed with its own YES vote, bystander executeVote drained the ENTIRE vault (21,398.66 HNY -> 0)",
+    "Live ACL: ANY holds CV.CREATE_PROPOSALS_ROLE and DV.CREATE_VOTES_ROLE; CV holds Agent.TRANSFER_ROLE; DV holds Agent.EXECUTE_ROLE and RUN_SCRIPT_ROLE; ANY holds both CHALLENGE_ROLEs (block 48,767,754)",
+    "CV threshold live calculateThreshold(1000e18)=3.1950241333558527694374772e25; cvParams decay 9999799, maxRatio 2000000 (20% vault cap), weight 10000, minThresholdStakePercentage 2e17; Agreement current collateral requirement id 3 = 6.061864241695410850 HNY action+challenge, 3-day challengeDuration",
+    "DV setting 0: voteTime 432000s, support 50%, quorum 10% (strict >, needs >7,543.0 HNY of 75,429.94 supply), executionDelay 86400s; snapshot = creation block - 1 (MiniMe balanceOfAt); HNY sellable same block as newVote after snapshot",
+    "Modeled nets (medium confidence): CV single round +$840 (R=1,000) .. +$2,115 (R=3,000, S~3,710 HNY, ~7d); DV full-drain +$6,442 with ~$22.3k one-block capital; hard-currency-only floor +$1.6k; cumulative vault extraction ceiling ~$5.2k-$6.5k (DEX depth is the binding constraint; 21,398 HNY realizes only ~$6.5k)",
+    "Gardens v2 RC 0xE2396fe2169ca026962971d3B2E373Ba925B6257: 5,694.657446335795 HNY = exact sum of 65 members stakedAmount (H-O); pool 27 0x9Fb2f1813228a97f559E29A6492EE27357FAF8A2: 5,496.398013724949977708 HNY, path open but net-negative (E-U $0)",
+    "Gardens v2 sDAI pools 8/67: 1,309.88 + 10,545.18 sDAI ($14,957.13 at $1.2619); allowlist-gated (closed 15 addresses) -> not E-U; counterfactual if opened: +$3.0-3.3k (pool 67)",
+    "Orchid Lottery1 0x6dB8381b2B41b74E17F5D4eB82E8d5b04ddA0a82: 99,906.63932355393 xDAI; reconstruction from 210,490 Update logs: escrow 2,801.592591737934 + unescrowed 96,917.41293454739 = 99,719.005526285325808979 accounted (H-O), 187.633797268604191021 unaccounted (S, no sweep function)",
+    "Orchid: 30,407 Create events, 16,154 funders, 30,026 signers, 0 signer=0; 4 sibling OrchidLottery1 contracts hold 0 xDAI/0 tokens; PoC: forged ticket vs real 50-xDAI-escrow account (funder 0x8DF9Bd5b38765D32DAD71eD581d17c88D9198662, signer 0xCF3ce759bDA0f84Dcb7C1db14f346B5cB1FA7087) pays $0; self-signed ticket pays $0; funder self-withdraw works (H-O)",
+    "Total live value analyzed ~$132,755 (Orchid $99,892.94 + HNY pots $32,862.30); E-U is a subset of the 1Hive vault paper value (not additive with P)"
+  ],
+  "caveats": [
+    "1Hive net-dollar figures are constant-product routing models over live reserves (per-quote realization weights), not fork-executed market trades; governance mechanics are fork-proven end-to-end",
+    "Community response not modeled: ANY can challenge for 6.0618 HNY (pauses, needs Celeste liveness); a NO coalition >7,600 HNY defeats the DV path (historical turnout 4.8k-6.8k HNY)",
+    "PoC simulates HNY acquisition with a vm.store MiniMe checkpoint write at the fork block (deal() cannot write checkpoint storage); the buy leg is modeled off-chain",
+    "Gardens pool-27 verdicts rely on live eth_call probes + exact conviction-math reproduction (9/9 integer matches vs live calculateThreshold) - no fork PoC needed for a net-negative result",
+    "Orchid H-O assumes funders retain their keys/signer addresses; lost-key accounts are indistinguishable on-chain (effectively stuck)",
+    "HNY price $0.978918 / xDAI $0.9998629 / sDAI $1.2619 at 2026-10-15; thin pools are racily arbed"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.8k-$2.1k per ConvictionVoting round (fork-proven) or model ~$3.9k-$6.4k by draining the whole 1Hive Aragon vault via DisputableVoting with 7,600 HNY at one block (fork-proven mechanics; medium confidence); Gardens v2 HNY pools are open but net-negative ($0), sDAI pools are allowlist-gated, and Orchid Lottery1's 99,906 xDAI is funder escrow with no outsider claim path ($0; H-O $99.7k; S $188)."
+}

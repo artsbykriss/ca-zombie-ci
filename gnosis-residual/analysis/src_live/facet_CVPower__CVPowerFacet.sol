@@ -1,0 +1,215 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+pragma solidity ^0.8.19;
+
+import {CVStrategyBaseFacet} from "../CVStrategyBaseFacet.sol";
+import {CVSyncPowerStorage} from "../CVSyncPowerStorage.sol";
+import {Proposal, PointSystem} from "../ICVStrategy.sol";
+import {PowerManagementUtils} from "../PowerManagementUtils.sol";
+import "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+
+/**
+ * @title CVPowerFacet
+ * @notice Facet containing power management functions for CVStrategy
+ * @dev This facet is called via delegatecall from CVStrategy
+ *      CRITICAL: Inherits storage layout from CVStrategyBaseFacet
+ */
+contract CVPowerFacet is CVStrategyBaseFacet {
+    using SuperTokenV1Library for ISuperToken;
+
+    error UserCannotExecuteAction(address sender); // 0xf634e7ce
+
+    /*|--------------------------------------------|*/
+    /*|              EVENTS                        |*/
+    /*|--------------------------------------------|*/
+    event PowerIncreased(address member, uint256 tokensStaked, uint256 pointsToIncrease);
+    event PowerDecreased(address member, uint256 tokensUnStaked, uint256 pointsToDecrease);
+    event PointsDeactivated(address member);
+    event SupportAdded(
+        address from, uint256 proposalId, uint256 amount, uint256 totalStakedAmount, uint256 convictionLast
+    );
+
+    /*|--------------------------------------------|*/
+    /*|              FUNCTIONS                     |*/
+    /*|--------------------------------------------|*/
+
+    // Sig: 0x814516ad
+    function activatePoints() external {
+        if (!_canExecuteAction(msg.sender)) {
+            revert UserCannotExecuteAction(msg.sender);
+        }
+        registryCommunity.activateMemberInStrategy(msg.sender, address(this));
+        uint256 currentPower = votingPowerRegistry.getMemberPowerInStrategy(msg.sender, address(this));
+        _checkpointTotalPointsActivated(totalPointsActivated + currentPower);
+
+        CVSyncPowerStorage.Layout storage syncLayout = CVSyncPowerStorage.layout();
+        syncLayout.syncedPower[msg.sender] = currentPower;
+        syncLayout.hasSyncedPower[msg.sender] = true;
+    }
+
+    // Sig: 0x782aadff
+    function increasePower(address _member, uint256 _amountToStake) external onlyRegistryCommunity returns (uint256) {
+        if (!_canExecuteAction(_member)) {
+            revert UserCannotExecuteAction(_member);
+        }
+        uint256 currentPower = votingPowerRegistry.getMemberPowerInStrategy(_member, address(this));
+        uint256 pointsToIncrease;
+
+        if (pointSystem == PointSystem.Custom) {
+            uint256 previousPower = registryCommunity.getMemberPowerInStrategy(_member, address(this));
+            pointsToIncrease = currentPower > previousPower ? currentPower - previousPower : 0;
+        } else {
+            pointsToIncrease = PowerManagementUtils.increasePower(
+                votingPowerRegistry, _member, _amountToStake, pointSystem, pointConfig.maxAmount
+            );
+        }
+
+        bool isActivated = registryCommunity.memberActivatedInStrategies(_member, address(this));
+        if (isActivated && pointsToIncrease != 0) {
+            _checkpointTotalPointsActivated(totalPointsActivated + pointsToIncrease);
+        }
+
+        CVSyncPowerStorage.Layout storage syncLayout = CVSyncPowerStorage.layout();
+        syncLayout.syncedPower[_member] = currentPower;
+        syncLayout.hasSyncedPower[_member] = true;
+
+        emit PowerIncreased(_member, _amountToStake, pointsToIncrease);
+        return pointsToIncrease;
+    }
+
+    // Sig: 0x2ed04b2b
+    function decreasePower(address _member, uint256 _amountToUnstake) external onlyRegistryCommunity returns (uint256) {
+        uint256 currentPower = votingPowerRegistry.getMemberPowerInStrategy(_member, address(this));
+        uint256 pointsToDecrease;
+
+        if (pointSystem == PointSystem.Custom) {
+            uint256 previousPower = registryCommunity.getMemberPowerInStrategy(_member, address(this));
+            pointsToDecrease = previousPower > currentPower ? previousPower - currentPower : 0;
+        } else {
+            pointsToDecrease = PowerManagementUtils.decreasePower(
+                votingPowerRegistry, _member, _amountToUnstake, pointSystem, pointConfig.maxAmount
+            );
+        }
+
+        uint256 voterStake = totalVoterStakePct[_member];
+        uint256 unusedPower;
+        {
+            unusedPower = currentPower > voterStake ? currentPower - voterStake : 0;
+        }
+        if (unusedPower < pointsToDecrease && voterStake > 0) {
+            uint256 balancingRatio = ((pointsToDecrease - unusedPower) << 128) / voterStake;
+            for (uint256 i = 0; i < voterStakedProposals[_member].length; i++) {
+                _rebalanceProposalStake(_member, voterStakedProposals[_member][i], balancingRatio);
+            }
+            _pruneVoterProposals(_member);
+        }
+        _checkpointTotalPointsActivated(totalPointsActivated - pointsToDecrease);
+
+        CVSyncPowerStorage.Layout storage syncLayout = CVSyncPowerStorage.layout();
+        syncLayout.syncedPower[_member] = currentPower;
+        syncLayout.hasSyncedPower[_member] = true;
+
+        emit PowerDecreased(_member, _amountToUnstake, pointsToDecrease);
+
+        return pointsToDecrease;
+    }
+
+    // Sig: 0x1ddf1e23
+    function deactivatePoints() external {
+        _deactivatePoints(msg.sender);
+    }
+
+    // Sig: 0x6453d9c4
+    function deactivatePoints(address _member) external onlyRegistryCommunity {
+        _deactivatePointsFromRegistry(_member);
+    }
+
+    /*|--------------------------------------------|*/
+    /*|              INTERNAL HELPERS              |*/
+    /*|--------------------------------------------|*/
+
+    function _deactivatePoints(address _member) internal {
+        bool wasActivated = registryCommunity.memberActivatedInStrategies(_member, address(this));
+        uint256 points = wasActivated ? votingPowerRegistry.getMemberPowerInStrategy(_member, address(this)) : 0;
+
+        // Remove support before lowering totalPointsActivated so proposal threshold snapshots
+        // are taken against the pre-withdraw active-points denominator.
+        _withdraw(_member);
+
+        if (wasActivated) {
+            _decreaseTotalPointsActivated(points);
+        }
+
+        registryCommunity.deactivateMemberInStrategy(_member, address(this));
+
+        CVSyncPowerStorage.Layout storage syncLayout = CVSyncPowerStorage.layout();
+        syncLayout.syncedPower[_member] = 0;
+        syncLayout.hasSyncedPower[_member] = false;
+
+        emit PointsDeactivated(_member);
+    }
+
+    function _deactivatePointsFromRegistry(address _member) internal {
+        uint256 points;
+        if (registryCommunity.memberActivatedInStrategies(_member, address(this))) {
+            points = votingPowerRegistry.getMemberPowerInStrategy(_member, address(this));
+        }
+
+        bool hadStakeToWithdraw = totalVoterStakePct[_member] != 0 || voterStakedProposals[_member].length != 0;
+        if (hadStakeToWithdraw) {
+            _withdraw(_member);
+            emit PointsDeactivated(_member);
+        }
+
+        if (points != 0) {
+            _decreaseTotalPointsActivated(points);
+        }
+    }
+
+    function _decreaseTotalPointsActivated(uint256 points) internal {
+        if (points > totalPointsActivated) {
+            _checkpointTotalPointsActivated(0);
+        } else {
+            _checkpointTotalPointsActivated(totalPointsActivated - points);
+        }
+    }
+
+    function _withdraw(address _member) internal {
+        // remove all proposals from the member
+        for (uint256 i = 0; i < voterStakedProposals[_member].length; i++) {
+            uint256 proposalId = voterStakedProposals[_member][i];
+            Proposal storage proposal = proposals[proposalId];
+            if (proposalExists(proposalId)) {
+                uint256 stakedPoints = proposal.voterStakedPoints[_member];
+                if (stakedPoints == 0) {
+                    continue;
+                }
+                uint256 oldStake = proposal.stakedAmount;
+                proposal.voterStakedPoints[_member] = 0;
+                proposal.stakedAmount -= stakedPoints;
+                totalStaked -= stakedPoints;
+                _setThresholdSnapshot(proposal);
+                _calculateAndSetConviction(proposal, oldStake);
+                emit SupportAdded(_member, proposalId, 0, proposal.stakedAmount, proposal.convictionLast);
+            }
+        }
+        totalVoterStakePct[_member] = 0;
+        delete voterStakedProposals[_member];
+    }
+
+    function _rebalanceProposalStake(address _member, uint256 _proposalId, uint256 _balancingRatio) internal {
+        Proposal storage proposal = proposals[_proposalId];
+        uint256 stakedPoints = proposal.voterStakedPoints[_member];
+        uint256 newStakedPoints = stakedPoints - ((stakedPoints * _balancingRatio + (1 << 127)) >> 128);
+        uint256 stakeDelta = stakedPoints - newStakedPoints;
+        uint256 oldStake = proposal.stakedAmount;
+
+        proposal.stakedAmount -= stakeDelta;
+        proposal.voterStakedPoints[_member] = newStakedPoints;
+        totalStaked -= stakeDelta;
+        totalVoterStakePct[_member] -= stakeDelta;
+        _setThresholdSnapshot(proposal);
+        _calculateAndSetConviction(proposal, oldStake);
+
+        emit SupportAdded(_member, _proposalId, newStakedPoints, proposal.stakedAmount, proposal.convictionLast);
+    }
+}

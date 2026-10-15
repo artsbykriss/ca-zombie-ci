@@ -1,0 +1,142 @@
+{
+ "block": 48767111,
+ "timestamp_utc": "2026-10-15T09:25:50Z",
+ "hny_token": {
+  "address": "0x71850b7E9Ee3f13Ab46d67167341E4bDc905Eef9",
+  "symbol": "HNY",
+  "decimals": 18,
+  "totalSupply_wei": "75429939563086058534633",
+  "controller": "0xEd062e26c8F41a9088d060156eDC7fc6c17d5825 (HookedTokenManager)"
+ },
+ "price": {
+  "source": "DefiLlama coins.llama.fi 2026-10-15",
+  "hny_usd": 0.9789180371032631,
+  "weth_usd": 2373.6732480239166,
+  "wxdai_usd": 0.9999352515401742,
+  "dex_spot_wxdai_pool": "3147.1075/3217.270 = 0.97820"
+ },
+ "agent_vault": {
+  "address": "0x4ba7362F9189572CbB1216819a45aba0d0B2D1CB",
+  "impl": "0xA6aD366bfD2f43615bbeC56f50cf606036fc11fe (Agent)",
+  "kernel": "0x8ccbeab14b5ac4a431fffc39f4bec4089020a155",
+  "hny_balance_wei": "21398659784944634936554",
+  "xdai_balance": "0",
+  "other_tokens": "WXDAI/WETH/WBTC/COW/GNO all 0; all 223 VaultTransfer events ever were HNY",
+  "dust_tokens": "RXDAI 100, ESR 33 (+ spam tokens); HNYx 0"
+ },
+ "staking_pool_HNY": {
+  "address": "0x0e25b918c9fb2fea5d42011d1f4b9f8c61b453e7",
+  "totalStaked_wei": "243084595436806225905",
+  "note": "user stakes, permissionless stake/unstake"
+ },
+ "conviction_voting": {
+  "address": "0x0b21081c6f8b1990f53fc76279cc41ba22d7afe2",
+  "decay": 9999799,
+  "maxRatio": 2000000,
+  "weight": 10000,
+  "minThresholdStakePercentage": "200000000000000000 (20%)",
+  "totalStaked_wei": "8298266170948335503083",
+  "proposalCounter": 214,
+  "contractPaused": false,
+  "requestToken": "0x71850b7E9Ee3f13Ab46d67167341E4bDc905Eef9",
+  "stakeToken": "0x71850b7E9Ee3f13Ab46d67167341E4bDc905Eef9",
+  "stableToken": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d (wxDAI)",
+  "vault": "0x4ba7362F9189572CbB1216819a45aba0d0B2D1CB",
+  "getTokenManager": "0xEd062e26c8F41a9088d060156eDC7fc6c17d5825",
+  "threshold_formula_from_source": "threshold = 49.75124 * T / (0.2 - R/F)^2 (wei units), T=max(totalStaked, 20% of HNY supply), F=vault HNY balance",
+  "verified_against": {
+   "proposal": 213,
+   "executed_block": 46889544,
+   "requested": "1000e18",
+   "threshold_wei": "31950241333558527694374772",
+   "matches_formula": true
+  }
+ },
+ "disputable_voting": {
+  "address": "0xfbd0b2726070a9d6aff6d7216c9e9340eae68b2a",
+  "setting0": {
+   "voteTime_s": 432000,
+   "supportRequiredPct": "5e17 (50%)",
+   "minAcceptQuorumPct": "1e17 (10%)",
+   "delegatedVotingPeriod_s": 172800,
+   "quietEndingPeriod_s": 86400,
+   "quietEndingExtension_s": 43200,
+   "executionDelay_s": 86400
+  },
+  "settingsLength": 1,
+  "votesLength": 21,
+  "last_StartVote": {
+   "vote": 20,
+   "block": 32931139,
+   "date": "2024-03-14"
+  },
+  "last_executed_vote": {
+   "vote": 19,
+   "block": 31114046,
+   "date": "2023-11-22"
+  },
+  "snapshot_rule": "snapshotBlock = creationBlock - 1; voting power = HNY.balanceOfAt(voter, snapshotBlock); totalPower = HNY.totalSupplyAt(snapshotBlock)"
+ },
+ "issuance": {
+  "address": "0x783da66eea5a93f46f386806fce49ce18937f861",
+  "targetRatio": "3000000000 (=30% of supply, RATIO_PRECISION 1e10)",
+  "maxAdjustmentRatioPerSecond": 3170979198,
+  "previousAdjustmentSecond": 1780472410,
+  "executeAdjustment_auth": "NONE (permissionless)",
+  "last_call": {
+   "block": 46503506,
+   "date": "2026-06-03",
+   "caller": "0x60C1a749C390d2E18Ff84EBc17c74a28fac0c6C9 (unprivileged EOA)",
+   "tx": "0x5a09bcd80b42d97d9d01b75d2368584ccde9d608f7992629432051512ef87670",
+   "method": "executeAdjustment"
+  },
+  "simulated_mint_now_hny": 1230.3220839811793,
+  "vault_after_refill_wei": "22628981868925813983096",
+  "supply_after_refill_wei": "76660261647067067715812"
+ },
+ "agreement": {
+  "address": "0x59a15718992a42082ab2306bc6cbd662958a178c",
+  "currentSettingId": 1,
+  "arbitrator": "0x44E4fCFed14E1285c9e0F6eae77D5fDd0F196f85 (Celeste/Aragon Court)",
+  "collateral_requirement_CV_id2": {
+   "token": "HNY",
+   "challengeDuration_s": 259200,
+   "actionAmount_wei": "100000000000000000 (0.1 HNY)",
+   "challengeAmount_wei": "319828175919980333 (~0.3198 HNY)"
+  },
+  "celeste_getDisputeFees": {
+   "feeToken": "0xeC7904e20b69F60966D6c6b9DC534355614dd922",
+   "feeAmount": "648082957536423487949941... (decoded 6.48e47, unitless/opaque)"
+  }
+ },
+ "permissionless_gates": {
+  "CV_create_proposal": "CREATE_PROPOSALS_ROLE -> ANY  (live true)",
+  "Voting_create_vote": "CREATE_VOTES_ROLE -> ANY (live true)",
+  "challenge_both": "CHALLENGE_ROLE -> ANY (live true)",
+  "agent_execute": "Voting app EXECUTE_ROLE+RUN_SCRIPT_ROLE",
+  "agent_transfer": "CV + Superfluid",
+  "mint": "no path (Issuance.MINT/ISSUE not granted; TM MINT only to Issuance whose mint nobody can call)"
+ },
+ "lending_markets": {
+  "aave_v3_gnosis_reserves_checked_block_48767111": [
+   "WETH",
+   "wstETH",
+   "GNO",
+   "USDC",
+   "WXDAI",
+   "EURe",
+   "sDAI",
+   "USDC.e",
+   "GHO"
+  ],
+  "HNY_listed": false,
+  "conclusion": "no borrowing market for HNY found on Gnosis"
+ },
+ "hnyx_supertoken": {
+  "address": "0xc0712524B39323eb2437E69226b261d928629dC8",
+  "symbol": "HNYx",
+  "underlying": "HNY",
+  "totalSupply": 680.5757563625946,
+  "agent_balance": 0
+ }
+}
