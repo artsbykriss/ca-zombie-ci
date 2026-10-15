@@ -1,0 +1,41 @@
+{
+  "finding": "C2-37 (follow-up: liquidation realisability re-check)",
+  "title": "marginfi v2 liquidation realisability — program-oracle re-derivation + LiteSVM liquidation PoC",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "categories_note": "E-U scoped to this follow-up (liquidation realisability). Prior audit's H-O/P figures ($47.54M H-O; single-EOA upgrade authority P) are unchanged and documented in the campaign tracker.",
+  "latest_block": 457293766,
+  "block_numbers": {"solana_slot": 457293766, "accounts_dump_slot": 457279480},
+  "targets_checked": 165715,
+  "live_targets": 1317,
+  "closed_reasons": [
+    "Program returns 6068 HealthyAccount for the large off-chain-flagged accounts: off-chain model mis-applied the emode rule (program reconciles emode over LIABILITY banks only, then asset weight = max(base, reconciled[asset.emode_tag])). Verified live and in LiteSVM (prior #1: program health +$67,166).",
+    "Genuinely-liquidatable accounts are pure bad debt: 282 of the program-verified liquidatable set have zero collateral; liquidation fails with 6065 OverliquidationAttempt / balance-not-found (nothing to seize).",
+    "Remaining liquidatable accounts are dust: total unweighted collateral in the set ~$16,068 but deficits $0.00-$4.79; max seizure is bounded by the deficit (post-liquidation health must stay <= 0). Best executable liquidation across top-22 seized $4.9e-8.",
+    "236/401 banks are legacy-sized (1864 B) and panic the deployed program (anchor account_loader.rs:169) -> accounts holding them cannot be health-checked or liquidated (255 sampled accounts)."
+  ],
+  "poc": {
+    "tests_passed": 4,
+    "tests_total": 4,
+    "ci_run_urls": [],
+    "local_run": "cd poc && cargo test --release (4/4 pass; LiteSVM + cloned mainnet state)"
+  },
+  "key_facts": [
+    "Deployed program ELF sha256 37022ba42d9a2129de3e3002f899a63a3e5c3fe905566e77ba9d77c0be130aa1, last upgrade slot 456,093,551 (release mrgn-0.1.12-rc2).",
+    "Full scan of 165,715 MarginfiAccounts with program-exact model + program oracle prices: 6,482 underwater / $36,399 total deficit (prior off-chain model: 4,982 / $528,138).",
+    "Program-side verification via permissionless lending_account_pulse_health (live simulateTransaction): 572 liquidatable (liq_err=0), 55 healthy (6068), 255 program panics (legacy banks).",
+    "Model vs program on 576 paired accounts: median |delta| $0.003, worst $6.05 (price drift).",
+    "LiteSVM: 22 liquidation transactions for the top program-verified accounts -> 1 success (seized $4.9e-8 WEN), 21 failures (6072 x9, 6065 x7, 6009 x5).",
+    "Theoretical liquidator-fee bound for the whole program-verified set: <= $0.68 (seizable ~$27.31). Prior $24,499 bound was computed on accounts that return 6068.",
+    "phaseLST collateral (prior #1 account) is realizable at ~$126.3 via Sanctum VaultLiquidUnstake (oracle $125.78) - illiquidity was not the blocker; the account is simply healthy per the program."
+  ],
+  "caveats": [
+    "Prices/slots: balances dump slot ~457,279,480; banks+oracles snapshot slot 457,293,766. Health values drift with prices; the structural verdict (emode/weights) is invariant.",
+    "737 accounts hold banks whose oracle setups the off-chain model does not price (Kamino/Staked/Switchboard/Scope/Juplend); 693 were covered by program-side pulses (panics/verdicts recorded), the rest are dust-sized.",
+    "LiteSVM harness uses a fabricated attacker marginfi account with an 8 SOL deposit; per-account 6009 failures reflect the liquidator-side init-health gate, not liquidatee health.",
+    "No mainnet transaction was signed or broadcast; all execution evidence is simulation (RPC sigVerify:false) or LiteSVM."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live from marginfi liquidation: the 4,982 'underwater' accounts were an off-chain emode modeling error (program returns 6068 HealthyAccount; prior #1 is +$67,166 healthy), and the genuinely-liquidatable residue is pure bad debt / dust (best executable LiteSVM liquidation seized $4.9e-8; fee bound <= $0.68)."
+}
