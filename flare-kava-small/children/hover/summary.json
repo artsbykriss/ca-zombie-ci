@@ -1,0 +1,166 @@
+{
+ "target": "Hover",
+ "chain": "kava",
+ "chain_id": 2222,
+ "block": 23034510,
+ "block_reverified": 23035488,
+ "extractable_usd": 0,
+ "confidence": "high",
+ "status": "read-only research; PoC fork suite written for CI; no transactions signed or sent",
+ "paths": [
+  {
+   "path": "Liquidation of underwater hUSDT borrowers by an external attacker",
+   "net_usd": 0,
+   "verdict": "P",
+   "evidence": "Comptroller.liquidateBorrowAllowed(hUSDT,hKAVA,0x1111...,borrower,1e6) returns 1 (UNAUTHORIZED) at block 23035488; allowlist 0x49AE3cc17eD67c9Bc9cd11E4d799c329bC90203F has exactly 2 allowed addresses (protocol bots), owner = 2-of-8 Safe; allow() is owner-only"
+  },
+  {
+   "path": "Route liquidation through a whitelisted bot's public entry (bot2 0x608cB0F6..., selector 0x1f147b2d) / sweep the bot's unguarded withdraw(address)",
+   "net_usd": 0,
+   "verdict": "P",
+   "evidence": "historical tx 0x002f6c9b4dca9669eded222d1f82ba1f58787ff0789ebc66c3199fa4cdd041ea (block 17563567) was called by third-party keeper EOA 0x960ee067... which netted 0; the 5.1743 WKAVA profit went to profitWallet() = owner() = 0xbA6f82F77fCf03d33150fceC7384644AC12F4DD5; today the call reverts (oracle stale) and bot balances are 0"
+  },
+  {
+   "path": "Any liquidation at all (including by the whitelisted bots) while the oracle is stale",
+   "net_usd": 0,
+   "verdict": "S",
+   "evidence": "liquidateBorrowAllowed(hUSDT,hKAVA,BOT2,borrower,1e6) reverts StalePrice() 0x19abf40e; oracle.getUnderlyingPrice reverts 0x19abf40e for all 3 markets; Pyth publishTime 1774775979 (~2026-03-29, ~200 days stale)"
+  },
+  {
+   "path": "Mint / supply-donation / empty-market exchange-rate inflation",
+   "net_usd": 0,
+   "verdict": "P",
+   "evidence": "mintGuardianPaused[hKAVA,hATOM,hUSDT] = true -> Comptroller.mintAllowed requires !paused (Comptroller impl 0xb618fb7c... line: require(!mintGuardianPaused[cToken], \"MP\")); hUSDT.mint(1e6) reverts Error(\"MP\"); the native market's payable fallback also mints -> reverts"
+  },
+  {
+   "path": "Borrow / oracle-manipulation over-borrow with dust collateral",
+   "net_usd": 0,
+   "verdict": "P",
+   "evidence": "borrowGuardianPaused all markets = true; hUSDT.borrow(1e6) reverts Error(\"BP\"); oracle prices are Pyth-signed (not DEX spot) and only the Safe can set prices"
+  },
+  {
+   "path": "Direct seize() of a borrower's collateral (Compound caller-check gap)",
+   "net_usd": 0,
+   "verdict": "closed",
+   "evidence": "hKAVA.seize(attacker,victim,1) returns 3; Comptroller.seizeAllowed(hKAVA, outsideCaller, ...) returns 9 (MARKET_NOT_LISTED) because msg.sender must be a listed market"
+  },
+  {
+   "path": "Force-feed (selfdestruct) KAVA donation to capture the exchange-rate rise",
+   "net_usd": -2,
+   "verdict": "closed",
+   "evidence": "direct send reverts Error(\"MP\"); a selfdestruct force-feed raises exchangeRateStored but the attacker owns 0 cTokens -> pure loss (fork test T3d)"
+  },
+  {
+   "path": "Admin-only sweeps: _reduceReserves, sweepToken, oracle prices, pause flags, allowlist",
+   "net_usd": 0,
+   "verdict": "P",
+   "evidence": "_reduceReserves from 0x1111... returns 1 (UNAUTHORIZED) vs 0 from Safe 0xcecC934494adED6c0c82C52656a845862176ceeE; sweepToken reverts \"CErc20Delegator::sweepToken: only admin may call\"; admin = Gnosis Safe v1.3.0 threshold 2-of-8"
+  },
+  {
+   "path": "Reward capture via claimReward / reward pot",
+   "net_usd": 0,
+   "verdict": "closed",
+   "evidence": "claimReward(rewardType, holder) pays holders[i] (never the caller); all reward speeds = 1 wei/s; rewardAccrued(1,attacker) = 0; pot = 673.99 KAVA + 15.97 HOV + 9.71 esHOV"
+  },
+  {
+   "path": "GenesisPool cToken-staking contracts drain",
+   "net_usd": 0,
+   "verdict": "P",
+   "evidence": "emergencyWithdraw(address) reverts \"admin only\"; supplyAmount(outsider)=0, getClaimableRewards()=0, claimRewards() transfers 0, redeem() reverts for non-stakers; pools hold 104,978.09 hKAVA cTokens, 26,036.79 hUSDT cTokens, 223.14 hATOM cTokens + ~215,387 esHOV"
+  },
+  {
+   "path": "HOV / esHOV / xHOV token contracts (value inside)",
+   "net_usd": 0,
+   "verdict": "S",
+   "evidence": "no market price: DefiLlama coins.llama.fi prices for kava:0xCe82.../0xD345.../0xD6aD... = {} and CoinGecko contract lookup = coin not found; contracts hold 23.86M HOV (esHOV contract), 4.07M HOV + 1.42M xHOV (xHOV contract); upgrade/admin = Safe-controlled proxy admin 0xAEfca816..."
+  },
+  {
+   "path": "Redeem the markets' cash (28,572 KAVA + 179 ATOM)",
+   "net_usd": 0,
+   "verdict": "H-O",
+   "evidence": "only cToken holders can redeem; attacker holds none and there is no on-chain market for cTokens; non-member holders can still redeem (redeemAllowedInternal bypass), members are oracle-blocked; hUSDT cash is 0.00001 USDT (333,655.78 hUSDT cTokens claim 10,321.6 USDT)"
+  },
+  {
+   "path": "TRIPWIRE: permissionless Pyth refresh re-arms the whitelisted liquidation bots",
+   "net_usd": 0,
+   "verdict": "P",
+   "evidence": "Pyth.singleUpdateFeeInWei() = 0 (version 1.3.0, UUPS proxy 0xa2aa501b...); fork test T4 with a mocked fresh oracle: liquidateBorrowAllowed(BOT2) = 0 (allowed) while attacker = 1 (UNAUTHORIZED); estimated gross bonus available to the bots ~= $136.77; fresh VAAs now need a (free) Pyth API key (Hermes /v2/updates/price/latest = 401 without one)"
+  }
+ ],
+ "finding": "L2-06",
+ "title": "Hover lending (Kava EVM) \u2014 adversarial re-test of '~$2.3k; hUSDT insolvent; zombie, no empty-market path'",
+ "chains": [
+  "kava"
+ ],
+ "headline_extractable_usd": 0,
+ "headline_confidence": "high",
+ "categories": {
+  "E-U": 0,
+  "H-O": 2259.36,
+  "P": 1918.96,
+  "S": 0
+ },
+ "latest_block": 23035842,
+ "block_numbers": {
+  "kava": 23034510,
+  "reverified": 23035842
+ },
+ "targets_checked": 22,
+ "live_targets": 0,
+ "live_value_map": {
+  "cash_holder_redeemable_usd": 2259.36,
+  "reserves_admin_only_usd": 1918.96,
+  "borrows_outstanding_usd": 13342.76,
+  "underwater_shortfall_usd": 10365.81,
+  "underwater_collateral_usd": 2872.08,
+  "max_gross_liquidation_bonus_usd": 136.77,
+  "comptroller_reward_pot": {
+   "KAVA": 673.99,
+   "HOV": 15.97,
+   "esHOV": 9.71
+  },
+  "genesis_pools_esHOV": 215387.21
+ },
+ "closed_reasons": [
+  "mintGuardianPaused = true on all 3 markets -> mintAllowed reverts 'MP' (no supply/donation/empty-market path)",
+  "borrowGuardianPaused = true on all 3 markets -> borrowAllowed reverts 'BP' (no over-borrow/oracle-manipulation path)",
+  "liquidation is allowlist-gated: exactly 2 addresses (protocol bots); allow() owner-only; outsiders get Error.UNAUTHORIZED(1)",
+  "oracle (Pyth asset-config) is stale (~200 days) -> all getUnderlyingPrice revert StalePrice(0x19abf40e) -> liquidations and member redemptions revert",
+  "whitelisted bots pay proceeds to a storage profitWallet (team EOA), not the caller - proven by the historical liquidation trace",
+  "msg.sender must be a listed market for seize() -> direct seize returns MARKET_NOT_LISTED(9)",
+  "admin = 2-of-8 Gnosis Safe; reserves/sweeps/oracle/allowlist/pauses are all admin-only",
+  "rewards: claimReward pays holders only; speeds = 1 wei/s; subscriber accrued = 0",
+  "GenesisPools: emergencyWithdraw = 'admin only'; claimRewards/redeem are staker-scoped",
+  "HOV/esHOV/xHOV have no market price -> no realisable value"
+ ],
+ "poc": {
+  "tests_passed": 0,
+  "tests_total": 9,
+  "ci_run_urls": [],
+  "note": "test/HoverFork.t.sol written for the parent's CI (poc/test/HoverFork.t.sol); not run locally per campaign rules"
+ },
+ "key_facts": [
+  "The campaign headline '~$2.3k' = market cash (hKAVA 28,572.17 KAVA = $1,957.48; hATOM 179.03 ATOM = $301.88; hUSDT 0.00001 USDT) - it is holder-redeemable (H-O), not attacker-extractable",
+  "hUSDT is insolvent by construction: 333,655.78 hUSDT cTokens claim 10,321.6 USDT while cash = 0.00001 USDT; the 12,103.44 USDT of debt is backed by ~$2,872 of collateral in the two underwater borrowers",
+  "Full-history enumeration: 13,453 hKAVA + 1,303 hATOM + 17,205 hUSDT Borrow events -> 160 unique borrowers; 19 carry debt now; 2 significant underwater positions (shortfall $10,125.54 combined)",
+  "Maximum gross liquidation bonus currently reachable (whitelisted bots, after an oracle refresh) ~= $136.77",
+  "The oracle fails closed (StalePrice revert) rather than serving stale prices - no stale-price extraction surface",
+  "Liquidation is gated twice: allowlist (contract-level) and oracle freshness; the bots' public entry is callable by anyone but the proceeds are hard-wired to the team wallet",
+  "Latent (not extractable today): both allowlisted liquidation bots expose an unguarded withdraw(address) (a random caller's call does not revert); bot balances are 0 and proceeds are forwarded to the team's profitWallet inside the same tx"
+ ],
+ "caveats": [
+  "Prices are DefiLlama at chain ts 1792058644; the two underwater positions stay underwater across any plausible KAVA price (debt/collateral 3.7x and 5.2x)",
+  "The fork suite asserts current pause/allowlist/oracle state; if the team changes them the tests fail loudly by design (tripwire)",
+  "kavascan.com was unavailable (502) for most of the survey; all data was taken from RPC + Sourcify verified sources + full log enumeration",
+  "Fresh Pyth VAAs now require a Pyth API key (Hermes update endpoint 401 as of 2026-10-15); the on-chain update call itself is fee-free and permissionless",
+  "No transaction was signed or sent anywhere; all 'extraction' checks are eth_call simulations and fork tests",
+  "Re-verified unchanged at block 23035842 (mint/borrow paused on all markets, oracle still reverting 0x19abf40e, attacker liquidator code = 1)"
+ ],
+ "one_liner": "External unprivileged attacker can extract $0 live from Hover: mint AND borrow are globally paused, liquidation is restricted to a 2-address allowlist whose bots pay the team, the Pyth oracle is stale (fails closed, ~200 days), and the ~$2.3k of cash is holder-redeemable only; the single tripwire is a fee-free permissionless Pyth refresh that would re-arm the whitelisted bots for ~$137 gross.",
+ "categories_note": {
+  "E-U": "no external unprivileged path yields net-positive value today (mint+borrow paused, liquidation allowlisted, oracle stale, no cToken/HOV market)",
+  "H-O": "cash in the three markets (28,572.17 KAVA + 179.03 ATOM + 0.00001 USDT = $2,259.36) is redeemable by cToken holders; non-member holders can redeem today (~$108 of the hKAVA cash), member-held claims are gated by the stale oracle until refreshed; hUSDT's cash is $0.00001 against 333,655.78 hUSDT cTokens of claims",
+  "P": "admin-sweepable reserves (2,025.24 KAVA + 1,781.81 USDT = $1,918.96) plus the ~$136.77 liquidation bonus reachable only by the 2 allowlisted bots after an oracle refresh",
+  "S": "$0 permanently stuck: all frozen paths re-open if the Pyth feeds are refreshed (tripwire)"
+ }
+}

@@ -1,0 +1,41 @@
+{
+  "verdict": "confirmed",
+  "extractable_usd": 0,
+  "confidence": "high",
+  "target": "EnosysGovernanceStakeManagerExfi 0xc4D89F8f593F215f3636793E3353A36C196Cf87A (impl 0xB0E4D5baB93B0a7a6A99b7AFCfb50501d8B19772) + sibling 0xA83E90337e2711b1c84df0AD7428403dBd0ce730 + FarmingPool 0xb78ebd4b13a2202068618bf98f952c0271159107",
+  "chain": "songbird (19)",
+  "verifier": "exfi-verify (independent; live eth_call only, no transactions)",
+  "blocks": [135453827, 135455045, 135455171, 135455601],
+  "evidence": [
+    "Task1 identity PASS: for 3 verifier-chosen stakers (0x0B465f43..., 0xFAA9f4d3..., 0x1C14e47b...) getAllUnclaimedRewards == sum_e balanceOfEpoch(u,e)*epochRewardRate(e,tok)/1e18/10^(18-dec) exactly, all 8 reward tokens (identity.json, blocks 135455045-51); per-epoch truncation confirmed (exact-then-floor variant differs by +1..+5 base units on multi-epoch accounts); fresh account all-zero for sampled epochs {1,50,150,300,370,375}",
+    "Claim settlement PASS: simulated claimRewards() as 0xFAA9f4d3... pays per-token deltas exactly equal to getAllUnclaimedRewards before (EXFI +52089367251860592792 wei, WSGB +1452572895252501624, SFIN +13842896115462, exXDC +2266802497487288, FXRP +269, exETH 0, exUSDT +61, USDX +13); lastClaim 375->376; unclaimed becomes all-zero; 2nd claim reverts 'At least one epoch has not passed' (probes.json S2)",
+    "withdrawTo family attacker-scoped: from ATTACKER, withdrawTo(victimBal,ATTACKER|VICTIM), withdrawToAndGetReward(victimBal,ATTACKER), withdrawTo{,AndGetReward}WithHint(victimBal,ATTACKER,3), exit/exitWithHint all revert 'EnosysGovernanceStakeManager: Cannot withdraw, exceed the balance' / 'Amount is zero'; victim-context runs show the function draws from msg.sender and pays the recipient (attacker EXFI 0->1e18 with victim stake -1e18 when VICTIM calls withdrawTo(1e18,ATTACKER))",
+    "Hints: oversized hint reverts 'Balance hint is larger than expected value' on both stakeWithHint and withdrawWithHint; undersized hint self-corrects (funded-fresh stake of 1000 wei with hint 0 credited exactly 1000 wei; balanceOfEpoch(fresh,cur-1)=0 after staking)",
+    "updateTotalSupplyByEpochIfNeeded(e) idempotent: for e in {376,375,373} returns exactly the stored totalSupplyByEpoch and leaves storage unchanged in the same eth_call; current (378) and next (379) revert 'Cannot update total supply for the current or next epoch'",
+    "stakeToWithHint(1000, FRESH) as funded caller: recipient FRESH balanceOf 0->1000, caller pays; FRESH balanceOfEpoch(cur-1)=0 before/after and unclaimed all-zero -> no past-epoch credit, no reverse-credit path",
+    "Fresh-account full sweep (19 write calls + all 8 token balances read after, same eth_call): only no-op withdrawals/fee-false calls succeed; all 8 balances remain 0 (probes.json S3)",
+    "Gating live reverts (fresh EOA): initialize 'Initializable: contract is already initialized'; addVoting/updateVoting 'Not a governor'; updateRewardAmountByToken 'Not allowed reward notifier'; owner paths 'Ownable: caller is not the owner'; acceptOwnership 'Ownable2Step: caller is not the new owner'; claimRewards 'No any rewards'; withdrawReturnedFees(true) 'No pending fees'; SFIN sibling identical",
+    "FarmingPool: allowedCaller(0x9EbF96373f24A8836d3899C9ff17451F802E8c72)=true and allowedCaller(0x43fc122D6dDa2c07301ee131Fa2afa8Bf5854A07)=true, both EOAs (code size 0); explorer log history shows exactly 2 UpdateAllowedCaller events ever, both true; withdrawFor/withdrawAndGetRewardFor/stakeFor revert 'StaticPool: Not allowed caller' from fresh; from allowed EOA they check/pay the user argument (withdrawFor(1,FRESH) reverts 'Cannot withdraw exceed the balance'); rescue/notify/updateAllowedCaller owner-only; no contract pass-through exists",
+    "Fee path: totalLockedFees = 22016518705984920 wei unchanged across all calls; fresh fee calls are no-ops; attacker withdrawReturnedFeesTo(ATTACKER,false) leaves victim 0xFAA9f4d3... balances and records bit-identical; victim's own withdrawReturnedFees(true) reverts 'No fees to return' despite [0,1126145528281164,0] unprocessed fees",
+    "apyCloudVault 0xd971efb6...410b27 holds 0 of all 8 tokens; triggerDistribution(true) from fresh succeeds but moves nothing"
+  ],
+  "ruled_out": [
+    "retroactive claim for pre-stake epochs",
+    "hint-based checkpoint corruption (oversized reverts, undersized self-corrects)",
+    "claim inflation / double claim",
+    "cross-account withdrawal via withdrawTo/exit family",
+    "third-party credit via stakeTo* (caller-pays only, no past-epoch balance)",
+    "reward forgery via updateRewardAmountByToken",
+    "governor/owner takeover paths, re-initialization, acceptOwnership",
+    "pending/returned-fee theft (msg.sender-keyed records, live no-op)",
+    "FarmingPool third-party withdrawal / allowed-caller contract pass-through",
+    "epoch-total overwrite via permissionless finaliser"
+  ],
+  "gaps": [
+    "Implementation 0xB0E4D5ba... is unverified; black-box probing of 80+4 selectors cannot exclude a novel bug outside the exercised call graph",
+    "No epoch rollover occurred during the session (cur=378, latestRewardEpoch=376); cross-boundary registration was not re-observed live",
+    "withdrawReturnedFees(true) positive-payout branch never observed (no account has claimable returned fees today); value at stake is ~0.0011 EXFI dust keyed to msg.sender",
+    "No trace API on the public RPC; state changes observed via Multicall3 code-override simulation (equivalent to eth_call, no persistence)",
+    "Parent working tree flare-kava-small/ was deleted externally mid-verification; this folder was rebuilt from live reads; parent artifacts re-read from /tmp CI checkout"
+  ]
+}

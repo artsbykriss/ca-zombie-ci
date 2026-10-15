@@ -1,0 +1,127 @@
+{
+  "finding": "L2-05 / L2-06 / L2-07 (Tier-3 cluster: Flare/Kava/small-chain)",
+  "title": "EXFI/SFIN Enosys governance staking (Songbird) + Hover (Kava EVM) + Segment Finance (opBNB) \u2014 adversarial re-test",
+  "chains": [
+    "songbird",
+    "kava",
+    "opbnb"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 661570.82,
+    "P": 1918.96,
+    "S": 7808.31
+  },
+  "categories_note": "H-O = staker principal + owner-claimable unclaimed rewards (EXFI mgr 165532.57 + SFIN mgr 490924.35 + FarmingPool 2714.54 + Hover holder-redeemable cash 2259.36 + Segment non-member redeem 140.00). P = Hover admin-only reserves 1918.96. S = frozen holder value (Segment market claims 4936.23 + Hover underwater collateral 2872.08). E-U = 0.",
+  "latest_block": 135454111,
+  "block_numbers": {
+    "songbird": 135454111,
+    "kava": 23035842,
+    "opbnb": 195804078
+  },
+  "targets_checked": 5,
+  "live_targets": 5,
+  "closed_reasons": [
+    "EXFI/SFIN governance staking: rewards are epoch-scoped by a past, non-interaction snapshot block; fresh accounts get balanceOfEpoch=0 for all past epochs (live-verified, 7 epochs) -> no retro capture",
+    "EXFI/SFIN: hints are validated (oversized hint reverts; undersized hint cannot corrupt checkpoints - bytecode-level test)",
+    "EXFI/SFIN: claim pays exactly balanceOfEpoch*epochRewardRate/1e18/10^(18-decimals) once; second claim reverts 'At least one epoch has not passed'",
+    "EXFI/SFIN: updateRewardAmountByToken gated to apyCloud 0xb8d1c66a (reverts 'Not allowed reward notifier'); addVoting/updateVoting 'Not a governor'; all owner paths 'Ownable: caller is not the owner'",
+    "EXFI/SFIN: permissionless updateTotalSupplyByEpochIfNeeded is idempotent (returns the stored epoch total exactly, live-verified epochs 370-376) and rejects current/next epoch",
+    "FarmingPool (262k EXFI): stakeFor/withdrawFor/withdrawAndGetRewardFor are onlyAllowedCaller ('StaticPool: Not allowed caller'); rescue paths owner-only; reward period finished 2025-01-03",
+    "Hover: mint+borrow globally paused per market ('MP'/'BP'); liquidations allowlisted to 2 protocol bots (outsider -> UNAUTHORIZED); oracle stale -> StalePrice() reverts for everyone; all admin behind 2-of-8 Safe; no allowances",
+    "Segment: every price reverts for every caller ('invalid resilient oracle price' / 'binance oracle price expired') -> borrow/liquidate/getAccountLiquidity revert; oracle partially re-configured live (feeds registered for USDT/FDUSD/ETH/BNB with rounds ~29h old vs maxStalePeriod 86400, BTCB has no feed) but config/revival paths are owner/AccessControl-gated; only bad debt (733.26 USDT + dust) remains; no reward token deployed"
+  ],
+  "poc": {
+    "tests_passed": 27,
+    "tests_total": 27,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38737040250"
+    ],
+    "ci_live_checks": "21/21 PASS (ci/run.sh)",
+    "notes": "3 suites: ExfiStakeManagerLocal 5/5 (exact deployed bytecode), HoverFork 9/9 (Kava fork), SegmentFork 13/13 (opBNB fork). All green; artifact ci-out/exfi-state.json valid JSON (block 135,454,111)."
+  },
+  "key_facts": [
+    "L2-05 lead corrected: 'EXFI staking' = EnosysGovernanceStakeManagerExfi 0xc4D89F8f593F215f3636793E3353A36C196Cf87A (impl 0xB0E4D5baB93B0a7a6A99b7AFCfb50501d8B19772, unverified) + sibling SFIN manager 0xA83E9033 (same impl, 313,828 EXFI of unclaimed rewards) + expired FarmingPool 0xb78ebd4b (262,315 EXFI staked, verified source)",
+    "EXFI manager holds 16,263,922.63 EXFI ($165,076 at $0.01015); staked totalSupply 16,176,444.01 EXFI; surplus 87,478.62 EXFI = unclaimed EXFI rewards",
+    "SFIN manager holds 5,945.18 SFIN ($487,623 at $82.02) + 313,827.96 EXFI ($3,185) + 134,074.41 WSGB ($116)",
+    "Payout formula verified exactly on-chain for 3 real stakers + fresh account across all 8 reward tokens: unclaimed == sum(balanceOfEpoch*epochRewardRate/1e18/10^(18-decimals)) (FORMULA_IDENTITY PASS)",
+    "epochSnapshotBlock(e) is a past block with NO interaction at it, inside epochInterval(e) (e377: snapshot 135,308,151 inside [135,287,584, 135,336,697]) -> momentary/same-block (flash) balances never count",
+    "Per-epoch reward flow (live, epoch 376 registration): 2,189.23 EXFI ($22.22) + 61.05 WSGB ($0.05) + dust; snapshot dilution requires holding ~half of TVL ($82k) through an unpredictable mid-epoch block for ~$11/epoch",
+    "withdrawReturnedFees(bool) is permissionless but reverts 'No pending fees' for accounts without governor-created pending fees; pending fees are only created by governor addVoting (gated)",
+    "Songbird public RPC keeps only ~3 blocks of state (eth_getStorageAt at latest-5 fails) -> live fork impossible; proof uses the exact deployed implementation bytecode etched into a local EVM + live read-only eth_call assertions",
+    "Hover: 160 unique borrowers enumerated (13,453+1,303+17,205 Borrow events); 2 underwater positions (collateral $2,872.08, shortfall $10,125.54); max gross liquidation bonus $136.77, bots-only, needs oracle refresh",
+    "Segment: sum of enumerated debts == totalBorrows for all 5 markets (complete event scan); last functional day 2026-05-19; cash $685.33 (H-O via non-member redeem), claims $5,621.56",
+    "Segment live change during this deep-dive: feeds now exist (USDT 0.99899909, FDUSD 0.99810609, ETH 2503.31, BNB 740.96, 8-dec) with maxStalePeriod=86400 (was 0/none); rounds are ~29h old -> stale by ~5h -> all prices still revert; BTCB feed absent; BinanceOracle impl exposes no round-submission function (revival is governance/feeder-gated, round-push path not fully resolved)",
+    "FarmingPool allowedCaller entries are 2 EOAs (0x9EbF9637..8c72, 0x43fc122D..4A07; exactly 2 UpdateAllowedCaller events ever) \u2014 verified by the independent verifier; no contract pass-through, so no third-party withdraw risk"
+  ],
+  "caveats": [
+    "The stake-manager implementation is unverified on-chain; conclusions rest on the recovered full ABI (frontend bundle), heimdall decompilation, bytecode-level tests on the exact runtime code, and live eth_call behaviour",
+    "The exact epochSnapshotBlock derivation was not fully reverse-engineered; all observed values are non-interaction blocks inside the epoch's stake/withdraw interval, which is sufficient for the no-flash-stake conclusion",
+    "Songbird/Kava/opBNB public RPCs prune state (~50-150 blocks), so live fork suites are tripwires rather than primary proof; Hover/Segment primary proof is live eth_call simulation (children/), EXFI primary proof is bytecode-level + live assertions",
+    "USD values move with prices (CoinGecko 2026-10-15: EXFI $0.01015, SGB $0.000863, SFIN $82.02, FXRP $1.31, ETH $2,364, USDT $0.999); token amounts are exact",
+    "Segment's oracle was being actively re-configured while this deep-dive ran (feeds/maxStalePeriod changed between block 195,761,245 and 195,805,xxx); the $0 E-U verdict holds in both states (prices revert today; with fresh real prices the only remaining positions are bad debt, so no profitable extraction) but the market can unfreeze at any time -> monitor"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from all three Tier-3 targets: Enosys EXFI/SFIN staking is correctly epoch-scoped and fully gated ($165.5k + $490.9k of principal + $4.1k unclaimed rewards all H-O), Hover is paused+allowlisted+stale-oracle-fails-closed, and Segment's oracle is dead so its markets are frozen around bad debt only.",
+  "per_target": {
+    "L2-05_exfi_stake_manager_songbird": {
+      "E-U": 0,
+      "H-O": 165532.57,
+      "P": 0,
+      "S": 0,
+      "confidence": "high",
+      "value_note": "16,176,444 EXFI principal + 87,479 unclaimed EXFI + other reward tokens"
+    },
+    "L2-05b_sfin_stake_manager_songbird": {
+      "E-U": 0,
+      "H-O": 490924.35,
+      "P": 0,
+      "S": 0,
+      "confidence": "high",
+      "value_note": "5,945.18 SFIN principal + 313,828 EXFI + 134,074 WSGB unclaimed"
+    },
+    "L2-05c_farmingpool_songbird": {
+      "E-U": 0,
+      "H-O": 2714.54,
+      "P": 0,
+      "S": 0,
+      "confidence": "high",
+      "value_note": "262,315 EXFI staked (expired farm) + 0.635 SFIN unclaimed; allowedCallers are 2 EOAs"
+    },
+    "L2-06_hover_kava": {
+      "E-U": 0,
+      "H-O": 2259.36,
+      "P": 1918.96,
+      "S": 2872.08,
+      "confidence": "high",
+      "value_note": "cash holder-redeemable / admin reserves / underwater collateral"
+    },
+    "L2-07_segment_opbnb": {
+      "E-U": 0,
+      "H-O": 140.0,
+      "P": 0,
+      "S": 4936.23,
+      "confidence": "high",
+      "value_note": "non-member redeemable cash / frozen market claims; MONITOR: oracle partially revived (feeds registered, maxStalePeriod 86400, rounds ~29h stale, BTCB feed absent)"
+    }
+  },
+  "totals_check": "E-U 0; H-O 661570.82; P 1918.96; S 7808.31 (per-target sums match categories)",
+  "independent_verification": {
+    "agent": "children/exfi-verify (independent falsification subagent)",
+    "verdict": "CONFIRMED \u2014 $0, no falsification found",
+    "confidence": "high",
+    "evidence": [
+      "identity re-derived from scratch and matched exactly per epoch for 3 independent stakers across all 8 tokens (blocks 135,453,827-135,455,804); exact-then-floor variant off by +1..+5 base units -> per-epoch truncation order proven",
+      "withdrawTo/withdrawToAndGetReward*/exit from non-owner revert 'Cannot withdraw, exceed the balance'/'Amount is zero' -> funds only ever drawn from msg.sender",
+      "simulated claim pays exactly getAllUnclaimedRewards; cursor advances; second claim reverts 'At least one epoch has not passed'",
+      "updateTotalSupplyByEpochIfNeeded returns stored value and leaves storage unchanged (in-call read-after-write, e=376/375/373)",
+      "stakeToWithHint(amount, third_party) = donation only; full fresh-account sweep (19 write calls + 8 balance reads in one eth_call) = all zero",
+      "FarmingPool allowedCallers are 2 EOAs 0x9EbF9637..8c72 and 0x43fc122D..4A07 (2 UpdateAllowedCaller events ever) -> no contract pass-through"
+    ],
+    "gaps": [
+      "stake-manager implementation is unverified -> a novel bug outside the exercised call graph cannot be excluded by black-box probing",
+      "no epoch rollover occurred during the verification session (epoch stayed 378)"
+    ]
+  }
+}

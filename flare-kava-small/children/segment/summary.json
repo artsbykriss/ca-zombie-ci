@@ -1,0 +1,102 @@
+{
+  "target": "Segment",
+  "chain": "opbnb",
+  "chain_id": 204,
+  "block": 195761245,
+  "block_last_verified": 195783829,
+  "observed_at": "2026-10-15T10:00Z",
+  "extractable_usd": 0,
+  "confidence": "high",
+  "value_in_protocol_usd": {
+    "cash": 685.33,
+    "borrows_current": 4936.23,
+    "total_claims": 5621.56
+  },
+  "paths": [
+    {
+      "path": "borrow / borrowBehalf (oracle-dependent liquidity check) - any caller",
+      "net_usd": 0,
+      "verdict": "S",
+      "evidence": "0x7add376cf7b33b7d09b0f0f4ef0a741c3cb95102.borrow(1e6) reverts 'invalid resilient oracle price' @ block 195761245 (analysis/sim1.json); cause: ResilientOracle 0xaacf634dd705d37e94c38ea68384e669d2b4d491 -> BinanceOracle 0x15cb42a8bc953ba604cf17dcbaa7d78b235979bf -> FeedRegistry 0x72d55658242377af22907b6e7350148288f88033 exists()==false and maxStalePeriod()==0 for all symbols"
+    },
+    {
+      "path": "liquidateBorrow on real underwater/bad-debt positions",
+      "net_usd": 0,
+      "verdict": "S",
+      "evidence": "getAccountLiquidity(0x68a0187089e2d1addee1ff35c4b0a7b5988931ea), (0x8d97998b147db2412592cfd56d6efae78670105e), (0xf8221bdd9f8615c27c430923353168755b58f81f) all revert 'invalid resilient oracle price' @ 195761245; only shortfall positions (733.26 USDT bad debt with ~0 collateral; 0.0022 ETH debt vs 0.00008 ETH collateral) are unprofitable even with prices"
+    },
+    {
+      "path": "Sonne-class empty-market/donation attack (mint tiny, donate, borrow)",
+      "net_usd": 0,
+      "verdict": "E-U",
+      "evidence": "no market is near-empty (min supply 2.5e7 seTokens); mint/redeem accrue first (no stale rate); donation is pro-rata (attacker redeemable 100.007 for 101 paid @ 195761245 - net loss); borrow leg reverts on oracle. Fork test test_T2_donation_attack_closed"
+    },
+    {
+      "path": "mint->redeem round trip / rounding arbitrage",
+      "net_usd": 0,
+      "verdict": "E-U",
+      "evidence": "fork test test_T2_mint_redeem_roundtrip_no_profit asserts out <= in; exchangeRate advance is identical on both legs (accrueInterest in mintInternal and redeemInternal)"
+    },
+    {
+      "path": "claimSegment / SEF / SEUSD rewards",
+      "net_usd": 0,
+      "verdict": "E-U",
+      "evidence": "comptroller.getSEFAddress() == 0x0, segmentAccrued(any) == 0, segmentRate/speeds == 0, claimSegment(addr) returns success but moves no tokens @ 195761245 (analysis/sim1.json)"
+    },
+    {
+      "path": "_grantSEF / _setPriceOracle / _setCollateralFactor / _setCloseFactor / market admin setters",
+      "net_usd": 0,
+      "verdict": "P",
+      "evidence": "revert 'only admin can' / 'access denied'; market admin fns return UNAUTHORIZED(1) without reverting; _setImplementation/_becomeImplementation/_resignImplementation/initialize revert with admin checks (analysis/sim1.json @ 195761245)"
+    },
+    {
+      "path": "oracle revival (setTokenConfig / setMaxStalePeriod / setSymbolOverride / FeedRegistry.proposeFeed)",
+      "net_usd": 0,
+      "verdict": "P",
+      "evidence": "all revert: AccessControl 0x4a3fa293 (ResilientOracle+BinanceOracle), OwnableUnauthorizedAccount 0x118cdaa7, 'Only callable by owner' (FeedRegistry). Owners = Gnosis Safe 2-of-3 0x1f41cfbbf95bac4f5a220700f78dbaa1e34b97d1"
+    },
+    {
+      "path": "steal seTokens via existing approvals (transferFrom)",
+      "net_usd": 0,
+      "verdict": "E-U",
+      "evidence": "transferAllowed(src=member) hits the dead oracle -> reverts (fork test test_T4_seize_and_market_hijack_closed); no non-member holder with cash-backing cash was found holding a public allowance"
+    },
+    {
+      "path": "non-member redeem (Compound redeemAllowed bypass)",
+      "net_usd": 140.0,
+      "verdict": "H-O",
+      "evidence": "holders who never called enterMarkets can redeem without any oracle call; live on-chain: tx 0x5f22a29b93605a49f0e39c5e3b02af1e71b238c01ba9f10fe81a3f999c3c3cbd block 195199920 (2026-10-13) redeemed 0.032996 BNB from seBNB. Non-member seBNB claim total ~0.1945 BNB (~$140). Self-service only (their own seTokens), not attacker-extractable"
+    },
+    {
+      "path": "frozen holder value (member redeem/whale exits, 12% cash cover)",
+      "net_usd": 0,
+      "verdict": "S",
+      "evidence": "getAccountLiquidity(whale1) / (whale2) revert on the dead oracle; cash cover per market 0% (seUSDT cash = 1 wei) .. 50.7%; until governance fixes the oracle these claims cannot move"
+    }
+  ],
+  "key_facts": [
+    "All five market prices revert: ResilientOracle.getUnderlyingPrice -> 'invalid resilient oracle price' (block 195,761,245)",
+    "Root cause: binance oracle price expired' from BinanceOracle 0x15cb42a8... + maxStalePeriod[symbol] == 0 + FeedRegistry 0x72d55658... has zero keys (exists==false, latestRoundDataByName reverts 'Key does not exist')",
+    "No pivot/fallback oracle is configured for any asset (main only, enabled)",
+    "Comptroller/markets/oracle/proxy-admins are all controlled by a 2-of-3 Gnosis Safe 0x1f41cfbbf95bac4f5a220700f78dbaa1e34b97d1",
+    "Docs-listed Comptroller beacon 0xba3835ed56a8b705a202642a83595cddc5b7b729 has no code",
+    "Debtors fully enumerated: sum of enumerated debts == totalBorrows for all 5 markets (complete event scan 19.2M -> 195.77M)",
+    "Largest position: 0x68a01870... 733.26 USDT debt with ~zero collateral (bad debt); a liquidation would seize almost nothing",
+    "Two whales hold ~100% of seFDUSD/seUSDT supply and are market members -> their positions are price-frozen",
+    "The protocol was still fully functional on 2026-05-19 (a real liquidation succeeded, tx 0xb88d7026... block 144,381,129); the oracle broke after that",
+    "SEF reward token was never wired on this deployment (getSEFAddress() == 0)"
+  ],
+  "poc": {
+    "file": "test/SegmentFork.t.sol",
+    "tests_total": 13,
+    "tests_passed": null,
+    "note": "not executed from this child session (parent runs it in CI); every assertion is pre-verified by live eth_call and can fail only on a state change (which is itself the tripwire)"
+  },
+  "caveats": [
+    "opBNB public RPCs are non-archive: historical eth_call impossible, so the exact block the oracle died cannot be pinned (bracketed to 2026-05-19..2026-10-13)",
+    "Contract source was matched from the public Segment-Finance/protocol repo (features + error strings) rather than explorer-verified source, because opBNB explorer APIs returned 502/DNS failure during this work",
+    "Value figures are point-in-time (block 195,761,245) with prices at 2026-10-15T09:47Z",
+    "Non-member seBNB redemption is H-O and ongoing; the exact remaining non-member claim changes with each redemption"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 from Segment Finance (opBNB) today: the entire price chain is dead (FeedRegistry empty + maxStalePeriod 0) so borrow/liquidate/member-redeem all revert, the only shortfall position is uncollectable bad debt, rewards were never wired, and every lever is behind a 2-of-3 Safe; ~$5.6k of holder claims are price-frozen (H-O/S) and ~$140 of seBNB is being self-redeemed by non-member holders."
+}
