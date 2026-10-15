@@ -1,0 +1,56 @@
+{
+  "finding": "L2-04",
+  "title": "BloctoTokenStaking (Flow) — frozen BLT staking: 100.7M BLT in staker records is holder- or admin-scoped; $0 unprivileged; sale contract bricked",
+  "chains": ["flow"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 42701.62,
+    "P": 169722.99,
+    "S": 0
+  },
+  "latest_block": 167841459,
+  "block_numbers": {"flow": 167841459},
+  "targets_checked": 6,
+  "live_targets": 5,
+  "closed_reasons": [
+    "every value-moving function is entitlement-gated: Staker.* methods (stake/requestUnstaking/withdrawUnstakedTokens/withdrawRewardedTokens) require StakerEntitlement and operate on self.id only; the only Staker resource lives as a private field inside the holder's BloctoPass NFT",
+    "BloctoPass.NFT private staking methods require BloctoPassPrivateEntitlement; Collection.borrowBloctoPassPrivate requires CollectionPrivateEntitlement, obtainable only by the account that owns the collection storage (fresh-attacker checker rejections reproduced in PoC C3)",
+    "Admin.* methods (addStakerRecord/startNewEpoch/startStakingAuction/endStakingAuction/payRewards/moveTokens/setEpochTokenPayout/createNewAdmin) require AdminEntitlement; the Admin resource sits at /storage/bloctoTokenStakingAdmin in the contract account and NO public capability exposes it (probed: /public/bloctoTokenStakingAdmin absent)",
+    "stakingEnabled=false live at block 167,840,658 (frozen): blocks stakeNewTokens/stakeUnstakedTokens/stakeRewardedTokens/requestUnstaking/unstakeAll/addStakerRecord; withdrawUnstakedTokens/withdrawRewardedTokens have no freeze gate but are holder-self-scoped (proven in emulator PoC C2)",
+    "the only public write surface, /public/bloctoPassMinter (borrowable &{BloctoPass.MinterPublic}; mintBasicNFT is access(all)), reverts while frozen at BloctoPass.NFT.init -> Admin.addStakerRecord pre-condition ('Cannot register a staker operator if the staking auction isn't in progress'); unfrozen it mints an EMPTY pass (id = totalSupply, all vaults 0) - no theft",
+    "contract-account BLT treasury vault (91,708,956.07 BLT) is reachable only through the account's key; /public/bloctoTokenReceiver is an unentitled &BloctoToken.Vault (deposit/read only; withdraw needs FungibleToken.Withdraw entitlement)",
+    "BloctoTokenSale (same account) is pre-Cadence-1.0 source ('pub') and cannot load at all - its BLT/tUSDT vaults are unreachable by anyone unless the contract account ships a 1.0 update",
+    "no reward-capture path: payRewards mints per named staker ID into that staker's own tokensRewarded bucket with a per-epoch dedup map; no share pool exists",
+    "no duplicate-ID/record-replacement path: addStakerRecord is admin+frozen-gated, NFT ids are monotonic from BloctoPass.totalSupply (29,762 = staker count; next id unused)"
+  ],
+  "poc": {
+    "tests_passed": 50,
+    "tests_total": 50,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "BloctoTokenStaking @ Flow 0x0f9df91c9121c460 (sha256 a4beb07263c95473bd87699d6e131d21c5528720e04a03f1b89241943a655cb3); same account: BloctoToken, BloctoPass, BloctoPassStamp, BloctoTokenSale",
+    "live (block 167,840,658): stakingEnabled=false, totalStaked=62,003,651.68051645 BLT, 29,762 staker records, epoch=208, epochTokenPayout=125,000 BLT, BloctoToken.totalSupply=375,999,852.53065610 (=350M genesis + 25,999,852.53 minted ~= 208 x 125k rewards), contract-account default BLT vault=91,708,956.07304526 BLT",
+    "full enumeration of all 29,762 records (block 167,841,172): sumStaked=62,003,651.68051645 (exact match to contract field), sumUnstaked=34,731,383.27438927, sumRewarded=3,953,256.41689412, sumCommitted=44,400.67102344, sumRequestedToUnstake=7,347,018.58957543; only 2,792 records have staked>0 and 3,216 have any tokens",
+    "H-O = 38,684,639.69 BLT (unstaked+rewarded) withdrawable by pass holders at any time even while frozen (emulator PoC C2: withdrawUnstakedTokens(50) succeeded with stakingEnabled=false; negative control stakeUnstakedTokens reverted); nominal $42,701.62 at last CMC price, ~$0 realizable",
+    "P = 62,048,052.35 BLT (staked+committed; admin must resume epochs and call moveTokens after holders' requestUnstaking) + 91,708,956.07 BLT treasury vault = 153,757,008.42 BLT = $169,722.99 nominal; all gated by the contract account's single active key (index 0, weight 1000, seq 291; key 1 revoked)",
+    "concentration: 48 records >100k BLT hold 91.4% of staked, 96.5% of unstaked, 91.6% of rewarded; whale #836 holds 28,703,801.59 BLT unstaked alone; #941 10.0M staked + 2.12M rewarded; #942 5.60M staked all pending unstake (never processed - freeze evidence); #873 5.0M staked",
+    "public capability surface probed at block 167,840,740: /public/bloctoPassMinter exists and borrows as &{BloctoPass.MinterPublic} (cap id 6), /public/bloctoPassCollection, /public/bloctoTokenReceiver, /public/bloctoTokenBalance, /public/bloctoPassStampCollection exist; /public/bloctoTokenStakingAdmin and /public/bloctoPassStampMinter absent",
+    "BloctoPass.totalSupply=29,762 and the contract account's own BloctoPass collection is EMPTY (no team passes parked in the contract account)",
+    "BloctoTokenSale import at latest block fails: 'pub is no longer a valid access modifier ... pre-Cadence 1.0 syntax' - bricked (S, amounts unquantifiable); it held BLT and tUSDT vaults",
+    "market: BLT is delisted - CMC status 'untracked', 0 market pairs, 24h volume 0, totalOnchainLiquidity $1.93 (single PancakeSwap-v2 BLT/BUSD pool 0xc1129bd3fd1405a01a46cec0560dd42eab9af240, live reserves 815,441.58 BLT / 1.5301 BUSD => $1.876e-6/BLT); last CMC-tracked close $0.00110384 (2025-08-31, zero volume); IncrementFi on-chain oracle reference $0.0001 (block 167,313,115)",
+    "Blocto (wallet/BloctoSwap/Teleport) shut down 2025-12-18 after $5.5M losses; no staking-contract events in a dense 4,839-window scan of the last 1,209,600 blocks (NewEpoch: 0 hits, ~2 weeks) nor in sampled windows across ~10M blocks; CI re-scans 500k blocks x 4 event types",
+    "9 adversarial candidate paths enumerated and closed (public mint, private-ref borrow, admin reach, treasury vault drain, cross-staker claim, past-reward capture, duplicate-ID replace, sale purchase, deposit griefing)"
+  ],
+  "caveats": [
+    "USD values are nominal at the last CMC-tracked price ($0.00110384); BLT has no live market (only $1.53 of BUSD sell-side depth in its sole pool) so realizable value is ~$0 at any size",
+    "staker-ID -> holder attribution was not possible without an indexer (Flowdiver API dead, flowscan JS-only), so the H-O bucket is classified by code capability not identity; whale #836 (28.70M unstaked) is an early private-sale-range ID and may be dormant => that portion could effectively be S",
+    "S bucket (bricked BloctoTokenSale vaults) is unquantified because the contract cannot load; the contract account could in principle recover it via a 1.0 contract update (P)",
+    "the emulator PoC proves the logic gates using the live contract sources with locally rewritten import addresses (exact mainnet addresses are not required for the gates); live mainnet state is proven separately by direct reads at the stated blocks",
+    "freeze dating is bounded, not exact: public access node retains limited event history (404 beyond ~50M blocks back) and caps event queries at 250 blocks; epoch 208 + 208x125k minted rewards place the last full epoch cycle before Blocto's Dec-2025 shutdown",
+    "Flow EVM-side BLT representations were not exhaustively searched (CMC tracks $1.93 total on-chain liquidity across all tracked chains)"
+  ],
+  "one_liner": "external unprivileged attacker can extract $0.00 from BloctoTokenStaking: the 100.7M BLT in staker records is strictly holder-scoped (38.68M withdrawable now, H-O) or admin-gated (62.05M, P; plus a 91.7M BLT treasury vault, P), the freeze blocks all staking ops, and the only public write surface (BloctoPass minter) reverts while frozen and mints empty passes when unfrozen; BLT itself is delisted with $1.93 on-chain liquidity so even the nominal $111k ledger is ~$0 realizable"
+}

@@ -1,0 +1,49 @@
+{
+	"networks": {
+		"emulator": "127.0.0.1:3679"
+	},
+	"accounts": {
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": {
+				"type": "file",
+				"location": "emulator-account.pkey"
+			}
+		},
+		"dep-ft": {
+			"address": "__DEP_FT_ADDR__",
+			"key": __DEP_FT_KEY__
+		},
+		"dep-nft": {
+			"address": "__DEP_NFT_ADDR__",
+			"key": __DEP_NFT_KEY__
+		},
+		"blocto": {
+			"address": "__BLOCTO_ADDR__",
+			"key": __BLOCTO_KEY__
+		},
+		"user": {
+			"address": "__USER_ADDR__",
+			"key": __USER_KEY__
+		}
+	},
+	"contracts": {
+		"ViewResolver": { "source": "contracts/deps/ViewResolver.cdc" },
+		"NonFungibleToken": { "source": "contracts/deps/NonFungibleToken.cdc" },
+		"MetadataViews": { "source": "contracts/deps/MetadataViews.cdc" },
+		"Burner": { "source": "contracts/deps/Burner.cdc" },
+		"FungibleToken": { "source": "contracts/deps/FungibleToken.cdc" },
+		"FungibleTokenMetadataViews": { "source": "contracts/deps/FungibleTokenMetadataViews.cdc" },
+		"BloctoToken": { "source": "contracts/BloctoToken.cdc" },
+		"BloctoTokenStaking": { "source": "contracts/BloctoTokenStaking.cdc" },
+		"BloctoPassStamp": { "source": "contracts/BloctoPassStamp.cdc" },
+		"BloctoPass": { "source": "contracts/BloctoPass.cdc" }
+	},
+	"deployments": {
+		"emulator": {
+			"dep-nft": ["ViewResolver", "NonFungibleToken", "MetadataViews"],
+			"dep-ft": ["Burner", "FungibleToken", "FungibleTokenMetadataViews"],
+			"blocto": ["BloctoToken", "BloctoTokenStaking", "BloctoPassStamp", "BloctoPass"]
+		}
+	}
+}

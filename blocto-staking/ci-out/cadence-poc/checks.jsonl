@@ -1,0 +1,50 @@
+{"claim": "A0", "check": "setup.state_script_readable", "status": "PASS", "detail": "script 'a5_state_before' returned a value"}
+{"claim": "A0", "check": "setup.user_funded_with_blt", "status": "PASS", "detail": "expected=1000 observed=1000.0"}
+{"claim": "A0", "check": "setup.minter_capability_published", "status": "PASS", "detail": "expected=0 observed=0"}
+{"claim": "A0", "check": "setup.user_account_setup", "status": "PASS", "detail": "expected=0 observed=0"}
+{"claim": "A0", "check": "setup.staking_enabled_at_boot", "status": "PASS", "detail": "expected=true observed=true"}
+{"claim": "C1", "check": "C1a.freeze_transaction_succeeded", "status": "PASS", "detail": "transaction 'b1_freeze' executed and sealed successfully"}
+{"claim": "C1", "check": "C1a.frozen_state_script_readable", "status": "PASS", "detail": "script 'b2_state_frozen' returned a value"}
+{"claim": "C1", "check": "C1a.frozen_state_reached", "status": "PASS", "detail": "expected=false observed=false"}
+{"claim": "C1", "check": "C1a.pass_supply_before", "status": "PASS", "detail": "expected=0 observed=0"}
+{"claim": "C1", "check": "C1b.public_mint_reverts_while_frozen", "status": "PASS", "detail": "step 'b3_mint_frozen' reverted at runtime (exit 0) matching: Cannot register a staker operator if the staking auction"}
+{"claim": "C1", "check": "C1b.pass_supply_unchanged", "status": "PASS", "detail": "expected=0 observed=0"}
+{"claim": "C1", "check": "C1b.no_pass_deposited", "status": "PASS", "detail": "expected=[] observed=[]"}
+{"claim": "C1", "check": "C1c.unfreeze_transaction_succeeded", "status": "PASS", "detail": "transaction 'b6_unfreeze' executed and sealed successfully"}
+{"claim": "C1", "check": "C1c.unfrozen_state_reached", "status": "PASS", "detail": "expected=true observed=true"}
+{"claim": "C1", "check": "C1c.public_mint_succeeds_while_unfrozen", "status": "PASS", "detail": "transaction 'b8_mint_unfrozen' executed and sealed successfully"}
+{"claim": "C1", "check": "C1c.pass_supply_incremented", "status": "PASS", "detail": "expected=1 observed=1"}
+{"claim": "C1", "check": "C1c.pass_deposited_to_external_signer", "status": "PASS", "detail": "expected=0 observed=0"}
+{"claim": "C1", "check": "C1d.staker_info_readable", "status": "PASS", "detail": "script 'b11_staker_info' returned a value"}
+{"claim": "C1", "check": "C1d.minted_pass_staker_is_same_id", "status": "PASS", "detail": "expected=0 observed=0"}
+{"claim": "C1", "check": "C1d.minted_pass_has_zero_tokens", "status": "PASS", "detail": "expected=0 observed=0.0"}
+{"claim": "C1", "check": "C1d.minted_pass_staked_bucket_zero", "status": "PASS", "detail": "expected=0 observed=0.0"}
+{"claim": "C1", "check": "C1d.minted_pass_unstaked_bucket_zero", "status": "PASS", "detail": "expected=0 observed=0.0"}
+{"claim": "C1", "check": "C1d.minted_pass_rewarded_bucket_zero", "status": "PASS", "detail": "expected=0 observed=0.0"}
+{"claim": "C1", "check": "C1d.minted_pass_vault_zero", "status": "PASS", "detail": "expected=0 observed=0.0"}
+{"claim": "C2", "check": "C2a.deposit_into_pass", "status": "PASS", "detail": "transaction 'c1_deposit' executed and sealed successfully"}
+{"claim": "C2", "check": "C2a.stake_new_tokens_while_unfrozen", "status": "PASS", "detail": "transaction 'c2_stake' executed and sealed successfully"}
+{"claim": "C2", "check": "C2a.tokens_committed", "status": "PASS", "detail": "expected=100 observed=100.0"}
+{"claim": "C2", "check": "C2a.request_unstaking", "status": "PASS", "detail": "transaction 'c4_request_unstaking' executed and sealed successfully"}
+{"claim": "C2", "check": "C2a.tokens_unstaked_bucket", "status": "PASS", "detail": "expected=50 observed=50.0"}
+{"claim": "C2", "check": "C2a.tokens_committed_remaining", "status": "PASS", "detail": "expected=50 observed=50.0"}
+{"claim": "C2", "check": "C2b.freeze_before_withdraw_transaction", "status": "PASS", "detail": "transaction 'c6_freeze' executed and sealed successfully"}
+{"claim": "C2", "check": "C2b.frozen_before_withdraw", "status": "PASS", "detail": "expected=false observed=false"}
+{"claim": "C2", "check": "C2b.withdraw_unstaked_tokens_while_frozen", "status": "PASS", "detail": "transaction 'c8_withdraw_unstaked' executed and sealed successfully"}
+{"claim": "C2", "check": "C2b.unstaked_bucket_emptied", "status": "PASS", "detail": "expected=0 observed=0.0"}
+{"claim": "C2", "check": "C2b.tokens_landed_in_pass_vault", "status": "PASS", "detail": "expected=50 observed=50.0"}
+{"claim": "C2", "check": "C2b.tokens_withdrawable_to_wallet", "status": "PASS", "detail": "transaction 'c11_pull_out' executed and sealed successfully"}
+{"claim": "C2", "check": "C2b.wallet_balance_after_pullout", "status": "PASS", "detail": "expected=950 observed=950.0"}
+{"claim": "C2", "check": "C2c.move_tokens_while_frozen", "status": "PASS", "detail": "transaction 'c13_move_tokens' executed and sealed successfully"}
+{"claim": "C2", "check": "C2c.tokens_now_staked", "status": "PASS", "detail": "expected=50 observed=50.0"}
+{"claim": "C2", "check": "C2c.pay_rewards_while_frozen", "status": "PASS", "detail": "transaction 'c15_pay_rewards' executed and sealed successfully"}
+{"claim": "C2", "check": "C2c.reward_paid_into_rewarded_bucket", "status": "PASS", "detail": "expected=1 observed=1.0"}
+{"claim": "C2", "check": "C2c.withdraw_rewarded_tokens_while_frozen", "status": "PASS", "detail": "transaction 'c17_withdraw_rewarded' executed and sealed successfully"}
+{"claim": "C2", "check": "C2c.rewarded_bucket_emptied", "status": "PASS", "detail": "expected=0 observed=0.0"}
+{"claim": "C2", "check": "C2c.reward_landed_in_pass_vault", "status": "PASS", "detail": "expected=1 observed=1.0"}
+{"claim": "C2", "check": "C2d.staking_direction_still_gated", "status": "PASS", "detail": "step 'c20_stake_unstaked_frozen' reverted at runtime (exit 0) matching: Cannot stake if the staking auction isn't in progress"}
+{"claim": "C3", "check": "C3a.private_call_not_compilable_through_public_cap", "status": "PASS", "detail": "step 'd1_private_call' rejected by the cadence checker before execution: has no member `borrowBloctoPassPrivate`            --> 8166289ab174aaf0801bf82227288b9c2bfe557d4f29d7d5c41737704d9f47cc:20:18                                 "}
+{"claim": "C3", "check": "C3a.entitled_call_not_compilable_even_after_narrowing", "status": "PASS", "detail": "step 'd1b_private_call_plain' rejected by the cadence checker before execution: requires `CollectionPrivateEntitlement` authorization, but reference is unauthorized   --> c6cf98d9b623d883b4f892f769dacd1211559be206597552aa6e6fa7443ca73b:18:8                                                                                            |                                                                                                                                                                18 |         concrete.borrowBloctoPassPrivate(id: 0)                                                                                                                   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ensure your reference has the required authorization"}
+{"claim": "C3", "check": "C3a.no_private_reference_from_public_capability", "status": "PASS", "detail": "transaction 'd2_private_probe' executed and sealed successfully"}
+{"claim": "C3", "check": "C3b.staking_admin_unreachable_from_outside", "status": "PASS", "detail": "transaction 'd3_admin_probe' executed and sealed successfully"}
+{"claim": "C3", "check": "C3b.other_account_storage_not_accessible", "status": "PASS", "detail": "step 'd4_admin_other_storage' rejected by the cadence checker before execution: cannot access `borrow` because function requires `Storage | BorrowValue` authorization, but reference is unauthorized                                  --> 4a90127a2624a7d9b956dd"}

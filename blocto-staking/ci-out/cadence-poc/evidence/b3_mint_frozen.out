@@ -1,0 +1,89 @@
+Transaction ID: 766ff747fe4e7667f5a613c6e973107ee4eb55e9377fad51f1cb4039d4ccf7bf
+Sending transaction...⠋
+[1A[2KSending transaction...⠙
+[1A[2KSending transaction...⠹
+[1A[2KSending transaction...⠸
+[1A[2KSending transaction...⠼
+[1A[2KSending transaction...⠴
+[1A[2KSending transaction...⠦
+[1A[2KSending transaction...⠧
+[1A[2K
+Block ID	9e7fae1820120d1c806a0a25b4ce8ebb34b1a59cc33cc3cce48b9c1a0884eee8
+Block Height	20
+❌ Transaction Error
+[Error Code: 1101] error caused by: 1 error occurred:                                                  
+    * transaction execute failed: [Error Code: 1101] cadence runtime error: Execution failed:          
+  --> 766ff747fe4e7667f5a613c6e973107ee4eb55e9377fad51f1cb4039d4ccf7bf:17:8                            
+   |                                                                                                   
+17 |         minter.mintBasicNFT(recipient: collection)                                                
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                                
+                                                                                                       
+   --> e03daebed8ca0615.BloctoPass:525:12                                                              
+    |                                                                                                  
+525 |             self.mintNFT(recipient: recipient, metadata:{} )                                     
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                     
+                                                                                                       
+   --> e03daebed8ca0615.BloctoPass:532:12                                                              
+    |                                                                                                  
+532 |             self.mintNFTWithCustomLockup(                                                        
+533 |                 recipient: recipient,                                                            
+534 |                 metadata: metadata,                                                              
+535 |                 vault: <- BloctoToken.createEmptyVault(vaultType: Type<@BloctoToken.Vault>()),   
+536 |                 lockupSchedule: {0.0: 0.0}                                                       
+537 |             )                                                                                    
+    |             ^                                                                                    
+                                                                                                       
+   --> e03daebed8ca0615.BloctoPass:573:33                                                              
+    |                                                                                                  
+573 |             var newNFT <- create NFT(                                                            
+574 |                 initID: BloctoPass.totalSupply,                                                  
+575 |                 originalOwner: recipient.owner?.address,                                         
+576 |                 metadata: metadata,                                                              
+577 |                 vault: <- vault,                                                                 
+578 |                 lockupScheduleId: nil,                                                           
+579 |                 lockupSchedule: lockupSchedule                                                   
+580 |             )                                                                                    
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^                                                           
+                                                                                                       
+   --> e03daebed8ca0615.BloctoPass:187:27                                                              
+    |                                                                                                  
+187 |             self.staker <- stakingAdmin.addStakerRecord(id: initID)                              
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                              
+                                                                                                       
+error: pre-condition failed: Cannot register a staker operator if the staking auction isn't in progress
+   --> e03daebed8ca0615.BloctoPass:187:27                                                              
+    |                                                                                                  
+187 |             self.staker <- stakingAdmin.addStakerRecord(id: initID)                              
+    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                              
+                                                                                                       
+Was this error unhelpful?                                                                              
+Consider suggesting an improvement here: https://github.com/onflow/cadence/issues.                     
+                                                                                                       
+                                                                                                       
+                                                                                                       
+
+
+Status		✅ SEALED
+ID		766ff747fe4e7667f5a613c6e973107ee4eb55e9377fad51f1cb4039d4ccf7bf
+Payer		045a1763c93006ca
+Authorizers	[045a1763c93006ca]
+
+Proposal Key:	
+    Address	045a1763c93006ca
+    Index	0
+    Sequence	1
+
+No Payload Signatures
+
+Envelope Signature 0: 045a1763c93006ca
+Signatures (minimized, use --include signatures)
+
+Events:	 None
+
+
+Code (hidden, use --include code)
+
+Payload (hidden, use --include payload)
+
+Fee Events (hidden, use --include fee-events)
+
