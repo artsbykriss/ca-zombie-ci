@@ -1,0 +1,65 @@
+{
+  "finding": "L2-23",
+  "title": "BDEX V3 (BOT Chain) + RocketSwap-Anubis (Anubis) \u2014 gated bridge/DEX cluster",
+  "chains": [
+    "bot-chain",
+    "anubis",
+    "ethereum",
+    "bsc",
+    "polygon"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 354239634.93,
+    "P": 778000000,
+    "S": 0
+  },
+  "latest_block": 26768090,
+  "block_numbers": {
+    "bot-chain": 26768090,
+    "anubis": 16530758,
+    "ethereum": 26197551,
+    "bsc": 127779417,
+    "polygon": 95572496
+  },
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "BDEX V3 core byte-identical to canonical Uniswap V3 v1.0.0 (only pragma/comment diffs in libraries)",
+    "BDEX V3 pool tokens: USDT mint is MINTER_ROLE-gated (EOA holder), WBOT is canonical WETH, all other pool counterparties fixed-supply or role-gated",
+    "RocketSwap Anubis pair/factory are a faithful 0.8.20 port of canonical UniV2 (only revert-string diffs)",
+    "Anubis synthetic DAI/USDT mint gated to two HyperlaneTokenBridge contracts",
+    "Bridge inbound path requires a canonical Hyperlane StaticMerkleRootMultisigIsm (2-of-3) behind a canonical Hyperlane Mailbox; ISM implementation byte-matches @hyperlane-xyz/core v10.1.5 (only PACKAGE_VERSION differs)",
+    "Forged Hyperlane messages rejected on fork (empty metadata and fake signature variants)",
+    "ProtocolReserve (56.78M DAI) withdraw reverts 'ProtocolReserve: not admin'",
+    "No skim-able excess in the top pools (reserves == balances); LP round-trip and swaps are canonical (no free money)",
+    "All top pool counterparty tokens: mint reverts (role/vault/no-mint); no oracle exposure"
+  ],
+  "poc": {
+    "tests_passed": 15,
+    "tests_total": 15,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38733786859"
+    ]
+  },
+  "key_facts": [
+    "RocketSwap Anubis TVL $354.2M = synthetic DAI 257.76M + USDT 162.48M minted by a custom HyperlaneTokenBridge",
+    "Collateral backing on Ethereum/BSC/Polygon \u2248 $424M (2.67M+114.60M+45.38M USDT, 51.28M+0.14M+51.80M DAI, 155.0M DAI private, plus USDC/ETH/BNB/POL)",
+    "Bridge ISMs: canonical Hyperlane 2-of-3 multisig, six validator EOAs, identical on all four chains",
+    "Owner EOA 0x73d7297753F47414A436c1b4123C5113917a496d controls UUPS upgrades, mailboxes, tokens on all chains (P)",
+    "BDEX V3 main pool 0x64F418471a1A7932a190E10da5A8551dB5AbeC05 = 15,625,899.53 USDT + 1,255,110.55 WBOT; implied WBOT \u2248 $12.45; BDEX V2 WBOT/USDT \u2248 $12.28 (no arb)",
+    "BOT-chain USDT is a team-issued OZ ERC20 (MINTER_ROLE + DEFAULT_ADMIN_ROLE on EOA 0x7800c931df97320d05977998512d6214a8df42b1), not canonical Tether",
+    "BDEX V3 factory 0x1C51c173323ec11BB4e3C4fD2314c225Dc4b5419: 24 pools, owner 0x4a1aAD72622Ede44B4ffCba4c86E2eCbD2dD930e",
+    "No permissionless function in either cluster pays the caller: swap/mint/burn/skim are canonical; claimPending only settles the caller's own claims; handle is mailbox-gated"
+  ],
+  "caveats": [
+    "The $354M/$424M is fully reachable by the owner EOA or any 2-of-3 validator keys (privileged, not unprivileged)",
+    "BOT-chain 'USDT' is team-issued; its $1 valuation (and thus the $31M BDEX TVL) depends on the issuer honouring it",
+    "Public bridge daily mint limit is 1M USDT / 1M DAI per 24h (rate-limited run risk, not an exploit)",
+    "Periphery contracts (routers / NFT position managers) were not exhaustively enumerated; they cannot drain pool reserves",
+    "USD figures are face-value stablecoin amounts at the recorded blocks; public RPCs are rate-limited"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from BDEX V3 (BOT) and RocketSwap-Anubis: the DEX cores are canonical Uniswap V3/V2, the Anubis $354M is synthetic minted only via a canonical Hyperlane 2-of-3 multisig bridge (ISM byte-verified against @hyperlane-xyz/core v10.1.5), and every pool counterparty token mint is role/vault-gated; the real exposure is privileged (owner EOA + validator keys)."
+}

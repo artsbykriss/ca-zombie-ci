@@ -1,0 +1,54 @@
+{
+  "note": "Collateral + bridge state read 2026-10-15 (read-only, public/keyless RPCs). USD at face value of the stablecoins.",
+  "blocks": {
+    "ethereum": 26197551,
+    "bsc": 127779417,
+    "polygon": 95572496,
+    "anubis": 16530758,
+    "bot": 26768090
+  },
+  "bridge_addresses": {
+    "public_bridge": "0x8932fe7726C1EE743F662f485C3e5a5D1D595F71",
+    "private_bridge": "0x250BA4E73A365CEfdd170a2b1ff9fc03097D64f3",
+    "public_mailbox": "0x599899e6b3b1362Ba2460D125756a738eC1592D6",
+    "private_mailbox": "0xbC9de608366cB445dB704894EcD15e6f1581AB67",
+    "public_ism": "0x966b26267AADfC1be995803d09797E523352465D",
+    "private_ism": "0xEb5216540491A94a1f2e582Cf66800A6880dC75F",
+    "owner_eoa": "0x73d7297753F47414A436c1b4123C5113917a496d",
+    "impl_public_bridge": "0xc625deaabc944b503d81dd2f8b39f844c2b04791",
+    "impl_private_bridge": "0x3b76ee52a0d38f2fb0787fb95447b06d07ce278c",
+    "impl_mailbox": "0x5a197a5f488fc9ff4c5d4c2af7884e974b51256b",
+    "impl_ism": "0x6ce8c44716bd11ffbeacc23687b43b87495a479d",
+    "ism_package_version": "10.1.5 (matches @hyperlane-xyz/core StaticMerkleRootMultisigIsm, byte-identical modulo PACKAGE_VERSION)"
+  },
+  "isms": {
+    "public": {"moduleType": 4, "threshold": 2, "validators": ["0x0b709a7bDfb123Ebabd1F1E38a6b43468E5B0D4F", "0x4D27EfE49697b7648872F4e5AeA42B95Ba30BcE9", "0xD1C2E530023Ac78687404650CFF9f458500C3343"]},
+    "private": {"moduleType": 4, "threshold": 2, "validators": ["0x24e9121965A747Ed340e67DD70FE4b69f994450b", "0x601518ecd47D119c00372db0dcC09Bab6C3392e3", "0xac95089333d232976D0e9F6bDd45F1e79301a1A7"]},
+    "same_on": ["ethereum", "bsc", "polygon", "anubis"]
+  },
+  "collateral_held_by_bridges": {
+    "ethereum": {
+      "public_bridge": {"USDT": 2665571.745994, "DAI": 51284485.966063397624608939, "USDC": 604911.110509, "ETH": 234.36257528057795308},
+      "private_bridge": {"DAI": 155000200.0}
+    },
+    "bsc": {
+      "public_bridge": {"USDT18": 114595960.909958005383820944, "USDC18": 341125.317209, "DAI18": 144175.513605650624229692, "BNB": 390.389698241962514122},
+      "private_bridge": {"USDT18": 0, "USDC18": 0, "DAI18": 0, "BNB": 0}
+    },
+    "polygon": {"status": "not enumerated (public bridge exists; balances not read in this pass)"},
+    "anubis": {"public_bridge": "synthetic minter (isCollateral=false)", "private_bridge": "synthetic minter (isCollateral=false)"}
+  },
+  "anubis_synthetics": {
+    "DAI": {"address": "0x83fd06F0846d9D90B3016bF670Efe2E0B11cDe14", "supply": 257756442.759509561161356682, "mint": "mintPublic/mintPrivate gated to bridges"},
+    "USDT": {"address": "0xDfb6a28BC6DC51fed17c27C880F2c66cDd040A3e", "supply": 162475388.948084, "decimals": 6, "mint": "gated to bridges"}
+  },
+  "bot_chain": {
+    "bdex_v3_factory": "0x1C51c173323ec11BB4e3C4fD2314c225Dc4b5419",
+    "bdex_v3_pools": 24,
+    "main_pool_USDT_WBOT_3000": "0x64F418471a1A7932a190E10da5A8551dB5AbeC05",
+    "main_pool_balances": {"USDT": 15625899.5299, "WBOT": 1255110.547904229788363945},
+    "implied_wbot_price_usd": 12.45,
+    "usdt": {"address": "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C", "supply": 73960200.0, "minter_roles": ["0x7800c931df97320d05977998512d6214a8df42b1 (EOA, holds DEFAULT_ADMIN+MINTER)"], "revoked_minter": "0xaa3011382db86c4f9696af871e9f77732fe75524"},
+    "wbot": {"address": "0xD5452816194a3784dBa983426cCe7c122F4abd30", "supply": 1271351.025400881832824064, "type": "canonical WETH"}
+  }
+}
