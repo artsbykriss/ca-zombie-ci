@@ -1,0 +1,45 @@
+{
+  "finding": "L2-Phase2-horizon-protocol",
+  "title": "Horizon Protocol (BSC) — Synthetix-fork zAsset system; only live unprivileged payout is the 200 HZN weekly minter reward",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0.06,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.06, "H-O": 44020, "P": 94.8, "S": 1097},
+  "latest_block": 127738226,
+  "block_numbers": {"bsc": 127738226},
+  "targets_checked": 43,
+  "live_targets": 39,
+  "closed_reasons": [
+    "HZN oracle rate stale/invalid (last update 1783151104, ~102d > rateStalePeriod 90000s) => issueSynths/burnSynths/claimFees/flagAccountForLiquidation all revert",
+    "CollateralManagerState.totalLoans()==0 => no short loans to liquidate",
+    "SynthRedeemer.redemptions[synth]==0 for all 26 synths + 0 zUSD balance => nothing redeemable",
+    "Depot.totalSellableDeposits==0 => exchangeEtherForSynths has no inventory",
+    "RewardsDistribution.distributeRewards requires msg.sender==authority (Synthetix) => 'Caller is not authorised'",
+    "SynthetixDebtShare non-transferable (transfer()=false, transferFrom only authorizedBrokers=0) => fresh account earns 0 in FeePool/LiquidatorRewards",
+    "RewardEscrowV2.vest/SynthetixEscrow.vest are msg.sender-only; mergeAccount needs nomination+zero debt",
+    "No DEX market for any of the 26 zAssets (1134 getPair over 7 V2 factories + 216 V3 getPool => only zUSD/BUSD V2 pair; zUSD/USDT V3 pool has 0 liquidity) => exchange() arb has no exit",
+    "zUSD cannot be minted (issuance blocked by invalid HZN rate) => zUSD/BUSD pair BUSD side not extractable",
+    "SynthetixBridgeToOptimism resolver cache broken ('Missing address: Issuer') and escrow holds 0 HZN"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 10, "ci_run_urls": []},
+  "key_facts": [
+    "System is NOT suspended: systemSuspension/issuanceSuspension/exchangeSuspension all (false,0); requireIssuanceActive()/requireExchangeActive() do not revert",
+    "Synthetix.mint() (0xc0eff774 proxy -> 0x0110bcBEB target) is permissionless: pays minterReward 200 HZN to msg.sender, mints 382,482.095 HZN; isMintable()=true; repeatable ~weekly (fixed schedule)",
+    "HZN price $0.0002785 (HZN-BNB pair 25.1551 WBNB / 65,942,549.8 HZN; BNB $729.98 from WBNB/USDT); 200 HZN = $0.0557; gas ~0.05 gwei => net ~$0.03/week",
+    "Per mint: 50,000 HZN -> HZN-BNB LP staking (0x84838d0a) via notifyRewardAmount; remainder 332,282 HZN -> RewardEscrowV2 + FeePool.setRewardsToDistribute",
+    "Fresh attacker cannot farm the 50k: existing stakers hold 30,734.58/36,760.38 LP (83.6%); matching LP ($18.8k) costs ~$47 round-trip swap fees vs $6.96 reward => negative EV",
+    "All 26 synth oracles live and accurate (zBNB 727.84 vs market 729.98); exchange fee ~0.32%; zUSD/BUSD pair implies $0.578/zUSD",
+    "H-O realizable ~$16.6k: staked LP redeems to 21.03 WBNB ($15,353) + 1,101 BUSD + 12,890 PHB ($167) + small HZN",
+    "H-O notional HZN claims (illiquid): RewardEscrowV2 55,781,087 HZN ($15,533), LiquidatorRewards 37,788,090 HZN ($10,523), staking unclaimed 2,319,462 HZN ($646)",
+    "S (stuck): 500 BUSD + 51,873.9 CAKE + 800 HZN at the HZN proxy address (no rescue path); FeePool 1,725,295 HZN rewards blocked by invalid HZN rate",
+    "P: owner EOA 0x81752bC7... owns all 34 modules; staking-owner EOA 0x6a6677a9 holds 175,000 HZN + 0.0631 BNB"
+  ],
+  "caveats": [
+    "HZN-denominated H-O figures are notional at $0.0002785; exit liquidity is only ~25 WBNB, so realizable value is much lower (~$16.6k liquid legs).",
+    "mint() gas measured in CI PoC; net USD uses 0.05 gwei and ~700k gas estimate.",
+    "zUSD has two proxy front-ends (0x7F11125A registered, 0xf0186490 in the BUSD pair) sharing one Synth target — both were checked for markets.",
+    "E-U is per weekly mint call; it recurs (~52x/yr => ~$1.6/yr gross) while the inflation schedule runs.",
+    "If the HZN Chainlink feed resumes, claimFees/liquidations/issuance reopen — still only tens of dollars at current HZN price."
+  ],
+  "one_liner": "External unprivileged attacker can extract only ~$0.06/week live (200 HZN minter reward from the still-active Synthetix.mint() on BSC; net ~$0.03 after gas) because every larger path is closed: HZN oracle stale blocks issue/burn/claim/liquidate, there are no short loans or depot deposits, debt shares are non-transferable, and no zAsset has a DEX exit market (only a dead zUSD/BUSD pair) so exchange() cannot be arbitraged."
+}
