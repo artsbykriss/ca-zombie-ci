@@ -183,4 +183,4 @@ fee   = 0.025 × V_max
   anchor v1.0.2 `account_loader.rs`; Jupiter price/route API for realizable-price checks.
 * Files: `analysis/` (model, scans, pulse oracle, validation, PoC-state fetchers), `poc/`, `ci-out/`,
   `summary.json`.
-* CI: see `summary.json.poc.ci_run_urls` (harness is also reproducible locally with `cd poc && cargo test --release`).
+* CI: [run 38774200780](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38774200780) — **SUCCESS, 4/4 tests pass in CI**, results identical to the local run (harness reproducible with `cd poc && cargo test --release`).

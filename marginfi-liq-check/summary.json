@@ -1,13 +1,23 @@
 {
   "finding": "C2-37 (follow-up: liquidation realisability re-check)",
-  "title": "marginfi v2 liquidation realisability — program-oracle re-derivation + LiteSVM liquidation PoC",
-  "chains": ["solana"],
+  "title": "marginfi v2 liquidation realisability \u2014 program-oracle re-derivation + LiteSVM liquidation PoC",
+  "chains": [
+    "solana"
+  ],
   "headline_extractable_usd": 0,
   "headline_confidence": "high",
-  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
   "categories_note": "E-U scoped to this follow-up (liquidation realisability). Prior audit's H-O/P figures ($47.54M H-O; single-EOA upgrade authority P) are unchanged and documented in the campaign tracker.",
   "latest_block": 457293766,
-  "block_numbers": {"solana_slot": 457293766, "accounts_dump_slot": 457279480},
+  "block_numbers": {
+    "solana_slot": 457293766,
+    "accounts_dump_slot": 457279480
+  },
   "targets_checked": 165715,
   "live_targets": 1317,
   "closed_reasons": [
@@ -19,7 +29,10 @@
   "poc": {
     "tests_passed": 4,
     "tests_total": 4,
-    "ci_run_urls": [],
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38774200780"
+    ],
+    "ci_status": "SUCCESS (4/4 tests pass in CI; identical to the local run: T1 prior-top healthy +$67,165.87 -> 6068; T2 bad debt -> 6065; T3 dust -> 6009; T4 batch 22 cases -> 1 success seizing 49 base units, 21 failures 6072x9/6065x7/6009x5)",
     "local_run": "cd poc && cargo test --release (4/4 pass; LiteSVM + cloned mainnet state)"
   },
   "key_facts": [
