@@ -1,0 +1,44 @@
+{
+  "finding": "Z3-C5",
+  "title": "EtherVista (Ethereum): uint112 K-check overflow in immutable pairs — live E-U $0, key-gated latent one-call drain",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.0, "H-O": 7239.42, "P": 317796.91, "S": 63427.97},
+  "latest_block": 26201112,
+  "block_numbers": {"ethereum": 26201112},
+  "targets_checked": 1087,
+  "live_targets": 1087,
+  "closed_reasons": [
+    "pair.swap() gate: require(msg.sender == factory.router(), 'EtherVistaPair: FORBIDDEN'); factory.router() = verified official EtherVistaRouter 0x9bD63C5D44fF28390df1EaaFD4eB4BD73E94A72a (bytecode-identical to verified source)",
+    "official router has no arbitrary-amountOut entry point: every swap derives outputs from UniswapV2Library.getAmountOut (fork test T7)",
+    "setRouter/setRouterSetter are msg.sender-gated on the single routerSetter EOA; no permissionless/signature path (fork test T5)",
+    "skim() excess = 0 on the target pair; fleet-wide skim excess $0.0007 (one pair, 0.0001 UNI)",
+    "claimShare() pays only stored provider snapshots; non-providers receive 0 (fork test T3)"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": ["CI_URL_PLACEHOLDER"]
+  },
+  "key_facts": [
+    "Pair 0xfdd05552F1377aA488AFed744c8024358AF02041 (WETH/VISTA, verified EtherVistaPair solc 0.5.16) holds 14.247866353266560006 WETH + 79,387.393606187717449441 VISTA (block 26,201,112); balances == reserves (no skim excess); poolBalance 0.606719450477681318 ETH",
+    "uint112 K-wrap: r0*r1 = 1.131101e42 > 2^112 -> RHS of require(balance0*balance1 >= reserve0*reserve1) = 3.3257e33, inert. Reachable by any caller when msg.sender == factory.router()",
+    "Fork-proven one-call drain (T4): 14.247091740343487 WETH + 79,383.100270513780 VISTA extracted with 1 wei input, leaving $3.75 residue; post-drain K check self-heals (T9)",
+    "Bytecode diff: pair executable code byte-identical to verified source (31 diff bytes all inside metadata bzzr1); deployed creation code extracted from factory runtime hashes to on-chain INIT_CODE_HASH 0xe260b727...; CREATE2 re-derivation matches the pair address; router byte-identical to verified source incl. metadata (only 46x20B immutable slots); factory executable identical",
+    "Fleet: 1,087 pairs, all byte-identical code, all factory bindings correct; 713 pairs have r0*r1 > 2^112; all pairs are WETH pairs; router binding is factory-global (one setRouter exposes all)",
+    "Fleet latent (key-gated): WETH-max one-call drain = 116.155449 WETH (~$283,341) across 713 overflowing pairs; best-strategy total ~$317,796.91 incl. priced token sides; target pair $69,183.66",
+    "Live E-U fleet-wide: $0.0007 (single UNI/WETH pair carries 0.0001 UNI skim-able excess); no other live E-U path found",
+    "Oct 9 2026 incident: routerSetter EOA 0xCA90D843288E35beeADfCe14E5F906e3F1AFc7cB called setRouter(attacker contract 0x469424b6...) 03:46:11 UTC; exactly ONE pair drained (net 7.477952467865157795 WETH + 43,855.902196275763910451 VISTA); router restored 03:49:11; VISTA burned to 0xdEaD, WETH -> 18,590.72 USDC",
+    "Post-incident: setRouterSetter NEVER called; the same single EOA still holds routerSetter + router treasury; the pool is still overflowing today (100% re-drainable in one swap if the router flips)",
+    "H-O: live LP holders (8.3244% of supply; 91.6756% of LP is burned to 0xdEaD since 2024-09-02) can redeem ~$5,759.44 + provider claimShare pot ~$1,479.99; S: burned-LP backing ~$63,427.97 unredeemable under normal operation"
+  ],
+  "caveats": [
+    "USD point-in-time (DefiLlama 2026-10-15/16: WETH $2,439.32, VISTA $0.433724)",
+    "707 of 713 overflowing pairs are unpriced long-tail tokens: their non-WETH side is unquantified (WETH floor 116.155449 WETH is price-free; the priced total $69,258.64 bounds the target-pair share)",
+    "Attribution of the Oct 9 setRouter use (key compromise vs insider) is unresolved from public/on-chain data; no claim made",
+    "Metadata (bzzr1) differences on pair/factory are Etherscan source-text normalisation; executable code byte-identical (proved)",
+    "Fleet latent requires the routerSetter key (P), not an unprivileged path; the hostile router also needs one swap per pair (batched in a contract)"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live (fleet $0.0007 dust): the uint112 K-check overflow in 713/1087 immutable EtherVista pairs is only reachable behind factory.router(), which is the verified official router; but one key (routerSetter EOA, never rotated after the Oct 9 $18.6k drain) can flip the router and drain $69,183.66 from the WETH/VISTA pair in a single call (~$317.8k fleet-wide)."
+}
