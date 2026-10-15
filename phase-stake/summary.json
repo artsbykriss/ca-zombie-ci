@@ -1,0 +1,97 @@
+{
+  "finding": "C2-41",
+  "title": "Phase Stake (YIELD LST, Solana) \u2014 SPL stake pool on Sanctum multi-validator program",
+  "chains": [
+    "solana"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 3050729.63,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 457256565,
+  "block_numbers": {
+    "solana_slot": 457256565,
+    "solana_epoch": 1058
+  },
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Standard audited Sanctum multi-validator SPL stake pool program (SPMBzs...) \u2014 no unguarded value instruction",
+    "All deposits mint at exact NAV (floor favors pool); deposit->withdraw-stake round trip loses the 0.1% withdrawal fee (simulated)",
+    "Instant SOL withdrawals gated by sol_withdraw_authority (phaseUTHS... keypair): unsigned attempt fails SignatureMissing (simulated)",
+    "Reserve cannot be drained via WithdrawStake while validator stake exists (simulated)",
+    "Privileged instructions (SetFee/AddValidatorToPool) reject a fresh attacker (WrongManager/WrongStaker, simulated)",
+    "Freshness gates (last_update_epoch >= clock.epoch + per-entry freshness) block stale-rate/donation MEV",
+    "YIELD has effectively no market (Raydium pool tvl 0; ~$2.8k/24h) \u2014 no meaningful below-NAV buy-and-redeem arbitrage",
+    "F-1 precondition absent today: the only validator-list record is Active (no Deactivating* record); the precondition can only be created by the staker"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 8,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38748873096",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38749387375"
+    ],
+    "note": "7/8 chain-native simulateTransaction cases reach their expected outcome (A,B,G success; C1,C2,D,E,F fail at the intended gate). Sim H (DepositStake with a freshly delegated source) passes all pool-program gates without any authority signature and then fails at the stake-program merge (Custom:6 MergeMismatch) because a just-delegated source is still activating \u2014 a state precondition, not a pool gate."
+  },
+  "key_facts": [
+    "Pool account phasejkG1akKgqkLvfWzWY17evnH6mSWznnUspmpyeG owned by SPMBzsVUuoHA4Jm6KunbsotaahvVikZs1JyTW6iJvbn (Sanctum multi-validator SPL stake pool, branch sanctum-spl-multi-pool-deploy)",
+    "total_lamports = 30,002,233,945,691 (30,002.23 SOL) = reserve 86.13 SOL + one fully-active validator stake account 8QtQ1U34DPs2UKQiwUoRPMHnjJedsmdASZdbQHa7VHKh (29,916.10 SOL, vote CiTYUYPAPHdcri5yEfsmqVcs54J6j8X1QaiFLgYqMVe)",
+    "YIELD mint phaseZSfPxTDBpiVb96H4XFSD8xHeHxZre5HerehBJG supply 25,123,581,135,630 raw = pool_token_supply; NAV = 1.194186202 SOL/YIELD",
+    "Backing USD $3,050,729.63 at SOL $101.68341586 (DefiLlama, 2026-10-15); the finding row's '25,183 SOL' is the token supply at a stale ~$122 SOL price",
+    "sol_deposit_authority = None and stake_deposit_authority = default deposit PDA [pool,'deposit'] -> deposits permissionless; sol_withdraw_authority = phaseUTHSD78uiD8rnRQWuvbEakvY1chNSeftkpvz6d (on-curve) -> instant SOL exit permissioned",
+    "Withdraw authority PDA 9HYjrCF5evTobLmay372kpUWSNTrtmDU2NkQtqjdnHKa (bump 251) is reserve staker/withdrawer and YIELD mint authority",
+    "Validator list vec_len = 1 live entry; the other 3,949 slots are stale bytes ignored by bounds-checked BigVec access",
+    "Fees: epoch 0%, stake/SOL deposit 0%, stake/SOL withdrawal 0.1% (Fee is {denominator,numerator} denominator-first)",
+    "Program upgrade authority 47SND7bGKvNXrqfP1bjsLCbwTgZhFBzAgmZ42QSkRScz is off-curve/funded (multisig-style; Sanctum docs: 11-member multisig)",
+    "Phase = Phase Labs (phase.cc, @phase_), Solana since 2021; phase.cash/@0xPhase is a different project (DefiLlama parent grouping is a metadata error)",
+    "No exploit/audit/advisory found for Phase/YIELD/pdSOL; YIELD is in Sanctum Infinity with only ~20.15 YIELD",
+    "Pool created 2024-04-18 (creation tx blockTime 1713395218); the 1.1942 NAV is ~2.5 years of staking rewards, fully backed on-chain",
+    "F-1 tripwire: deployed program = unpatched SPL stake-pool v1.0.0 (byte-identical to upstream except declare_id/fee-ceil/builders); if the staker removes the sole validator, a fresh attacker can mint ~348x fair NAV with a 10 SOL deposit (gain ~$316k) up to ~$2.8M with 1,000 SOL",
+    "Control (verified): manager = Squads v4 vault[0] of multisig GRe1iCBE\u2026 (3-of-N, 24h timelock, created 2026-10-12; SetManager moved 4 Phase pools that day); staker = single on-curve key that actively signs (validator ops only); sol_withdraw_authority = single on-curve key; upgrade authority = off-curve/multisig-style PDA",
+    "Holders: 4,261 accounts; top1 41.28% (marginfi v2 vault); top5 97.29%; ~47.6% Loopscale, ~41.3% marginfi; NAV premium = 7.377%/yr CAGR over 2.493 years; stake account = delegation + rent exactly"
+  ],
+  "caveats": [
+    "The 19.4% NAV premium (30,002.23 SOL backing vs 25,123.58 YIELD) is fully backed on-chain; its origin (initial over-collateralization or donation) is documented from history where available (see analysis/onchain-state.md)",
+    "Instant SOL withdrawal is gated by a single on-curve keypair (phaseUTHS...); it only reaches the ~86 SOL reserve and still requires burning the caller's own YIELD \u2014 UX gate, not a theft vector",
+    "Privileged compromise (manager/staker/upgrade authority) could put the whole pool at risk \u2014 P-category overlay, not E-U",
+    "Simulations are simulateTransaction runs (sigVerify=false, nothing signed/sent); Solana has no local-fork replay here, so state is live mainnet at simulation time"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Phase Stake (deposits mint at exact NAV; stake exits pay NAV minus 0.1%; instant SOL exit requires Phase's signature; privileged instructions reject fresh attackers; 8 chain-native simulations) \u2014 but the pool runs an unpatched SPL stake-pool v1.0.0 with a HIGH conditional tripwire (F-1): if the staker rotates the validator, a fresh attacker can capture up to ~$2.8M for ~1,000 SOL (local-validator PoC); ~$3.05M remains holder-only recoverable (H-O).",
+  "conditional_paths": [
+    {
+      "id": "F-1",
+      "title": "Deactivating-validator accounting bug in unpatched SPL stake-pool v1.0.0 (fixed upstream in v2.2.0)",
+      "mechanism": "UpdateValidatorListBalance (permissionless, no_merge=false) records 0 lamports for a DeactivatingValidator/DeactivatingAll record whose stake is still active; UpdateStakePoolBalance then understates total_lamports by X; deposits mint at the collapsed price and gain becomes backed when the stake merges into the reserve.",
+      "precondition": "A Deactivating* record exists \u2014 created only by the staker's RemoveValidatorFromPool (privileged; routine validator rotation).",
+      "live_today": false,
+      "live_evidence": "validator list vec_len=1, record status=Active at slot 457272609; stale ReadyForRemoval bytes from epochs 953-954 show prior rotations",
+      "capital_required_sol": 1000,
+      "max_gain_sol": 27543,
+      "max_gain_usd": 2800673,
+      "examples": [
+        {
+          "deposit_sol": 10,
+          "gain_sol": 3112,
+          "gain_usd": 316400
+        },
+        {
+          "deposit_sol": 100,
+          "gain_sol": 16084,
+          "gain_usd": 1635400
+        },
+        {
+          "deposit_sol": 1000,
+          "gain_sol": 27543,
+          "gain_usd": 2800673
+        }
+      ],
+      "evidence": "code reading sp2_processor.rs:2469-2496 + upstream v2.2.0 diff (up_v22_processor.rs) + analysis/program-audit.md; local solana-test-validator PoC ci/f1/ (cloned accounts + crafted precondition, fresh-keypair attack tx)",
+      "remediation": "Sanctum program upgrade to v2.2.0+ behavior"
+    }
+  ]
+}
