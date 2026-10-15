@@ -1,0 +1,108 @@
+{
+  "finding": "l2-related",
+  "title": "L2 close-out: Serum Swap (Solana SPL token-swap AMM) + Cega V2 (Ethereum/Arbitrum Treasury)",
+  "chains": ["solana", "ethereum", "arbitrum"],
+  "headline_extractable_usd": 4.22,
+  "headline_confidence": "high",
+  "headline_note": "E-U bug-based = $0.00 (high) for both targets; the $4.22 is residual stale-price arbitrage on Serum Swap ConstantPrice pools at live-DEX realizable prices (med-high). DefiLlama-price upper bound $15,186.78 (not realizable); $13,414.58 requires holding unmarketable Sollet tokens.",
+  "categories": {"E-U": 4.22, "H-O": 63652.21, "P": 249932.98, "S": 15.6},
+  "latest_block": 26197102,
+  "block_numbers": {"ethereum": 26197102, "arbitrum": 515006625, "solana_slot_range": "457162187-457166000", "solana_deploy_slot": 73737036},
+  "targets_checked": 2,
+  "live_targets": 2,
+  "targets": {
+    "serum-swap": {
+      "chains": ["solana"],
+      "program": "SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8",
+      "program_kind": "SPL token-swap AMM (distinct from Serum v3 / OpenBook v1 audited in H-22)",
+      "deployed_build": "solana-program-library@9281b6e82899 (2021-04-14), --features production; ELF sha256 f86b866c8717f4a052bd61b36bfd1dee203d32673a0bb5cb1fbd8b99f8e65719",
+      "last_deploy_slot": 73737036,
+      "last_deploy_utc": "2021-04-15T04:22:07Z",
+      "upgrade_authority": "DpWjxjJE2SCsraeZqKqLtvdPjiaABmcmNAZSP9iUaGrn",
+      "accounts": {"total_owned": 340, "initialized_pools": 292, "constant_product": 262, "constant_price": 30, "stable": 0, "offset": 0, "uninitialized": 48},
+      "live_custody_usd": {"defillama_prices": 259285.47, "realizable_prices": 204350.99, "defillama_protocol_page": 221430.68},
+      "headline_extractable_usd": 4.22,
+      "headline_confidence": "high",
+      "categories": {"E-U": 4.22, "H-O": 63652.21, "P": 140698.78, "S": 15.6},
+      "e_u_bug_based_usd": 0.0,
+      "e_u_arb_realizable_usd": 4.22,
+      "e_u_arb_defillama_upper_bound_usd": 15186.78,
+      "conditional_holder_only_usd": 13414.58,
+      "closed_reasons": [
+        "WithdrawAllTokenTypes / WithdrawSingleTokenTypeExactAmountOut require burning the caller's own LP tokens; chain-native simulateTransaction with an empty LP account fails at the Tokenkeg burn (InstructionError [3, Custom(1)])",
+        "vault authority = PDA([pool], stored nonce) verified for 292/292 pools; pool_mint mint_authority = PDA",
+        "deployed 2021-04 build implements pre-PR#1794 single-sided withdrawal math (sim-probe: observed LP burn 318,221,048,603 vs deployed prediction 318,221,048,611 rel 2.5e-11; post-fix formula 310,153,567,464 is 2.54% off) -> over-charges the withdrawer, pool-favouring",
+        "constant-product swap uses checked_ceil_div -> pool-favouring rounding",
+        "OtterSec Apr-2022 stable-curve rounding bug (patch PR#2942) is present in the deployed binary but there are ZERO Stable-curve pools -> no live target",
+        "no admin/sweep/pause instruction in the deployed instruction set (tags 0-5 only); host-fee path nets <=1bp/swap vs 25bp trade fee (economically dead)",
+        "all 292 pool fee accounts owned by HfoTxFR1Tm6kGmWgYWD6J7YHVy1UwqSULUGVLXkJqaKN (key-gated)"
+      ],
+      "poc": {"tests_passed": 1, "tests_total": 1, "kind": "chain-native simulateTransaction probes (4) + full state enumeration", "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38717020995"]},
+      "key_facts": [
+        "340 accounts owned by the program; 292 initialized pools (262 ConstantProduct, 30 ConstantPrice); 0 Stable/Offset",
+        "TVL $259,285.47 at DefiLlama prices / $204,350.99 at realizable prices; two SOL/USDC(SDT) pools = 84% of realizable value",
+        "LP value in program-owner fee account HfoTxFR1... = $140,698.78 (68.9% of realizable); other LP holders $63,652.21",
+        "soUSDT real market price ~$0.27 (Jupiter route via Orca/Flux) vs DefiLlama $0.999 -> top 'arb' pools are at real market, not mispriced",
+        "pools are live and aggregator-routed (Jupiter-routed swaps decoded at slots 457,161,704-457,163,289)"
+      ],
+      "caveats": [
+        "upgrade authority DpWjxjJE2SC... is NOT revoked (P over the whole $204k)",
+        "$4.22 realizable-arb depends on the mispriced ConstantPrice pools being drainable with market-bought inputs; conservative",
+        "public-RPC rate limits prevented a full LP-holder census; H-O derived by subtracting the fee-account LP share"
+      ]
+    },
+    "cega-v2": {
+      "chains": ["ethereum", "arbitrum"],
+      "resolution_note": "DefiLlama cega-v2 listing = the Treasury custody contracts (recovered adapter projects/cega-v2/index.js @28c8691a); the CEGA_STATE/LOV/FCN products are the older EVM deployment (cega-v1 listing) and are out of scope",
+      "treasury": {
+        "ethereum": {"proxy": "0xA8AB795731fbBFDd1Fbc57ca11e6f722e7783642", "impl": "0x9f1876e83b489c2e027859ecf660157a7b34cefe", "proxy_owner": "0xeA3d63A3A514C4BeD5bF2c61224EF561f0355F53", "proxy_owner_kind": "2-of-6 Gnosis Safe", "address_manager": "0x1DdF7C4C98a78b492bb4a2881358f183d94c9806", "cega_entry": "0x7a67D5Eb2D6684d3e899575aAAA5AB31b79890c2", "redeposit_manager": "0xF8a62c2eD5588df7aBa4713f79B4b4Af56fEb8f4", "acl_manager": "0x954939B7bEA8c79E337Ba11f42e55c639928B4dF"},
+        "arbitrum": {"proxy": "0x475C4AF369B28997B25bd756eF92797AD3F69593", "impl": "0xf57573a1770bfd14f3985ee157e0b416069fd37e", "proxy_owner": "0x2315f08cf01cC4eBF324ee928f64527E689A2B4c", "proxy_owner_kind": "Gnosis Safe (threshold 2)", "address_manager": "0x25b7A20B8E9B0676E596eDF4329d38459c3f9a87", "cega_entry": "0xFD62eEbAA64D2F33BbDb42e713Fba7E94EF2dA50", "redeposit_manager": "0x45914CfB6FAA40CaF6456B84EE133C9C667cf874", "acl_manager": "0xe0D27910a59ca9Bf86b554EAE8c7a722CDB9cf62"}
+      },
+      "live_custody_usd": {"ethereum": 32472.68, "arbitrum": 76761.52, "total": 109234.2},
+      "balances_verified": {
+        "ethereum": {"native_eth": "2.762715809590197196", "usdc": "12510.400436", "usdt": "12166.977439", "wsteth": "0.306016666760146198", "wbtc": "0.00312642", "fork_block": 26197102},
+        "arbitrum": {"native_eth": "3.774118921846415395", "usdc": "65005.198188", "usdt": "2675.711476"}
+      },
+      "headline_extractable_usd": 0.0,
+      "headline_confidence": "high",
+      "categories": {"E-U": 0.0, "H-O": 0.0, "P": 109234.2, "S": 0.0},
+      "closed_reasons": [
+        "Treasury.withdraw is onlyCegaEntryOrRedepositManager (addressManager.getCegaEntry()/getRedepositManager())",
+        "Treasury.withdrawStuckAssets can only move stuckAssets[asset][msg.sender] (caller's own balance)",
+        "RedepositManager.redeposit is onlyCegaEntry (immutable cegaEntry set in constructor)",
+        "user withdrawals are bounded by ICegaVault(vault).balanceOf(msg.sender) >= sharesAmount; payouts go to the recorded depositor",
+        "queue processing (processWithdrawalQueue/processDepositQueue + bulk) and fee collection are onlyTraderAdmin; settlement requires msg.sender == ownerOf(vault.auctionWinnerTokenId) (Trade Winner NFT) and pays INTO the treasury",
+        "AddressManager setters and CegaEntry diamondCut (owner = AddressManager) are onlyCegaAdmin via ACLManager",
+        "Offramp: 0 OrderFilled events ever (feature never used); Pendle yield claims need an off-chain Cega signer signature",
+        "Treasury grants no ERC20 approvals; fork tests prove fresh EOA + contract attackers revert and no value moves"
+      ],
+      "poc": {"tests_passed": 3, "tests_total": 3, "kind": "Foundry live-fork tests (read-only)", "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38717020995"]},
+      "key_facts": [
+        "Treasury implementations are a 67-line contract: withdraw (gate), withdrawStuckAssets (own balance), receive()",
+        "CegaEntry is an EIP-2535 diamond with 21 live facets per chain; facet updates only via the AddressManager (CEGA_ADMIN)",
+        "ACLManager roles: CEGA_ADMIN = 2-of-6 Safe + EOA 0x2ca8b500...; TRADER_ADMIN = 6 EOAs; OPERATOR_ADMIN = EOA + Safe; SERVICE_ADMIN = 1 EOA",
+        "vaults: 89 (ETH: 83 Zombie/4 Traded/1 FeesCollected/1 Settled; 40 with nonzero share supply) + 92 (ARB: 88 Zombie/3 DepositsClosed/1 Traded; 63 with nonzero share supply) created; aggregate book totalAssets dust-level; withdrawal queues empty",
+        "deposit queues: 3 products with pending deposits of expired Pendle YT-weETH (dust, self-service recoverable by depositors)",
+        "the $109,234.20 is residual custody movable only by trader/admin-gated paths or the 2-of-6 Safe upgrade"
+      ],
+      "caveats": [
+        "vault census sampled under public-RPC rate limits (ARB pass partial)",
+        "the residual Treasury custody's economic ownership (user vs protocol) cannot be resolved from the zombie vault accounting; classified P",
+        "roles are EOAs/Safes -> key-compromise risk (latent, privileged)"
+      ]
+    }
+  },
+  "poc": {"tests_passed": 3, "tests_total": 3, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38717020995"]},
+  "key_facts": [
+    "Serum Swap: E-U bug-based $0 (high) - LP-burn-gated withdrawals (sim-proven), PDA authority 292/292, pre-#1794 single-sided withdraw over-charges (sim-proven), no admin/sweep instruction, 0 Stable pools (OtterSec rounding bug has no target)",
+    "Serum Swap: $4.22 realizable stale-price arb; $15,186.78 at DefiLlama prices (not realizable); $13,414.58 requires holding unmarketable Sollet tokens",
+    "Cega V2: E-U $0 (high) - Treasury withdraw gate, RedepositManager gate, share-bounded user flows, trader-gated queues/settlement/fees, admin-gated setters; 3/3 fork tests prove reverts",
+    "Cega V2: $109,234.20 residual custody = P (2-of-6 Safe upgrade + trader/admin EOAs); no live user-claimable queues"
+  ],
+  "caveats": [
+    "Public-RPC rate limits forced conservative sampling in the Cega vault census and the Solana LP-holder census",
+    "The Serum $4.22 is arbitrage (normal AMM mechanics), not a code flaw; the $0 bug-based verdict is the high-confidence headline",
+    "No secrets, no mainnet writes; all simulations/PoCs are read-only"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$4.22 live total (Serum Swap stale-price arb at realizable prices; $0.00 from any code flaw on either target); $63.7k is LP-holder-redeemable, $249.9k is privileged (Serum upgrade authority/fee account + Cega 2-of-6 Safes and trader EOAs)."
+}

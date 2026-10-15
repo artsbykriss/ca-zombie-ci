@@ -1,0 +1,29 @@
+{
+ "probe": "WithdrawSingleTokenTypeExactAmountOut, destination=3,586,441,445 raw USDC (token B, 5% of the B reserve), LP source = pool AmHUjHK pool_fee_account (majority LP holder, 64% of LP supply)",
+ "simulation_method": "simulateTransaction, sigVerify=false, replaceRecentBlockhash=true, commitment=processed. NOT signed, NOT sent. The 3rd-party LP account is only MARKED as signer inside the simulated message (read-only math probe); no attacker capability is implied.",
+ "pool": "AmHUjHKfSFP34D4VgPsviFNjWrvTN761Yazvv2eKAsSz",
+ "observed": {
+  "lp_pre": 7854478786491,
+  "lp_post": 7536257737888,
+  "lp_burned": 318221048603,
+  "vault_b_pre": 71728828918,
+  "vault_b_post": 68142387473,
+  "amount_withdrawn": 3586441445,
+  "vault_a_pre_post": "unchanged (696,794,210,803 wSOL lamports)"
+ },
+ "formula_inputs": {
+  "pool_mint_supply_at_snapshot": 12264607061681,
+  "pool_mint_supply_now": null,
+  "trade_fee_on_half_D": 4483051,
+  "adjusted_D": 3581958394,
+  "deployed_curve_math": "ceil( L * ( sqrt(1 + D'/(B-D)) - 1 ) )  [curve::constant_product::trading_tokens_to_pool_tokens]",
+  "post_fix_#1794_math": "ceil( L * ( 1 - sqrt(1 - D'/B) ) )  [withdraw_single_token_type_exact_out]"
+ },
+ "deployed_formula_prediction": 318221048611,
+ "post_fix_1794_formula_prediction": 310153567464,
+ "abs_diff_deployed": 8,
+ "rel_diff_deployed": 2.513975752113269e-11,
+ "abs_diff_postfix": 8067481139,
+ "rel_diff_postfix": 0.02535181495509642,
+ "conclusion": "The observed LP burn matches the DEPLOYED (pre-#1794) single-sided-withdraw formula to a relative error of ~2.5e-11 (attributable to the 128-bit fixed-point sqrt in spl_math::PreciseNumber), and is 2.54% away from the post-fix (#1794) formula. The live program therefore implements the pre-#1794 math. That math charges the withdrawer MORE LP than the later \"fair\" formula, i.e. it favours the pool: it is not an extraction vector."
+}

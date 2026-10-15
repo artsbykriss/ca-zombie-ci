@@ -1,0 +1,54 @@
+{
+  "finding": "serum-swap",
+  "title": "Serum Swap AMM (SPL token-swap SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8) - live unprivileged extraction check",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 63652.21,
+    "P": 140698.78,
+    "S": 15.6
+  },
+  "categories_notes": {
+    "E-U": "bug-based extraction = $0 (high confidence). Normal AMM trading at curve prices is quantified separately: $4.22 realizable / $15,186.78 under DefiLlama prices (not a bug).",
+    "H-O": "realizable TVL attributable to non-fee-account LP holders (LP redemption is self-service)",
+    "P": "LP value in fee accounts owned by HfoTxFR1Tm6kGmWgYWD6J7YHVy1UwqSULUGVLXkJqaKN (key-gated); the upgrade authority DpWjxjJE2SCsraeZqKqLtvdPjiaABmcmNAZSP9iUaGrn (not revoked) is also privileged",
+    "S": "dust in 11 zero-supply pools ($0.05) + 0.1509972 SOL of rent in 48 uninitialised pool accounts (stuck)"
+  },
+  "latest_block": null,
+  "block_numbers": {"solana_slot_program_read": 457162187, "solana_slot_programdata_read": 457162688, "solana_slot_range_state_reads": "457162187-457166000", "deploy_slot": 73737036},
+  "targets_checked": 340,
+  "live_targets": 292,
+  "tvl_usd_llama_prices": 259285.47,
+  "tvl_usd_realizable_prices": 204350.99,
+  "defillama_reported_tvl_usd": 221430.68,
+  "closed_reasons": [
+    "withdraw paths require burning the caller's own LP tokens (simulation: Tokenkeg burn CPI fails with custom program error 0x1 for an empty LP account)",
+    "vault authority PDA is derived from the pool account and vaults are pinned to the pool's stored token accounts; 292/292 pools verified",
+    "swap is curve-priced with 0.30% fees and pool-favouring rounding - normal AMM trading, no defect",
+    "single-sided withdrawal in the deployed build over-charges the withdrawer (pre-PR#1794 math, proven by simulation to 2.5e-11 relative); nothing to extract",
+    "no admin/sweep/pause instruction exists in the deployed instruction set (tags 0-5 only)",
+    "zero-supply pools cannot be revived (pre-PR#1637 build): deposits revert -> dust stuck"
+  ],
+  "key_facts": [
+    "340 accounts owned by the program; 339x324B + 1x323B; 292 initialized pools (262 ConstantProduct, 30 ConstantPrice), 48 uninitialized",
+    "layout verified: version byte + SwapV1 (323B) = 324B; fees 25/10000+5/10000+0/0+20/100 (286 pools) or 0/10000 (6 pools)",
+    "deployed build = solana-labs/solana-program-library@9281b6e82899 (2021-04-14, token-swap 2.1.0, --features production); deploy slot 73737036 blockTime 1618460527 (2021-04-15 04:22:07 UTC); ELF sha256 f86b866c8717f4a052bd61b36bfd1dee203d32673a0bb5cb1fbd8b99f8e65719",
+    "upgrade authority decoded from live programdata = DpWjxjJE2SCsraeZqKqLtvdPjiaABmcmNAZSP9iUaGrn (NOT revoked; signed last upgrade; active 2022-2024); brief's 7orsQE9oBJfD73N4sBekkJmcZuAAxH1siWa2R2qzZuD has no account and no signatures - correction",
+    "all 292 pool fee accounts owned by HfoTxFR1Tm6kGmWgYWD6J7YHVy1UwqSULUGVLXkJqaKN, which holds LP worth $140,698.78 (68.9% of realizable TVL) - key-gated, not extractable",
+    "TVL $259,285.47 (DefiLlama prices) / $204,350.99 (live DEX realizable prices); two SOL/USDC(SDT) pools = 84% of realizable value",
+    "arbitrage reality (NOT a bug): $4.22 realizable; $15,186.78 if dead Sollet tokens valued at DefiLlama prices; $13,414.58 of real-side value sits behind unmarketable Sollet tokens",
+    "gate simulation: WithdrawAllTokenTypes and WithdrawSingleTokenTypeExactAmountOut with an empty LP account fail with Tokenkeg 'insufficient funds' (InstructionError [3, Custom(1)])",
+    "version simulation: observed LP burn 318,221,048,603 matches deployed pre-#1794 formula 318,221,048,611 (2.5e-11 rel) vs post-fix 310,153,567,464 (2.54% off)",
+    "pools are live: aggregator-routed swaps decoded at slots 457161704-457163289"
+  ],
+  "poc": {"tests_passed": 1, "tests_total": 1, "ci_run_urls": [], "note": "No CI job was run (per assignment: parent handles CI). Verification is chain-native read-only: 4 simulateTransaction probes + full state enumeration; scripts re-runnable with public RPC only."},
+  "caveats": [
+    "public RPC rate limits prevented a full LP-holder census (getTokenLargestAccounts); H-O figure derived by subtracting the fee-account LP share",
+    "two price layers reported because Sollet-wrapped tokens are priced at underlying value by DefiLlama but have no observable market (soUSDT, soYFI) or a steep discount (soLINK $1.32 vs $12.11)",
+    "the version probe marks a third-party LP account as signer inside a simulated message only (sigVerify=false); nothing signed/sent; used solely to read the program's internal math",
+    "surface for 'exploitable' does not include the upgrade authority: if the DpWjxjJE2SC key is live, the program (and all $204k of pools) is upgradeable in principle - privileged, not E-U"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from Serum Swap (all 292 pools, $204-259k TVL): withdrawals are gated by the caller's own LP-token burn, swaps are fair curve trades (only $4.22 of realizable mispricing), and the deployed 2021-04 build's single-sided withdrawal over-charges rather than under-charges; $140.7k of value is key-gated to the SPL fee account and the program remains upgradeable by the non-revoked authority DpWjxjJE2SC."
+}

@@ -1,0 +1,34 @@
+{
+ "label": "GATE-A: WithdrawAllTokenTypes with the attacker's own EMPTY LP account (must fail at LP burn)",
+ "err": {
+  "InstructionError": [
+   3,
+   {
+    "Custom": 1
+   }
+  ]
+ },
+ "unitsConsumed": 52957
+}
+{
+ "label": "GATE-B: WithdrawSingleTokenTypeExactAmountOut with the attacker's own EMPTY LP account (must fail at LP burn)",
+ "err": {
+  "InstructionError": [
+   3,
+   {
+    "Custom": 1
+   }
+  ]
+ },
+ "unitsConsumed": 79526
+}
+{
+ "label": "VERSION-PROBE: WithdrawSingleTokenTypeExactAmountOut, small D=1 USDC, LP source = pool fee account (3rd-party LP; account only MARKED signer, sigVerify=false, read-only math probe)",
+ "err": null,
+ "unitsConsumed": 68035
+}
+{
+ "label": "VERSION-PROBE-LARGE: WithdrawSingleTokenTypeExactAmountOut, D ~ 5% of USDC reserve (makes old vs fixed rounding formula numerically distinguishable)",
+ "err": null,
+ "unitsConsumed": 80388
+}
