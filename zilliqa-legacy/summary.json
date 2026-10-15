@@ -1,0 +1,55 @@
+{
+  "finding": "L2-09/10/11",
+  "title": "Zilliqa legacy apps cluster: ZilSwap v1.1 + Avely stZIL + PlunderSwap V2 (ported to Zilliqa EVM / chain 32769)",
+  "chains": [
+    "zilliqa-evm-32769"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 153100,
+    "P": 0,
+    "S": 428
+  },
+  "latest_block": 38180944,
+  "block_numbers": {
+    "zilliqa-evm-32769": 38180944
+  },
+  "targets_checked": 3,
+  "live_targets": 3,
+  "closed_reasons": [
+    "ZilSwap v1.1: initialized=True, owner fixed, pending_owner=0; deployed Scilla source = standard v1.1 AMM (recompiled for Z2 Scilla, initialization guard added); all 130 pool tokens reject zero-balance TransferFrom (0/130 broken); swaps atomic (ZIP-21 revert propagation + zq2 precompile code); token custody 11/12 top pools exact",
+    "Avely stZIL: minting paused (is_paused_in=True); ZRC-2/withdraw/admin transitions properly gated; EVM token is a wrapper over the same Scilla ledger (pool Scilla balance == EVM reserve); withdrawals require stZIL balance and depend on admin-only ClaimRewards keeper step (sim reverts)",
+    "PlunderSwap V2: public source = faithful Uniswap-V2 fork with 0.35% fee k-check (10000/35) and PancakeSwap-style 15/35 protocol fee; standard selectors; CREATE2 verified; WZIL fully backed; zUSDC mint reverts for attacker; all TokenManager functions revert for attacker"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38722082047",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38723094082"
+    ]
+  },
+  "key_facts": [
+    "Legacy Scilla chain retired 2026-07-20 (Ledger incident); legacy apps ported to Z2 (chain 32769) as Scilla-in-EVM contracts; legacy Scilla RPC no longer exists",
+    "ZilSwap v1.1 0x459cb2d3baf7e61cfbd5fe362f289ae92b2babb0 holds 17,163,352.82 ZIL across 130 pools (owner 0x1499856ca9a32e717e9e872923fd3f4740af99e7, fee 30bp, initialized)",
+    "All 130 ZilSwap pool tokens simulated: TransferFrom(from,to,1) from a zero-balance funded sender -> 0 succeeded (no broken-token drain)",
+    "ZilSwap custody: 11/12 top pools token balances[ZilSwap] == reserve exactly; XSGD pool has 574,927 XSGD excess stuck (no skim transition in v1.1)",
+    "Avely stZIL: rate 1.238118 ZIL/stZIL; totalstakeamount 14,493,919.47 ZIL; holder delegations at zimpl 14,493,929.47 ZIL; contract idle 1,845,050.60 ZIL; zimpl bnum_req=0, paused=False",
+    "Avely shared ledger proven: PlunderSwap stZIL/WZIL pool Scilla balance 33,558,074,040,161 == EVM token0 reserve",
+    "Avely WithdrawTokensAmt(1 stZIL) from a real holder reverts at latest block (keeper-dependent reward/buffer preconditions; ClaimRewards is admin-gated)",
+    "PlunderSwap V2 factory 0xf42d1058f233329185A36B04B7f96105afa1adD2 has 30 pairs; WZIL/zUSDC pair 0xb1ba1730... holds 17,044,567.48 WZIL + 54,071.09 zUSDC and is actively traded",
+    "PlunderPair.sol (Plunderswap/plunderswap-core): 0.35% fee k-check balance*10000 - amountIn*35; _mintFee 15/35 (PancakeSwap-style); all standard V2 guards; CREATE2 verified with init hash 0xe430f659...",
+    "WZIL fully backed: supply 38,972,796.4755 == contract ZIL balance; zUSDC mint reverts for non-owner; TokenManager (0xAaF7F44c..., zUSDC owner) all state-changing fns revert for attacker",
+    "feeToSetter 0xB4e8E3ba3ae55622e83bF2FedF179BDbda6Ac576 is an EOA (privileged, can redirect protocol fees)"
+  ],
+  "caveats": [
+    "Legacy chain retired; all figures are Z2 post-migration state (legacy RPC unavailable for cross-checks)",
+    "scilla_call_2 eth_call simulations require a funded sender (node gas-deduction quirk); unfunded-sender reverts are mechanical and were excluded",
+    "Avely redemption end-to-end completion not proven (admin keeper step); H-O classified as conditional",
+    "USD figures nominal at ZIL ~$0.00316 / zUSDC ~$1; E-U = $0 independent of price",
+    "No explorer API on Z2 (evmx.zilliqa.com dead); holder enumeration limited to contract state maps and 50-block log windows"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from ZilSwap v1.1, Avely stZIL and PlunderSwap V2: all three are live on Zilliqa EVM but closed by initialization/owner gates (ZilSwap), paused minting + keeper-gated withdrawals (Avely), and standard V2 pair math + fully-backed WZIL + bridge-gated zUSDC (PlunderSwap); nominal $208k is LP/holder-owned or admin-gated."
+}

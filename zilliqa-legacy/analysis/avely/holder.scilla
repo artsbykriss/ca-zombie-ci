@@ -1,0 +1,321 @@
+scilla_version 0
+
+(***************************************************)
+(*               Associated library                *)
+(***************************************************)
+library Holder
+
+let uint128_zero = Uint128 0
+let true = True
+
+let one_msg =
+  fun (msg : Message) =>
+    let nil_msg = Nil {Message} in
+    Cons {Message} msg nil_msg
+
+type Error =
+  | CodeNotOwner
+  | StZILValidationFailed
+  | ClaimRewardsHolderFundsMismatch
+  | CompleteWithdrawalHolderFundsMismatch
+  | CompleteWithdrawalHolderFundsZero
+  | CompleteWithdrawalHolderNoUnbondedStake
+  | HolderAlreadyInitialized
+  | ZimplValidationFailed
+  | StagingOwnerValidationFailed
+  | StagingOwnerNotExists
+
+let make_error =
+  fun (result: Error) =>
+    let result_code =
+      match result with
+      | CodeNotOwner                            => Int32 -204
+      | StZILValidationFailed                   => Int32 -220
+      | ClaimRewardsHolderFundsMismatch         => Int32 -222
+      | CompleteWithdrawalHolderFundsMismatch   => Int32 -223
+      | CompleteWithdrawalHolderFundsZero       => Int32 -224
+      | CompleteWithdrawalHolderNoUnbondedStake => Int32 -225
+      | HolderAlreadyInitialized                => Int32 -226
+      | ZimplValidationFailed                   => Int32 -227
+      | StagingOwnerNotExists                   => Int32 -235
+      | StagingOwnerValidationFailed            => Int32 -236
+      end
+    in
+    { _exception: "Error"; code: result_code }
+
+(***************************************************)
+(*             The contract definition             *)
+(***************************************************)
+
+contract Holder(
+  contract_owner            : ByStr20,
+  init_stzil_address        : ByStr20,
+  init_zproxy_address       : ByStr20,
+  init_zimpl_address        : ByStr20
+)
+
+field owner_address         : ByStr20 = contract_owner
+field stzil_address         : ByStr20 = init_stzil_address
+field zproxy_address        : ByStr20 = init_zproxy_address
+field zimpl_address         : ByStr20 = init_zimpl_address
+field staging_owner_address : Option ByStr20 = None {ByStr20}
+
+field initialized           : Bool = False
+field tmp_added_funds       : Uint128 = uint128_zero
+
+(************************************************************)
+(* @dev: Procedures                                         *)
+(************************************************************)
+
+procedure ThrowError(err: Error)
+  e = make_error err;
+  throw e
+end
+
+procedure RequireOwner()
+  owner <- owner_address;
+  is_owner = builtin eq _sender owner;
+  match is_owner with
+  | True  =>
+  | False =>
+    e = CodeNotOwner;
+    ThrowError e
+  end
+end
+
+procedure RequireStZIL()
+  var_stzil_address <- stzil_address;
+  is_stzil = builtin eq _sender var_stzil_address;
+  match is_stzil with
+  | True  =>
+  | False =>
+    e = StZILValidationFailed;
+    ThrowError e
+  end
+end
+
+procedure RequireZimpl()
+  var_zimpl_address <- zimpl_address;
+  is_zimpl = builtin eq _sender var_zimpl_address;
+  match is_zimpl with
+  | True  =>
+  | False =>
+    e = ZimplValidationFailed;
+    ThrowError e
+  end
+end
+
+procedure RequireNotInitialized()
+  inited <- initialized;
+  match inited with
+  | False =>
+  | True =>
+    e = HolderAlreadyInitialized;
+    ThrowError e
+  end
+end
+
+procedure ProxyDelegate(ssnaddr: ByStr20, proxy_contract_addr: ByStr20, amount: Uint128)
+  msg = {_tag: "DelegateStake"; _recipient: proxy_contract_addr; _amount: amount; ssnaddr: ssnaddr};
+  msgs = one_msg msg;
+  send msgs
+end
+
+(************************************************************)
+(* @dev: Owner actions                                      *)
+(************************************************************)
+
+transition ChangeOwner(new_owner: ByStr20)
+  RequireOwner;
+  var_staging_owner = Some {ByStr20} new_owner;
+  staging_owner_address := var_staging_owner;
+  var_owner_address <- owner_address;
+  e = {_eventname: "ChangeOwner"; current_owner: var_owner_address; new_owner: new_owner};
+  event e
+end
+
+transition ClaimOwner()
+  staging_owner_o <- staging_owner_address;
+  match staging_owner_o with
+  | Some staging_owner =>
+    is_stagingowner = builtin eq staging_owner _sender;
+    match is_stagingowner with
+    | True =>
+      owner_address := _sender;
+      tmp_staging_owner = None {ByStr20};
+      staging_owner_address := tmp_staging_owner;
+      e = {_eventname: "ClaimOwner"; new_owner: _sender};
+      event e
+    | False =>
+      e = StagingOwnerValidationFailed;
+      ThrowError e
+    end
+  | None =>
+    e = StagingOwnerNotExists;
+    ThrowError e
+  end
+end
+
+transition ChangeZproxyAddress(address: ByStr20)
+  RequireOwner;
+  zproxy_address := address;
+  e = { _eventname: "ChangeZproxyAddress"; address: address };
+  event e
+end
+
+transition ChangeZimplAddress(address: ByStr20)
+  RequireOwner;
+  zimpl_address := address;
+  e = { _eventname: "ChangeZimplAddress"; address: address };
+  event e
+end
+
+(************************************************************)
+(* @dev: StZIL actions                                       *)
+(************************************************************)
+
+transition WithdrawStakeAmt(ssnaddr: ByStr20, amount: Uint128)
+  RequireStZIL;
+  var_zproxy_address <- zproxy_address;
+  msg = {_tag: "WithdrawStakeAmt"; _recipient: var_zproxy_address; _amount: uint128_zero;
+  ssnaddr: ssnaddr; amt: amount};
+  msgs = one_msg msg;
+  send msgs
+end
+
+transition WithdrawStakeAmtSuccessCallBack(ssnaddr: ByStr20, amount: Uint128)
+  RequireZimpl
+  (* nop *)
+end
+
+transition CompleteWithdrawal()
+  RequireStZIL;
+  tmp_added_funds := uint128_zero;
+  var_zproxy_address <- zproxy_address;
+  msg = {_tag: "CompleteWithdrawal"; _recipient: var_zproxy_address; _amount: uint128_zero };
+  msgs = one_msg msg;
+  send msgs
+end
+
+(****************************************************)
+(* We assume that Zimpl calls transitions in order: *)
+(* 1. Holder->AddFunds()                            *)
+(* 2. Holder->CompleteWithdrawalSuccessCallBack()   *)
+(*                                                  *)
+(* We should accept funds here, according to ZRC-5  *)
+(****************************************************)
+transition AddFunds()
+  RequireZimpl;
+  accept;
+  tmp_added_funds := _amount;
+  e = { _eventname : "AddFunds"; funder: _sender; amount: _amount };
+  event e
+end
+
+transition CompleteWithdrawalSuccessCallBack(amount: Uint128)
+  RequireZimpl;
+
+  (* send funds and callback to stZIL *)
+  added_funds <- tmp_added_funds;
+  o_stzil_address <- stzil_address;
+
+  (* reset tmp variable *)
+  tmp_added_funds := uint128_zero;
+
+  (* check that Zimpl amount are not zero, it should not go here *)
+  amount_zero = builtin eq amount uint128_zero;
+  match amount_zero with
+  | True =>
+    e = { _eventname: "CompleteWithdrawalHolderFundsZero" };
+    event e;
+    e = CompleteWithdrawalHolderFundsZero;
+    ThrowError e
+  | False =>
+  end;
+
+  (* check that Zimpl sent us correct data *)
+  amount_eq = builtin eq added_funds amount;
+  match amount_eq with
+  | False =>
+    e = { _eventname: "CompleteWithdrawalHolderFundsMismatch"; amount: amount; added_funds: added_funds };
+    event e;
+    e = CompleteWithdrawalHolderFundsMismatch;
+    ThrowError e
+  | True =>
+  end;
+
+  (* transfer funds *)
+  msg = {_tag : "CompleteWithdrawalSuccessCallBack"; _recipient : o_stzil_address;
+    _amount : amount
+  };
+  msgs = one_msg msg;
+  send msgs
+end
+
+transition CompleteWithdrawalNoUnbondedStakeCallBack(amount: Uint128)
+  RequireZimpl;
+  e = { _eventname: "CompleteWithdrawalHolderNoUnbondedStake" };
+  event e;
+  e = CompleteWithdrawalHolderNoUnbondedStake;
+  ThrowError e
+end
+
+transition ClaimRewards(ssnaddr: ByStr20)
+  RequireStZIL;
+  tmp_added_funds := uint128_zero;
+
+  var_zproxy_address <- zproxy_address;
+
+  msg = {_tag: "WithdrawStakeRewards"; _recipient: var_zproxy_address; _amount: uint128_zero; ssnaddr: ssnaddr};
+  msgs = one_msg msg;
+  send msgs
+end
+
+transition WithdrawStakeRewardsSuccessCallBack(ssnaddr: ByStr20, rewards: Uint128)
+  RequireZimpl;
+  added_funds <- tmp_added_funds;
+  (* reset tmp variable *)
+  tmp_added_funds := uint128_zero;
+
+  (* check that Zimpl sent us correct data *)
+  amount_eq = builtin eq added_funds rewards;
+  match amount_eq with
+  | False =>
+    e = ClaimRewardsHolderFundsMismatch;
+    ThrowError e
+  | True =>
+    o_stzil_address <- stzil_address;
+
+    msg = { _tag : "ClaimRewardsSuccessCallBack"; _recipient : o_stzil_address; _amount : rewards };
+    msgs = one_msg msg;
+    send msgs
+  end
+end
+
+transition ConfirmDelegatorSwap(requestor: ByStr20)
+  RequireStZIL;
+
+  var_zproxy_address <- zproxy_address;
+
+  msg = {_tag: "ConfirmDelegatorSwap"; _recipient: var_zproxy_address; _amount: uint128_zero; requestor: requestor};
+  msgs = one_msg msg;
+  send msgs
+end
+
+(* Purpose of this transition is one-time min_deleg_stake delegate from Holder after its deploy *)
+(* Else Zimpl will not know anything about Holder and will return DelegDoesNotExistAtSSN error *)
+transition DelegateStake(ssnaddr: ByStr20)
+  RequireNotInitialized;
+  accept;
+  stake_amt = _amount;
+
+  var_zproxy_address <- zproxy_address;
+
+  ProxyDelegate ssnaddr var_zproxy_address stake_amt;
+  initialized := true
+end
+
+transition DelegateStakeSuccessCallBack(ssnaddr: ByStr20, amount: Uint128)
+  RequireZimpl
+  (* nop *)
+end
