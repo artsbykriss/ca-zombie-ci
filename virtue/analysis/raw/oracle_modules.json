@@ -1,0 +1,921 @@
+{
+ "oracle_modules": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "aggregater": {
+    "fileFormatVersion": 6,
+    "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+    "name": "aggregater",
+    "friends": [],
+    "structs": {
+     "NewAggregater": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "coin_type",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "weight_threshold",
+        "type": "U64"
+       }
+      ]
+     },
+     "PriceAggregated": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "sources",
+        "type": {
+         "Vector": {
+          "Struct": {
+           "address": "0x1",
+           "module": "type_name",
+           "name": "TypeName",
+           "typeArguments": []
+          }
+         }
+        }
+       },
+       {
+        "name": "prices",
+        "type": {
+         "Vector": "U128"
+        }
+       },
+       {
+        "name": "weights",
+        "type": {
+         "Vector": "U8"
+        }
+       },
+       {
+        "name": "current_threshold",
+        "type": "U64"
+       },
+       {
+        "name": "result",
+        "type": "U128"
+       }
+      ]
+     },
+     "PriceAggregater": {
+      "abilities": {
+       "abilities": [
+        "Store",
+        "Key"
+       ]
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "UID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "weights",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_map",
+          "name": "VecMap",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           },
+           "U8"
+          ]
+         }
+        }
+       },
+       {
+        "name": "weight_threshold",
+        "type": "U64"
+       }
+      ]
+     },
+     "ThresholdUpdated": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "weight_threshold",
+        "type": "U64"
+       }
+      ]
+     },
+     "WeightUpdated": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "rule_type",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "weight",
+        "type": "U8"
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "aggregate": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "aggregater",
+          "name": "PriceAggregater",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+         "module": "collector",
+         "name": "PriceCollector",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+         "module": "result",
+         "name": "PriceResult",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "create": {
+      "visibility": "Private",
+      "isEntry": true,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "listing",
+          "name": "ListingCap",
+          "typeArguments": []
+         }
+        }
+       },
+       "U64",
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "tx_context",
+          "name": "TxContext",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "new": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "listing",
+          "name": "ListingCap",
+          "typeArguments": []
+         }
+        }
+       },
+       "U64",
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "tx_context",
+          "name": "TxContext",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+         "module": "aggregater",
+         "name": "PriceAggregater",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "set_rule_weight": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "aggregater",
+          "name": "PriceAggregater",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "listing",
+          "name": "ListingCap",
+          "typeArguments": []
+         }
+        }
+       },
+       "U8"
+      ],
+      "return": []
+     },
+     "set_weight_threshold": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "aggregater",
+          "name": "PriceAggregater",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "listing",
+          "name": "ListingCap",
+          "typeArguments": []
+         }
+        }
+       },
+       "U64"
+      ],
+      "return": []
+     },
+     "weight_threshold": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "aggregater",
+          "name": "PriceAggregater",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64"
+      ]
+     },
+     "weights": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "aggregater",
+          "name": "PriceAggregater",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_map",
+          "name": "VecMap",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           },
+           "U8"
+          ]
+         }
+        }
+       }
+      ]
+     }
+    }
+   },
+   "collector": {
+    "fileFormatVersion": 6,
+    "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+    "name": "collector",
+    "friends": [],
+    "structs": {
+     "PriceCollector": {
+      "abilities": {
+       "abilities": [
+        "Drop"
+       ]
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "contents",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_map",
+          "name": "VecMap",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           },
+           {
+            "Struct": {
+             "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+             "module": "float",
+             "name": "Float",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "collect": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "collector",
+          "name": "PriceCollector",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "TypeParameter": 1
+       },
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "float",
+         "name": "Float",
+         "typeArguments": []
+        }
+       }
+      ],
+      "return": []
+     },
+     "contents": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "collector",
+          "name": "PriceCollector",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_map",
+          "name": "VecMap",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           },
+           {
+            "Struct": {
+             "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+             "module": "float",
+             "name": "Float",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     },
+     "new": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+         "module": "collector",
+         "name": "PriceCollector",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     }
+    }
+   },
+   "listing": {
+    "fileFormatVersion": 6,
+    "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+    "name": "listing",
+    "friends": [
+     {
+      "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+      "name": "aggregater"
+     }
+    ],
+    "structs": {
+     "ListingCap": {
+      "abilities": {
+       "abilities": [
+        "Store",
+        "Key"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "UID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "aggregater_map",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_map",
+          "name": "VecMap",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           },
+           {
+            "Struct": {
+             "address": "0x2",
+             "module": "object",
+             "name": "ID",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "register": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "listing",
+          "name": "ListingCap",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "type_name",
+         "name": "TypeName",
+         "typeArguments": []
+        }
+       }
+      ]
+     }
+    }
+   },
+   "result": {
+    "fileFormatVersion": 6,
+    "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+    "name": "result",
+    "friends": [
+     {
+      "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+      "name": "aggregater"
+     }
+    ],
+    "structs": {
+     "PriceResult": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "aggregated_price",
+        "type": {
+         "Struct": {
+          "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+          "module": "float",
+          "name": "Float",
+          "typeArguments": []
+         }
+        }
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "aggregated_price": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "result",
+          "name": "PriceResult",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "float",
+         "name": "Float",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "new": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "float",
+         "name": "Float",
+         "typeArguments": []
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+         "module": "result",
+         "name": "PriceResult",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     }
+    }
+   }
+  }
+ }
+}

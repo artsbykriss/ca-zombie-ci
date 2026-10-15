@@ -1,0 +1,2731 @@
+{
+ "account": {
+  "fileFormatVersion": 6,
+  "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+  "name": "account",
+  "friends": [],
+  "structs": {
+   "ACCOUNT": {
+    "abilities": {
+     "abilities": [
+      "Drop"
+     ]
+    },
+    "typeParameters": [],
+    "fields": [
+     {
+      "name": "dummy_field",
+      "type": "Bool"
+     }
+    ]
+   },
+   "Account": {
+    "abilities": {
+     "abilities": [
+      "Store",
+      "Key"
+     ]
+    },
+    "typeParameters": [],
+    "fields": [
+     {
+      "name": "id",
+      "type": {
+       "Struct": {
+        "address": "0x2",
+        "module": "object",
+        "name": "UID",
+        "typeArguments": []
+       }
+      }
+     },
+     {
+      "name": "alias",
+      "type": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "Struct": {
+           "address": "0x1",
+           "module": "string",
+           "name": "String",
+           "typeArguments": []
+          }
+         }
+        ]
+       }
+      }
+     }
+    ]
+   },
+   "AccountRequest": {
+    "abilities": {
+     "abilities": [
+      "Drop"
+     ]
+    },
+    "typeParameters": [],
+    "fields": [
+     {
+      "name": "account",
+      "type": "Address"
+     }
+    ]
+   }
+  },
+  "exposedFunctions": {
+   "account_address": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "account",
+        "name": "Account",
+        "typeArguments": []
+       }
+      }
+     }
+    ],
+    "return": [
+     "Address"
+    ]
+   },
+   "new": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x1",
+       "module": "option",
+       "name": "Option",
+       "typeArguments": [
+        {
+         "Struct": {
+          "address": "0x1",
+          "module": "string",
+          "name": "String",
+          "typeArguments": []
+         }
+        }
+       ]
+      }
+     },
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x2",
+        "module": "tx_context",
+        "name": "TxContext",
+        "typeArguments": []
+       }
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "account",
+       "name": "Account",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "receive": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Store",
+       "Key"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "account",
+        "name": "Account",
+        "typeArguments": []
+       }
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x2",
+       "module": "transfer",
+       "name": "Receiving",
+       "typeArguments": [
+        {
+         "TypeParameter": 0
+        }
+       ]
+      }
+     }
+    ],
+    "return": [
+     {
+      "TypeParameter": 0
+     }
+    ]
+   },
+   "request": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x2",
+        "module": "tx_context",
+        "name": "TxContext",
+        "typeArguments": []
+       }
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "account",
+       "name": "AccountRequest",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "request_address": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "account",
+        "name": "AccountRequest",
+        "typeArguments": []
+       }
+      }
+     }
+    ],
+    "return": [
+     "Address"
+    ]
+   },
+   "request_with_account": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "account",
+        "name": "Account",
+        "typeArguments": []
+       }
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "account",
+       "name": "AccountRequest",
+       "typeArguments": []
+      }
+     }
+    ]
+   }
+  }
+ },
+ "double": {
+  "fileFormatVersion": 6,
+  "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+  "name": "double",
+  "friends": [],
+  "structs": {
+   "Double": {
+    "abilities": {
+     "abilities": [
+      "Copy",
+      "Drop",
+      "Store"
+     ]
+    },
+    "typeParameters": [],
+    "fields": [
+     {
+      "name": "value",
+      "type": "U256"
+     }
+    ]
+   }
+  },
+  "exposedFunctions": {
+   "add": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "add_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "ceil": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "U64"
+    ]
+   },
+   "div": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "div_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "eq": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "floor": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "U64"
+    ]
+   },
+   "from": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_bps": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_fraction": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U64",
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_percent": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U8"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_percent_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_scaled_val": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U256"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "gt": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "gte": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "lt": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "lte": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "max": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "min": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "mul": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "mul_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "pow": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "saturating_sub": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "saturating_sub_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "sub": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "sub_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "to_scaled_val": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "double",
+       "name": "Double",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "U256"
+    ]
+   },
+   "wad": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [],
+    "return": [
+     "U256"
+    ]
+   }
+  }
+ },
+ "float": {
+  "fileFormatVersion": 6,
+  "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+  "name": "float",
+  "friends": [],
+  "structs": {
+   "Float": {
+    "abilities": {
+     "abilities": [
+      "Copy",
+      "Drop",
+      "Store"
+     ]
+    },
+    "typeParameters": [],
+    "fields": [
+     {
+      "name": "value",
+      "type": "U128"
+     }
+    ]
+   }
+  },
+  "exposedFunctions": {
+   "add": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "add_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "ceil": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "U64"
+    ]
+   },
+   "div": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "div_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "eq": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "floor": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "U64"
+    ]
+   },
+   "from": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_bps": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_fraction": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U64",
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_percent": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U8"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_percent_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "from_scaled_val": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     "U128"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "gt": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "gte": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "lt": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "lte": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "max": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "min": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "mul": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "mul_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "pow": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "saturating_sub": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "saturating_sub_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "sub": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "sub_u64": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     },
+     "U64"
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ]
+   },
+   "to_scaled_val": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "float",
+       "name": "Float",
+       "typeArguments": []
+      }
+     }
+    ],
+    "return": [
+     "U128"
+    ]
+   },
+   "wad": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [],
+    "parameters": [],
+    "return": [
+     "U128"
+    ]
+   }
+  }
+ },
+ "linked_table": {
+  "fileFormatVersion": 6,
+  "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+  "name": "linked_table",
+  "friends": [],
+  "structs": {
+   "LinkedTable": {
+    "abilities": {
+     "abilities": [
+      "Store",
+      "Key"
+     ]
+    },
+    "typeParameters": [
+     {
+      "constraints": {
+       "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+       ]
+      },
+      "isPhantom": false
+     },
+     {
+      "constraints": {
+       "abilities": [
+        "Store"
+       ]
+      },
+      "isPhantom": true
+     }
+    ],
+    "fields": [
+     {
+      "name": "id",
+      "type": {
+       "Struct": {
+        "address": "0x2",
+        "module": "object",
+        "name": "UID",
+        "typeArguments": []
+       }
+      }
+     },
+     {
+      "name": "size",
+      "type": "U64"
+     },
+     {
+      "name": "head",
+      "type": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         }
+        ]
+       }
+      }
+     },
+     {
+      "name": "tail",
+      "type": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         }
+        ]
+       }
+      }
+     }
+    ]
+   },
+   "Node": {
+    "abilities": {
+     "abilities": [
+      "Store"
+     ]
+    },
+    "typeParameters": [
+     {
+      "constraints": {
+       "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+       ]
+      },
+      "isPhantom": false
+     },
+     {
+      "constraints": {
+       "abilities": [
+        "Store"
+       ]
+      },
+      "isPhantom": false
+     }
+    ],
+    "fields": [
+     {
+      "name": "prev",
+      "type": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         }
+        ]
+       }
+      }
+     },
+     {
+      "name": "next",
+      "type": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         }
+        ]
+       }
+      }
+     },
+     {
+      "name": "value",
+      "type": {
+       "TypeParameter": 1
+      }
+     }
+    ]
+   }
+  },
+  "exposedFunctions": {
+   "back": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     }
+    ],
+    "return": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         }
+        ]
+       }
+      }
+     }
+    ]
+   },
+   "borrow": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "TypeParameter": 0
+     }
+    ],
+    "return": [
+     {
+      "Reference": {
+       "TypeParameter": 1
+      }
+     }
+    ]
+   },
+   "borrow_mut": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "TypeParameter": 0
+     }
+    ],
+    "return": [
+     {
+      "MutableReference": {
+       "TypeParameter": 1
+      }
+     }
+    ]
+   },
+   "contains": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "TypeParameter": 0
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "destroy_empty": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "linked_table",
+       "name": "LinkedTable",
+       "typeArguments": [
+        {
+         "TypeParameter": 0
+        },
+        {
+         "TypeParameter": 1
+        }
+       ]
+      }
+     }
+    ],
+    "return": []
+   },
+   "drop": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Drop",
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "linked_table",
+       "name": "LinkedTable",
+       "typeArguments": [
+        {
+         "TypeParameter": 0
+        },
+        {
+         "TypeParameter": 1
+        }
+       ]
+      }
+     }
+    ],
+    "return": []
+   },
+   "front": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     }
+    ],
+    "return": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         }
+        ]
+       }
+      }
+     }
+    ]
+   },
+   "insert_back": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x1",
+       "module": "option",
+       "name": "Option",
+       "typeArguments": [
+        {
+         "TypeParameter": 0
+        }
+       ]
+      }
+     },
+     {
+      "TypeParameter": 0
+     },
+     {
+      "TypeParameter": 1
+     }
+    ],
+    "return": []
+   },
+   "insert_front": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "Struct": {
+       "address": "0x1",
+       "module": "option",
+       "name": "Option",
+       "typeArguments": [
+        {
+         "TypeParameter": 0
+        }
+       ]
+      }
+     },
+     {
+      "TypeParameter": 0
+     },
+     {
+      "TypeParameter": 1
+     }
+    ],
+    "return": []
+   },
+   "is_empty": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     }
+    ],
+    "return": [
+     "Bool"
+    ]
+   },
+   "length": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     }
+    ],
+    "return": [
+     "U64"
+    ]
+   },
+   "new": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x2",
+        "module": "tx_context",
+        "name": "TxContext",
+        "typeArguments": []
+       }
+      }
+     }
+    ],
+    "return": [
+     {
+      "Struct": {
+       "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+       "module": "linked_table",
+       "name": "LinkedTable",
+       "typeArguments": [
+        {
+         "TypeParameter": 0
+        },
+        {
+         "TypeParameter": 1
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "next": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "TypeParameter": 0
+     }
+    ],
+    "return": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         }
+        ]
+       }
+      }
+     }
+    ]
+   },
+   "pop_back": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     }
+    ],
+    "return": [
+     {
+      "TypeParameter": 0
+     },
+     {
+      "TypeParameter": 1
+     }
+    ]
+   },
+   "pop_front": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     }
+    ],
+    "return": [
+     {
+      "TypeParameter": 0
+     },
+     {
+      "TypeParameter": 1
+     }
+    ]
+   },
+   "prev": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "TypeParameter": 0
+     }
+    ],
+    "return": [
+     {
+      "Reference": {
+       "Struct": {
+        "address": "0x1",
+        "module": "option",
+        "name": "Option",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         }
+        ]
+       }
+      }
+     }
+    ]
+   },
+   "push_back": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "TypeParameter": 0
+     },
+     {
+      "TypeParameter": 1
+     }
+    ],
+    "return": []
+   },
+   "push_front": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "TypeParameter": 0
+     },
+     {
+      "TypeParameter": 1
+     }
+    ],
+    "return": []
+   },
+   "remove": {
+    "visibility": "Public",
+    "isEntry": false,
+    "typeParameters": [
+     {
+      "abilities": [
+       "Copy",
+       "Drop",
+       "Store"
+      ]
+     },
+     {
+      "abilities": [
+       "Store"
+      ]
+     }
+    ],
+    "parameters": [
+     {
+      "MutableReference": {
+       "Struct": {
+        "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+        "module": "linked_table",
+        "name": "LinkedTable",
+        "typeArguments": [
+         {
+          "TypeParameter": 0
+         },
+         {
+          "TypeParameter": 1
+         }
+        ]
+       }
+      }
+     },
+     {
+      "TypeParameter": 0
+     }
+    ],
+    "return": [
+     {
+      "TypeParameter": 1
+     }
+    ]
+   }
+  }
+ }
+}

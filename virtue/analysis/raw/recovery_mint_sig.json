@@ -1,0 +1,209 @@
+{
+ "rec_modules": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "recovery": {
+    "fileFormatVersion": 6,
+    "address": "0x732ce63849c64d630f256f2a926c90b309ffbc6a9a6806239088e1649ff8c952",
+    "name": "recovery",
+    "friends": [],
+    "structs": {
+     "VirtueRecovery": {
+      "abilities": {
+       "abilities": [
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "dummy_field",
+        "type": "Bool"
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "burn": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+            "module": "vusd",
+            "name": "VUSD",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       }
+      ],
+      "return": []
+     },
+     "mint": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xc7ab9b9353e23c6a3a15181eb51bf7145ddeff1a5642280394cd4d6a0d37d83b",
+          "module": "stability_pool",
+          "name": "StabilityPool",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "clock",
+          "name": "Clock",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       },
+       "Address",
+       "U64",
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "tx_context",
+          "name": "TxContext",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xc7ab9b9353e23c6a3a15181eb51bf7145ddeff1a5642280394cd4d6a0d37d83b",
+         "module": "stability_pool",
+         "name": "PositionResponse",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "package_version": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [],
+      "return": [
+       "U64"
+      ]
+     }
+    }
+   },
+   "recovery_events": {
+    "fileFormatVersion": 6,
+    "address": "0x732ce63849c64d630f256f2a926c90b309ffbc6a9a6806239088e1649ff8c952",
+    "name": "recovery_events",
+    "friends": [
+     {
+      "address": "0x732ce63849c64d630f256f2a926c90b309ffbc6a9a6806239088e1649ff8c952",
+      "name": "recovery"
+     }
+    ],
+    "structs": {
+     "RecoveryMint": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "beneficiary",
+        "type": "Address"
+       },
+       {
+        "name": "amount",
+        "type": "U64"
+       },
+       {
+        "name": "position_vusd_balance",
+        "type": "U64"
+       },
+       {
+        "name": "pool_vusd_balance",
+        "type": "U64"
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "emit_recovery_mint": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [
+       "Address",
+       "U64",
+       "U64",
+       "U64"
+      ],
+      "return": []
+     }
+    }
+   }
+  }
+ }
+}

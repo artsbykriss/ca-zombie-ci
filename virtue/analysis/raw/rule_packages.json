@@ -1,0 +1,426 @@
+{
+ "obj_pyth_rule": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "data": {
+    "objectId": "0xed5a8dac2ca41ae9bdc1c7f778b0949d3e26c18c51ed284c4cfa4030d0bb64c2",
+    "version": "1",
+    "digest": "BAzjUtPhn9izLJaTVRG1eoRsij8giy7a91DoBsK4TW6j",
+    "type": "package",
+    "owner": "Immutable"
+   }
+  }
+ },
+ "mods_pyth_rule": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "pyth_rule": {
+    "fileFormatVersion": 6,
+    "address": "0xed5a8dac2ca41ae9bdc1c7f778b0949d3e26c18c51ed284c4cfa4030d0bb64c2",
+    "name": "pyth_rule",
+    "friends": [],
+    "structs": {
+     "Config": {
+      "abilities": {
+       "abilities": [
+        "Key"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "UID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "identifier_map",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_map",
+          "name": "VecMap",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           },
+           {
+            "Vector": "U8"
+           }
+          ]
+         }
+        }
+       }
+      ]
+     },
+     "PythRule": {
+      "abilities": {
+       "abilities": [
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "dummy_field",
+        "type": "Bool"
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "feed": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "collector",
+          "name": "PriceCollector",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xed5a8dac2ca41ae9bdc1c7f778b0949d3e26c18c51ed284c4cfa4030d0bb64c2",
+          "module": "pyth_rule",
+          "name": "Config",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "clock",
+          "name": "Clock",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7792c84e1f8683dac893126712f7cf3ba5fcc82450839f0a481215f60199769f",
+          "module": "state",
+          "name": "State",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7792c84e1f8683dac893126712f7cf3ba5fcc82450839f0a481215f60199769f",
+          "module": "price_info",
+          "name": "PriceInfoObject",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "set_identifier": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xed5a8dac2ca41ae9bdc1c7f778b0949d3e26c18c51ed284c4cfa4030d0bb64c2",
+          "module": "pyth_rule",
+          "name": "Config",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "listing",
+          "name": "ListingCap",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Vector": "U8"
+       }
+      ],
+      "return": []
+     }
+    }
+   }
+  }
+ },
+ "obj_cert_rule": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "data": {
+    "objectId": "0x01edb9afe0663b8762d2e0a18923df8bee98d28f3a60ac56ff67a27bbf53a7ac",
+    "version": "1",
+    "digest": "9aZbpfKbCRLhRFLR9RNfewqRHkmUBo1iksAJp5yRSC1M",
+    "type": "package",
+    "owner": "Immutable"
+   }
+  }
+ },
+ "mods_cert_rule": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "cert_rule": {
+    "fileFormatVersion": 6,
+    "address": "0x1edb9afe0663b8762d2e0a18923df8bee98d28f3a60ac56ff67a27bbf53a7ac",
+    "name": "cert_rule",
+    "friends": [],
+    "structs": {
+     "CertRule": {
+      "abilities": {
+       "abilities": [
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "dummy_field",
+        "type": "Bool"
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "feed": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "collector",
+          "name": "PriceCollector",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x346778989a9f57480ec3fee15f2cd68409c73a62112d40a3efd13987997be68c",
+             "module": "cert",
+             "name": "CERT",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "result",
+          "name": "PriceResult",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x2",
+             "module": "iota",
+             "name": "IOTA",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x346778989a9f57480ec3fee15f2cd68409c73a62112d40a3efd13987997be68c",
+          "module": "native_pool",
+          "name": "NativePool",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x346778989a9f57480ec3fee15f2cd68409c73a62112d40a3efd13987997be68c",
+          "module": "cert",
+          "name": "Metadata",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x346778989a9f57480ec3fee15f2cd68409c73a62112d40a3efd13987997be68c",
+             "module": "cert",
+             "name": "CERT",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": []
+     }
+    }
+   }
+  }
+ },
+ "obj_vcert_rule": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "data": {
+    "objectId": "0x2c3317331b7a1daa69588fb0ab73c1335dba3cb29aa3d3fdc8e80985654312cc",
+    "version": "1",
+    "digest": "FY48bP9ZeicpHC88MaZqnpxCN9pRt8gud6vZs8UcadvC",
+    "type": "package",
+    "owner": "Immutable"
+   }
+  }
+ },
+ "mods_vcert_rule": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "vcert_rule": {
+    "fileFormatVersion": 6,
+    "address": "0x2c3317331b7a1daa69588fb0ab73c1335dba3cb29aa3d3fdc8e80985654312cc",
+    "name": "vcert_rule",
+    "friends": [],
+    "structs": {
+     "VCertRule": {
+      "abilities": {
+       "abilities": [
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "dummy_field",
+        "type": "Bool"
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "feed": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "collector",
+          "name": "PriceCollector",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0xe4abf8b6183c106282addbfb8483a043e1a60f1fd3dd91fb727fa284306a27fd",
+             "module": "cert",
+             "name": "CERT",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "result",
+          "name": "PriceResult",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x2",
+             "module": "iota",
+             "name": "IOTA",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xe4abf8b6183c106282addbfb8483a043e1a60f1fd3dd91fb727fa284306a27fd",
+          "module": "native_pool",
+          "name": "NativePool",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xe4abf8b6183c106282addbfb8483a043e1a60f1fd3dd91fb727fa284306a27fd",
+          "module": "cert",
+          "name": "Metadata",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0xe4abf8b6183c106282addbfb8483a043e1a60f1fd3dd91fb727fa284306a27fd",
+             "module": "cert",
+             "name": "CERT",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": []
+     }
+    }
+   }
+  }
+ }
+}

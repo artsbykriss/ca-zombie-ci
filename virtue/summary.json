@@ -1,0 +1,37 @@
+{
+  "finding": "L2-01",
+  "title": "Virtue (IOTA L1) — CDP stablecoin frozen after a forged-oracle mint; no external extractable value remains",
+  "chains": ["iota"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 189497.63, "P": 0, "S": 1827142.19},
+  "latest_block": 204102181,
+  "block_numbers": {"iota": 204102181},
+  "targets_checked": 10,
+  "live_targets": 10,
+  "closed_reasons": [
+    "CDP admin-frozen since 2026-08-29: vusd::remove_version emptied the VirtueCDP module-version set in the Treasury; every request::debtor_request aborts vusd::err_invalid_module_version (borrow/repay/deposit/withdraw all dead)",
+    "Fake-price oracle path closed: switchboard_rule weight removed from the IOTA aggregator (aggregate aborts err_total_weight_not_enough); pyth_rule has feed-id check (err_invalid_price_info_object) and freshness check (pyth::check_price_is_fresh); aggregater::new/set_rule_weight require the ListingCap (EOA 0x34adddfe..); PriceResult creatable only by aggregater::aggregate (result::new is Friend)",
+    "Stability Pool withdrawals/claims are position-scoped (non-depositor withdraw aborts err_account_not_found; claim returns 0); deposit permissionless but pro-rata",
+    "recovery::mint requires &AdminCap (privileged)"
+  ],
+  "poc": {"tests_passed": 32, "tests_total": 32, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38712439186"]},
+  "key_facts": [
+    "Incident 2026-08-28: attacker 0x381d5b5f..7c7e9 (first tx same day) self-registered Switchboard oracles via permissionless oracle_init_action::run, pushed 14 fake results (value 1e25 = $10,000,000/IOTA), fed through switchboard_rule::feed -> aggregater::aggregate -> vault::update_position, minting 4,942,703.66 VUSD against 1.027 IOTA (health check passed on the caller-supplied forged PriceResult) — corrects H2-06's 'minted on the stale feed' description",
+    "Attacker dumped 455,000 VUSD into two AMM pools (0xb768e68c.. IOTA/VUSD; 0x9b5c57e9.. CERT/VUSD) for 366,442.34 IOTA + 2,196,543.50 CERT ~= $131.6k real assets; still holds 4,146,017.57 VUSD (unsellable; pools drained to ~1,136 VUSD)",
+    "Admin froze the CDP 2026-08-29 02:09 UTC (vusd::remove_version); on 2026-10-01 registered recovery::VirtueRecovery and minted 113,406.35 VUSD to 46 SP depositors (RecoveryMint), restoring SP to 189,497.63 VUSD",
+    "Latent position quantified: 0x381d5b5f.. in Vault<IOTA> = 1.027 IOTA collateral vs 4,942,737.62 VUSD debt (~$0.05 vs $4.94M) — protocol bad debt (S), not attacker-extractable; liquidation yields no profit even if unfrozen+refreshed",
+    "Complete object walk: 4 vaults (IOTA 17 pos / CERT-swirl 56 / IBTC 4 / CERT-b 2), Stability Pool 192 positions summing exactly to 189,497.63 VUSD; vault balances == sum of position collaterals",
+    "All admin authority (AdminCap, ListingCap, 5x UpgradeCaps, Publisher) owned by single EOA 0x34adddfebf80ab25d8a842fe2ab152f96bc70c2d645c60b8eb6d765175cb6dbe; Treasury beneficiary 0x231b8f89..164a",
+    "Vault collateral frozen: 2,410.07 IOTA + 8.95M CERT + 14.955 IBTC + 3.0M CERT-b ~= $1.83M; owner-recoverable only if admin re-registers the CDP module version (P-conditional)",
+    "VUSD total supply 5,197,561.50 (CDP 5,084,155.15 + recovery 113,406.35); on-chain Pyth IOTA price stale since 2026-08-25 ($0.04433612); real IOTA price $0.0453 (DefiLlama 2026-10-15)",
+    "CI (read-only dev-inspect + state checks): 32/32 PASS at checkpoint 204,102,181 — https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38712439186"
+  ],
+  "caveats": [
+    "CERT/CERT-b USD values estimated as IOTA price x on-chain pool rate ratio from the last oracle events (1.15578 / 1.05881); IBTC valued at BTC/USD per its Pyth feed (bridge backing not independently verified)",
+    "Dev-inspect reflects state at the recorded checkpoint; no transactions were sent",
+    "Exact Switchboard-side validation gap (oracle-set membership) inferred from the attacker's successful self-registration, not from Switchboard source",
+    "Hermes (Pyth) now requires a free API key to fetch price updates; refresh capability was not exercised end-to-end (irrelevant to E-U because the CDP freeze blocks all downstream paths)"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Virtue (IOTA L1): the Aug-28 forged-oracle exploit (4.94M unbacked VUSD vs 1 IOTA) already happened and the admin froze the whole CDP via Treasury module-version removal; remaining value is $189.5k SP VUSD (depositor-withdrawable) and ~$1.83M vault collateral stuck until the admin re-enables the CDP."
+}

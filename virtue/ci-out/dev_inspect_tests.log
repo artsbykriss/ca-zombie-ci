@@ -1,0 +1,10 @@
+CHECK P1-pyth-stale-abort: PASS [status=failure err=Move Runtime Abort. Location: 0x7792c84e1f8683dac893126712f7cf3ba5fcc82450839f0a481215f60199769f::pyth::check_price_is_fresh (function index 17) at offset 12, Abort Code: 3 in command 1]
+CHECK P2-pyth-wrong-feed-abort: PASS [status=failure err=Move Runtime Abort. Location: 0xed5a8dac2ca41ae9bdc1c7f778b0949d3e26c18c51ed284c4cfa4030d0bb64c2::pyth_rule::err_invalid_price_info_object (function index 1) at offset 1, Abort Code: 1 in command 1]
+CHECK P3-switchboard-weight0-abort: PASS [status=failure err=Move Runtime Abort. Location: 0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf::aggregater::err_total_weight_not_enough (function index 0) at offset 1, Abort Code: 0 in command 2]
+CHECK F1-debtor-request-frozen: PASS [status=failure err=Move Runtime Abort. Location: 0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f::vusd::err_invalid_module_version (function index 1) at offset 1, Abort Code: 201 in command 3]
+CHECK W1-sp-depositor-withdraw-ok: PASS [status=success]
+CHECK W2-sp-nondepositor-withdraw-abort: PASS [status=failure err=Move Runtime Abort. Location: 0xe50fa492446245d9dd4bc61641a4ab2e72cd1276703d6ae8e41377a046b0929b::stability_pool::err_account_not_found (function index 6) at offset 1, Abort Code: 207 in command 1]
+CHECK W3-sp-nondepositor-claim-zero: PASS [status=success]
+CHECK F3-sp-deposit-permissionless: PASS [status=success]
+
+SUMMARY: ALL CHECKS PASSED

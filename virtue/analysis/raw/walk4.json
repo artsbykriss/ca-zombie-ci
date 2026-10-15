@@ -1,0 +1,3737 @@
+{
+ "upgraded_modules": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "events": {
+    "fileFormatVersion": 6,
+    "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+    "name": "events",
+    "friends": [
+     {
+      "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+      "name": "vault"
+     }
+    ],
+    "structs": {
+     "LiquidationRuleUpdated": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "vault_id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "coll_type",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "before",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "after",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       }
+      ]
+     },
+     "PositionUpdated": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "vault_id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "coll_type",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "debtor",
+        "type": "Address"
+       },
+       {
+        "name": "deposit",
+        "type": "U64"
+       },
+       {
+        "name": "borrow",
+        "type": "U64"
+       },
+       {
+        "name": "withdraw",
+        "type": "U64"
+       },
+       {
+        "name": "repay",
+        "type": "U64"
+       },
+       {
+        "name": "interest",
+        "type": "U64"
+       },
+       {
+        "name": "current_coll",
+        "type": "U64"
+       },
+       {
+        "name": "current_debt",
+        "type": "U64"
+       },
+       {
+        "name": "memo",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "string",
+          "name": "String",
+          "typeArguments": []
+         }
+        }
+       }
+      ]
+     },
+     "SupplyLimitUpdated": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "vault_id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "coll_type",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "before",
+        "type": "U64"
+       },
+       {
+        "name": "after",
+        "type": "U64"
+       }
+      ]
+     },
+     "VaultCreated": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "vault_id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "coll_type",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "interest_rate",
+        "type": "U256"
+       },
+       {
+        "name": "supply_limit",
+        "type": "U64"
+       },
+       {
+        "name": "min_collateral_ratio",
+        "type": "U128"
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "emit_liquidation_rule_updated": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "type_name",
+         "name": "TypeName",
+         "typeArguments": []
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "type_name",
+         "name": "TypeName",
+         "typeArguments": []
+        }
+       }
+      ],
+      "return": []
+     },
+     "emit_position_updated": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       "Address",
+       "U64",
+       "U64",
+       "U64",
+       "U64",
+       "U64",
+       "U64",
+       "U64",
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ],
+      "return": []
+     },
+     "emit_supply_limit_updated": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       "U64",
+       "U64"
+      ],
+      "return": []
+     },
+     "emit_vault_created": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "double",
+         "name": "Double",
+         "typeArguments": []
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "float",
+         "name": "Float",
+         "typeArguments": []
+        }
+       }
+      ],
+      "return": []
+     }
+    }
+   },
+   "memo": {
+    "fileFormatVersion": 6,
+    "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+    "name": "memo",
+    "friends": [],
+    "structs": {},
+    "exposedFunctions": {
+     "donate": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "interest": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "liquidate": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "manage": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ]
+     }
+    }
+   },
+   "request": {
+    "fileFormatVersion": 6,
+    "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+    "name": "request",
+    "friends": [
+     {
+      "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+      "name": "vault"
+     }
+    ],
+    "structs": {
+     "RequestRules": {
+      "abilities": {
+       "abilities": [
+        "Key"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "UID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "inner",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_set",
+          "name": "VecSet",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     },
+     "UpdateRequest": {
+      "abilities": {
+       "abilities": []
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "vault_id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "account",
+        "type": "Address"
+       },
+       {
+        "name": "deposit",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "coin",
+          "name": "Coin",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "name": "borrow_amount",
+        "type": "U64"
+       },
+       {
+        "name": "repayment",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "coin",
+          "name": "Coin",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+             "module": "vusd",
+             "name": "VUSD",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       },
+       {
+        "name": "withdraw_amount",
+        "type": "U64"
+       },
+       {
+        "name": "witnesses",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_set",
+          "name": "VecSet",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       },
+       {
+        "name": "memo",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "string",
+          "name": "String",
+          "typeArguments": []
+         }
+        }
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "account": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "Address"
+      ]
+     },
+     "add_rule": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "RequestRules",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "add_witness": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "TypeParameter": 1
+       }
+      ],
+      "return": []
+     },
+     "borrow_amount": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64"
+      ]
+     },
+     "debtor_request": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+          "module": "account",
+          "name": "AccountRequest",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+            "module": "vusd",
+            "name": "VUSD",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       },
+       "U64"
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "request",
+         "name": "UpdateRequest",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "deposit_amount": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64"
+      ]
+     },
+     "destroy": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "request",
+         "name": "UpdateRequest",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       "Address",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+            "module": "vusd",
+            "name": "VUSD",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "vec_set",
+         "name": "VecSet",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0x1",
+            "module": "type_name",
+            "name": "TypeName",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "donor_request": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       "Address",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+            "module": "vusd",
+            "name": "VUSD",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "request",
+         "name": "UpdateRequest",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "inner": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "RequestRules",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_set",
+          "name": "VecSet",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     },
+     "memo": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "remove_rule": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "RequestRules",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "repay_amount": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64"
+      ]
+     },
+     "request_internal": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       "Address",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+            "module": "vusd",
+            "name": "VUSD",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "request",
+         "name": "UpdateRequest",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "rule_request": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "RequestRules",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "TypeParameter": 1
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       "Address",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+            "module": "vusd",
+            "name": "VUSD",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "string",
+         "name": "String",
+         "typeArguments": []
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "request",
+         "name": "UpdateRequest",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "vault_id": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "withdraw_amount": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64"
+      ]
+     },
+     "witnesses": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "request",
+          "name": "UpdateRequest",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_set",
+          "name": "VecSet",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     }
+    }
+   },
+   "response": {
+    "fileFormatVersion": 6,
+    "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+    "name": "response",
+    "friends": [
+     {
+      "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+      "name": "vault"
+     }
+    ],
+    "structs": {
+     "UpdateResponse": {
+      "abilities": {
+       "abilities": []
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "vault_id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "ID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "account",
+        "type": "Address"
+       },
+       {
+        "name": "coll_amount",
+        "type": "U64"
+       },
+       {
+        "name": "debt_amount",
+        "type": "U64"
+       },
+       {
+        "name": "interest_amount",
+        "type": "U64"
+       },
+       {
+        "name": "witnesses",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_set",
+          "name": "VecSet",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "account": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "response",
+          "name": "UpdateResponse",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "Address"
+      ]
+     },
+     "add_witness": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "response",
+          "name": "UpdateResponse",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "TypeParameter": 1
+       }
+      ],
+      "return": []
+     },
+     "coll_amount": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "response",
+          "name": "UpdateResponse",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64"
+      ]
+     },
+     "debt_amount": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "response",
+          "name": "UpdateResponse",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64"
+      ]
+     },
+     "destroy": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "response",
+         "name": "UpdateResponse",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       "Address",
+       "U64",
+       "U64",
+       "U64",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "vec_set",
+         "name": "VecSet",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0x1",
+            "module": "type_name",
+            "name": "TypeName",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "interest_amount": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "response",
+          "name": "UpdateResponse",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64"
+      ]
+     },
+     "new": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       },
+       "Address",
+       "U64",
+       "U64",
+       "U64"
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "response",
+         "name": "UpdateResponse",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "vault_id": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "response",
+          "name": "UpdateResponse",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "witnesses": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "response",
+          "name": "UpdateResponse",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "vec_set",
+          "name": "VecSet",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x1",
+             "module": "type_name",
+             "name": "TypeName",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     }
+    }
+   },
+   "vault": {
+    "fileFormatVersion": 6,
+    "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+    "name": "vault",
+    "friends": [],
+    "structs": {
+     "Position": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop",
+        "Store"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "timestamp",
+        "type": "U64"
+       },
+       {
+        "name": "coll_amount",
+        "type": "U64"
+       },
+       {
+        "name": "debt_amount",
+        "type": "U64"
+       }
+      ]
+     },
+     "PositionData": {
+      "abilities": {
+       "abilities": [
+        "Copy",
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "debtor",
+        "type": "Address"
+       },
+       {
+        "name": "coll_amount",
+        "type": "U64"
+       },
+       {
+        "name": "debt_amount",
+        "type": "U64"
+       }
+      ]
+     },
+     "Vault": {
+      "abilities": {
+       "abilities": [
+        "Store",
+        "Key"
+       ]
+      },
+      "typeParameters": [
+       {
+        "constraints": {
+         "abilities": []
+        },
+        "isPhantom": true
+       }
+      ],
+      "fields": [
+       {
+        "name": "id",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "object",
+          "name": "UID",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "decimal",
+        "type": "U8"
+       },
+       {
+        "name": "interest_rate",
+        "type": {
+         "Struct": {
+          "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+          "module": "double",
+          "name": "Double",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "limited_supply",
+        "type": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "limited_supply",
+          "name": "LimitedSupply",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "min_collateral_ratio",
+        "type": {
+         "Struct": {
+          "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+          "module": "float",
+          "name": "Float",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "liquidation_rule",
+        "type": {
+         "Struct": {
+          "address": "0x1",
+          "module": "type_name",
+          "name": "TypeName",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "name": "request_checklist",
+        "type": {
+         "Vector": {
+          "Struct": {
+           "address": "0x1",
+           "module": "type_name",
+           "name": "TypeName",
+           "typeArguments": []
+          }
+         }
+        }
+       },
+       {
+        "name": "response_checklist",
+        "type": {
+         "Vector": {
+          "Struct": {
+           "address": "0x1",
+           "module": "type_name",
+           "name": "TypeName",
+           "typeArguments": []
+          }
+         }
+        }
+       },
+       {
+        "name": "position_table",
+        "type": {
+         "Struct": {
+          "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+          "module": "linked_table",
+          "name": "LinkedTable",
+          "typeArguments": [
+           "Address",
+           {
+            "Struct": {
+             "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+             "module": "vault",
+             "name": "Position",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       },
+       {
+        "name": "balance",
+        "type": {
+         "Struct": {
+          "address": "0x2",
+          "module": "balance",
+          "name": "Balance",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "add_request_check": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "add_response_check": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "create": {
+      "visibility": "Private",
+      "isEntry": true,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       },
+       "U8",
+       "U64",
+       "U64",
+       "U64",
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "tx_context",
+          "name": "TxContext",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "decimal": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       "U8"
+      ]
+     },
+     "destroy_response": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "response",
+         "name": "UpdateResponse",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ],
+      "return": []
+     },
+     "get_position_data": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       "Address",
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "clock",
+          "name": "Clock",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": [
+       "U64",
+       "U64"
+      ]
+     },
+     "get_positions": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "clock",
+          "name": "Clock",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "option",
+         "name": "Option",
+         "typeArguments": [
+          "Address"
+         ]
+        }
+       },
+       "U64"
+      ],
+      "return": [
+       {
+        "Vector": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "PositionData",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "option",
+         "name": "Option",
+         "typeArguments": [
+          "Address"
+         ]
+        }
+       }
+      ]
+     },
+     "get_raw_position_data": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       "Address"
+      ],
+      "return": [
+       "U64",
+       "U64",
+       "U64"
+      ]
+     },
+     "id": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "object",
+         "name": "ID",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "interest_rate": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "double",
+         "name": "Double",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "limited_supply": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "limited_supply",
+          "name": "LimitedSupply",
+          "typeArguments": []
+         }
+        }
+       }
+      ]
+     },
+     "liquidate": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "clock",
+          "name": "Clock",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+          "module": "result",
+          "name": "PriceResult",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       "Address",
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+            "module": "vusd",
+            "name": "VUSD",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       },
+       {
+        "TypeParameter": 1
+       },
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "tx_context",
+          "name": "TxContext",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "request",
+         "name": "UpdateRequest",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "liquidation_rule": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x1",
+         "module": "type_name",
+         "name": "TypeName",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "min_collateral_ratio": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "float",
+         "name": "Float",
+         "typeArguments": []
+        }
+       }
+      ]
+     },
+     "new": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       },
+       "U8",
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "double",
+         "name": "Double",
+         "typeArguments": []
+        }
+       },
+       "U64",
+       {
+        "Struct": {
+         "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+         "module": "float",
+         "name": "Float",
+         "typeArguments": []
+        }
+       },
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "tx_context",
+          "name": "TxContext",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "vault",
+         "name": "Vault",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "position_data": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "PositionData",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": [
+       "Address",
+       "U64",
+       "U64"
+      ]
+     },
+     "position_exists": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       "Address"
+      ],
+      "return": [
+       "Bool"
+      ]
+     },
+     "position_table": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x7400af41a9b9d7e4502bc77991dbd1171f90855564fd28afa172a5057beb083b",
+          "module": "linked_table",
+          "name": "LinkedTable",
+          "typeArguments": [
+           "Address",
+           {
+            "Struct": {
+             "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+             "module": "vault",
+             "name": "Position",
+             "typeArguments": []
+            }
+           }
+          ]
+         }
+        }
+       }
+      ]
+     },
+     "remove_request_check": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "remove_response_check": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "request_checklist": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Vector": {
+          "Struct": {
+           "address": "0x1",
+           "module": "type_name",
+           "name": "TypeName",
+           "typeArguments": []
+          }
+         }
+        }
+       }
+      ]
+     },
+     "response_checklist": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Reference": {
+         "Vector": {
+          "Struct": {
+           "address": "0x1",
+           "module": "type_name",
+           "name": "TypeName",
+           "typeArguments": []
+          }
+         }
+        }
+       }
+      ]
+     },
+     "set_liquidation_rule": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       },
+       {
+        "abilities": [
+         "Drop"
+        ]
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "set_supply_limit": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "admin",
+          "name": "AdminCap",
+          "typeArguments": []
+         }
+        }
+       },
+       "U64"
+      ],
+      "return": []
+     },
+     "update_position": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [
+       {
+        "abilities": []
+       }
+      ],
+      "parameters": [
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+          "module": "vault",
+          "name": "Vault",
+          "typeArguments": [
+           {
+            "TypeParameter": 0
+           }
+          ]
+         }
+        }
+       },
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "clock",
+          "name": "Clock",
+          "typeArguments": []
+         }
+        }
+       },
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0x1",
+          "module": "option",
+          "name": "Option",
+          "typeArguments": [
+           {
+            "Struct": {
+             "address": "0x7eebbee92f64ba2912bdbfba1864a362c463879fc5b3eacc735c1dcb255cc2cf",
+             "module": "result",
+             "name": "PriceResult",
+             "typeArguments": [
+              {
+               "TypeParameter": 0
+              }
+             ]
+            }
+           }
+          ]
+         }
+        }
+       },
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "request",
+         "name": "UpdateRequest",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       },
+       {
+        "MutableReference": {
+         "Struct": {
+          "address": "0x2",
+          "module": "tx_context",
+          "name": "TxContext",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": [
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       },
+       {
+        "Struct": {
+         "address": "0x2",
+         "module": "coin",
+         "name": "Coin",
+         "typeArguments": [
+          {
+           "Struct": {
+            "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+            "module": "vusd",
+            "name": "VUSD",
+            "typeArguments": []
+           }
+          }
+         ]
+        }
+       },
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "response",
+         "name": "UpdateResponse",
+         "typeArguments": [
+          {
+           "TypeParameter": 0
+          }
+         ]
+        }
+       }
+      ]
+     }
+    }
+   },
+   "version": {
+    "fileFormatVersion": 6,
+    "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+    "name": "version",
+    "friends": [
+     {
+      "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+      "name": "request"
+     },
+     {
+      "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+      "name": "vault"
+     }
+    ],
+    "structs": {},
+    "exposedFunctions": {
+     "assert_valid_package": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [
+       {
+        "Reference": {
+         "Struct": {
+          "address": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f",
+          "module": "vusd",
+          "name": "Treasury",
+          "typeArguments": []
+         }
+        }
+       }
+      ],
+      "return": []
+     },
+     "package_version": {
+      "visibility": "Public",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [],
+      "return": [
+       "U64"
+      ]
+     }
+    }
+   },
+   "witness": {
+    "fileFormatVersion": 6,
+    "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+    "name": "witness",
+    "friends": [
+     {
+      "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+      "name": "vault"
+     },
+     {
+      "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+      "name": "version"
+     }
+    ],
+    "structs": {
+     "VirtueCDP": {
+      "abilities": {
+       "abilities": [
+        "Drop"
+       ]
+      },
+      "typeParameters": [],
+      "fields": [
+       {
+        "name": "dummy_field",
+        "type": "Bool"
+       }
+      ]
+     }
+    },
+    "exposedFunctions": {
+     "witness": {
+      "visibility": "Friend",
+      "isEntry": false,
+      "typeParameters": [],
+      "parameters": [],
+      "return": [
+       {
+        "Struct": {
+         "address": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1",
+         "module": "witness",
+         "name": "VirtueCDP",
+         "typeArguments": []
+        }
+       }
+      ]
+     }
+    }
+   }
+  }
+ },
+ "tx_AyAkxhEqNFRSgJMLBgeSi5vmLpTCBLp1QtqvQou6reCx": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "digest": "AyAkxhEqNFRSgJMLBgeSi5vmLpTCBLp1QtqvQou6reCx",
+   "transaction": {
+    "data": {
+     "messageVersion": "v1",
+     "transaction": {
+      "kind": "ProgrammableTransaction",
+      "inputs": [
+       {
+        "type": "object",
+        "objectType": "sharedObject",
+        "objectId": "0x81f525f4fa5b2d3cf58677d3e39aabc4b0a1ca25cbba605033cfe417e47b0a16",
+        "initialSharedVersion": "22329876",
+        "mutable": false
+       },
+       {
+        "type": "object",
+        "objectType": "immOrOwnedObject",
+        "objectId": "0x38a7b38d0f03338397d1c57f2cc2e3d7c5e3f6fe6887626aacc4cb4e8072c3f5",
+        "version": "129389148",
+        "digest": "9aeMyZxCnkNsRULDTzbxLnLVFkJ4GMrkSCqUVyRQr4BU"
+       },
+       {
+        "type": "pure",
+        "valueType": "u8",
+        "value": 10
+       },
+       {
+        "type": "pure",
+        "valueType": "u64",
+        "value": "550"
+       },
+       {
+        "type": "pure",
+        "valueType": "u64",
+        "value": "2000000000000"
+       },
+       {
+        "type": "pure",
+        "valueType": "u64",
+        "value": "11000"
+       }
+      ],
+      "transactions": [
+       {
+        "MoveCall": {
+         "package": "0x34fa327ee4bb581d81d85a8c40b6a6b4260630a0ef663acfe6de0e8ca471dd22",
+         "module": "vault",
+         "function": "create",
+         "type_arguments": [
+          "0x387c459c5c947aac7404e53ba69541c5d64f3cf96f3bc515e7f8a067fb725b54::ibtc::IBTC"
+         ],
+         "arguments": [
+          {
+           "Input": 0
+          },
+          {
+           "Input": 1
+          },
+          {
+           "Input": 2
+          },
+          {
+           "Input": 3
+          },
+          {
+           "Input": 4
+          },
+          {
+           "Input": 5
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "sender": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+     "gasData": {
+      "payment": [
+       {
+        "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+        "version": 172291110,
+        "digest": "23krdAgqpQrv4SUBzfresAC5MY3eJYEuVtcusuYy5iLh"
+       }
+      ],
+      "owner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+      "price": "1000",
+      "budget": "2980400"
+     }
+    },
+    "txSignatures": [
+     "APz5VlZtiWzCxE8YBjBU/Q/EQ0VPFGOfBhijAUAsa7FxyOPDHqqXWHHSkTz5QOYuz7nF9SYYskOqRTjA28tcow7G9tQnuG4fEegZFWru8tG2/ZpmX6wn3mmFNtLNVV/0kA=="
+    ]
+   },
+   "effects": {
+    "messageVersion": "v1",
+    "status": {
+     "status": "failure",
+     "error": "Error in 1st command, Move Bytecode Verification Error. Please run the Bytecode Verifier for more information."
+    },
+    "executedEpoch": "114",
+    "gasUsed": {
+     "computationCost": "1000000",
+     "computationCostBurned": "1000000",
+     "storageCost": "2264800",
+     "storageRebate": "2264800",
+     "nonRefundableStorageFee": "0"
+    },
+    "modifiedAtVersions": [
+     {
+      "objectId": "0x38a7b38d0f03338397d1c57f2cc2e3d7c5e3f6fe6887626aacc4cb4e8072c3f5",
+      "sequenceNumber": "129389148"
+     },
+     {
+      "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+      "sequenceNumber": "172291110"
+     }
+    ],
+    "sharedObjects": [
+     {
+      "objectId": "0x81f525f4fa5b2d3cf58677d3e39aabc4b0a1ca25cbba605033cfe417e47b0a16",
+      "version": 172291109,
+      "digest": "8sKvjSBZZB2nRmmUG84LGnqW6Gp558eLAg9NsUihPvsb"
+     }
+    ],
+    "transactionDigest": "AyAkxhEqNFRSgJMLBgeSi5vmLpTCBLp1QtqvQou6reCx",
+    "mutated": [
+     {
+      "owner": {
+       "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+      },
+      "reference": {
+       "objectId": "0x38a7b38d0f03338397d1c57f2cc2e3d7c5e3f6fe6887626aacc4cb4e8072c3f5",
+       "version": 172291111,
+       "digest": "vFrs4NPfFLWrRo1F2yvMxqqpWff7ZNE7DQoYazyoaiG"
+      }
+     },
+     {
+      "owner": {
+       "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+      },
+      "reference": {
+       "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+       "version": 172291111,
+       "digest": "2AEXYwiLdFHC24TYdb2889XQRu4BZivJUjukjZzngdSF"
+      }
+     }
+    ],
+    "gasObject": {
+     "owner": {
+      "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+     },
+     "reference": {
+      "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+      "version": 172291111,
+      "digest": "2AEXYwiLdFHC24TYdb2889XQRu4BZivJUjukjZzngdSF"
+     }
+    },
+    "dependencies": [
+     "R5LWd2FMTk4Cwev5YwY3wT1YvK4ueeDjnrBnNrd2Th1",
+     "tRpo6zGdV29ctc7WsPzCRaLGwAHLA9T7i5VffP4JeAa",
+     "34nbebqCNwd19z4FynoR5xKagbLCKasJEH93xVgqD2Ed",
+     "5Z5g2TXBeqakr53mLE5pTykVTyRx4EUSr85qT3QFij7w",
+     "HDXPjL4Rwq8RFNYDeeJMoHWTVfWZgwYE62qXDkX12eFJ"
+    ]
+   },
+   "events": [],
+   "objectChanges": [
+    {
+     "type": "mutated",
+     "sender": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+     "owner": {
+      "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+     },
+     "objectType": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f::admin::AdminCap",
+     "objectId": "0x38a7b38d0f03338397d1c57f2cc2e3d7c5e3f6fe6887626aacc4cb4e8072c3f5",
+     "version": "172291111",
+     "previousVersion": "129389148",
+     "digest": "vFrs4NPfFLWrRo1F2yvMxqqpWff7ZNE7DQoYazyoaiG"
+    },
+    {
+     "type": "mutated",
+     "sender": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+     "owner": {
+      "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+     },
+     "objectType": "0x2::coin::Coin<0x2::iota::IOTA>",
+     "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+     "version": "172291111",
+     "previousVersion": "172291110",
+     "digest": "2AEXYwiLdFHC24TYdb2889XQRu4BZivJUjukjZzngdSF"
+    }
+   ],
+   "timestampMs": "1756354318045",
+   "checkpoint": "43901662"
+  }
+ },
+ "tx_3a5RpGra8VQdC41P9Gx8WpLCk6Ji17Yz5a4JQje8FLCm": {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+   "digest": "3a5RpGra8VQdC41P9Gx8WpLCk6Ji17Yz5a4JQje8FLCm",
+   "transaction": {
+    "data": {
+     "messageVersion": "v1",
+     "transaction": {
+      "kind": "ProgrammableTransaction",
+      "inputs": [
+       {
+        "type": "object",
+        "objectType": "sharedObject",
+        "objectId": "0x81f525f4fa5b2d3cf58677d3e39aabc4b0a1ca25cbba605033cfe417e47b0a16",
+        "initialSharedVersion": "22329876",
+        "mutable": false
+       },
+       {
+        "type": "object",
+        "objectType": "immOrOwnedObject",
+        "objectId": "0x38a7b38d0f03338397d1c57f2cc2e3d7c5e3f6fe6887626aacc4cb4e8072c3f5",
+        "version": "172291111",
+        "digest": "vFrs4NPfFLWrRo1F2yvMxqqpWff7ZNE7DQoYazyoaiG"
+       },
+       {
+        "type": "pure",
+        "valueType": "u8",
+        "value": 10
+       },
+       {
+        "type": "pure",
+        "valueType": "u64",
+        "value": "550"
+       },
+       {
+        "type": "pure",
+        "valueType": "u64",
+        "value": "2000000000000"
+       },
+       {
+        "type": "pure",
+        "valueType": "u64",
+        "value": "11000"
+       }
+      ],
+      "transactions": [
+       {
+        "MoveCall": {
+         "package": "0x34fa327ee4bb581d81d85a8c40b6a6b4260630a0ef663acfe6de0e8ca471dd22",
+         "module": "vault",
+         "function": "create",
+         "type_arguments": [
+          "0x387c459c5c947aac7404e53ba69541c5d64f3cf96f3bc515e7f8a067fb725b54::ibtc::IBTC",
+          "0x23081899bab83e0e54df0b104c064c10f54ca19bb37d034689670af8a53dd3de::whitelist_rule::WhitelistRule"
+         ],
+         "arguments": [
+          {
+           "Input": 0
+          },
+          {
+           "Input": 1
+          },
+          {
+           "Input": 2
+          },
+          {
+           "Input": 3
+          },
+          {
+           "Input": 4
+          },
+          {
+           "Input": 5
+          }
+         ]
+        }
+       }
+      ]
+     },
+     "sender": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+     "gasData": {
+      "payment": [
+       {
+        "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+        "version": 172291111,
+        "digest": "2AEXYwiLdFHC24TYdb2889XQRu4BZivJUjukjZzngdSF"
+       }
+      ],
+      "owner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+      "price": "1000",
+      "budget": "6195200"
+     }
+    },
+    "txSignatures": [
+     "AOhO06E3dYJfGCZqj4oRFs6J0O3kQPsDC843xCRUU8AOgf0kA8FCtfKnTbELCfu81qTd9qpXzvCxtcwAZZbSNQnG9tQnuG4fEegZFWru8tG2/ZpmX6wn3mmFNtLNVV/0kA=="
+    ]
+   },
+   "effects": {
+    "messageVersion": "v1",
+    "status": {
+     "status": "success"
+    },
+    "executedEpoch": "114",
+    "gasUsed": {
+     "computationCost": "1000000",
+     "computationCostBurned": "1000000",
+     "storageCost": "5479600",
+     "storageRebate": "2264800",
+     "nonRefundableStorageFee": "0"
+    },
+    "modifiedAtVersions": [
+     {
+      "objectId": "0x38a7b38d0f03338397d1c57f2cc2e3d7c5e3f6fe6887626aacc4cb4e8072c3f5",
+      "sequenceNumber": "172291111"
+     },
+     {
+      "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+      "sequenceNumber": "172291111"
+     }
+    ],
+    "sharedObjects": [
+     {
+      "objectId": "0x81f525f4fa5b2d3cf58677d3e39aabc4b0a1ca25cbba605033cfe417e47b0a16",
+      "version": 172291109,
+      "digest": "8sKvjSBZZB2nRmmUG84LGnqW6Gp558eLAg9NsUihPvsb"
+     }
+    ],
+    "transactionDigest": "3a5RpGra8VQdC41P9Gx8WpLCk6Ji17Yz5a4JQje8FLCm",
+    "created": [
+     {
+      "owner": {
+       "Shared": {
+        "initial_shared_version": 172291112
+       }
+      },
+      "reference": {
+       "objectId": "0xcc094d9e3b491b0c943bb18daf07a49bd951f34688f9610d90982de06fc0c5c9",
+       "version": 172291112,
+       "digest": "Df4Nhn6aM7Wke5VGg8WHnRcE125zDZ4kifUAk91t1HAt"
+      }
+     }
+    ],
+    "mutated": [
+     {
+      "owner": {
+       "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+      },
+      "reference": {
+       "objectId": "0x38a7b38d0f03338397d1c57f2cc2e3d7c5e3f6fe6887626aacc4cb4e8072c3f5",
+       "version": 172291112,
+       "digest": "EbBhLMT12xCGuQB51CpGmNb8B4iQ7NcbKAhRLoQCGKP7"
+      }
+     },
+     {
+      "owner": {
+       "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+      },
+      "reference": {
+       "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+       "version": 172291112,
+       "digest": "AmtZMTTYVPWogL1R8y8aKUpmCdnQtEYRKknVGRHmmiA9"
+      }
+     }
+    ],
+    "gasObject": {
+     "owner": {
+      "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+     },
+     "reference": {
+      "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+      "version": 172291112,
+      "digest": "AmtZMTTYVPWogL1R8y8aKUpmCdnQtEYRKknVGRHmmiA9"
+     }
+    },
+    "eventsDigest": "ABcaETeT9QhiWeN9oAAQDHb6k9VqKVR9h37iYLXpTATb",
+    "dependencies": [
+     "tRpo6zGdV29ctc7WsPzCRaLGwAHLA9T7i5VffP4JeAa",
+     "34nbebqCNwd19z4FynoR5xKagbLCKasJEH93xVgqD2Ed",
+     "3CcSvKMTr8wFHnCCK3xgE2Aw1hpgBLPYYgMvStw2g8iL",
+     "AyAkxhEqNFRSgJMLBgeSi5vmLpTCBLp1QtqvQou6reCx",
+     "HDXPjL4Rwq8RFNYDeeJMoHWTVfWZgwYE62qXDkX12eFJ"
+    ]
+   },
+   "events": [
+    {
+     "id": {
+      "txDigest": "3a5RpGra8VQdC41P9Gx8WpLCk6Ji17Yz5a4JQje8FLCm",
+      "eventSeq": "0"
+     },
+     "packageId": "0x34fa327ee4bb581d81d85a8c40b6a6b4260630a0ef663acfe6de0e8ca471dd22",
+     "transactionModule": "vault",
+     "sender": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+     "type": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1::events::VaultCreated",
+     "parsedJson": {
+      "coll_type": {
+       "name": "387c459c5c947aac7404e53ba69541c5d64f3cf96f3bc515e7f8a067fb725b54::ibtc::IBTC"
+      },
+      "interest_rate": "55000000000000000",
+      "min_collateral_ratio": "1100000000",
+      "supply_limit": "2000000000000",
+      "vault_id": "0xcc094d9e3b491b0c943bb18daf07a49bd951f34688f9610d90982de06fc0c5c9"
+     },
+     "bcsEncoding": "base64",
+     "bcs": "zAlNnjtJGwyUO7GNrwekm9lR80aI+WENkJgt4G/AxclMMzg3YzQ1OWM1Yzk0N2FhYzc0MDRlNTNiYTY5NTQxYzVkNjRmM2NmOTZmM2JjNTE1ZTdmOGEwNjdmYjcyNWI1NDo6aWJ0Yzo6SUJUQwCApWY1ZsMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACBKqdEBAAAAq5BBAAAAAAAAAAAAAAAA"
+    }
+   ],
+   "objectChanges": [
+    {
+     "type": "mutated",
+     "sender": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+     "owner": {
+      "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+     },
+     "objectType": "0xd3b63e603a78786facf65ff22e79701f3e824881a12fa3268d62a75530fe904f::admin::AdminCap",
+     "objectId": "0x38a7b38d0f03338397d1c57f2cc2e3d7c5e3f6fe6887626aacc4cb4e8072c3f5",
+     "version": "172291112",
+     "previousVersion": "172291111",
+     "digest": "EbBhLMT12xCGuQB51CpGmNb8B4iQ7NcbKAhRLoQCGKP7"
+    },
+    {
+     "type": "mutated",
+     "sender": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+     "owner": {
+      "AddressOwner": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12"
+     },
+     "objectType": "0x2::coin::Coin<0x2::iota::IOTA>",
+     "objectId": "0x4017d93a1387b452caa073f0f83b06c0d97a4af9dc93591429f405e28322ba85",
+     "version": "172291112",
+     "previousVersion": "172291111",
+     "digest": "AmtZMTTYVPWogL1R8y8aKUpmCdnQtEYRKknVGRHmmiA9"
+    },
+    {
+     "type": "created",
+     "sender": "0xf67d0193e9cd65c3c8232dbfe0694eb9e14397326bdc362a4fe9d590984f5a12",
+     "owner": {
+      "Shared": {
+       "initial_shared_version": 172291112
+      }
+     },
+     "objectType": "0xcdeeb40cd7ffd7c3b741f40a8e11cb784a5c9b588ce993d4ab86479072386ba1::vault::Vault<0x387c459c5c947aac7404e53ba69541c5d64f3cf96f3bc515e7f8a067fb725b54::ibtc::IBTC>",
+     "objectId": "0xcc094d9e3b491b0c943bb18daf07a49bd951f34688f9610d90982de06fc0c5c9",
+     "version": "172291112",
+     "digest": "Df4Nhn6aM7Wke5VGg8WHnRcE125zDZ4kifUAk91t1HAt"
+    }
+   ],
+   "timestampMs": "1756354383470",
+   "checkpoint": "43901947"
+  }
+ }
+}
