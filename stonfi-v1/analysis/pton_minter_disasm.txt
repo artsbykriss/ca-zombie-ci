@@ -1,0 +1,277 @@
+PROGRAM{
+  DECLPROC recv_internal;
+  DECLPROC get_wallet_address;
+  DECLPROC get_jetton_data;
+  DECLPROC ?fun_ref_6dda78a0095babdf;
+  recv_internal PROC:<{
+    s3 POP
+    s2 PUSH
+    SEMPTY
+    <{
+      3 BLKDROP
+    }> PUSHCONT
+    IFJMP
+    CTOS
+    4 LDU
+    s0 s1 XCHG
+    1 PUSHINT
+    AND
+    <{
+      3 BLKDROP
+    }> PUSHCONT
+    IFJMP
+    c4 PUSH
+    CTOS
+    LDREF
+    s0 s1 XCHG
+    3 SETGLOBVAR
+    ENDS
+    LDMSGADDR
+    s0 s1 XCHG
+    1 SETGLOBVAR
+    0 PUSHINT
+    1 GETGLOBVAR
+    84 PUSHINT
+    s0 s1 XCHG
+    REWRITESTDADDR
+    s0 POP
+    ROT
+    EQUAL
+    THROWANYIFNOT
+    LDMSGADDR
+    s1 POP
+    LDGRAMS
+    s1 POP
+    1 PUSHINT
+    SDSKIPFIRST
+    LDGRAMS
+    s1 POP
+    LDGRAMS
+    s0 POP
+    3 PUSHINT
+    true 1 true 1 0 0 DIV
+    2 SETGLOBVAR
+    s0 s1 XCHG
+    32 LDU
+    64 LDU
+    s2 PUSH
+    1824798067 PUSHINT
+    EQUAL
+    <{
+      2 1 BLKDROP2
+      1030000000 PUSHINT
+      2 GETGLOBVAR
+      ADD
+      s1 s2 XCHG
+      GEQ
+      83 THROWIFNOT
+      LDMSGADDR
+      s0 POP
+      0 PUSHINT
+      s1 PUSH
+      84 PUSHINT
+      s0 s1 XCHG
+      REWRITESTDADDR
+      s0 POP
+      ROT
+      EQUAL
+      THROWANYIFNOT
+      0 PUSHINT
+      s0 PUSH
+      MYADDR
+      s1 s3 s0 XCHG3
+      NEWC
+      s0 s3 XCHG2
+      STGRAMS
+      s0 s1 XCHG
+      STSLICER
+      s0 s1 XCHG
+      STSLICER
+      ENDC
+      3 GETGLOBVAR
+      s2 PUSH
+      NEWC
+      2 STU
+      STDICT
+      STDICT
+      1 STU
+      ENDC
+      s0 PUSH
+      HASHCU
+      0 PUSHINT
+      4 PUSHINT
+      NEWC
+      3 STU
+      8 STI
+      256 STU
+      ENDC
+      CTOS
+      1000000000 PUSHINT
+      x{} PUSHREF
+      s1 s3 XCHG
+      1 PUSHINT
+      ?fun_ref_6dda78a0095babdf INLINECALLDICT
+    }> IFJMPREF
+    s0 s2 XCHG
+    745978227 PUSHINT
+    EQUAL
+    <{
+      2 GETGLOBVAR
+      10000000 PUSHINT
+      ADD
+      s1 s3 XCHG
+      GREATER
+      75 THROWIFNOT
+      LDMSGADDR
+      1 LDU
+      s0 POP
+      <{
+        NEWC
+        s1 PUSH
+        STSLICER
+        ENDC
+      }> PUSHCONT
+      <{
+        NULL
+      }> PUSHCONT
+      IFELSE
+      3513996288 PUSHINT
+      0 PUSHINT
+      24 PUSHINT
+      NEWC
+      6 STU
+      1 GETGLOBVAR
+      STSLICER
+      s1 PUSH
+      STGRAMS
+      107 STU
+      32 STU
+      s1 s3 XCHG
+      64 STU
+      s1 PUSH
+      REWRITESTDADDR
+      s0 POP
+      0 EQINT
+      <{
+        s0 s1 XCHG
+        0 PUSHINT
+        s0 PUSH
+        MYADDR
+        s1 s3 s0 XCHG3
+        NEWC
+        s0 s3 XCHG2
+        STGRAMS
+        s0 s1 XCHG
+        STSLICER
+        s0 s1 XCHG
+        STSLICER
+        ENDC
+        3 GETGLOBVAR
+        s2 PUSH
+        NEWC
+        2 STU
+        STDICT
+        STDICT
+        1 STU
+        ENDC
+        HASHCU
+        0 PUSHINT
+        4 PUSHINT
+        NEWC
+        3 STU
+        8 STI
+        256 STU
+        ENDC
+        CTOS
+        STSLICER
+      }> PUSHCONT
+      <{
+        0 PUSHINT
+        s2 POP
+        2 STU
+      }> PUSHCONT
+      IFELSE
+      STDICT
+      ENDC
+      64 PUSHINT
+      SENDRAWMSG
+    }> IFJMPREF
+    3 BLKDROP
+    16 PUSHPOW2DEC
+    THROWANY
+  }>
+  get_wallet_address PROC:<{
+    c4 PUSH
+    CTOS
+    LDREF
+    s0 s1 XCHG
+    3 SETGLOBVAR
+    ENDS
+    0 PUSHINT
+    s0 PUSH
+    MYADDR
+    s1 s3 s0 XCHG3
+    NEWC
+    s0 s3 XCHG2
+    STGRAMS
+    s0 s1 XCHG
+    STSLICER
+    s0 s1 XCHG
+    STSLICER
+    ENDC
+    3 GETGLOBVAR
+    s2 PUSH
+    NEWC
+    2 STU
+    STDICT
+    STDICT
+    1 STU
+    ENDC
+    HASHCU
+    0 PUSHINT
+    4 PUSHINT
+    NEWC
+    3 STU
+    8 STI
+    256 STU
+    ENDC
+    CTOS
+  }>
+  get_jetton_data PROC:<{
+    c4 PUSH
+    CTOS
+    LDREF
+    s0 s1 XCHG
+    3 SETGLOBVAR
+    ENDS
+    1 PUSHINT
+    NEWC
+    8 STU
+    x{68747470733A2F2F7374617469632E73746F6E2E66692F6A6574746F6E2F746F6E2D70726F78792E6A736F6E82_} PUSHSLICE
+    STSLICER
+    ENDC
+    0 PUSHINT
+    -1 PUSHINT
+    x{2} PUSHSLICE
+    3 GETGLOBVAR
+    s3 s4 XCHG
+    s1 s3 s0 XCHG3
+  }>
+  ?fun_ref_6dda78a0095babdf PROCREF:<{
+    7 PUSHINT
+    24 PUSHINT
+    NEWC
+    6 STU
+    s0 s5 XCHG2
+    STSLICER
+    s0 s5 XCHG2
+    STGRAMS
+    s1 s3 XCHG
+    108 STU
+    STREF
+    STREF
+    ENDC
+    s0 s1 XCHG
+    SENDRAWMSG
+  }>
+}END>c

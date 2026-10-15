@@ -1,0 +1,193 @@
+{
+ "head": {
+  "seqno": 99202843,
+  "gen_utime": "1792075595"
+ },
+ "tests": [
+  {
+   "name": "T1_router_pay_to_gate",
+   "router_addr": "EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt",
+   "checks": [
+    {
+     "case": "pay_to from non-pool (attacker)",
+     "exit": 82,
+     "aborted": true,
+     "out_msgs": 1
+    },
+    {
+     "case": "pay_to from valid pool address",
+     "exit": 0,
+     "aborted": false,
+     "out_msgs": 1,
+     "outs": [
+      {
+       "dest": "EQBO7JIbnU1WoNlGdgFtScJrObHXkBp-FT5mAz8UagiG9KQR",
+       "value": "993992800",
+       "op": "0xf8a7ea5"
+      }
+     ]
+    }
+   ],
+   "computed_pool_for_usdt_pton": "EQD8TJ8xEWB1SpnRE4d89YO3jl0W0EiBnNS4IBaHaUmdfizE",
+   "computed_pool_matches_deployed": true
+  },
+  {
+   "name": "T2_T3_pton_wallet",
+   "wallet_addr": "EQDo_SYvNvy2i2kJFO-2seHwzlLEtrbfb6_9p4796jsUI-B1",
+   "permissionless": [
+    {
+     "op": "ft_transfer 0xf8a7ea5",
+     "exit": 87,
+     "aborted": true,
+     "out_msgs": 1,
+     "sent_value_to_attacker": 0
+    },
+    {
+     "op": "transfer_notification 0x7362d09c",
+     "exit": 65535,
+     "aborted": true,
+     "out_msgs": 1,
+     "sent_value_to_attacker": 0
+    },
+    {
+     "op": "deploy_wallet 0x6cc43573",
+     "exit": 65535,
+     "aborted": true,
+     "out_msgs": 1,
+     "sent_value_to_attacker": 0
+    },
+    {
+     "op": "reset_gas 0x42a0fb43",
+     "exit": 65535,
+     "aborted": true,
+     "out_msgs": 1,
+     "sent_value_to_attacker": 0
+    },
+    {
+     "op": "internal_transfer 0x178d4519",
+     "exit": 65535,
+     "aborted": true,
+     "out_msgs": 1,
+     "sent_value_to_attacker": 0
+    },
+    {
+     "op": "burn 0x595f07bc",
+     "exit": 65535,
+     "aborted": true,
+     "out_msgs": 1,
+     "sent_value_to_attacker": 0
+    },
+    {
+     "op": "unknown 0xdeadbeef",
+     "exit": 65535,
+     "aborted": true,
+     "out_msgs": 1,
+     "sent_value_to_attacker": 0
+    }
+   ],
+   "wrap": [
+    {
+     "claim": "50000000000",
+     "value": "50100000000",
+     "fwd": "100000000",
+     "exit": 0,
+     "credited": "50000000000",
+     "notif_amount": "[object Object]",
+     "capped_by_value_minus_fwd": false
+    },
+    {
+     "claim": "50000000000",
+     "value": "5000000000",
+     "fwd": "100000000",
+     "exit": 0,
+     "credited": "4900000000",
+     "notif_amount": "[object Object]",
+     "capped_by_value_minus_fwd": false
+    },
+    {
+     "claim": "1000000000000000",
+     "value": "200000000",
+     "fwd": "100000000",
+     "exit": 0,
+     "credited": "100000000",
+     "notif_amount": "[object Object]",
+     "capped_by_value_minus_fwd": false
+    },
+    {
+     "claim": "1000000000",
+     "value": "2000000000",
+     "fwd": "100000000",
+     "exit": 0,
+     "credited": "1900000000",
+     "notif_amount": "[object Object]",
+     "capped_by_value_minus_fwd": false
+    }
+   ]
+  },
+  {
+   "name": "T4_getters_no_drain",
+   "checks": [
+    {
+     "name": "router getter_pool_address 0xd1db969b",
+     "contract_balance_before": "8001353821598",
+     "contract_balance_after": "8001353821598",
+     "balance_change": "0",
+     "reply_msgs": [
+      {
+       "dest": "EQAsP6MHRFOGtFf2xcx4Kt82AAwQWGEcYsQB7v3-vGd8MR-j",
+       "value": "995231200"
+      }
+     ]
+    },
+    {
+     "name": "pool getter_expected_liquidity 0x8751801f",
+     "contract_balance_before": "5299999801200",
+     "contract_balance_after": "5299999801200",
+     "balance_change": "0",
+     "reply_msgs": [
+      {
+       "dest": "EQAsP6MHRFOGtFf2xcx4Kt82AAwQWGEcYsQB7v3-vGd8MR-j",
+       "value": "996610000"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "T5_fake_notifier_pool",
+   "pool_addr": "EQDAGZtZ3XJZ-ShCfJLHNjq0m4u56w7Nv8OOBFXpDE37ELf6",
+   "checks": [
+    {
+     "router_exit": 0,
+     "router_out_msgs": 1,
+     "pool_exit": 0
+    },
+    {
+     "pool_pay_to": {
+      "owner": "EQAsP6MHRFOGtFf2xcx4Kt82AAwQWGEcYsQB7v3-vGd8MR-j",
+      "amount0_out": "1000000000000000000",
+      "token0_address": "EQCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqseb",
+      "amount1_out": "0",
+      "token1_address": "EQBO7JIbnU1WoNlGdgFtScJrObHXkBp-FT5mAz8UagiG9KQR",
+      "fake_side_credited": true,
+      "usdt_side_credited": false
+     }
+    }
+   ],
+   "state_init_matches_router_computed_pool": true,
+   "pool_deployed": true,
+   "pool_data_after": [
+    "0",
+    "0"
+   ]
+  }
+ ],
+ "code_hashes": {
+  "router": "J298IFiTHUaFdQqYVqWsLfoE0bg8ky0eQp+jzuzUL68=",
+  "router_data": "4j0DyeeeuES2iwUSfeVhW3zIfzlVgP0aDx8LpRWrbdE=",
+  "pton_wallet": "iDbS9Bs5zSy92KZsEPlmXQdSQqZgA72PFEhb1rFA0wM=",
+  "pton_data": "CQc2nMgctfpZZ/y0y27AeLnLLUg7M7M+o7UOmc/FrPc=",
+  "pool": "glZq1ytlaP5ydkN9OwyRGqtl7XAcE2AZQbKRcwXoHBE=",
+  "pool_data": "Z6mNIalb6bAWv2qVpyrbWu53GliEu40Rnb6Aqx3G4cA="
+ }
+}

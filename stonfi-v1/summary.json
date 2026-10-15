@@ -1,0 +1,54 @@
+{
+  "finding": "C2-38",
+  "title": "STON.fi v1 (TON) — deprecated router, still swapped: closed to unprivileged attackers",
+  "chains": ["ton"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 7405673.71,
+    "P": 1333000.0,
+    "S": 58000.0
+  },
+  "latest_block": 99204239,
+  "block_numbers": {"ton_masterchain_seqno": 99204239, "ton_gen_utime": 1792076167},
+  "targets_checked": 18829,
+  "live_targets": 18826,
+  "closed_reasons": [
+    "pay_to gate: sender must equal hash(state_init(router-stored pool_code, pool_data)) for the payload's two token wallets; pool code hash-verified == deployed; no arbitrary code can sit at a pool address (sandbox T1: non-pool sender -> exit 82 INVALID_CALLER; real pool sender -> payout emitted)",
+    "pool payouts bounded by each pool's virtual reserves (swap/burn/refund math; cb_refund_me pays only router-routed, actually-received credits)",
+    "real-token reserves only credited by real transfers: forged transfer_notification (no notifier code check) credits only the forger's own side (sandbox T5: fake side credited 1e18, USDT side 0)",
+    "pTON wallet credit = min(claim, msg_value - forward_ton_amount): cannot fake-credit pools (sandbox T2/T3: claim 1,000,000 TON with 0.2 TON attached credited 0.1 TON); all permissionless ops revert (87 / 0xFFFF); spend path owner-gated",
+    "getter handlers cannot drain contract TON: raw_reserve(0,4) reserves the balance before send_payload mode-128 (sandbox T4: balance delta 0)",
+    "permissionless collect_fees reward is net-negative (max ~$0.15 reward vs >1 TON gas) and HOLE-blocked on all large pools",
+    "router admin ops admin-only; no pending code/admin upgrade (temp_upgrade empty)"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38754665195",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38756241579"
+    ],
+    "poc_file": "poc/stonfi_v1_poc.js",
+    "output": "ci-out/stonfi_v1_poc.json"
+  },
+  "key_facts": [
+    "Deployed code == published source (ston-fi/dex-core v1.0.0), hash-exact: router 276f7c2058931d4685750a9856a5ac2dfa04d1b83c932d1e429fa3ceecd42faf, pool 82566ad72b6568fe7276437d3b0c911aab65ed701c13601941b2917305e81c11, lp_account fe9085c0bcc4f58983c38c62a46d46646ccf5dd1ae042dfa0f8355d0e9812175, lp_wallet 0857cdd89c74844150cacd35cd020bef9167cbe12cd330dfb8c779c14d6b1552",
+    "Router EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt holds 3,685,022.71 USDT (wallet 0:4eec92...) + 3,766,747.65 pTON (wallet 0:1150b5..., 1:1 TON-backed by 3,794,719.10 TON) ~= $8.76M at TON $1.3478",
+    "is_locked=false (swaps live); admin = single-key wallet_v4r2 EQAEmbvBL7kz1KYnfEswKPw6X4kouKQYOP4Z8PAvX_pvtw (no plugins, seqno 798); temp_upgrade empty (no upgrade pending)",
+    "Accounting invariant: custody ~= sum(pool reserves) + sum(collected protocol fees) within ~0.5% (API staleness)",
+    "Largest v1 pool EQD8TJ8x... = get_pool_address(USDT wallet, pTON wallet): reserves 2,561,647.49 USDT + 1,883,344.32 pTON; collected fees 1,015,401.42 USDT + 213,017.38 pTON blocked by protocol_fee_address == HOLE; 5,245.85 TON",
+    "All 18,826 v1 pools aggregate: USDT reserves 2,649,910.74, TON-side reserves 3,528,651.99 pTON (~$7.41M, LP-held = H-O)",
+    "Stuck: 15,007.20 TON in the router's USDT wallet + 27,971.45 TON excess in the pTON wallet (~$58k, no reachable sweep op)",
+    "Router USDT wallet code is a type-2 exotic library cell (shared Tether USDT wallet impl) — not executable in @ton/sandbox; owner-gating supported by 400-tx sample where 100% of transfer instructions (0xf8a7ea5) come from the router"
+  ],
+  "caveats": [
+    "Negative result: E-U=$0 relies on the four verified gates (pay_to sender==pool; pool-reserve-bounded payouts; real-side credits need real transfers; pTON credit capped by attached TON).",
+    "USDT wallet (library-cell code) could not be executed locally; behaviour inferred from TEP-74/library semantics + on-chain sender sample.",
+    "v1 pTON wallet/minter have no published source; analysed by TVM decompilation + black-box sandbox probes of the deployed code.",
+    "Pool aggregates from api.ston.fi (~0.5% stale vs on-chain reads).",
+    "Admin (single key) can take the entire custody after a 7-day timelock (P); no upgrade is pending today."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from STON.fi v1: the $8.76M USDT+pTON custody is gated by hash-verified pay_to sender==pool checks, per-pool reserve accounting, real-transfer-only credits, and a pTON credit cap of min(claim, attached TON); residual risk is the single-key admin's 7-day code-upgrade timelock (P) plus ~$1.33M of HOLE-blocked protocol fees."
+}
