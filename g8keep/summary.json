@@ -1,0 +1,64 @@
+{
+  "finding": "L2-Triage-A / g8keep",
+  "title": "g8keep (Base) launchpad — factory-locked LP and fee contracts: $0 unprivileged-extractable; 32.05 ETH ($77.4k) LP permanently locked",
+  "chains": ["base"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 77446.66
+  },
+  "category_notes": {
+    "E-U": "No permissionless path pays the caller. All value movers are gated: factory withdrawToken/sellTokens/withdrawETH/setApprovalToUniswapRouter are onlyOwner; penaltyReceiver.transferToken is allowlist-gated; vester.claim is recipient-only; the 77 factory-held LP tokens are permanently locked (lockedTokens[pair]=1, no unlock function) and cannot be burned/transferred by anyone.",
+    "H-O": "g8keepVester holds 30+ launch tokens across 35 vestings (deployer-only claims) + third-party LP of 0.0024 ETH ($5.79) in 2 pairs. Not USD-quantifiable (illiquid launch tokens); counted as 0 in USD.",
+    "P": "Factory holds 138 non-locked ERC-20 balances (1% g8keep trade-fee accruals + spam airdrops) and the penalty receiver holds snipe-penalty tokens; both owner-only (owner EOA 0x28253c1A76256bf1D9095587826AfCC5705aF98a, dormant since 2025-02-12). Not USD-quantifiable; counted as 0.",
+    "S": "32.046733 ETH attributable to the factory's LP across 77 pairs — unredeemable by anyone (LP locked in factory; no unlock/burn path). The pools remain live AMM markets; the WETH can only leave by trading launch tokens at AMM price."
+  },
+  "latest_block": 52628356,
+  "block_numbers": {
+    "base_local": 52614511,
+    "base_ci": 52628356
+  },
+  "targets_checked": 77,
+  "live_targets": 77,
+  "closed_reasons": [
+    "Factory-held LP tokens are permanently locked (lockedTokens[pair]=1 for 77/77 pairs; no function clears the flag; withdrawToken reverts TokenLocked; sellTokens and setApprovalToUniswapRouter skip locked tokens)",
+    "All factory value exits are onlyOwner (Solady Ownable; owner is a dormant EOA)",
+    "penaltyReceiver.transferToken requires allowlisted transferer (only the owner is allowlisted)",
+    "g8keepVester.claim requires vesting.recipient == msg.sender",
+    "All snipe-protection windows expired (last deployment 2025-01-13; max window 30 days) — snipe code paths inert",
+    "No excess balances in any of the 77 pairs (pair balances == reserves) -> skim() yields nothing",
+    "Only permissionless entry point deployToken costs liquidity + 2% fee and locks the created LP (net loss)"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38693188476",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38692941438"
+    ]
+  },
+  "key_facts": [
+    "Factory 0x3C0B43867Cd04fEdfD6a95497e5ea7e3aFF8cCaE on Base: nonce 79 = 1 (EIP-161) + 1 penaltyReceiver + 77 deployToken calls -> exactly 77 deployed pairs; all 77 are WETH pairs and the factory holds ~100% of each LP (balance = totalSupply - 1000)",
+    "Total WETH attributable to factory-held LP: 32.046733 ETH = $77,446.66 at ETH $2,416.68 (DefiLlama 2026-10-14); top pool HUH/WETH holds 17.2665 ETH; total across all pairs 32.049129 ETH",
+    "lockedTokens[pair]=1 verified for 77/77 pairs via eth_getStorageAt(keccak256(pair, slot 6)); storage layout confirmed by getter matches (slot0=vester, slot1=feeWallet, slot2=penaltyReceiver+packed fees)",
+    "No excess (skim-able) balances in any pair: actual pair balances == reserves for all 77 pairs (local + CI)",
+    "Factory owner = fee wallet = 0x28253c1A76256bf1D9095587826AfCC5705aF98a (EOA, nonce 57, last outgoing tx block 26,298,905 = 2025-02-12, balance 0.1542 ETH); factory native and WETH balances are 0",
+    "Factory holds 138 non-locked ERC-20 balances (fee accruals + spam); owner-only withdrawals (withdrawToken/sellTokens)",
+    "g8keepVester 0x254b4A4222285BAa10E6eFce66a6EcfdF5d807A9: nextVestingId=35, holds 30+ launch tokens; claim recipient-only; deploymentVest is permissionless but cannot drain vester balances (token=msg.sender)",
+    "penaltyReceiver 0x3ac64a6bebebc576bef52fc22ed5e3c64bee4462: allowedTransferers[owner]=1732241073 (2024-11-22, active) -> owner-only",
+    "All snipe protection expired (HUH end 2024-11-30, GATE/G8 end 2024-11-04); last deployment block 25,007,167 = 2025-01-13",
+    "GeckoTerminal lists exactly one pool for HUH (this g8keep pool), 24h volume 0 -> no external source of cheap tokens for arbitrage against the locked pool",
+    "Fork PoC: all 10 tests pass on CI; every unprivileged extraction attempt reverts; deployToken demo shows the caller loses 0.01 ETH + 2% fee (0.0002 ETH) and the LP is locked"
+  ],
+  "caveats": [
+    "BASE_RPC_URL is empty in the CI environment; dump/tests fall back to public Base RPC (mainnet.base.org) -> exact block numbers differ between local (52,614,511) and CI (52,628,356) runs; totals agree to the wei-equivalent.",
+    "USD conversion uses DefiLlama ETH spot 2026-10-14 ($2,416.68); launch tokens themselves have no reliable price (illiquid) and are reported unquantified.",
+    "The 138 factory fee-token balances were enumerated via GoldRush indexer data and cross-checked against the factory nonce; individual token values are not relied upon.",
+    "The locked pools are live AMM markets: the WETH is tradeable out at AMM price (ordinary market activity), but the LP claim itself is unredeemable — classified S.",
+    "Triage's $1,000 estimate came from sampling 3 small pairs; full enumeration (77 pairs) gives 32.05 ETH locked."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from g8keep: all 77 factory-held LP positions (32.046733 ETH = $77,446.66) are permanently locked and every value mover is owner-only/allowlisted/recipient-only; the triage's $1,000 figure was a 3-pair sample of a $77k locked total."
+}

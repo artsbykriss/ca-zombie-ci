@@ -1,0 +1,118 @@
+{
+  "chain": "base",
+  "chain_id": 8453,
+  "verified_at_block": 52614511,
+  "verified_at_utc": "2026-10-15T00:20Z",
+  "latest_block_seen": 52615149,
+  "factory": {
+    "address": "0x3c0b43867cd04fedfd6a95497e5ea7e3aff8ccae",
+    "code_size_bytes": 23959,
+    "native_balance_wei": "0",
+    "weth_balance_wei": "0",
+    "nonce": 79,
+    "nonce_interpretation": "EIP-161 start=1 + penaltyReceiver created in constructor (1) + 77 deployToken calls = 79; matches 77 enumerated pairs",
+    "owner": "0x28253c1a76256bf1d9095587826afcc5705af98a",
+    "owner_type": "EOA",
+    "owner_last_outgoing_tx_block": 26298905,
+    "owner_last_outgoing_tx_utc": "2025-02-12T19:05:57Z",
+    "g8keepFeeWallet": "0x28253c1a76256bf1d9095587826afcc5705af98a",
+    "penaltyReceiver": "0x3ac64a6bebebc576bef52fc22ed5e3c64bee4462",
+    "g8keepTokenVesting": "0x254b4a4222285baa10e6efce66a6ecfdf5d807a9",
+    "WETH": "0x4200000000000000000000000000000000000006",
+    "UNISWAP_V2_ROUTER": "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24",
+    "g8keepFee_bps": 100,
+    "g8keepInitialLiquidityFee_bps": 200,
+    "maxBuyFee_bps": 500,
+    "maxSellFee_bps": 500,
+    "minimumDeployVestTime_s": 86400,
+    "allowedPairs_WETH": true,
+    "pairedTokenMinimumLiquidity_WETH_wei": "10000000000000000",
+    "storage_layout_verified": {
+      "slot0": "g8keepTokenVesting (matches getter)",
+      "slot1": "g8keepFeeWallet (matches getter)",
+      "slot2": "packed fees + penaltyReceiver",
+      "slot3": "packed deployment settings",
+      "slot4": "allowedPairs mapping",
+      "slot5": "pairedTokenMinimumLiquidity mapping",
+      "slot6": "lockedTokens mapping",
+      "lockedTokens_pair_eq_1": "77/77 pairs"
+    }
+  },
+  "lp_positions": {
+    "pairs": 77,
+    "all_weth_pairs": true,
+    "factory_holds_pct": ">99.99% of each pair's LP (LP balance = totalSupply - 1000 wei MINIMUM_LIQUIDITY)",
+    "locked_all": true,
+    "total_weth_attributable_eth": 32.046733,
+    "eth_usd_price": 2416.6788724684866,
+    "eth_price_source": "DefiLlama coins.llama.fi 2026-10-14",
+    "total_weth_attributable_usd": 77446.66,
+    "pairs_with_excess_balance": 0,
+    "note": "pair actual balances == reserves for all 77 pairs -> no skim()-able excess anywhere",
+    "top_pair": {
+      "pair": "0xc7d9143a9753ba6f49fbbb5e803c949c1e310ced",
+      "launch_token": "0x9a532dba4b18e605541c4ea5e14bf70490044858 (HUH / Huh Cat)",
+      "weth_reserve_eth": 17.266732167057051272,
+      "factory_share": 0.9999847601548569,
+      "weth_attributable_eth": 17.266469024732699
+    }
+  },
+  "fee_balances": {
+    "factory_holds_non_locked_erc20": 138,
+    "nature": "g8keep trade-fee accruals (1% of buys/sells credited as internal balances) + spam/airdropped tokens",
+    "withdrawable_by": "factory owner only (withdrawToken/sellTokens are onlyOwner)",
+    "notable": "all balances are illiquid launch memecoins; GoldRush/DefiLlama returned no USD quotes"
+  },
+  "penalty_receiver": {
+    "address": "0x3ac64a6bebebc576bef52fc22ed5e3c64bee4462",
+    "owner": "0x28253c1a76256bf1d9095587826afcc5705af98a",
+    "allowedTransferers_owner": "0x673fe6b1 (1732241073 = 2024-11-22, active in past -> owner may transfer)",
+    "token_holdings": "penalty tokens from snipe protection across many launch tokens; no USD quotes",
+    "transfer_gate": "onlyAllowedTransferer (allowlist, 1-day delay); no unprivileged path"
+  },
+  "vester": {
+    "address": "0x254b4a4222285baa10e6efce66a6ecfdf5d807a9",
+    "nextVestingId": 35,
+    "token_holdings": "deployer vesting tokens for 30+ launch tokens",
+    "claim_gate": "claim(id) requires vesting.recipient == msg.sender (InvalidCaller otherwise)",
+    "deploymentVest_permissionless_note": "deploymentVest has no caller check but sets token=msg.sender; cannot be used to drain vester balances (attacker-controlled token contract can only move its own balances)"
+  },
+  "snipe_protection": {
+    "checked": ["HUH 0x9a532dba... end=1733001605 (2024-11-30)", "GATE end=1730761135 (2024-11-04)", "G8 end=1730761137 (2024-11-04)"],
+    "all_expired": true,
+    "last_deployment_block": 25007167,
+    "last_deployment_utc": "2025-01-13T21:28:01Z",
+    "note": "max snipe window is 30 days; all windows long expired -> snipe-protection code paths inert"
+  },
+  "timeline": {
+    "factory_deployed_block": 21977940,
+    "factory_deployed_utc": "2024-11-04T18:33:47Z",
+    "last_token_deployment_block": 25007167,
+    "last_token_deployment_utc": "2025-01-13T21:28:01Z",
+    "owner_last_tx_utc": "2025-02-12T19:05:57Z",
+    "last_factory_inbound_transfer_event_block": 52392355,
+    "last_factory_inbound_transfer_event_utc": "2026-10-09T19:27:37Z",
+    "note": "recent inbound Transfer events are fee accruals / spam airdrops; some launch tokens (e.g. HUH) still trade sporadically"
+  },
+  "extraction_paths_checked": [
+    "factory.withdrawToken(pair, attacker) -> onlyOwner revert",
+    "factory.withdrawToken(token, attacker) [fee tokens] -> onlyOwner revert",
+    "factory.withdrawETH(attacker) -> onlyOwner revert",
+    "factory.sellTokens(...) -> onlyOwner revert",
+    "factory.setApprovalToUniswapRouter(...) -> onlyOwner revert",
+    "penaltyReceiver.transferToken(...) -> NotAllowed revert",
+    "vester.claim(id) -> InvalidCaller revert (not recipient)",
+    "pair.burn(attacker) -> INSUFFICIENT_LIQUIDITY_BURNED revert",
+    "pair.transferFrom(factory, attacker, n) -> revert (no allowance, insufficient balance)",
+    "pair.skim(attacker) -> succeeds but transfers 0 (no excess)",
+    "router allowance(factory -> router) -> inert; router only pulls from msg.sender",
+    "deployToken -> permissionless but costs liquidity + 2% fee and permanently locks the new LP (net loss)"
+  ],
+  "conclusion": {
+    "E-U": 0,
+    "S_locked_lp_weth_usd": 77445.63,
+    "P_owner_only": "factory fee-token balances + penalty receiver holdings (owner dormant since 2025-02-12)",
+    "H-O": "vester vesting claims (recipient-only)",
+    "confidence": "high"
+  }
+}
