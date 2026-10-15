@@ -1,0 +1,55 @@
+{
+  "finding": "C2-36",
+  "title": "Phase Delegation (ex-AeroPool) SPL stake pool — fresh-attacker audit of the 1.1M SOL custody",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.0, "H-O": 115324925.37, "P": 0.0, "S": 0.0},
+  "latest_block": 457279799,
+  "block_numbers": {"solana": 457279799},
+  "targets_checked": 122,
+  "live_targets": 111,
+  "closed_reasons": [
+    "Custody is 110 PDA-derived stake accounts + reserve on the canonical SPL Stake Pool program SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy; staker AND withdrawer of every account == program PDA AKJt3m2xJ6ANda9adBGqb5BMrheKJSwxyCfYkLuZNmjn (only the program can sign)",
+    "Deployed program ELF sha256 ec2dfefaa70d560754a0000f39bd2cabc192b895d36205b3c428f601b6e1d7e1 == official solana-program/stake-pool program@v2.1.0 release asset (byte-identical)",
+    "Every value-out instruction (WithdrawSol/WithdrawStake/slippage variants) requires burning the caller's own pdSOL; no unguarded instruction moves pool value to an unprivileged caller",
+    "getProgramAccounts sweeps by withdrawer==PDA and staker==PDA each return exactly 111 accounts = 110 stake accounts + reserve; zero orphaned/foreign-controlled stake accounts",
+    "Redelegate is disabled in the deployed binary; no pending fee changes; no deposit/withdraw authority gates; no lockup; pdSOL freeze authority is None",
+    "No known security fix applicable to this custody between v2.1.0 (deployed) and v2.2.0 (latest): v2.2.0 deltas are freeze-authority policy for new pools, 1-SOL minimum-delegation handling, slippage-check ordering, docs"
+  ],
+  "poc": {
+    "tests_passed": 30,
+    "tests_total": 30,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38753018068",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38756446889",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38756850481",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38757319949"
+    ]
+  },
+  "key_facts": [
+    "Pool account aero2ePURjuEgLKTzcUmF6RypBncBGd7pMUYCoSsVJ6: total_lamports 1,101,114.884155839 SOL, pdSOL supply 952,415.109886148, exchange rate 1.156155 SOL/pdSOL",
+    "Actual on-chain custody (stake accounts + reserve) = 1,101,120.410851434 SOL across 110 validator stake accounts (1,101,102.241825341) + reserve aeroivis36SwDvAJpzQCDX9Y7cCLXBdv9vTn1DtDnVC (18.169026093 SOL)",
+    "USD: $115,324,925 at $104.73/SOL (DefiLlama, final CI run, slot 457,279,799); spot moved $102.9-$104.7 through 2026-10-15 ($113.3M-$115.3M); corpus figure 1,099,635 SOL/$133.6M implied ~$121.5/SOL",
+    "Withdraw authority = PDA([pool, b'withdraw'], SPoo1) = AKJt3m2xJ6ANda9adBGqb5BMrheKJSwxyCfYkLuZNmjn (bump 255 == stored); deposit authority = default PDA 4Y6XeEZ2Dg2zXU9NJgdmAG9xpwAsNusLReSTLzJxtZJ8; pdSOL mint authority = withdraw PDA; freeze authority None",
+    "Fees: epoch 5% of rewards (cap 100% of rewards), stake/sol deposit+withdrawal 0.05% each; withdrawal-fee increases limited to +0.5pp and 1.5x per epoch with 2-epoch delay (deployed v2.1.0)",
+    "Manager rotated 2026-10-12 05:33:39 UTC (slot 455,932,770, tx 4as7vmMhAvD8ekPnKtEqsbyuS6UaJRhAFyBNi8wyFbNuMvysPxXZuZpM4eKy) from single EOA Gutj91DY4ZS7TCJzCUVMRdDhT9U2ccsDy4fgn74WawgL to Squads v4 vault 7LqSTwcwHodtrRmPWkptKWraELTW2DpchzRWhdoS4HH1 = index 0 of 3-of-4 multisig GRe1iCBEeAMdEeFmEMavgXJE8Uk8tU82pyxZ4iXXAD1v (1-day timelock, members CQeJSnKk/E8S39Hwm/GQJUoajR/Gutj91DY4, config authority frozen to system program); new manager fee account HC77HUgE6XpEVnS6RtNwe1yf7a1BoBdQzdxyWrAsxVac (holds 21.33 pdSOL); same batch migrated 7 pools",
+    "Staker remains a single hot EOA QocTiqKmq654c5hxBitSUD7UKZH7JMzjkcNHeh917wk (1000+ txs since 2025-07, recent Jupiter/vote activity): can re-delegate stake, cannot touch principal",
+    "Program upgrade authority dPpFfahSWhm5M2RB3nVaHsXfnh9ooz5bWtR3WeUguDH (Squads program-upgrade flow; last upgrade slot 429,882,117 = 2026-06-30 to v2.1.0); systemic to every pool on the program (237 initialized pools / 220 with stake, enumerated)",
+    "PENDING UPGRADE (monitor): buffer EmR4UhwTPoEwKe9JNnVaHqSgmup3ebeBMyogY5fR9bgf prepared 2026-10-06 with authority = the same Squads vault; its content sha256 40ff077967f1616ea2e14088dbb13c918a93f185ea1a60f87b8025f198f844c7 == official program@v2.2.0 release asset (328,264 B) - a v2.2.0 upgrade awaits multisig execution; v2.2.0 deltas are non-custodial for this pool",
+    "Program history (child-b research): no published security advisories; permissionless drain/hijack classes (Certora H-03 reserve drain, cluster-restart/transient hijacks) fixed in v2.0.4; withdrawal-fee cap bypass fixed in v2.1.0 - both included in the deployed build; no documented unprivileged theft from any canonical-program pool on mainnet",
+    "H-O mechanics: WithdrawSol is capped by the 18.169 SOL reserve (no deactivated stake today, max ~18.167 SOL per call); larger exits use WithdrawStake (burn pdSOL -> receive stake account -> self-deactivate ~2-3 days) - 0.05% fee",
+    "Independent adversarial review (child-a REPORT.md, 191 lines): tag->commit binding and sha256 of all 6 source files re-derived; all 27 instruction variants reviewed (26 landable, Redelegate hard error); no missing PDA/authority checks, no type confusion, no fake-lamport injection, rounding pool-favouring; ledger reconciles to the lamport (18,167,359,853 reserve + 1,101,096,716,795,986 records = T_stored)",
+    "Only candidate E-U (child-a, quantified and REJECTED): harvesting un-swept third-party lamports in pool stake accounts (5.525 SOL total, eps~5.02e-6) via deposit->permissionless update->withdraw; 0.1% round-trip fee is ~199x the gain; break-even needs >1,101 SOL un-swept; provenance = external Jito/Router donation (slot 457,091,792)",
+    "Stale-tail decode note: pool account is 611 bytes but live struct ends at 435; bytes 435-466 are stale from an earlier state with one 32-byte Option set (program reads with try_from_slice_unchecked); live state has all dynamic fields None"
+  ],
+  "caveats": [
+    "E-U = $0 is a negative result: no unprivileged extraction path was found in the deployed v2.1.0 instruction set, live authority topology, or account layout. Confidence high but not a formal proof of the canonical program's correctness; it rests on the byte-identical match to the audited official v2.1.0 release.",
+    "H-O figure is gross before the 0.05% withdrawal fee and assumes holders can execute WithdrawStake; net recoverable is ~0.05% lower (~$56.7k).",
+    "P = 0 for principal capture; the manager multisig could raise the epoch fee to 100% of future rewards and ramp withdrawal fees (~1.2 years, fully visible, holders can exit) - conditional, not immediate.",
+    "Staker key compromise would allow reward-capture (100% commission validator) but not principal theft; this is a monitoring item.",
+    "H-O realizability nuance: secondary-market depth for pdSOL is thin (~$4M near NAV via Sanctum/Jupiter quotes, then a cliff); the native WithdrawStake path (epoch latency) is the real exit for large holders.",
+    "No local SBF execution of the program was performed (no Solana fork harness); verification is by live-state checks + hash match + source review, not by executing exploit attempts (none exist to execute)."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Phase Delegation's 1,101,120 SOL (~$113.4M): custody is entirely in PDA-controlled stake accounts on the canonical SPL Stake Pool program whose deployed binary is byte-identical to the official audited v2.1.0 release, every value-out path is burn-gated, zero orphaned accounts, and the manager role was just hardened to a 3-of-4 Squads multisig; the funds remain holder-recoverable (H-O) with a 0.05% fee."
+}
