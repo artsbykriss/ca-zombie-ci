@@ -1,0 +1,64 @@
+{
+  "finding": "L2-P2-liquid-driver",
+  "title": "Liquid Driver (LQDR) \u2014 Fantom + BSC zombie custody deep dive",
+  "chains": [
+    "fantom",
+    "bsc"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 373443.12,
+    "P": 0,
+    "S": 4148.61
+  },
+  "latest_block": 123693113,
+  "block_numbers": {
+    "fantom": 123693113,
+    "bsc": 127738284
+  },
+  "targets_checked": 103,
+  "live_targets": 43,
+  "closed_reasons": [
+    "MasterChef (Sushi MCV1): withdraw/emergencyWithdraw are self-only; all admin fns Ownable (owner = Gnosis Safe 3-of-4); lqdrPerBlock=0; no rescue/mint path",
+    "MiniChef (TransparentUpgradeableProxy -> MiniChefV2 logic, verified on BSC Etherscan): user accounting; foreign withdraw reverts in all 48 pools; initialize done; set/upgrade gated",
+    "37 Pickle-style LqdrStrategy contracts: withdraw/withdrawAll revert '!depositor' (depositor = MiniChef); harvest gated by harvester whitelist",
+    "34 shadow farms (proxies): every entry point (withdraw/withdrawAll/deposit/harvest/emergencyWithdraw) reverts from a fresh EOA; owner/admin gated",
+    "4 hundred-chefs: all balances zero",
+    "xLQDR veLQDR: lockless withdraw() is a zero-value no-op; only lockers can withdraw after expiry; admin has no fund-moving function",
+    "BSC MiniChef: 6 pools, all empty; admin/upgrade gated",
+    "Burner 0x05b7109b: 391-byte contract with only name(); 92,048.19 LQDR permanently stuck (S)"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38692322831",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38694548888",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38696616050"
+    ]
+  },
+  "key_facts": [
+    "MasterChef 0x742474dae70fa2ab063ab786b1fbe5704e861a0c: 25 pools, lqdrPerBlock=0, holds 21,507.45 LQDR + LP in 16 pools (~$7,426 at DefiLlama prices; ~$1,328 at DEX-implied prices); owner = Gnosis Safe v1.3.0 0xb1f7e2d9c20a8223e792b013bb86caf271c0b93d (4 owners, threshold 3)",
+    "MiniChef 0x6e2ad6527901c9664f016466b8da1357a004db0f: 48 pools, 37 with strategies; holds 40,059.85 LQDR + BPT-OPERA 101,248.59 (42.77% of a pool holding 230,169 WFTM, ~$5.3k) + dust; impl 0x4b7e4f46394fa2d000667192e206be2bbd0662b4; proxy admin 0xe71e06e577f00bb417706f99d8abf36dcf60ea62",
+    "BSC MiniChef 0xd46db083de31c64af3f680f139a31ff37bac004f -> impl 0x929c697c557d2ed4c8c446e60614cfcce0b1d680 = verified MiniChefV2 (BSC Etherscan); 6 pools all zero",
+    "MiniChef strategies: balanceOf() LP staked in external masterchefs (0x18b4f774fdc7bf685daeef66c2990b1ddd9ea6ad, 0xaef349e1736b8a4b1b243a369106293c3a0b9d09, 0x9083ea3756bde6ee6f27a6e996806fbd37f6f093, 0x37cf490255082ee50845ea4ff783eb9b6d1622ce); total ~$180.5k at DefiLlama prices / ~$50.2k at DEX-implied prices",
+    "Shadow farms: only 0x59ab3c33e75C91B2B632d51144e57293EF64E556 funded (49.696 LP of LQDR/FTM pair 0xe42bb367c958e0e624c164f2491c37d8fd713515, ~$4.90); owner 0x383ea12347e56932e08638767b8a2b3c18700493; proxy admin 0x731326a205849c20f92f7a43e252a8833dc5c2fd",
+    "xLQDR 0x3ae658656d1c526144db371faef2fff7170654ee (veLQDR): supply 3,925,045.57 LQDR locked (nominal $176,902 at $0.04507); voting power 708,093.68; admin/controller 0x383ea123...",
+    "Rewarder 0x211413ebd4e439535df54a63d10bf844a85e981a (for MiniChef pids 1 and 10) holds 9,746.68 WFTM (~$526) as pending secondary rewards; harvest/withdraw/emergencyWithdraw revert from a fresh EOA (userInfo=0)",
+    "Exit-liquidity ceiling: deepest LQDR/FTM pair 0x506ddcc751c7d500f983ffda6ddefbe458ba2c33 holds 18,669.5 WFTM + 22,005.3 LQDR; constant-product dump of all 3.925M locked LQDR yields only 18,565 WFTM (~$1.0k)",
+    "Burner 0x05b7109b2dae299d882c410c1a281fc194658e89: holds 92,048.19 LQDR; bytecode has only name() - unrecoverable",
+    "Dangerous-call simulations from a fresh EOA: MC mint/add/set/updateEmissionRate/transferOwnership -> revert; MiniChef initialize -> 'already initialized', setFeeAddress/setTreasuryAddress -> FORBIDDEN, upgradeTo -> revert; strategy withdraw -> '!depositor'; shadow farm withdraw/deposit/harvest -> revert; xLQDR lockless withdraw -> no-op (delta 0)",
+    "Fantom bridged assets are heavily de-pegged (LINK $0.17 vs $12 mainnet; miMATIC $0.055; FRAX $0.88), so nominal LP values overstate realizable value by ~3.6x on the strategy LP alone"
+  ],
+  "caveats": [
+    "H-O figure is nominal on-chain custody attributable to users at 2026-10-15 DefiLlama prices; realizable value is far lower (thin/broken Fantom exit liquidity; DEX-implied strategy LP ~$50k; xLQDR dump ceiling ~$0.2-1.0k)",
+    "Privileged upgrade paths exist (proxy admins owned by EOA 0x383ea123... and 0x91e458fc...; Safe 3-of-4 for MasterChef) - key compromise would allow upgrade-to-malicious, but this is not an unprivileged path",
+    "FTM MiniChef implementation 0x4b7e4f46... is unverified (selector set matches MiniChefV2 + lqdrPerBlock; all probed behaviours match the verified BSC implementation)",
+    "qLQDR/mxLQDR/liHND vaults marketed by the project could not be located from public sources and are not covered",
+    "Per-user pending LQDR not enumerated; surplus LQDR in MasterChef beyond pending rewards is unrescuable (no rescue function)",
+    "CI fingerprint `from`-address simulations returned provider errors; superseded by Foundry fork tests (authoritative)"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live from Liquid Driver: every withdrawal path is depositor-gated (MasterChef/MiniChef/strategies/shadow farms verified by fork PoC), admin paths need a 3-of-4 Safe or team EOAs, and xLQDR lockers can only withdraw their own locks; ~$373k of nominal user custody remains but is user-recoverable only, with a tiny realizable fraction."
+}

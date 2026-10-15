@@ -1,0 +1,64 @@
+MC pools:
+  pid 0 0x280abc0d9727f4de3a46ca9cf93c16b4a9c127d1 chefBal 369433569555976957 ts 3082408644790851390
+  pid 1 0xd32f2eb49e91aa160946f3538564118388d6246a chefBal 1906293982217669054766 ts 3074949612214476871242
+  pid 2 0x1ca86e57103564f47ffcea7259a6ce8cc1301549 chefBal 717701931880406564267 ts 3064503563747221813660
+  pid 3 0x3d0bd54c48c2c433ea6fed609cc3d5fb7a77622b chefBal 96918173079932726581 ts 751890228325804296396
+  pid 4 0xd019dd7c760c6431797d6ed170bffb8faee11f99 chefBal 3560642534490104 ts 6106843329571549
+  pid 5 0xc92d97416328a461bce2f539498b505c6c97748f chefBal 3096054022525 ts 93635296703920
+  pid 6 0x49d2e0dc99c7358d7a9a8633bf6df111d0ee7f65 chefBal 611945777708822033073 ts 7768142182025492382636
+  pid 7 0x147e27be8e66f74c7659d88e2e6a13188873d58b chefBal 20938117574737088303 ts 104318843929111965791
+  pid 8 0xcff4353e10a7207bd16427ca9549437d439b68df chefBal 70836551860257367 ts 158832207289840123615
+  pid 9 0x2d89bb3b1448152002453aa37fbe4051afdbf56d chefBal 905131254257 ts 38404344988364
+  pid 10 0xfe69403cf2e22390c0d87ab05062f67d9084935b chefBal 11725956199752143200 ts 125813414080643281520
+  pid 11 0x84311ecc54d7553378c067282940b0fdfb913675 chefBal 69147882651905026940 ts 86338364159835141515855
+  pid 12 0xafa1bf9b2a89dfd60499838c331538283b3346ed chefBal 1005355573859863104 ts 33333295954700452688
+  pid 13 0x3ac28d350c59ef9054b305dfe9078fadc3cecabe chefBal 61436111570565 ts 68243133251594
+  pid 14 0xc24afba17c981326aa14238fcb55abc7d0907808 chefBal 96198758761243184991818 ts 9226346096320221730950382
+  pid 15 0x177e2cc843d2ee20aa884dc8af2a865adf78adb2 chefBal 23371928482223947199 ts 718503473320831606798
+  pid 16 0x4669751cd7933c9ca2ac8147ae7043d8561f4c8d chefBal 73181187480863 ts 1233469538998894
+  pid 17 0xa1bb6830fabddb99ed365c0611a33741c5e6173f chefBal 1467946506894900 ts 3512240560798066
+  pid 18 0xfa7ca6e6d17368e0a1fa9c75f2ebe5a8d7be9fc6 chefBal 2829111577135901701882 ts 4364564802430106253549
+  pid 19 0x10b620b2dbac4faa7d7ffd71da486f5d44cd86f9 chefBal 21507451253169958551736 ts 8824411544687468186713895
+  pid 20 0xa1104debd2450312347c00b2df5c0fcfd1285d71 chefBal 5220219061147234570796 ts 1000000000000000000000000
+  pid 21 0x786dd429ef85c4be1e1b2ce52530e711fca7ee7c chefBal 100000000000000000000 ts 100000000000000000000
+  pid 22 0x8fff90bb6dbad4458ae2236813019cb9159f4e73 chefBal 100000000000000000000 ts 100000000000000000000
+  pid 23 0x72bc4be6642355e820318f696340bfd8f2c7aa4e chefBal 1000000000000000000 ts 100000000000000000000000
+MC pools with balance: 24 of 25
+
+External masterchef 0x18b4f774fdc7bf685daeef66c2990b1ddd9ea6ad
+  owner(): 0x0000000000000000000000001a11f5df739beca4974ace4d8e5ce5ef5d854889
+  poolLength(): 0x000000000000000000000000000000000000000000000000000000000000002c
+  lqdr(): {'code': -32000, 'message': 'execution reverted'}
+  boo(): {'code': -32000, 'message': 'execution reverted'}
+  totalAllocPoint(): 0x0000000000000000000000000000000000000000000000000000000000000c26
+
+Dangerous sims (from attacker):
+  mc.mint(atk,1e18): {"code": -32000, "message": "execution reverted"}
+  mc.add(1,atk,0,false): {"code": 3, "message": "execution reverted: Ownable: caller is not the owner", "data": "0x08c379a00000000000000000000000
+  mc.updateEmissionRate(1e18): {"code": 3, "message": "execution reverted: Ownable: caller is not the owner", "data": "0x08c379a00000000000000000000000
+  mc.transferOwnership(atk): {"code": 3, "message": "execution reverted: Ownable: caller is not the owner", "data": "0x08c379a00000000000000000000000
+  mc.dev(atk): {"code": 3, "message": "execution reverted: dev: wut?", "data": "0x08c379a0000000000000000000000000000000000000000000000
+  mc.setFeeAddress(atk): {"code": 3, "message": "execution reverted: setFeeAddress: FORBIDDEN", "data": "0x08c379a0000000000000000000000000000000
+  mini.mint(atk,1e18): {"code": -32000, "message": "execution reverted"}
+  mini.setLqdrPerSecond(1e18): {"code": -32000, "message": "execution reverted"}
+  mini.setFeeAddress(atk): {"code": 3, "message": "execution reverted: setFeeAddress: FORBIDDEN", "data": "0x08c379a0000000000000000000000000000000
+  mini.setTreasuryAddress(atk): {"code": 3, "message": "execution reverted: setTreasuryAddress: FORBIDDEN", "data": "0x08c379a00000000000000000000000000
+  mini.initialize(atk,atk,atk): {"code": 3, "message": "execution reverted: Initializable: contract is already initialized", "data": "0x08c379a000000000
+  mini.upgradeTo(atk): {"code": -32000, "message": "execution reverted"}
+  mini.upgradeToAndCall(atk,0x): {"code": -32000, "message": "execution reverted"}
+  shadow.withdraw(1): {"code": -32000, "message": "execution reverted"}
+  shadow.withdraw(0): {"code": -32000, "message": "execution reverted"}
+  shadow.withdrawAll(): {"code": -32000, "message": "execution reverted"}
+  shadow.deposit(): {"code": -32000, "message": "execution reverted"}
+  shadow.harvest(): {"code": -32000, "message": "execution reverted"}
+  shadow.emergencyWithdraw(): {"code": -32000, "message": "execution reverted"}
+  shadow.setStrategy(atk): {"code": 3, "message": "execution reverted: Ownable: caller is not the owner", "data": "0x08c379a00000000000000000000000
+  shadow.transferOwnership(atk): {"code": 3, "message": "execution reverted: Ownable: caller is not the owner", "data": "0x08c379a00000000000000000000000
+  shadow.upgradeTo(atk): {"code": -32000, "message": "execution reverted"}
+
+Proxy admins:
+  0x59ab3c33e75C91B2B632d51144e57293EF64E556 -> admin 0x731326a205849c20f92f7a43e252a8833dc5c2fd
+  0x6e2ad6527901c9664f016466b8da1357a004db0f -> admin 0xe71e06e577f00bb417706f99d8abf36dcf60ea62
+  0x79364E45648Db09eE9314E47b2fD31c199Eb03B9 -> admin 0xa8187f8f9f54fdb03bc212caf3fa66b63d2938ff
+  0x0f45B4A89AAb28f4C4dC2d08ebAD277983d4B67a -> admin 0x731326a205849c20f92f7a43e252a8833dc5c2fd
+saved probe3.json
