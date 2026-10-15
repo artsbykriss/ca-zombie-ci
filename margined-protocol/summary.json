@@ -1,0 +1,43 @@
+{
+  "finding": "margined-protocol",
+  "title": "Margined Protocol (Neutron + Osmosis) — L2 Phase-2 deep dive",
+  "chains": ["osmosis", "neutron"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 8804.95, "P": 0.00, "S": 9689.82},
+  "latest_block": 72560792,
+  "block_numbers": {"osmosis": 72560792, "neutron": 61879419},
+  "targets_checked": 30,
+  "live_targets": 11,
+  "closed_reasons": [
+    "Osmosis redemption vaults (TIARedemption/ATOMRedemption/OSMORedemption, $9,506): deposit AND redeem revert — handler dispatches a `feed` submessage to the feedr contract (code 1887) which does not implement `feed`; assets stuck (S) until privileged feedr migration",
+    "LSD vault round trips break-even: stOSMO deposit->redeem returns 1.418982 OSMO-equiv for 1 stOSMO at the on-chain swap rate (1 stOSMO = 1.418482 OSMO); net +0.035% (no extraction). Earlier +11% figure was a stale DefiLlama stOSMO price artifact",
+    "bOSMO/stTIA/qOSMO LSD vault deposits revert or panic (slippage bound / failed swap estimate / division by zero) -> banks not reachable",
+    "Neutron fund vaults ATOMFund/wBTCUSDC/NTRNUSDC/TIAUSDC/ATOMUSDC/TIAFund have zero bank balances (assets withdrawn by controllers; accounting only) -> nothing to take",
+    "Admin/controller functions gated: pause/set_open/update_config -> `Caller is not admin`; repay/process_withdrawal -> `Unauthorized` (dry-run verified)",
+    "Neutron escrow claims are user-scoped: user claim OK, non-user -> `No redemptions found` (H-O, not E-U)",
+    "ATOMdATOM fund vault is NAV-proportional (public fund source); no unprivileged path identified"
+  ],
+  "poc": {
+    "tests_passed": 8,
+    "tests_total": 8,
+    "ci_run_urls": [],
+    "note": "Cosmos chains: no Foundry project. CI job ci/run.sh -> ci/verify.py performs read-only public-LCD queries + /cosmos/tx/v1beta1/simulate dry-runs (dummy signature, never broadcast, state discarded). Checks: stOSMO round trip, ampOSMO round trip, on-chain stOSMO->OSMO price + net P&L, 2 redemption-vault deposit reverts, escrow user claim, escrow non-user claim, admin gate."
+  },
+  "key_facts": [
+    "Triage $11,031.97 = sum of vault `total_assets` self-reports; actual custody split differs: Osmosis redemption vaults $9,506 (stuck), LSD vault banks $184, Neutron ATOMdATOM $436, escrow $8,369 (missed by triage), NTRNStructured $0.00",
+    "Neutron escrow `neutron1rl7key2jr285vwz79hgkusgtw3ylcgateux5p8ajkk4rya067dkserkva8` holds 5,000.249999 ATOM in 4 pending redemptions (3 users); all 4 sourced from Hydro Hedging Strategy (shared locust-framework escrow), not Margined vaults",
+    "Deployed redemption-vault/locust-vault WASM downloaded from chain; vault-standard pricing queries are stubbed with `unimplemented!()` (convert_to_shares/convert_to_assets panic)",
+    "On-chain executable price: 1 stOSMO = 1.418482 OSMO (simulated pool-1252 swap); stOSMO round trip net +0.035% => no extraction",
+    "Conditional: ampOSMO LSD vault pays 1.165420 OSMO per 1 ampOSMO deposited; profitable only if ampOSMO market value < 1.1654 OSMO; capped by vault bank 288.35 OSMO (~$12); ampOSMO pool 1923 is broken (`ran out of ticks`) so the discount is not demonstrated (low confidence)",
+    "All admins/owners/controllers are team EOAs; no permissionless function pays the caller (crank = fees to treasury / rebalance only)"
+  ],
+  "caveats": [
+    "USD prices: OSMO $0.0418508, ATOM $1.67378, TIA $0.52853, stOSMO from on-chain swap (1.418482 OSMO), bOSMO/qOSMO from on-chain swaps, ampOSMO at OSMO proxy; stTIA valued at TIA (proxy, likely understates)",
+    "Values are point-in-time (2026-10-15 ~06:48 UTC); CL position values inferred from payout events",
+    "Read-only: simulate dry-runs only, no signing/broadcast; no transactions sent",
+    "Redemption-vault source is not public; behaviour proven by dry-runs + WASM strings only",
+    "Escrow ATOM is user-claimable (H-O) and largely belongs to a Hydro strategy redemption"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live: the $11K triage custody is $9.5K stuck in Osmosis redemption vaults bricked by a `feed`-submessage incompatibility, $8.4K user-claimable escrow (mostly Hydro), $436 pro-rata ATOMdATOM, and $184 in LSD vault banks whose deposit/redeem paths are blocked or break-even at true on-chain prices (one conditional ampOSMO path ≤$12, low confidence)."
+}
