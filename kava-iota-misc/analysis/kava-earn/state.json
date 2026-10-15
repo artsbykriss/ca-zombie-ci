@@ -1,0 +1,54 @@
+{
+  "target": "Kava Earn (x/earn + x/savings + x/liquid + x/incentive + x/router)",
+  "chain": "kava_2222-10 (Cosmos L1)",
+  "app_version": "kava v0.28.2 (node_info application_version)",
+  "source_commit": "686d591443a1de7c5566bc7d92faf5b56743f25f (tag v0.28.2)",
+  "heights": {"first": 23035008, "last": 23035688},
+  "defillama_tvl_usd": 1390964.53,
+  "kava_price_usd": 0.06879604057044186,
+  "vaults": {
+    "count": 124,
+    "funded": 123,
+    "bkava_vault_units_total": "19928778749374",
+    "bkava_units_in_defillama_supply_endpoint": "19925920219103",
+    "non_bkava": {
+      "bnb": "253213225",
+      "erc20/multichain/dai": "495073496270613327827",
+      "erc20/multichain/usdc": "15587488825",
+      "erc20/multichain/usdt": "3586257861",
+      "usdx (HARD strategy)": "500009",
+      "ukava (private SAVINGS)": "0"
+    }
+  },
+  "module_accounts": {
+    "earn": {"address": "kava1eur6wmuns3md599pae2caahy8dl3dxs3s78zcj", "balances": []},
+    "savings": {"address": "kava19pk5wfhpqkrttyv62a7kh5jgpy0e9vefshe40w", "denoms": 142, "solvent_vs_records": true},
+    "liquid": {"address": "kava1gggszchqvw2l65my03mak6q5qfhz9cn2g0px29", "delegation_count": 137, "delegation_tokens_kava": "19925929.740013", "delegation_shares": "19928788282333.121094"},
+    "kavadist": {"address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w", "ukava": "37906533821176"}
+  },
+  "bkava_backing": {"supply_units": "19928789665657", "module_shares": "19928788282333.12", "delta_units": 1383323.88, "delta_pct": 0.0000069},
+  "savings": {"depositors": 3, "earn_macc_denoms": 141, "exact_solvency_zero_diff": true},
+  "orphan_dust": {
+    "count": 19,
+    "total_units": 12081,
+    "total_bkava": 0.012081,
+    "usd": 0.00083,
+    "mechanism": "fresh vault for a savings-only denom mints 1:1 shares; totalValue includes orphan dust; first withdraw captures D",
+    "largest": {"denom": "bkava-kavavaloper168g9nn9vnamhsnjkm7uqqee9f3v07flgwwddf9", "units": 11911}
+  },
+  "rewards": {
+    "earn_reward_periods": [],
+    "savings_reward_periods": [],
+    "claim_end": "2026-11-01T23:59:59Z",
+    "indexes_frozen": true,
+    "kavadist_pool_usd_at_kava_price": 2606895.7
+  },
+  "signer_checks": {
+    "savings MsgWithdraw/MsgDeposit GetSigners": "depositor",
+    "earn MsgWithdraw GetSigners": "from",
+    "router MsgMintDeposit/DelegateMintDeposit/WithdrawBurn/WithdrawBurnUndelegate GetSigners": "depositor/from",
+    "incentive MsgClaimEarnReward": "sender (pays sender)"
+  },
+  "verdict": {"E-U": 0.0008, "H-O": 1390000.0, "P": "params/upgrade", "S": "unclaimed rewards after 2026-11-01", "confidence": "high"},
+  "poc": {"ci_script": "ci/kava_earn_check.py", "checks": ["C1 savings solvency", "C2 vault==savings record", "C3 bkava backing", "C4 orphan dust", "C5 earn macc empty", "C6 reward periods/claim end"], "all_pass": true}
+}

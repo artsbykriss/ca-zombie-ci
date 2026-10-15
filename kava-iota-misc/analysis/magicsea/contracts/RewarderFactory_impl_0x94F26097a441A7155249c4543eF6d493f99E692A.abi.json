@@ -1,0 +1,497 @@
+[
+ {
+  "inputs": [],
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidInitialization",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotInitializing",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnableInvalidOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "account",
+    "type": "address"
+   }
+  ],
+  "name": "OwnableUnauthorizedAccount",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "RewarderFactory__InvalidLength",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "RewarderFactory__InvalidPid",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "RewarderFactory__InvalidRewarderType",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "RewarderFactory__TokenNotWhitelisted",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "RewarderFactory__ZeroAddress",
+  "type": "error"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "rewarderType",
+    "type": "uint8"
+   },
+   {
+    "indexed": true,
+    "internalType": "contract IERC20",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "contract IBribeRewarder",
+    "name": "rewarder",
+    "type": "address"
+   }
+  ],
+  "name": "BribeRewarderCreated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint64",
+    "name": "version",
+    "type": "uint64"
+   }
+  ],
+  "name": "Initialized",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferStarted",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferred",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "rewarderType",
+    "type": "uint8"
+   },
+   {
+    "indexed": true,
+    "internalType": "contract IERC20",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "pid",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "contract IBaseRewarder",
+    "name": "rewarder",
+    "type": "address"
+   }
+  ],
+  "name": "RewarderCreated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "rewarderType",
+    "type": "uint8"
+   },
+   {
+    "indexed": true,
+    "internalType": "contract IRewarder",
+    "name": "implementation",
+    "type": "address"
+   }
+  ],
+  "name": "RewarderImplementationSet",
+  "type": "event"
+ },
+ {
+  "inputs": [],
+  "name": "acceptOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "contract IBribeRewarder[]",
+    "name": "rewarders",
+    "type": "address[]"
+   },
+   {
+    "internalType": "address",
+    "name": "account",
+    "type": "address"
+   }
+  ],
+  "name": "claimBribeRewards",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "contract IERC20",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   }
+  ],
+  "name": "createBribeRewarder",
+  "outputs": [
+   {
+    "internalType": "contract IBribeRewarder",
+    "name": "rewarder",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "rewarderType",
+    "type": "uint8"
+   },
+   {
+    "internalType": "contract IERC20",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "pid",
+    "type": "uint256"
+   }
+  ],
+  "name": "createRewarder",
+  "outputs": [
+   {
+    "internalType": "contract IBaseRewarder",
+    "name": "rewarder",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "getBribeCreatorFee",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "rewarderType",
+    "type": "uint8"
+   },
+   {
+    "internalType": "uint256",
+    "name": "index",
+    "type": "uint256"
+   }
+  ],
+  "name": "getRewarderAt",
+  "outputs": [
+   {
+    "internalType": "contract IRewarder",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "rewarderType",
+    "type": "uint8"
+   }
+  ],
+  "name": "getRewarderCount",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "rewarderType",
+    "type": "uint8"
+   }
+  ],
+  "name": "getRewarderImplementation",
+  "outputs": [
+   {
+    "internalType": "contract IRewarder",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "contract IRewarder",
+    "name": "rewarder",
+    "type": "address"
+   }
+  ],
+  "name": "getRewarderType",
+  "outputs": [
+   {
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "",
+    "type": "uint8"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   }
+  ],
+  "name": "getWhitelistedTokenInfo",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "isWhitelisted",
+    "type": "bool"
+   },
+   {
+    "internalType": "uint256",
+    "name": "minBribeAmount",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "initialOwner",
+    "type": "address"
+   },
+   {
+    "internalType": "enum IRewarderFactory.RewarderType[]",
+    "name": "initialRewarderTypes",
+    "type": "uint8[]"
+   },
+   {
+    "internalType": "contract IRewarder[]",
+    "name": "initialRewarders",
+    "type": "address[]"
+   }
+  ],
+  "name": "initialize",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "owner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "pendingOwner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "renounceOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "enum IRewarderFactory.RewarderType",
+    "name": "rewarderType",
+    "type": "uint8"
+   },
+   {
+    "internalType": "contract IRewarder",
+    "name": "implementation",
+    "type": "address"
+   }
+  ],
+  "name": "setRewarderImplementation",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "internalType": "uint256[]",
+    "name": "minBribeAmounts",
+    "type": "uint256[]"
+   }
+  ],
+  "name": "setWhitelist",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "transferOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ }
+]

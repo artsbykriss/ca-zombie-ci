@@ -1,0 +1,83 @@
+{
+ "checks": {
+  "C1_savings_solvent": {
+   "denoms": 142,
+   "nonzero_diffs": {},
+   "pass": true
+  },
+  "C2_vault_eq_savings": {
+   "mismatches": [],
+   "pass": true
+  },
+  "C3_bkava_backing": {
+   "bkava_supply_units": 19928789665657,
+   "liquid_module_delegation_shares": 19928788282333.12,
+   "delta_units": 1383323.87890625,
+   "delta_bkava": 1.38332387890625,
+   "delta_pct": 6.941334130743084e-06,
+   "pass": true
+  },
+  "C4_orphan_dust": {
+   "count": 19,
+   "total_units": 12081,
+   "total_bkava": 0.012081,
+   "usd_at_kava_price": 0.0008311249661315082,
+   "top": [
+    [
+     "bkava-kavavaloper168g9nn9vnamhsnjkm7uqqee9f3v07flgwwddf9",
+     11911
+    ],
+    [
+     "bkava-kavavaloper1s8akp0nq7z7vuf5g9agdswcwq7vm9uwudk0han",
+     77
+    ],
+    [
+     "bkava-kavavaloper13fxkk4730cqglgdv7w0mdelyx07myyq76uf9f3",
+     59
+    ],
+    [
+     "bkava-kavavaloper1spkjjtwks5zt0dqexj8rv8ljwmwxe8ufkraukq",
+     14
+    ],
+    [
+     "bkava-kavavaloper1gtd040dmljyaty9tkhq0mlqz7saer48v4d608x",
+     2
+    ]
+   ],
+   "capture_math": "deposit M into a fresh vault for denom X (shares=M, 1:1); totalValue=D+M; withdraw(M shares) pays D+M -> captures orphan dust D",
+   "pass": true
+  },
+  "C5_earn_macc_empty": {
+   "balances": [],
+   "pass": true
+  },
+  "C6_rewards": {
+   "earn_reward_periods": [],
+   "savings_reward_periods": [],
+   "claim_end": "2026-11-01T23:59:59Z",
+   "kavadist_balance": [
+    {
+     "denom": "ukava",
+     "amount": "37906533821176"
+    }
+   ],
+   "pass": true
+  }
+ },
+ "notes": [],
+ "height": 23035688,
+ "kava_price_usd": 0.06879604057044186,
+ "summary": {
+  "bkava_vault_units": 19928778749374,
+  "bkava_usd_at_kava_price": 1371021.0713612933,
+  "stables_raw": {
+   "bnb": 253213225,
+   "erc20/multichain/dai": 495073496270613327827,
+   "erc20/multichain/usdc": 15587488825,
+   "erc20/multichain/usdt": 3586257861
+  },
+  "usdx_hard_vault": 500009,
+  "vault_count": 124
+ },
+ "all_pass": true
+}

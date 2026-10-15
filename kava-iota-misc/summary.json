@@ -1,0 +1,132 @@
+{
+ "finding": "L2-25",
+ "title": "Kava/IOTA misc cluster: Kava Swap, Kava Earn, Steer, Tarot, Blueshift, SYMMIO-IOTA, MagicSea",
+ "chains": [
+  "kava",
+  "kava-evm",
+  "iota-evm"
+ ],
+ "headline_extractable_usd": 0.37,
+ "headline_confidence": "high",
+ "categories": {
+  "E-U": 0.37,
+  "H-O": 1570000,
+  "P": 0,
+  "S": 0
+ },
+ "latest_block": 23035688,
+ "block_numbers": {
+  "kava": 23035688,
+  "kava-evm": 23036108,
+  "iota-evm": 13020955
+ },
+ "targets_checked": 7,
+ "live_targets": 5,
+ "closed_reasons": [
+  "Kava Earn: vault totalValue reads the savings deposit record (not balances) -> no donation/inflation; floor-rounding both ways; withdraw capped by account value; module accounts cannot sign; savings module exactly solvent; bkava fully backed (delta 1.38 bkava); only E-U = orphan-denom dust $0.0008",
+  "Kava Swap: module math rounds in pool favour; swap module balance == sum reserves; incentive module empty; only live mispricing is in two dead Sifchain-channel pools (stranded tokens, OTC-only => H-O $257.81); permissionless path capped at $0.37 one-shot via Osmosis pool 1390",
+  "SYMMIO-IOTA: all value paths msg.sender-scoped, LIQUIDATOR_ROLE-gated, PartyB-only or Muon-signature-bound; owner = TimelockController; 0 positions / 0 bridge txs / dormant since 2025-05; 11/11 fork gate tests",
+  "MagicSea: LB stack is byte-identical Trader Joe joe-v2 v2.2.0; only unapplied upstream delta (composition fee) is measured net-negative for the attacker (-$1.25..-$0.0004/op); admin paths gated",
+  "Blueshift Kava: both portfolios hold zero tokens; registry cached totalValue ($193k USDT + 1,120 WKAVA) is phantom/stale; only live asset 6,244.82 unpriced BLUES staked",
+  "Tarot Kava: latent oracle over-borrow $2,828.30 (collateral getPrices books dead Vara pools at 2x reserve -> R=1.361-1.382) is blocked because vTAROT.mint() requires Voter isAlive[gauge] which is false on 10/11 markets including all 7 profitable ones (fork-asserted); the one live-gauge market is ~50/50 -> R=0.693; admin setters revert",
+  "Steer Kava: 68 vaults / $1,475.55 live but poke() only harvests ~$0.02 dust into the vault; steerCollectFees/emergencyBurn role-gated; roles frozen (DEFAULT_ADMIN empty)"
+ ],
+ "poc": {
+  "tests_passed": 21,
+  "tests_total": 21,
+  "ci_run_urls": [
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38738681388"
+  ],
+  "earlier_runs": [
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38736665097 (green 20/20)",
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38737176580 (red on a state-dependent assertion, since removed)"
+  ],
+  "custom_job": "ci/kava_earn_check.py C1-C6 ALL_PASS (savings solvency; vault==savings record; bkava backing; orphan dust; earn-macc empty; reward periods/claim end)"
+ },
+ "per_target": [
+  {
+   "target": "Kava Earn",
+   "chain": "kava",
+   "live_usd": 1390964.53,
+   "E-U": 0.0008,
+   "H-O": 1390964.53,
+   "coverage": "fully audited",
+   "confidence": "high"
+  },
+  {
+   "target": "Kava Swap",
+   "chain": "kava",
+   "live_usd": 142634,
+   "E-U": 0.37,
+   "H-O": 257.81,
+   "coverage": "fully audited",
+   "confidence": "high (math) / medium (execution)"
+  },
+  {
+   "target": "SYMMIO-IOTA",
+   "chain": "iota-evm",
+   "live_usd": 2069.0,
+   "E-U": 0.0,
+   "H-O": 1975.76,
+   "coverage": "fully audited",
+   "confidence": "high"
+  },
+  {
+   "target": "MagicSea",
+   "chain": "iota-evm",
+   "live_usd": 154000,
+   "E-U": 0.0,
+   "H-O": 154000,
+   "coverage": "fully audited",
+   "confidence": "high"
+  },
+  {
+   "target": "Tarot Kava",
+   "chain": "kava-evm",
+   "live_usd": 23000.0,
+   "E-U": 0.0,
+   "H-O": 23000.0,
+   "coverage": "fully audited (deep-dive)",
+   "confidence": "high",
+   "note": "latent over-borrow $2,828.30 (R=1.361-1.382) blocked by dead Voter gauges (isAlive false on 10/11 markets incl. all 7 profitable; vTAROT.mint reverts); one live gauge market R=0.693 -> $0; book ~$23.0k"
+  },
+  {
+   "target": "Blueshift Kava",
+   "chain": "kava-evm",
+   "live_usd": 0,
+   "E-U": 0.0,
+   "H-O": 0,
+   "coverage": "fully audited",
+   "confidence": "high"
+  },
+  {
+   "target": "Steer Kava",
+   "chain": "kava-evm",
+   "live_usd": 1475.55,
+   "E-U": 0.0,
+   "H-O": 1475.55,
+   "coverage": "fully audited",
+   "confidence": "high",
+   "note": "68 vaults (29 with assets, $1,475.55); poke() permissionless but harvests ~$0.02 dust into the vault; steerCollectFees/emergencyBurn revert; DEFAULT_ADMIN_ROLE empty (roles frozen). DefiLlama $0 and the Steer Kava subgraph are stale"
+  }
+ ],
+ "key_facts": [
+  "Kava Earn live: 19,925,920.219103 bkava in 124 vault records + 15,587.49 USDC + 3,586.26 USDT + 495.07 DAI + 2.53 BNB + 500,009 USDX (HARD vault); savings module exactly solvent (142 denoms, 0 diff); bkava backing delta +1.383324 bkava",
+  "Kava Earn only E-U mechanism: 19 savings-only bkava denoms with orphan dust totalling 12,081 units = 0.012081 bkava (~$0.0008); first depositor of a fresh vault for such a denom captures D via 1:1 share minting against totalValue=D+M",
+  "Kava Earn claim_end 2026-11-01T23:59:59Z; earn_reward_periods empty (indexes frozen); kavadist reward pool 37,906,533.82 KAVA (~$2.6M, shared across incentive programs)",
+  "Kava Swap: 12 pools all :usdx; swap module balance == sum reserves exactly; USDX consensus ~$0.70 (8 active pools); Sif-USTC pool implied USDX $0.137 / Sif-LUNC $0.349 (channel-4 client sifchain-1 dead -> stranded); H-O extraction $257.81 with OTC tokens; permissionless E-U $0.37 one-shot via Osmosis pool 1390",
+  "SYMMIO-IOTA: 2,069.000001 USDT in diamond; owner = OZ TimelockController 0xe639B85B77F5D31d37C52AD1F026C6508f48DC61; LIQUIDATOR_ROLE = 4 operator EOAs; PartyB proxy MANAGER=0x9CF7EEe9..., TRUSTED 13 members, DEFAULT_ADMIN empty; 8 quotes ever, 0 positions, 0 bridge txs; last account activity 2025-05-09",
+  "MagicSea: LB = joe-v2 v2.2.0 verbatim (0 diff lines); composition-fee fix 7e5b0b4944 unapplied but measured net-negative (attacker pays >=25% protocol cut); LB $131.1k + V2 $15.2k + staking/hooks ~$7.8k = ~$154k user-owned",
+  "Blueshift Kava: portfolios + impl + registry hold 0 of USDT/USDC/DAI/WKAVA/BLUES; registry cached totalValue 193,007,099,364 (USDT base) + 1.12e21 (WKAVA base) is stale; manual pool holds 6,244.82 BLUES (no market)",
+  "Tarot Kava: 11 markets (Avignon 9 / Orleans 2), book ~$23.0k ($16.7k borrowable cash + $6.4k collateral slices); latent over-borrow $2,828.30 at R=1.361-1.382 (largest vTAROT(WKAVA/USDC) 0x109f... = $1,544.27 off $5,817.65 USDC lender cash); blocked by dead Voter gauges (isAlive false 10/11 incl. all 7 profitable); single live gauge 0x0de0... R=0.693; vTAROT float = 1000 wei; gauge revival makes $2.83k instantly live (P)",
+  "Steer Kava: 68 vaults (29 with assets, $1,475.55); sample vault STEER_UNIV3_VAULT_42 0x6C21797D... holds 227.99 USDT + 239.36 axlUSDC; beacon 0x25ddb84e... impl 0x8032D063...; poke() permissionless (dust to vault); collect/emergency role-gated; DEFAULT_ADMIN_ROLE empty"
+ ],
+ "caveats": [
+  "Kava Swap USDX has no independent price feed; the $0.37 E-U is one-shot/depth-limited (Osmosis pool 1390 has 473 USDX depth at 5% fee); conditional capacity if cheap USDX appears at scale: $17.1k@$0.30, $70.5k@$0",
+  "Kava Earn orphan-dust capture requires creating a vault for an orphan denom (mechanism code-proven, not executed on-chain; value $0.0008)",
+  "Fork PoCs depend on public RPC archive depth at pinned blocks (IOTA EVM 13,020,955; Kava EVM 23,036,108); re-pin if pruned",
+  "MagicSea: no line-by-line re-audit of the joe-staking fork / Merchant-Moe rewarder (~$8k exposure); MLUM price is pool-implied ($0.005)",
+  "Kava EVM: Kava prunes state within ~500 blocks, so the KavaEvm fork test defaults to `latest` (KAVA_BLOCK pins if an archive RPC is available); the Tarot latent-over-borrow R is logged not hard-asserted (state-dependent), the gate assertions (dead gauge + mint revert) are load-bearing"
+ ],
+ "one_liner": "External unprivileged attacker can extract ~$0.37 live (one-shot Kava Swap USDX route) plus $0.0008 dust (Kava Earn orphan-denom capture); everything else is closed - Kava Earn's $1.39M is depositor-owned with exactly-solvent savings and fully-backed bkava, SYMMIO-IOTA's $2,069 is role/timelock/Muon-gated, MagicSea's ~$154k sits in verbatim-audited Trader Joe v2.2.0 pools whose only upstream delta is net-negative to exploit, Tarot's $2,828 latent oracle over-borrow is blocked by dead Voter gauges (all 7 profitable markets), Blueshift's advertised $193k is phantom (empty portfolios), and Steer's $1.48k across 68 vaults is only poke()-dust."
+}

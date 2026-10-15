@@ -1,0 +1,77 @@
+{
+  "target": "SYMMIO-IOTA (Symmio core diamond)",
+  "chain": "iota-evm (8822)",
+  "block": 13020955,
+  "diamond": "0xc258535aaF6ad3cEd5D2E03e2B66C35262488309",
+  "diamond_code_size": 185,
+  "collateral": {
+    "address": "0xC1B8045A6ef2934Cf0f78B0dbD489969Fa9Be7E4",
+    "symbol": "USDT",
+    "decimals": 6,
+    "type": "OFTTokenERC20Upgradeable (LayerZero OFT, verified)",
+    "total_supply": "325633432432"
+  },
+  "diamond_usdt_balance": "2069000001",
+  "facets": {
+    "0x01E822AAe6D2cc456804CCd36aA4d3830dbc6e3b": "DiamondCutFacet",
+    "0x6273242a7E88b3De90822b31648C212215caaFE4": "AccountFacet",
+    "0x1347A83D1eb2121B15f944B21Ddbe22ebf8Cf8d1": "ControlFacet",
+    "0x0EB92F476A9a74B15A9fdcc6C252b2013AFc2deC": "DiamondLoupeFacet",
+    "0x44ca93531be2872a1E6e9987BC8f2d62C0864676": "LiquidationFacet",
+    "0x1037b57F7496D10d72F81446bA52Fee7D8C8EAD7": "PartyAFacet",
+    "0xc4Bae634C692078a97BEb7b0B583D16B13359Fcf": "BridgeFacet",
+    "0x0188b538fAf03c695f154a6E324513453faFB8a1": "ViewFacet",
+    "0x8768Ff7d7E1FF95a583159D573fd1708Dd6C7001": "FundingRateFacet",
+    "0xeA6c562cD115DFa4Fc76afcc7ce58831b0f976E3": "ForceActionsFacet",
+    "0x08A8b4d54D488f6a16493753b6b77fa25B555E95": "SettlementFacet",
+    "0xc39d1fdCd791a4cD469C8475d2fe5FC8E6456ee8": "PartyBPositionActionsFacet",
+    "0x30688F4336E33B0bA2cf74CD822eB8518459692D": "PartyBQuoteActionsFacet",
+    "0x1054f424B182A0952A3Dcc0Fe49873aBA8b1D11f": "PartyBGroupActionsFacet"
+  },
+  "owner": {
+    "current": "0xe639B85B77F5D31d37C52AD1F026C6508f48DC61",
+    "type": "TimelockController (verified)",
+    "history": [
+      {"block": 1976899, "previous": "0x0", "new": "0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7"},
+      {"block": 4392299, "previous": "0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7", "new": "0x9CF7EEe91E56180DF200c57E8e1fd910EC25DEF7"},
+      {"block": 4392304, "previous": "0x9CF7EEe91E56180DF200c57E8e1fd910EC25DEF7", "new": "0xe639B85B77F5D31d37C52AD1F026C6508f48DC61"}
+    ]
+  },
+  "roles": {
+    "DEFAULT_ADMIN_ROLE": ["0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7"],
+    "LIQUIDATOR_ROLE": ["0x848736ed248cCBFA2580E374b53B474ceDeD85C8", "0xb7975d66B9cB1041B80a4390c0620Ec5D6Ba7985", "0x01b84d0621183AB04791938D604b89F9FdA10D1a", "0x3aF2cafCEA868BA3e6e2a6C60492d1E5F456cF47"],
+    "PAUSER_ROLE": ["0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7"],
+    "SUSPENDER_ROLE": ["0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7"],
+    "SYMBOL_MANAGER_ROLE": ["0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7", "0x85C021aDCB8DC396c22f7D1fB39dC863b21cbEf9"]
+  },
+  "pause_state": {"global": false, "liquidation": false, "accounting": false, "partyAActions": false, "partyBActions": false, "internalTransfer": false, "emergencyMode": false},
+  "party_a": {
+    "0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7": {"balance18": "0", "allocated18": "21860313000000000000", "positions": 0, "liquidated": false},
+    "0x1072d1DF72759f5F24314E58e2949d9D187925Cd": {"balance18": "0", "allocated18": "29904033761292000000", "positions": 0, "liquidated": false},
+    "0x0E47F832F2331EFeB2EE69B294d2b513d868b0bd": {"balance18": "0", "allocated18": "14000001000000000000", "positions": 0, "liquidated": false}
+  },
+  "party_b": {
+    "0x10b682bf5b380c900BF4507c07e7365873A2293C": {"balance18": "1909992811175999993252", "allocated": {"0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7": "86706000000000006748", "0x1072d1DF72759f5F24314E58e2949d9D187925Cd": "5087488824000000000", "0x0E47F832F2331EFeB2EE69B294d2b513d868b0bd": "1380000000000000000"}}
+  },
+  "symmio_partyb_proxy": {
+    "address": "0x10b682bf5b380c900BF4507c07e7365873A2293C",
+    "implementation": "0x92ec3ce7a6cbd7E82C9f76651B9F712A710433eF (SymmioPartyB, verified)",
+    "proxy_admin": "0xe42758ad652fc8b3e05042628f6129c561f79ac3",
+    "paused": false,
+    "usdt_balance": 0,
+    "roles": {"DEFAULT_ADMIN_ROLE_count": 0, "MANAGER_ROLE": ["0x9CF7EEe91E56180DF200c57E8e1fd910EC25DEF7"], "TRUSTED_ROLE_count": 13, "PAUSER_ROLE": ["0x9BC9CA7e6A8F013f40617c4585508A988DB7C1c7"], "UNPAUSER_ROLE": ["0x9CF7EEe91E56180DF200c57E8e1fd910EC25DEF7"]}
+  },
+  "multiaccount_proxy": {"address": "0x57Be055F8074AaA2bC447f6F82fF163613F48eF0", "implementation": "0xf3e94efc07365f3f928732e512ac0e38be2efb6a (MultiAccount, verified)", "proxy_admin": "0x2717749d3de25a21d3a1382eb54f28fd37d117c6"},
+  "muon": {"app_id": "67095677696457568621176602095256212877581942797155816526660337292193161013107", "public_key_x": "28816647750548585451357630311330111079635661660584752231799347508659086631222", "parity": 0, "gateway": "0xF621f85f20BBe733699306D336230184621dBe60"},
+  "activity": {
+    "quotes_ever": 8,
+    "bridge_transactions_ever": 0,
+    "deposits_ever": 5,
+    "withdrawals_ever": 0,
+    "usdt_transfers_into_diamond": 5,
+    "last_account_activity_utc": "2025-05-09",
+    "last_event_block": 10329288
+  },
+  "poc": {"file": "poc/test/SymmioIota.t.sol", "tests_passed": 11, "tests_total": 11, "fork_block": 13020955},
+  "verdict": {"E-U": 0.0, "H-O": 1975.76, "P": "role/timelock-gated", "S": 0.0, "confidence": "high"}
+}

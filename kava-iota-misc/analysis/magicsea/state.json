@@ -1,0 +1,286 @@
+{
+ "meta": {
+  "campaign": "zombie-hunt II / kava-iota-misc / finding L2-25",
+  "target": "MagicSea DEX (magicsea.finance) on IOTA EVM (chain 8822) + ShimmerEVM (148)",
+  "read_only": true,
+  "rpc_used": "https://json-rpc.evm.iotaledger.net (public, no key)",
+  "pinned_block": 13020932,
+  "pinned_block_timestamp": 1792062536,
+  "pinned_block_utc": "2026-10-15T11:08:56Z",
+  "explorer": "https://explorer.evm.iota.org",
+  "notes": "All quantities below are raw on-chain reads at the pinned block unless marked quote."
+ },
+ "anchor_contracts": {
+  "MLUM_token": "0xA87666b0Cb3631c49f96CBf1e6A52EBac79A6143",
+  "LUM_token": "0x34a85ddc4E30818e44e6f4A8ee39d8CBA9A60fB3",
+  "LBFactory": "0x8Cce20D17aB9C6F60574e678ca96711D907fD08c",
+  "LBPair_impl": "0xbc83aea91bE690Cdc9a5eB60a23AD9ea7FeDf71e",
+  "LBRouter_v22": "0x25d526bA7C9905c764aeb63bfE0B0DDF1C69BcE1",
+  "MagicSeaRouter_v2": "0x531777F8c35fDe8DA9baB6cC7093A7D14a99D73E",
+  "MagicSeaFactory_v2": "0x349aaAc3a500014981CBA11b64C76c66a6c1e8D0",
+  "MasterChefV2_proxy": "0xaEd6DC9B5AE8aC8149403D2659de1239655E6D4a",
+  "MasterChefV2_impl": "0x464731fa072b1EF96C59CAC6449A076643E28d33",
+  "Voter_proxy": "0xC9717676cD728601F2b02e0E00D099E2f3Cf0dD3",
+  "Voter_impl": "0x351cA2B1dD546ac1102510DC2B7fc817b7Ab17Fb",
+  "MlumStaking_proxy": "0x1379eDC2771e73E3dE628EC308b418ce5e2D2bcc",
+  "MlumStaking_impl": "0x268ACDdBACd147F1F4608e5489Fdc4a1FF7de8D2",
+  "RewarderFactory_proxy": "0xcdCd9Da9901D40DEED65a03d51C8fD0256Bb0dDE",
+  "RewarderFactory_impl": "0x94F26097a441A7155249c4543eF6d493f99E692A",
+  "LBHooks_rewarder_impl": "0xd37084fe91691f7fd0024b6590efb6889dab79dc",
+  "USDT": "0xC1B8045A6ef2934Cf0f78B0dbD489969Fa9Be7E4",
+  "USDC_e": "0xFbDa5F676cB37624f28265A144A48B0d6e87d3b6",
+  "WIOTA": "0x6e47f8d48a01b44df3fff35d258a10a3aedc114c",
+  "WETH": "0x160345fC359604fC6e70E3c5fAcbdE5F7A9342d8"
+ },
+ "roles": {
+  "LBFactory": {
+   "owner_EOA": "0x0cF8C42871d994C80B74564E3094CDCCF80CbE6A",
+   "feeRecipient_EOA": "0xed2eb15A7d21c7E92514dcE087C947900D5efcDb",
+   "owner_code_size": 0,
+   "feeRecipient_code_size": 0,
+   "note": "owner EOA can set fee params/hooks/implementation; fee recipient EOA collects protocol fees (actively, e.g. collectProtocolFees tx 0xbfa590252df1f64bf7... on 2026-07-11)"
+  },
+  "MLUM_token": {
+   "owner_EOA": "0xE9b1d16dAEe0B4f1bb0a27136e000FEaC4c8638b",
+   "totalSupply": 301081822234000000000000
+  },
+  "MasterChefV2": {
+   "owner_EOA": "0x7F76D5b3a33A87061b5184Ae9BD301d6b7333185",
+   "proxy_admin_pattern": "TransparentUpgradeableProxy2Step",
+   "mintLumFlag": false,
+   "lumPerSecond": 2437500000000000,
+   "numberOfFarms": 28,
+   "treasury": "0xFc9a5c446F7C3Db0d94E29caFA1Ef13C91D1F56F",
+   "treasuryShare": 0
+  },
+  "Voter": {
+   "owner_EOA": "0x7F76D5b3a33A87061b5184Ae9BD301d6b7333185",
+   "impl_deployed": "2024-12-08"
+  },
+  "MlumStaking": {
+   "owner_EOA": "0x7F76D5b3a33A87061b5184Ae9BD301d6b7333185",
+   "impl_deployed": "2024-08-05",
+   "stakedSupply": 210121434372821165938924,
+   "stakedSupplyWithMultiplier": 616270337087633921011337,
+   "lastTokenId": 1440
+  },
+  "MagicSeaFactory_v2": {
+   "feeToSetter_EOA": "0xE9b1d16dAEe0B4f1bb0a27136e000FEaC4c8638b",
+   "feeTo_EOA": "0xE3F132867fC5cbb95D21C53c00647E8e7Cd6CF97",
+   "ownerFeeShare": 50000,
+   "feeAmount_default": 300,
+   "fee_bounds": [
+    10,
+    3000
+   ]
+  }
+ },
+ "lb": {
+  "factory": "0x8Cce20D17aB9C6F60574e678ca96711D907fD08c",
+  "numPairs": 97,
+  "pairsWithReserves": 34,
+  "tvl_priced_usd": 131091.92,
+  "top_pools": [
+   {
+    "pair": "0xE919092CC7CBD2097ae3158f72Da484ac813b74b",
+    "pair_lc": "0xe919092cc7cbd2097ae3158f72da484ac813b74b",
+    "tokens": "USDC.e/USDT",
+    "binStep": 1,
+    "activeId": 8388608,
+    "reserves": {
+     "x_raw": 3284363805,
+     "y_raw": 124317593218,
+     "usd_quote": 127489.15
+    },
+    "active_bin": {
+     "x_raw": 2528069225,
+     "y_raw": 9069821677,
+     "totalSupply": 4907942775217097272653419
+    },
+    "staticFeeParams": {
+     "baseFactor": 50000,
+     "filterPeriod": 10,
+     "decayPeriod": 120,
+     "reductionFactor": 5000,
+     "variableFeeControl": 2000000,
+     "protocolShare": 2500,
+     "maxVolatilityAccumulator": 100000
+    },
+    "effective_base_fee": "baseFactor*binStep*1e10/1e18 = 0.05%",
+    "protocol_share": "25%",
+    "uncollected_protocol_fees": {
+     "x_raw": 2391164,
+     "y_raw": 2267098
+    },
+    "hooks": "0x7494a9f40438aec8e3164e03e81370e6860f18d6 (clone of LBHooksMCRewarder impl 0xd37084fe...; flags beforeSwap|beforeMint|beforeBurn|beforeTransfer)"
+   },
+   {
+    "pair_lc": "0xa86d3169d5cccdc224637adad34f4f1be174000c",
+    "tokens": "WIOTA/USDC.e",
+    "usd_quote": 1685.11,
+    "uncollected_protocol_fees": {
+     "x_wiota_raw": 9123377476768018900,
+     "y_usdce_raw": 436040
+    },
+    "hooks": "0x809C221A6b508e77d1beAb8259c7E12623d1579b (holds 199581357781922087214423 LUM unclaimed)"
+   },
+   {
+    "pair_lc": "0xbac6c7808c453e988163283eb71e876cb325a3ee",
+    "tokens": "WETH/WIOTA",
+    "usd_quote": 895.69,
+    "uncollected_protocol_fees": {
+     "x_weth_raw": 117913327200332,
+     "y_wiota_raw": 8497225715212060315
+    },
+    "hooks": "0x7b57CC4711F9E22b8ed600d1453d21C0B2A75925 (holds 35350661941819277654915 LUM)"
+   },
+   {
+    "pair_lc": "0x8b7414e828d0cb4615e792f92debc34753d08291",
+    "tokens": "LUM/USDC.e",
+    "usd_quote": 399.11
+   },
+   {
+    "pair_lc": "0x34fc33940074cb8f80537890ad0be06771687bdc",
+    "tokens": "MLUM/WIOTA",
+    "usd_quote": 387.12,
+    "uncollected_protocol_fees": {
+     "x_mlum_raw": 3470540599540099570,
+     "y_wiota_raw": 34570991557264081192
+    }
+   },
+   {
+    "pair_lc": "0xf7a698fcd80c57cfddde681a06c3160b2a8e7c40",
+    "tokens": "LUM/WIOTA",
+    "usd_quote": 192.52
+   }
+  ],
+  "other_hooked_pairs": {
+   "0x34fc33940074cb8f80537890ad0be06771687bdc": "hooks=0xdfBFF95aC1921b9801a357cFb0CE0B114ce9A8bf",
+   "0xf7a698fcd80c57cfddde681a06c3160b2a8e7c40": "hooks=0x4D183aac359718198a89D0f0dBe913794E5DC512"
+  }
+ },
+ "v2": {
+  "factory": "0x349aaAc3a500014981CBA11b64C76c66a6c1e8D0",
+  "numPairs": 315,
+  "pairsWithReserves": 228,
+  "tvl_known_tokens_usd": 15166.36,
+  "design": "Uniswap V2 / Joe V1 fork: adjustable feeAmount (10..3000 units of FEE_DENOMINATOR=100000 = 0.01%..3%, default 300 = 0.3%), feeTo active (protocol LP mint on mint/burn via _mintFee), ownerFeeShare=50000 (50%)",
+  "top": [
+   {
+    "pair": "0xd0a66e093e057ba806a3dc49f6066153c9398196",
+    "usd": 6102.14
+   },
+   {
+    "pair": "0xa4a8ef658ae0dbcca558e0b2dbd9e51925180d32",
+    "usd": 2403.84
+   },
+   {
+    "pair": "0x8f9a72d8f56479903ae386849e290d49389e41f9",
+    "usd": 1955.23
+   }
+  ]
+ },
+ "prices_quote_2026_10_15": {
+  "WIOTA": 0.04498762,
+  "USDT": 0.999102,
+  "USDC.E": 0.999645,
+  "WETH": 2365.62,
+  "LUM": 0.00701068,
+  "MLUM": 0.005,
+  "MLUM_note": "Blockscout exchange_rate 0.56252 is stale (100x); pool-implied MLUM/WIOTA = 0.1114 wIOTA = ~$0.005 used",
+  "source": "explorer.evm.iota.org /api/v2/tokens/<addr> exchange_rate + pool-implied"
+ },
+ "code_provenance": {
+  "method": "Blockscout verified sources downloaded and diffed against upstream GitHub tags",
+  "LBPair_impl": "IDENTICAL to traderjoe-xyz/joe-v2 tag v2.2.0 (commit 1297c3822f, 2024-03-20) for all src files incl. libs (diff=0). vs upstream main (2024-07-08) exactly ONE semantic delta: LBPair._updateBin composition-fee shares denominator (pre-fix 7e5b0b4944 'Fix the composition fee calculation' 2024-07-04 not applied).",
+  "LBFactory": "diff vs joe-v2 main = 0",
+  "LBRouter": "0x25d526bA... identical to joe-v2 v2.2.0 LBRouter (diff=0)",
+  "LBRouter_legacy_B": "0x5d659BDC... = older v2.1 router (not the v2.2 deployment)",
+  "MagicSeaPair/Factory/Router_v2": "Uniswap V2 (0.6.12) fork with configurable fee + owner fee share; standard",
+  "LBHooksMCRewarder": "Merchant-Moe-style lb-rewarder pattern; LBHooksBaseRewarder.claim() self-only (_isAuthorizedCaller == msg.sender); extra rewarders unset; sweep() onlyOwner and locked for reward token while linked; hook ERC20 minted only once in initializer _onHooksSet",
+  "MasterChef/MlumStaking/Voter/RewarderFactory": "joe-staking-style fork (Sherlock 2024-06 audit scope, repo metropolis-exchange/magicsea-staking since deleted); deployed impls postdate audit (2024-07-23 / 2024-08-05 / 2024-12-08)"
+ },
+ "poc_results_block_13020932": {
+  "file": "kava-iota-misc/poc/test/MagicSea.t.sol",
+  "tests": 6,
+  "passed": 6,
+  "compositionFee_Xonly_deposit_usdc_e": [
+   {
+    "deposit_raw": 200000000000,
+    "usd": 200000,
+    "CompFees_raw": 4288491,
+    "pnl_raw": -1248419,
+    "pnl_usd": -1.248419
+   },
+   {
+    "deposit_raw": 2000000000000,
+    "usd": 2000000,
+    "CompFees_raw": 247258,
+    "pnl_raw": -62885,
+    "pnl_usd": -0.062885
+   },
+   {
+    "deposit_raw": 20000000000000,
+    "usd": 20000000,
+    "CompFees_raw": 1433,
+    "pnl_raw": -360,
+    "pnl_usd": -0.00036
+   }
+  ],
+  "compositionFee_Yonly_deposit_usdt": {
+   "deposit_raw": 50000000000000,
+   "pnl_raw": -316314,
+   "pnl_usd": -0.316314,
+   "theoretical": "0.25 * 5e-4 * active-bin USDC.e reserve (2528069225) = 316009 (matches)"
+  },
+  "gates": {
+   "collectProtocolFees": "reverts LBPair__OnlyProtocolFeeRecipient for unprivileged caller",
+   "setStaticFeeParameters": "reverts LBPair__OnlyFactory",
+   "setHooksParameters": "reverts LBPair__OnlyFactory"
+  },
+  "conclusion": "attacker PnL strictly negative in every composition-fee path; loss ~= protocolShare * compositionFee (25%); no unprivileged admin path"
+ },
+ "classification": {
+  "E-U_live_profitable_unprivileged": "$0 (none found)",
+  "H-O": [
+   {
+    "id": "H-O-1",
+    "desc": "LB composition-fee over-mint (upstream joe-v2 v2.2.0 pre-fix). Minter recovers the LP portion of the composition fee via over-minted shares; effective cost = protocolShare*compositionFee. Bounded per-op by (1-q)*k*(active-bin counterpart reserve) = at most ~$3.40 on the deepest bin (USDT/USDC.e active bin) while attacker pays >= $1.13. Net-positive only via external price deviation > q*k = 0.0125%.",
+    "confidence": "high"
+   },
+   {
+    "id": "H-O-2",
+    "desc": "Admin EOAs (0x7F76.../0x0cF8.../0xE9b1...) control LB factory + proxied staking (upgradeable) + OFT owners + V2 fee setters. Key compromise = total loss. Not unprivileged.",
+    "confidence": "high"
+   },
+   {
+    "id": "H-O-3",
+    "desc": "MLUM/LUM LayerZero OFT bridge: peers not found for common EIDs; no send traffic since 2026-08; value tiny (~$1.5k MLUM circulating at $0.005). Remote-chain compromise could mint MLUM; not reachable from IOTA EVM by an unprivileged actor.",
+    "confidence": "medium"
+   }
+  ],
+  "P_privileged": [
+   "collectProtocolFees (feeRecipient EOA, actively used)",
+   "setStaticFeeParameters/setHooksParameters/setLBPairImplementation (factory owner)",
+   "MasterChef owner fns",
+   "MlumStaking owner fns incl. setEmergencyUnlock",
+   "Voter owner fns",
+   "OFT setPeer/setDelegate",
+   "V2 setFeeAmount (feeToSetter) / setFeeTo"
+  ],
+  "S_structural": [
+   "LB pair/factory/router = upstream v2.2.0 verbatim (audited upstream, live on major chains since 2024)",
+   "V2 = Uniswap V2 fork",
+   "Staking = joe-staking fork deployed after audit",
+   "Hooks rewarder claim self-only; no attacker mint of hook ERC20"
+  ]
+ },
+ "dead_ends_documented": [
+  "Uncollected protocol fees (USDT/USDC.e 2.39 USDC.e + 2.27 USDT; WIOTA/USDC.e 9.12 wIOTA) are gated to feeRecipient EOA which collects them periodically (last 2026-07-11 on the big pool) - NOT attacker-extractable",
+  "LB hooks rewarder: no extra rewarders, claim() self-only, isLinked=true, rewarded range = active bin only",
+  "No MagicSea incident/exploit found in web search",
+  "MasterChef mintLum=false; V2 feeTo set (protocol LP), standard",
+  "OFT bridge dormant; approvals only",
+  "LUM burned 2,232,331 (59%) to 0xdEaD"
+ ]
+}

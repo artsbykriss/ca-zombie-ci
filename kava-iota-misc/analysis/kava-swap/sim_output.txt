@@ -1,0 +1,79 @@
+====================================================================================================
+KAVA SWAP — exploit simulation (kava v0.28.2 commit 686d591; state heights 23035424..23035438)
+====================================================================================================
+swap_fee=0.0015  allowed_pools=13  pools=12
+
+[check] swap module balance == sum(pool reserves): PASS
+[check] module denoms not in any pool: none
+
+--- pool table (spot = implied USD value of 1 USDX in that pool) ---
+pool                         reserves                           usdx_reserve       impliedUSDX other_side_USD     shares recent_trades*
+bnb:usdx                     13.940956 + 14250.529283           14250.53               0.7047        10042.7 3888732675 5
+btcb:usdx                    0.072744 + 8525.34186              8525.34                0.6912         5892.6  211954741 2
+busd:usdx                    54507.375829 + 77266.361336        77266.36               0.7049        54467.9 512259295329 18
+hard:usdx                    3945865.887811 + 2641.237829       2641.24                0.6851         1809.6 80910568148 0
+ibc/0471F1C4E7AFD3F07702BEF6 18859.699484 + 1160.080022         1160.08                0.6835          792.9 3960294025 23
+ibc/27394FB092D2ECCD56123C74 3725.55805 + 8945.005042           8945.01                0.7056         6311.7 4354710007 46
+ibc/799FDD409719A1122586A629 12438.330276 + 11550.188614        11550.19               0.6916         7987.9 10548597661 25
+ibc/B448C0CA358B958301D328CC 32982.702034 + 1173.795833         1173.80                0.1373          161.1 5963899588 0
+ibc/B8AF5D92165F35AB31F3FC7C 943319.020978 + 126.693745         126.69                 0.3494           44.3 10022352168 0
+swp:usdx                     9471857.057007 + 20731.72451       20731.72               0.7108        14737.1 421195450750 0
+ukava:usdx                   418006.335972 + 40402.848352       40402.85               0.7100        28685.2 97651875444 48
+usdx:xrpb                    8938.714199 + 16759.925045         16759.93               0.6981        11700.8 93238761731 9
+
+Pool-side USD value (external prices): all pools $142634; of which liquid-exit assets $43778
+* recent_trades = swaps seen in the last-100-swap RPC sample (heights 23016060..23033183)
+
+--- Route A/B: buy USDX cheap with stranded Sifchain-origin USTC / LUNC, sell for KAVA ---
+SifUSTC: swap in 40536 SifUSTC (mkt $198.05) -> 646.76 USDX -> 6576.2 KAVA (worth $448.13 at market, 0.7% exit haircut applied)
+        net profit = $250.07 (gross before exit haircut $253.23)
+        gross (mark KAVA at market, no exit cost): $253.24
+SifLUNC: swap in 394076 SifLUNC (mkt $18.49) -> 37.29 USDX -> 384.9 KAVA (worth $26.23 at market, 0.7% exit haircut applied)
+        net profit = $7.74 (gross before exit haircut $7.92)
+        gross (mark KAVA at market, no exit cost): $7.92
+
+--- Route C: SWP -> USDX -> KAVA => no profit (best $-0.00)
+
+--- Route D: USDX bought on Osmosis pool 1390 (5% fee) -> sold into Kava ukava pool => net $0.37  [in 254 OSMO ($10.68), USDX 15.71, back $11.06]
+
+--- Route E: best cross-pool cycles on Kava swap (external-value P&L, gross mark-to-market) ---
+  buy USDX with uusd(SifUSTC) in ibc/B448C0CA358B958301 -> sell USDX for ukava  in ukava:usdx             : net $250.07 (in 40534.248747)
+  buy USDX with uusd(SifUSTC) in ibc/B448C0CA358B958301 -> sell USDX for uatom  in ibc/27394FB092D2ECCD56 : net $225.02 (in 36677.151508)
+  buy USDX with uusd(SifUSTC) in ibc/B448C0CA358B958301 -> sell USDX for uakt   in ibc/799FDD409719A11225 : net $222.83 (in 36983.482552)
+  buy USDX with uusd(SifUSTC) in ibc/B448C0CA358B958301 -> sell USDX for uosmo  in ibc/0471F1C4E7AFD3F077 : net $119.51 (in 20047.688937)
+  buy USDX with uluna(SifLUNC) in ibc/B8AF5D92165F35AB31 -> sell USDX for ukava  in ukava:usdx             : net $7.74 (in 394113.979527)
+  buy USDX with uluna(SifLUNC) in ibc/B8AF5D92165F35AB31 -> sell USDX for uatom  in ibc/27394FB092D2ECCD56 : net $7.49 (in 385680.182860)
+  buy USDX with uluna(SifLUNC) in ibc/B8AF5D92165F35AB31 -> sell USDX for uakt   in ibc/799FDD409719A11225 : net $7.01 (in 373742.510921)
+  buy USDX with uluna(SifLUNC) in ibc/B8AF5D92165F35AB31 -> sell USDX for uosmo  in ibc/0471F1C4E7AFD3F077 : net $6.13 (in 333651.905550)
+
+--- Route F: value-at-risk — what each pool pays if attacker can obtain USDX at price p ---
+(per pool: buy the pool's non-USDX asset with USDX; mark at market; no exit haircut)
+pool                                              p=0    p=0.1    p=0.3    p=0.5  p=0.626
+bnb:usdx                                       4966.8   3570.3   1209.6    247.7     32.1
+btcb:usdx                                      2914.2   2078.8    683.9    130.5     13.2
+busd:usdx                                     26938.4  19366.3   6564.2   1345.6    175.2
+hard:usdx                                       894.9    636.1    206.5     38.1      3.4
+ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7    392.0    278.4     90.0     16.5      1.4
+ibc/27394FB092D2ECCD56123C74F36E4C1F926001CE   3121.6   2245.0    762.0    156.7     20.6
+ibc/799FDD409719A1122586A629AE8FCA17380351A5   3950.6   2818.7    928.2    177.5     18.1
+ibc/B448C0CA358B958301D328CCDC5D5AD642FC30A6     79.7      3.4      0.0      0.0      0.0
+ibc/B8AF5D92165F35AB31F3FC7C7B444B9D240760FA     21.9      9.6      0.2      0.0      0.0
+swp:usdx                                       7288.6   5256.9   1804.0    380.5     54.2
+ukava:usdx                                    14186.8  10227.4   3503.4    736.0    103.5
+usdx:xrpb                                      5786.8   4144.4   1384.5    274.2     31.8
+TOTAL (USDX at price p, unlimited supply)     70542.2  50635.2  17136.6   3503.4    453.7
+
+(p = attacker's USD cost per USDX; p=0 => free USDX; p=0.6263 = current marginal Osmosis USDX price)
+
+--- recent swap activity (per pool, last-100-swap sample) ---
+  ukava:usdx                                                   48
+  ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25 46
+  ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F 25
+  ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7C1FDC98EA6098DD6 23
+  busd:usdx                                                    18
+  usdx:xrpb                                                    9
+  bnb:usdx                                                     5
+  btcb:usdx                                                    2
+  pools NOT traded in sample: ['hard:usdx', 'ibc/B448C0CA358B958301D328CCDC5D5AD642FC30A6D3AE106FF721DB315F3DDE5C:usdx', 'ibc/B8AF5D92165F35AB31F3FC7C7B444B9D240760FA5D406C49D24862BD0284E395:usdx', 'swp:usdx']
+
+kava_swap_params.allowed_pools but no pool created: ['uabc:ukava']

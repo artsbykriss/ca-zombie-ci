@@ -1,0 +1,2410 @@
+{
+ "target": "kava-iota-misc / kava-evm (L2-25 zombie-hunt II)",
+ "chain": {
+  "name": "Kava EVM",
+  "chainId": 2222,
+  "rpcs": [
+   "https://evm.kava.io",
+   "https://kava-evm.publicnode.com"
+  ]
+ },
+ "generated": "2026-10-15T12:52:05.852195Z",
+ "notes": [
+  "Kava prunes state aggressively (~500 blocks); all reads use 'latest' and record the block at read time.",
+  "All reads are eth_call/eth_getStorageAt/eth_getLogs; no transactions were signed or sent.",
+  "Prices: DefiLlama coins API + GeckoTerminal Kava pools, 2026-10-15."
+ ],
+ "prices_usd": {
+  "TAROT": 0.004495503803,
+  "WKAVA": 0.06862391441270453,
+  "USDC": 0.9996551067963053,
+  "DAI": 1.00003782905166,
+  "WBTC": 80874.10514421278,
+  "ETH": 2365.2675382778357,
+  "MAI": 0.995665557827551,
+  "VARA": 2.0408e-06,
+  "LQDR": 0.1488101154,
+  "MARE": 2.834647086e-05,
+  "MIM": 0.04393234037261946,
+  "ATOM": 1.6992477572328588,
+  "ORBS": 0.006865554520007657,
+  "WAGMI": 0.0004461046744369258,
+  "MVX": 0.025498134017530517,
+  "axlUSDT": 0.9990303923696168,
+  "axlUSDC": 0.9996110201952432,
+  "axlETH": 2353.0737667736225
+ },
+ "prices_source": {
+  "llama_coins": [
+   "0x165dbb08(WKAVA/TAROT etc. per token)",
+   "kava:0xc86c7c0e WKAVA",
+   "kava:0xfa9343c3 USDC",
+   "coingecko keys for ATOM/ORBS/MIM etc."
+  ],
+  "geckoterminal": {
+   "TAROT": "pool 0x4b22d524f5301fb7c042a81c87687fd420b980e8 (TAROT/USDC)",
+   "VARA": "pool 0x7d8100072ba0e4da8dc6bd258859a5dc1a452e05 (VARA/WKAVA)",
+   "LQDR": "pool 0x04e063939af6fe404c19f0aad4a8e40186e6bdec (LQDR/MAI)",
+   "MARE": "pool 0x5d65fa1eb5eeb5da4a384f08b8739036e8af0304 (MARE/WKAVA)"
+  }
+ },
+ "blocks": {
+  "tarot_snapshot": 23035381,
+  "tarot_custody": 23035485,
+  "tarot_tokens": 23035439,
+  "steer_state": 23035781
+ },
+ "tarot": {
+  "factories": {
+   "0x82B3413D575Aa93806308A04b53c78ae2037dA11": {
+    "admin": "0x1bb4e4fc22b4e2470a05b60c2943f88b832cea10",
+    "reservesAdmin": "0x1e6bf02f5bad0a8aa93df20955feff295d97f969",
+    "reservesManager": "0xd204e3dc1937d3a30fc6f20abc48ac5506c94d1e",
+    "oracle": "0x36df0a76a124d8b2205fa11766ec2eff8ce38a35",
+    "bDeployer": "0x46fcde1b89d61f5cbfaab05c2914c367f8301f30",
+    "cDeployer": "0x35c052bbf8338b06351782a565aa9aad173432ea",
+    "allLendingPoolsLength": 9
+   },
+   "0x54950cae3d8513EA041066F31697903de5909F57": {
+    "admin": "0x1bb4e4fc22b4e2470a05b60c2943f88b832cea10",
+    "reservesAdmin": "0x1e6bf02f5bad0a8aa93df20955feff295d97f969",
+    "reservesManager": "0xd204e3dc1937d3a30fc6f20abc48ac5506c94d1e",
+    "oracle": "0x36df0a76a124d8b2205fa11766ec2eff8ce38a35",
+    "bDeployer": "0x1cafcb9f3b5a152b1553bc2c688ba6a18054b653",
+    "cDeployer": "0x3b47f0e57a6c537ecc198833728ccd5d02e29771",
+    "allLendingPoolsLength": 2
+   }
+  },
+  "roles_onchain": {
+   "admin": "0x1bb4e4Fc22B4E2470A05b60c2943f88B832cea10",
+   "reservesAdmin": "0x1E6bF02f5BAD0a8Aa93df20955FEfF295D97F969",
+   "reservesManager": "0xD204E3dC1937d3a30fc6F20ABc48AC5506C94D1E",
+   "tarotPriceOracle": "0x36Df0A76a124d8b2205fA11766eC2eFF8Ce38A35",
+   "verified": "Sourcify exact_match (chainId 2222, solc 0.5.16)"
+  },
+  "guard_probes_from_random_address": {
+   "factory._setPendingAdmin": "revert Tarot: UNAUTHORIZED",
+   "collateral._setSafetyMarginSqrt/_setLiquidationIncentive/_setLiquidationFee": "revert Tarot: UNAUTHORIZED",
+   "borrowable._setReserveFactor/_setBorrowTracker/_setKinkUtilizationRate": "revert Tarot: UNAUTHORIZED",
+   "collateral.mint/redeem": "revert MINT_AMOUNT_ZERO / REDEEM_AMOUNT_ZERO (permissionless by design)",
+   "borrowable.liquidate(no-shortfall borrower)": "revert Tarot: INSUFFICIENT_SHORTFALL"
+  },
+  "markets": [
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0x738114fc34d7b0d33f13d2b5c3d44484ec85c7f1",
+    "initialized": true,
+    "lendingPoolId": 1,
+    "collateral": "0xe93b3532252a4e954eb71148867017ab8ebacb17",
+    "borrowable0": "0x915352a98f8730e72cd923d24d4aa895c271c7f9",
+    "borrowable1": "0xc97b023a935200ab7fd0f7fd07e2550e622d6445",
+    "collateral_state": {
+     "underlying": "0x738114fc34d7b0d33f13d2b5c3d44484ec85c7f1",
+     "totalSupply": 2051997253873940,
+     "totalBalance": 2051997253873967,
+     "exchangeRate": 1000000000000013157,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      149057429512,
+      624674183919212285334058
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0x165dbb08de0476271714952c3c1f068693bd60d7",
+     "totalSupply": 364187375633143077155668,
+     "totalBalance": 441989437593032393612512,
+     "getCash": null,
+     "totalBorrows": 4133042131213389159533,
+     "borrowIndex": 1359049179349343495,
+     "borrowRate": 3916948,
+     "exchangeRateLast": 1224980626933203764,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+     "totalSupply": 364880231,
+     "totalBalance": 15919533,
+     "getCash": null,
+     "totalBorrows": 393924489,
+     "borrowIndex": 1178427383647648738,
+     "borrowRate": 852757721,
+     "exchangeRateLast": 1123228901891726810,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0x2b973265fbd59ef0e14203ec229169d4a6ec31e3",
+    "initialized": true,
+    "lendingPoolId": 2,
+    "collateral": "0x752466d58858ecd367edbdc917ca2d304f201e82",
+    "borrowable0": "0xdfcaa2dd2722c91ff6c0a051f47697e92911c077",
+    "borrowable1": "0x7b1a32bd4390b9948b8b0d4159254951fd3d52e1",
+    "collateral_state": {
+     "underlying": "0x2b973265fbd59ef0e14203ec229169d4a6ec31e3",
+     "totalSupply": 1805122390,
+     "totalBalance": 1805122405,
+     "exchangeRate": 1000000008309685860,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      4609,
+      41592041440330161768
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0xe1da44c0da55b075ae8e2e4b6986adc76ac77d73",
+     "totalSupply": 26625345843886560221487,
+     "totalBalance": 39473617265880896192697,
+     "getCash": null,
+     "totalBorrows": 323788535648836237353,
+     "borrowIndex": 1817844834752013747,
+     "borrowRate": 3439844,
+     "exchangeRateLast": 1494568178495685401,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+     "totalSupply": 2432711279,
+     "totalBalance": 2565582253,
+     "getCash": null,
+     "totalBorrows": 8883746,
+     "borrowIndex": 1090386661043054932,
+     "borrowRate": 1458952,
+     "exchangeRateLast": 1058270132694209220,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0x0de0fd789ec103bc076528e026f0e96bee3c69dc",
+    "initialized": true,
+    "lendingPoolId": 3,
+    "collateral": "0x23ba7f8c3264ecb1e970e940e2aa6d2724fb54c8",
+    "borrowable0": "0xa01b9cc4860eea6e34c67a6198e6aed175cd8b56",
+    "borrowable1": "0x5815117c38e4d9f3e9bd562695d0a50aa7974ab7",
+    "collateral_state": {
+     "underlying": "0x0de0fd789ec103bc076528e026f0e96bee3c69dc",
+     "totalSupply": 2770256839012032845935,
+     "totalBalance": 2770256839012032846253,
+     "exchangeRate": 1000000000000000000,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      14384882801280810852,
+      427066017405686
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+     "totalSupply": 1209196404967410176209,
+     "totalBalance": 1551911092409271688972,
+     "getCash": null,
+     "totalBorrows": 41962956914512619005,
+     "borrowIndex": 1527329696175997177,
+     "borrowRate": 11131257,
+     "exchangeRateLast": 1318119888698411050,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xe1da44c0da55b075ae8e2e4b6986adc76ac77d73",
+     "totalSupply": 127495967343787691341751,
+     "totalBalance": 276086139089097387473840,
+     "getCash": null,
+     "totalBorrows": 453182110,
+     "borrowIndex": 2962167648564489485,
+     "borrowRate": 0,
+     "exchangeRateLast": 2164829772948919986,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0x109f3289665a8f034e2cacdbcfb678cabe09f1d5",
+    "initialized": true,
+    "lendingPoolId": 4,
+    "collateral": "0xd48c5a6bfb810dc6b08e33a76d055ea09fc623cd",
+    "borrowable0": "0x35948018c9b7d615ef09c29672dee536fdead959",
+    "borrowable1": "0x014bef3be6dfd20e9539fadb48bcec48bbfda865",
+    "collateral_state": {
+     "underlying": "0x109f3289665a8f034e2cacdbcfb678cabe09f1d5",
+     "totalSupply": 7352575565931,
+     "totalBalance": 7352575565932,
+     "exchangeRate": 1000000000000136006,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      541704213746,
+      145567553128513880047114
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+     "totalSupply": 1843786749507563166060,
+     "totalBalance": 2051823611067183245249,
+     "getCash": null,
+     "totalBorrows": 78833904647325729422,
+     "borrowIndex": 1243073968450242544,
+     "borrowRate": 15643413,
+     "exchangeRateLast": 1155215782980865003,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+     "totalSupply": 4132198363,
+     "totalBalance": 5819659547,
+     "getCash": null,
+     "totalBorrows": 0,
+     "borrowIndex": 1583661810858294609,
+     "borrowRate": 0,
+     "exchangeRateLast": 1408368871749533841,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0xbc50b9f7f8a4ac5cfbb02d214239033dd5a35527",
+    "initialized": true,
+    "lendingPoolId": 5,
+    "collateral": "0x3d07ee6f3f47aac46de17b158997aea72fa6030c",
+    "borrowable0": "0xc887f8c6f944ea23c352db7872619ab268de489a",
+    "borrowable1": "0x1f0441823595c214dcd3b6b6c7d3570ac8c89da3",
+    "collateral_state": {
+     "underlying": "0xbc50b9f7f8a4ac5cfbb02d214239033dd5a35527",
+     "totalSupply": 30320156221785,
+     "totalBalance": 30320156221789,
+     "exchangeRate": 1000000000000131925,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      7414149807,
+      4913326295492435266611397
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0xd86c8d4279ccafbec840c782bcc50d201f277419",
+     "totalSupply": 944734918731939697352,
+     "totalBalance": 684045937614488109828,
+     "getCash": null,
+     "totalBorrows": 484406100673692572141,
+     "borrowIndex": 1388464486260004714,
+     "borrowRate": 175279386,
+     "exchangeRateLast": 1236746441956684278,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+     "totalSupply": 31228986,
+     "totalBalance": 36609166,
+     "getCash": null,
+     "totalBorrows": 0,
+     "borrowIndex": 1318796923479532326,
+     "borrowRate": 0,
+     "exchangeRateLast": 1167626124486420727,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0x49381f3442631e81f3f4d8228d7309778ab02e42",
+    "initialized": true,
+    "lendingPoolId": 6,
+    "collateral": "0xee2fa63dca85ae87280d52ee4a7019095a32b399",
+    "borrowable0": "0xa1a0b9c82d0332480575460377f70d19aab77712",
+    "borrowable1": "0xaa9272ce189d2ba62f820ebb3973c65da875e16b",
+    "collateral_state": {
+     "underlying": "0x49381f3442631e81f3f4d8228d7309778ab02e42",
+     "totalSupply": 195548153900062,
+     "totalBalance": 195548153900077,
+     "exchangeRate": 1000000000000076707,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      779888065153,
+      98104375494030941746750
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0x6c2c113c8ca73db67224ef4d8c8dfcec61e52a9c",
+     "totalSupply": 1055245785221776031075,
+     "totalBalance": 1243001873226027188265,
+     "getCash": null,
+     "totalBorrows": 23499399293977753694,
+     "borrowIndex": 1307385976900980139,
+     "borrowRate": 7844825,
+     "exchangeRateLast": 1200169108610247957,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+     "totalSupply": 1472735834,
+     "totalBalance": 1590936780,
+     "getCash": null,
+     "totalBorrows": 0,
+     "borrowIndex": 1125828031273702786,
+     "borrowRate": 0,
+     "exchangeRateLast": 1080259434585424399,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0xd0605d69c75dc0fbe229fef91b3d2fdc565b91c4",
+    "initialized": true,
+    "lendingPoolId": 7,
+    "collateral": "0x4b8f1b2a2d9a3e782c7c854280f8b23572ecb59f",
+    "borrowable0": "0xcfb6e8a8c2999b04f4edca2cd5cc7a6b589d2a12",
+    "borrowable1": "0xad8fb70711eb4c4b03723222cd36a19fc4907e02",
+    "collateral_state": {
+     "underlying": "0xd0605d69c75dc0fbe229fef91b3d2fdc565b91c4",
+     "totalSupply": 496865091817891417,
+     "totalBalance": 496865091817891433,
+     "exchangeRate": 1000000000000000032,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      24340800856691664,
+      4901623929928624755
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+     "totalSupply": 600866353697263446434,
+     "totalBalance": 603020232700670099135,
+     "getCash": null,
+     "totalBorrows": 1494537814519380075,
+     "borrowIndex": 1009718354631355390,
+     "borrowRate": 1045278,
+     "exchangeRateLast": 1006067868831333940,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+     "totalSupply": 200654260509765189,
+     "totalBalance": 205995621796061887,
+     "getCash": null,
+     "totalBorrows": 0,
+     "borrowIndex": 1042078773934589069,
+     "borrowRate": 0,
+     "exchangeRateLast": 1026358467911604211,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0x169e28cd2b5ca52cb9e0719ab577b6245da8eef2",
+    "initialized": true,
+    "lendingPoolId": 8,
+    "collateral": "0xa391ae61456223393094807bc1c0fdb75d79f79d",
+    "borrowable0": "0xef0e17f47bcf68b9d80ba665b7d0f56ccf096e65",
+    "borrowable1": "0x3bfc10c7c85f0dc427bc3d6262429466d1b31bb6",
+    "collateral_state": {
+     "underlying": "0x169e28cd2b5ca52cb9e0719ab577b6245da8eef2",
+     "totalSupply": 1261454079,
+     "totalBalance": 1261454093,
+     "exchangeRate": 1000000011098303325,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      152303798502780497833173,
+      891031260709
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0x818ec0a7fe18ff94269904fced6ae3dae6d6dc0b",
+     "totalSupply": 8244,
+     "totalBalance": 4672,
+     "getCash": null,
+     "totalBorrows": 3587,
+     "borrowIndex": 1002141506762936432,
+     "borrowRate": 183626789,
+     "exchangeRateLast": 1001731924493856488,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+     "totalSupply": 345648544816225523,
+     "totalBalance": 347358210195228138,
+     "getCash": null,
+     "totalBorrows": 88,
+     "borrowIndex": 1006796923997595891,
+     "borrowRate": 0,
+     "exchangeRateLast": 1004845769080580063,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x82B3413D575Aa93806308A04b53c78ae2037dA11",
+    "pair": "0x3f4410faa08c5dadbbb0984a3ecc12a7b6a45b1b",
+    "initialized": true,
+    "lendingPoolId": 9,
+    "collateral": "0x19f14cb2b3849a67c0e2cb6fbe4ea53ccdff68b1",
+    "borrowable0": "0x6ed892d2fcd41a2b92cebf94109d5695a7ea3565",
+    "borrowable1": "0xebc30f3479bd53099b6495764e2a7bf51233bf1b",
+    "collateral_state": {
+     "underlying": "0x3f4410faa08c5dadbbb0984a3ecc12a7b6a45b1b",
+     "totalSupply": 636748905,
+     "totalBalance": 637455543,
+     "exchangeRate": 1001109759270021830,
+     "safetyMarginSqrt": 1414213560000000000,
+     "liquidationIncentive": 1020000000000000000,
+     "liquidationFee": 10000000000000000,
+     "getPrices": [
+      74454956052706173781,
+      2153585
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0x818ec0a7fe18ff94269904fced6ae3dae6d6dc0b",
+     "totalSupply": 400887,
+     "totalBalance": 150439,
+     "getCash": null,
+     "totalBorrows": 274811,
+     "borrowIndex": 1085973212357599767,
+     "borrowRate": 273225934,
+     "exchangeRateLast": 1015376709415959029,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+     "totalSupply": 67519802756584467027,
+     "totalBalance": 24733979571628941085,
+     "getCash": null,
+     "totalBorrows": 43829375119994130495,
+     "borrowIndex": 1022786769965596496,
+     "borrowRate": 270274672,
+     "exchangeRateLast": 1012827552871365570,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x54950cae3d8513EA041066F31697903de5909F57",
+    "pair": "0x66034687678d6dd74d9502f878ff7ea86a7dbb9a",
+    "initialized": true,
+    "lendingPoolId": 1,
+    "collateral": "0x9762876e290c828f0cc38dc6076ab51b512ec5af",
+    "borrowable0": "0xdca6962fe17ddc590916dbb25155b88a8e6b2021",
+    "borrowable1": "0x7258df1778ec211194807dfe47eb87391acbcaa1",
+    "collateral_state": {
+     "underlying": "0x66034687678d6dd74d9502f878ff7ea86a7dbb9a",
+     "totalSupply": 321495151028,
+     "totalBalance": 321495151029,
+     "exchangeRate": 1000000000003110466,
+     "safetyMarginSqrt": null,
+     "liquidationIncentive": 1010000000000000000,
+     "liquidationFee": 5000000000000000,
+     "getPrices": [
+      476100455910,
+      425015728852000000000000
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0xb84df10966a5d7e1ab46d9276f55d57bd336afc7",
+     "totalSupply": 374482093492544055,
+     "totalBalance": 360294205026202455,
+     "getCash": null,
+     "totalBorrows": 17251231392494320,
+     "borrowIndex": 1010749275967664424,
+     "borrowRate": 18111494,
+     "exchangeRateLast": 1008176154160077322,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+     "totalSupply": 391384,
+     "totalBalance": 395288,
+     "getCash": null,
+     "totalBorrows": 0,
+     "borrowIndex": 1011571724866505338,
+     "borrowRate": 0,
+     "exchangeRateLast": 1009972727854607356,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   },
+   {
+    "factory": "0x54950cae3d8513EA041066F31697903de5909F57",
+    "pair": "0xefa8952a4ab8b210a5f1dd2a378ed3d1200cf64b",
+    "initialized": true,
+    "lendingPoolId": 2,
+    "collateral": "0x9efc79e0af447bd4c21e7c66ec6df58674a255e0",
+    "borrowable0": "0xa760f51f0de50007c7ec4408c16e648343839573",
+    "borrowable1": "0x5401bb45b5f8d509aca1005923b05164e6e0d276",
+    "collateral_state": {
+     "underlying": "0xefa8952a4ab8b210a5f1dd2a378ed3d1200cf64b",
+     "totalSupply": 55664,
+     "totalBalance": 55665,
+     "exchangeRate": 1000017964932451853,
+     "safetyMarginSqrt": null,
+     "liquidationIncentive": 1010000000000000000,
+     "liquidationFee": 5000000000000000,
+     "getPrices": [
+      28940,
+      181899000000000000
+     ],
+     "bal_b0": 0,
+     "bal_b1": 0
+    },
+    "borrowable0_state": {
+     "underlying": "0x765277eebeca2e31912c9946eae1021199b39c61",
+     "totalSupply": 1857201509759917857692,
+     "totalBalance": 1887918413299340404530,
+     "getCash": null,
+     "totalBorrows": 69481,
+     "borrowIndex": 1022275437580636717,
+     "borrowRate": 0,
+     "exchangeRateLast": 1016433781608418908,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    },
+    "borrowable1_state": {
+     "underlying": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+     "totalSupply": 858665280,
+     "totalBalance": 872932422,
+     "getCash": null,
+     "totalBorrows": 4831036,
+     "borrowIndex": 1029861640424004771,
+     "borrowRate": 2181555,
+     "exchangeRateLast": 1022241079478770739,
+     "reserveFactor": 100000000000000000,
+     "BORROW_FEE": 100000000000000,
+     "borrowTracker": "0x0000000000000000000000000000000000000000"
+    }
+   }
+  ],
+  "token_meta": {
+   "0x165dbb08de0476271714952c3c1f068693bd60d7": {
+    "symbol": "TAROT",
+    "decimals": 18
+   },
+   "0x6c2c113c8ca73db67224ef4d8c8dfcec61e52a9c": {
+    "symbol": "LQDR",
+    "decimals": 18
+   },
+   "0x765277eebeca2e31912c9946eae1021199b39c61": {
+    "symbol": "DAI",
+    "decimals": 18
+   },
+   "0x818ec0a7fe18ff94269904fced6ae3dae6d6dc0b": {
+    "symbol": "WBTC",
+    "decimals": 8
+   },
+   "0xb84df10966a5d7e1ab46d9276f55d57bd336afc7": {
+    "symbol": "MAI",
+    "decimals": 18
+   },
+   "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b": {
+    "symbol": "WKAVA",
+    "decimals": 18
+   },
+   "0xd86c8d4279ccafbec840c782bcc50d201f277419": {
+    "symbol": "MARE",
+    "decimals": 18
+   },
+   "0xe1da44c0da55b075ae8e2e4b6986adc76ac77d73": {
+    "symbol": "VARA",
+    "decimals": 18
+   },
+   "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d": {
+    "symbol": "ETH",
+    "decimals": 18
+   },
+   "0xfa9343c3897324496a05fc75abed6bac29f8a40f": {
+    "symbol": "USDC",
+    "decimals": 6
+   }
+  },
+  "slice_reserves_and_lp": {
+   "0x738114fc34d7b0d33f13d2b5c3d44484ec85c7f1": {
+    "token0": "0x165dbb08de0476271714952c3c1f068693bd60d7",
+    "token1": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+    "reserve0": 6883198991246702048361,
+    "reserve1": 1642464715,
+    "pairTotalSupply": 2051997253874967
+   },
+   "0x2b973265fbd59ef0e14203ec229169d4a6ec31e3": {
+    "token0": "0xe1da44c0da55b075ae8e2e4b6986adc76ac77d73",
+    "token1": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+    "reserve0": 195819747604301838028779,
+    "reserve1": 21700346,
+    "pairTotalSupply": 1805123405
+   },
+   "0x0de0fd789ec103bc076528e026f0e96bee3c69dc": {
+    "token0": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "token1": "0xe1da44c0da55b075ae8e2e4b6986adc76ac77d73",
+    "reserve0": 96290559910587946392,
+    "reserve1": 3243359020328536134681261,
+    "pairTotalSupply": 2770256839012032847253
+   },
+   "0x109f3289665a8f034e2cacdbcfb678cabe09f1d5": {
+    "token0": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "token1": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+    "reserve0": 6786522488725293294,
+    "reserve1": 25254857,
+    "pairTotalSupply": 7352575566932
+   },
+   "0xbc50b9f7f8a4ac5cfbb02d214239033dd5a35527": {
+    "token0": "0xd86c8d4279ccafbec840c782bcc50d201f277419",
+    "token1": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+    "reserve0": 2044749365134294700886,
+    "reserve1": 3085502,
+    "pairTotalSupply": 30320156222789
+   },
+   "0x49381f3442631e81f3f4d8228d7309778ab02e42": {
+    "token0": "0x6c2c113c8ca73db67224ef4d8c8dfcec61e52a9c",
+    "token1": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+    "reserve0": 125369273561515900911,
+    "reserve1": 996633975,
+    "pairTotalSupply": 195548153901077
+   },
+   "0xd0605d69c75dc0fbe229fef91b3d2fdc565b91c4": {
+    "token0": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "token1": "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+    "reserve0": 10206424487493732122,
+    "reserve1": 50683722264381017,
+    "pairTotalSupply": 496865091817892433
+   },
+   "0x169e28cd2b5ca52cb9e0719ab577b6245da8eef2": {
+    "token0": "0x818ec0a7fe18ff94269904fced6ae3dae6d6dc0b",
+    "token1": "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+    "reserve0": 4141,
+    "reserve1": 707904529779313,
+    "pairTotalSupply": 1261455093
+   },
+   "0x3f4410faa08c5dadbbb0984a3ecc12a7b6a45b1b": {
+    "token0": "0x818ec0a7fe18ff94269904fced6ae3dae6d6dc0b",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "reserve0": 4280820,
+    "reserve1": 147998921502199113843,
+    "pairTotalSupply": 637456543
+   },
+   "0x66034687678d6dd74d9502f878ff7ea86a7dbb9a": {
+    "token0": "0xb84df10966a5d7e1ab46d9276f55d57bd336afc7",
+    "token1": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+    "reserve0": 224610185515311361,
+    "reserve1": 504824,
+    "pairTotalSupply": 321495152029
+   },
+   "0xefa8952a4ab8b210a5f1dd2a378ed3d1200cf64b": {
+    "token0": "0x765277eebeca2e31912c9946eae1021199b39c61",
+    "token1": "0xfa9343c3897324496a05fc75abed6bac29f8a40f",
+    "reserve0": 1465702243843038294,
+    "reserve1": 78318,
+    "pairTotalSupply": 56665
+   }
+  },
+  "custody": {
+   "0x738114fc34d7b0d33f13d2b5c3d44484ec85c7f1": {
+    "pair": {
+     "bal_of_collateral": 2051997253873967
+    },
+    "col": {
+     "totalSupply": 2051997253873940,
+     "totalBalance": 2051997253873967,
+     "exchangeRate": 1000000000000013157
+    },
+    "borrowable0": {
+     "cash": 441989437593032393612512,
+     "bTotalSupply": 364187375633143077155668,
+     "bExchangeRate": 1224983709300455682
+    },
+    "borrowable1": {
+     "cash": 15919533,
+     "bTotalSupply": 364880231,
+     "bExchangeRate": 1195508652862075615
+    }
+   },
+   "0x2b973265fbd59ef0e14203ec229169d4a6ec31e3": {
+    "pair": {
+     "bal_of_collateral": 1805122405
+    },
+    "col": {
+     "totalSupply": 1805122390,
+     "totalBalance": 1805122405,
+     "exchangeRate": 1000000008309685860
+    },
+    "borrowable0": {
+     "cash": 39473617265880896192697,
+     "bTotalSupply": 26625345843886560221487,
+     "bExchangeRate": 1494706844117243030
+    },
+    "borrowable1": {
+     "cash": 2565582253,
+     "bTotalSupply": 2432711279,
+     "bExchangeRate": 1058270691687537057
+    }
+   },
+   "0x0de0fd789ec103bc076528e026f0e96bee3c69dc": {
+    "pair": {
+     "bal_of_collateral": 2770256839012032846253
+    },
+    "col": {
+     "totalSupply": 2770256839012032845935,
+     "totalBalance": 2770256839012032846253,
+     "exchangeRate": 1000000000000000000
+    },
+    "borrowable0": {
+     "cash": 1551911092409271688972,
+     "bTotalSupply": 1209196404967410176209,
+     "bExchangeRate": 1318134799800020059
+    },
+    "borrowable1": {
+     "cash": 276086139089097387473840,
+     "bTotalSupply": 127495967343787691341751,
+     "bExchangeRate": 2165387953325847662
+    }
+   },
+   "0x109f3289665a8f034e2cacdbcfb678cabe09f1d5": {
+    "pair": {
+     "bal_of_collateral": 7352575565932
+    },
+    "col": {
+     "totalSupply": 7352575565931,
+     "totalBalance": 7352575565932,
+     "exchangeRate": 1000000000000136006
+    },
+    "borrowable0": {
+     "cash": 2051823611067183245249,
+     "bTotalSupply": 1843786749507563166060,
+     "bExchangeRate": 1155600849818031259
+    },
+    "borrowable1": {
+     "cash": 5819659547,
+     "bTotalSupply": 4132198363,
+     "bExchangeRate": 1408368871892503111
+    }
+   },
+   "0xbc50b9f7f8a4ac5cfbb02d214239033dd5a35527": {
+    "pair": {
+     "bal_of_collateral": 30320156221789
+    },
+    "col": {
+     "totalSupply": 30320156221785,
+     "totalBalance": 30320156221789,
+     "exchangeRate": 1000000000000131925
+    },
+    "borrowable0": {
+     "cash": 684045937614488109828,
+     "bTotalSupply": 944734918731939697352,
+     "bExchangeRate": 1243413035253579915
+    },
+    "borrowable1": {
+     "cash": 36609166,
+     "bTotalSupply": 31228986,
+     "bExchangeRate": 1171816061830572053
+    }
+   },
+   "0x49381f3442631e81f3f4d8228d7309778ab02e42": {
+    "pair": {
+     "bal_of_collateral": 195548153900077
+    },
+    "col": {
+     "totalSupply": 195548153900062,
+     "totalBalance": 195548153900077,
+     "exchangeRate": 1000000000000076707
+    },
+    "borrowable0": {
+     "cash": 1243001873226027188265,
+     "bTotalSupply": 1055245785221776031075,
+     "bExchangeRate": 1200208770816194422
+    },
+    "borrowable1": {
+     "cash": 1590936780,
+     "bTotalSupply": 1472735834,
+     "bExchangeRate": 1080259434994540470
+    }
+   },
+   "0xd0605d69c75dc0fbe229fef91b3d2fdc565b91c4": {
+    "pair": {
+     "bal_of_collateral": 496865091817891433
+    },
+    "col": {
+     "totalSupply": 496865091817891417,
+     "totalBalance": 496865091817891433,
+     "exchangeRate": 1000000000000000032
+    },
+    "borrowable0": {
+     "cash": 603020232700670099135,
+     "bTotalSupply": 600866353697263446434,
+     "bExchangeRate": 1006071761576916417
+    },
+    "borrowable1": {
+     "cash": 205995621796061887,
+     "bTotalSupply": 200654260509765189,
+     "bExchangeRate": 1026593599521923275
+    }
+   },
+   "0x169e28cd2b5ca52cb9e0719ab577b6245da8eef2": {
+    "pair": {
+     "bal_of_collateral": 1261454093
+    },
+    "col": {
+     "totalSupply": 1261454079,
+     "totalBalance": 1261454093,
+     "exchangeRate": 1000000011098303325
+    },
+    "borrowable0": {
+     "cash": 4672,
+     "bTotalSupply": 8244,
+     "bExchangeRate": 1008906816903534120
+    },
+    "borrowable1": {
+     "cash": 347358210195228138,
+     "bTotalSupply": 345648544816225523,
+     "bExchangeRate": 1004936205199797317
+    }
+   },
+   "0x3f4410faa08c5dadbbb0984a3ecc12a7b6a45b1b": {
+    "pair": {
+     "bal_of_collateral": 637455543
+    },
+    "col": {
+     "totalSupply": 636748905,
+     "totalBalance": 637455543,
+     "exchangeRate": 1001109759270021830
+    },
+    "borrowable0": {
+     "cash": 150439,
+     "bTotalSupply": 400887,
+     "bExchangeRate": 1071068236911557513
+    },
+    "borrowable1": {
+     "cash": 24733979571628941085,
+     "bTotalSupply": 67519802756584467027,
+     "bExchangeRate": 1029089165057599053
+    }
+   },
+   "0x66034687678d6dd74d9502f878ff7ea86a7dbb9a": {
+    "pair": {
+     "bal_of_collateral": 321495151029
+    },
+    "col": {
+     "totalSupply": 321495151028,
+     "totalBalance": 321495151029,
+     "exchangeRate": 1000000000003110466
+    },
+    "borrowable0": {
+     "cash": 360294205026202455,
+     "bTotalSupply": 374482093492544055,
+     "bExchangeRate": 1008257463446263328
+    },
+    "borrowable1": {
+     "cash": 395288,
+     "bTotalSupply": 391384,
+     "bExchangeRate": 1009974645391392506
+    }
+   },
+   "0xefa8952a4ab8b210a5f1dd2a378ed3d1200cf64b": {
+    "pair": {
+     "bal_of_collateral": 55665
+    },
+    "col": {
+     "totalSupply": 55664,
+     "totalBalance": 55665,
+     "exchangeRate": 1000017964932451853
+    },
+    "borrowable0": {
+     "cash": 1887918413299340404530,
+     "bTotalSupply": 1857201509759917857692,
+     "bExchangeRate": 1016528792069994956
+    },
+    "borrowable1": {
+     "cash": 872932422,
+     "bTotalSupply": 858665280,
+     "bExchangeRate": 1022242669779094938
+    }
+   }
+  },
+  "vault_gauge_liveness": [
+   {
+    "vTAROT": "0x738114fc34d7b0d33f13d2b5c3d44484ec85c7f1",
+    "gauge": "0xbf257c745a8ada0bd8f682812f5fd95fa42bdf66",
+    "gaugeAlive": false,
+    "underlyingPair": "0x4b22d524f5301fb7c042a81c87687fd420b980e8",
+    "exchangeRate": 1638546038224708231,
+    "totalSupply": 2051997253874967
+   },
+   {
+    "vTAROT": "0x2b973265fbd59ef0e14203ec229169d4a6ec31e3",
+    "gauge": "0xa250a3b6a5e5e8b398092537951f8bd80639ed5c",
+    "gaugeAlive": false,
+    "underlyingPair": "0x9bf1e3ee61cbe5c61e520c8beff45ed4d8212a9a",
+    "exchangeRate": 1141896787616150265360943,
+    "totalSupply": 1805123405
+   },
+   {
+    "vTAROT": "0x0de0fd789ec103bc076528e026f0e96bee3c69dc",
+    "gauge": "0xca0d15b4bb6ad730fe40592f9e25a2e052842c92",
+    "gaugeAlive": true,
+    "underlyingPair": "0x7d8100072ba0e4da8dc6bd258859a5dc1a452e05",
+    "exchangeRate": 6378827102605219208,
+    "totalSupply": 2770256839012032847253
+   },
+   {
+    "vTAROT": "0x109f3289665a8f034e2cacdbcfb678cabe09f1d5",
+    "gauge": "0x50cd5b513999b81dc3f4b70595629f7cb92fcd32",
+    "gaugeAlive": false,
+    "underlyingPair": "0x5c27a0d0e6d045b5113d728081268642060f7499",
+    "exchangeRate": 1749095945324398258,
+    "totalSupply": 7352575566932
+   },
+   {
+    "vTAROT": "0xbc50b9f7f8a4ac5cfbb02d214239033dd5a35527",
+    "gauge": "0x46b9fcac1b698ae54b9c1d52a734338964e28aee",
+    "gaugeAlive": false,
+    "underlyingPair": "0x0e1bc1939d977c676cd38cff4b7e411c32b6d3ce",
+    "exchangeRate": 2619552467432012069,
+    "totalSupply": 30320156222789
+   },
+   {
+    "vTAROT": "0x49381f3442631e81f3f4d8228d7309778ab02e42",
+    "gauge": "0xadd74b7f414123e6b56d154c2027fbd8afdc4634",
+    "gaugeAlive": false,
+    "underlyingPair": "0x766ca762fcc03f5070860857ff4054d258c74517",
+    "exchangeRate": 1807579807690075240,
+    "totalSupply": 195548153901077
+   },
+   {
+    "vTAROT": "0xd0605d69c75dc0fbe229fef91b3d2fdc565b91c4",
+    "gauge": "0x371d33963fb89ec9542a11ccf955b3a90391f99f",
+    "gaugeAlive": false,
+    "underlyingPair": "0xb593e0a2e93864ff5f75689dade29f5f6dec64ef",
+    "exchangeRate": 1447496134833151271,
+    "totalSupply": 496865091817892433
+   },
+   {
+    "vTAROT": "0x169e28cd2b5ca52cb9e0719ab577b6245da8eef2",
+    "gauge": "0x3f8185cce4cb25f17f6be2b4ff653c45f0dd4fed",
+    "gaugeAlive": false,
+    "underlyingPair": "0xd9eef9881068141000b4257cceb72faaba7186f6",
+    "exchangeRate": 1356336110967685474,
+    "totalSupply": 1261455093
+   },
+   {
+    "vTAROT": "0x3f4410faa08c5dadbbb0984a3ecc12a7b6a45b1b",
+    "gauge": "0xa27a1f03479cfe4b0b97fd8c772a84ad815c1946",
+    "gaugeAlive": false,
+    "underlyingPair": "0x304b111e0c9ccc8137d98807d15d56aad84bce77",
+    "exchangeRate": 39438998456861082058106,
+    "totalSupply": 637456543
+   },
+   {
+    "vTAROT": "0x66034687678d6dd74d9502f878ff7ea86a7dbb9a",
+    "gauge": "0x89ede1b513502aa876f9eb660ede9802f4462cfa",
+    "gaugeAlive": false,
+    "underlyingPair": "0xb65d7381686a7829dc238abf785bb2dee313fb20",
+    "exchangeRate": 1127519174212312675,
+    "totalSupply": 321495152029
+   },
+   {
+    "vTAROT": "0xefa8952a4ab8b210a5f1dd2a378ed3d1200cf64b",
+    "gauge": "0xe45086f996e4473e0973392c1fe97b52575466cf",
+    "gaugeAlive": false,
+    "underlyingPair": "0x9acad463537d5b4fb1d7637bb558e79d0441b96f",
+    "exchangeRate": 9702462455078090532074472,
+    "totalSupply": 56665
+   }
+  ],
+  "float_check": {
+   "result": "every vTAROT is ~100% held by its market's collateral contract; only 1000 wei MINIMUM_LIQUIDITY floats per market"
+  },
+  "book_summary_usd": {
+   "collateral_held_vTAROT_slice": 6352.04,
+   "borrowable_cash": 16683.88,
+   "outstanding_borrows": 666.16,
+   "total": 23035.92,
+   "block": 23035485
+  },
+  "latent_extraction_usd": {
+   "total": 2828.3,
+   "all_blocked_by_dead_gauges": true,
+   "per_market": [
+    {
+     "vTAROT": "0x109f3289665a8f034e2cacdbcfb678cabe09f1d5",
+     "side": "USDC borrowable",
+     "R": 1.361,
+     "cash_usd": 5817.65,
+     "extract_usd": 1544.27
+    },
+    {
+     "vTAROT": "0x2b973265fbd59ef0e14203ec229169d4a6ec31e3",
+     "side": "USDC borrowable",
+     "R": 1.361,
+     "cash_usd": 2564.7,
+     "extract_usd": 680.84
+    },
+    {
+     "vTAROT": "0x49381f3442631e81f3f4d8228d7309778ab02e42",
+     "side": "USDC borrowable",
+     "R": 1.361,
+     "cash_usd": 1590.39,
+     "extract_usd": 421.84
+    },
+    {
+     "vTAROT": "0xd0605d69c75dc0fbe229fef91b3d2fdc565b91c4",
+     "side": "ETH borrowable",
+     "R": 1.378,
+     "cash_usd": 487.23,
+     "extract_usd": 133.76
+    },
+    {
+     "vTAROT": "0x3f4410faa08c5dadbbb0984a3ecc12a7b6a45b1b",
+     "side": "WBTC borrowable",
+     "R": 1.382,
+     "cash_usd": 121.67,
+     "extract_usd": 33.66
+    },
+    {
+     "vTAROT": "0xbc50b9f7f8a4ac5cfbb02d214239033dd5a35527",
+     "side": "USDC borrowable",
+     "R": 1.361,
+     "cash_usd": 36.6,
+     "extract_usd": 9.71
+    },
+    {
+     "vTAROT": "0x738114fc34d7b0d33f13d2b5c3d44484ec85c7f1",
+     "side": "USDC borrowable",
+     "R": 1.361,
+     "cash_usd": 15.91,
+     "extract_usd": 4.22
+    }
+   ]
+  },
+  "live_gauge_market": {
+   "vTAROT": "0x0de0fd789ec103bc076528e026f0e96bee3c69dc",
+   "gauge": "0xca0d15b4bb6ad730fe40592f9e25a2e052842c92",
+   "R_wkava": 0.6935,
+   "R_vara": 0.6929,
+   "cash_usd": {
+    "WKAVA_borrowable": 106.83,
+    "VARA_borrowable": 0.56
+   },
+   "note": "only market whose gauge is alive; pool ~50/50 in realised value -> no extraction"
+  }
+ },
+ "blueshift": {
+  "contracts": {
+   "registry_proxy": "0x49399653f651A25924b3D8718276b5b4372577b1",
+   "registry_impl": "0x788dcedf567b8024c8895f59fdb60a9568d93a21",
+   "registry_admin": "0x352a1db3f52dfc4f2c52df33e118ae138bc72a90",
+   "registry_owner_eoa": "0x44e3163c55a2e2b4488a284b84ce0288838e1719",
+   "eip1967_slots": {
+    "impl_slot_0x360894a1...": "0x000000000000000000000000788dcedf567b8024c8895f59fdb60a9568d93a21",
+    "admin_slot_0xb5312768...": "0x000000000000000000000000352a1db3f52dfc4f2c52df33e118ae138bc72a90",
+    "beacon_slot_0xa3f0ad74...": "0x0"
+   },
+   "manualPool": "0x7A60918Bd5c83Ef7e2ABA87D13e3FD704f6A77E1",
+   "portfolio0": "0xA8893E7d58D079A8fB7d999a19fe46682adA52FE",
+   "portfolio1": "0x67C85757DEa3Bc6358C1352d1185E05CE8CB0406",
+   "lp0": "0x217F778528015Eea8608758Bf3a2caA25284DD9A",
+   "lp1": "0x7582eAac8532c39f3c02caE7142F0a5286d348F3"
+  },
+  "getPortfolios_stale_claims": {
+   "pf0_totalValue_base": 193007099364,
+   "pf0_base": "USDT (6dec)",
+   "pf1_totalValue_base": 1120472234705673498418,
+   "pf1_base": "WKAVA (18dec) -> ~$76.9 (DefiLlama Kava TVL)"
+  },
+  "actual_custody": {
+   "pf0_pf1_lp0_lp1_all_zero_for": [
+    "USDT",
+    "USDC",
+    "DAI",
+    "WKAVA",
+    "BLUES"
+   ],
+   "manualPool": {
+    "BLUES": 6244818081752592069580
+   },
+   "owner_eoa": {
+    "BLUES": 1140424314612411337184
+   },
+   "BLUES_price": "none found (DefiLlama {} -> DefiLlama blueshift staking = $0)"
+  },
+  "raw_getPortfolios_len_hex": 8386
+ },
+ "steer": {
+  "periphery_proxy": "0xf90107890B640387ec3b0474F0c61674AEbCb510",
+  "periphery_impl": "0x245194ed39516431ff511a74c7b6df4cb4b5f1f3",
+  "periphery_admin": "0xab36d30c1a1c683037bd7aac67f29b2e3ecc6576",
+  "periphery_owner": "0x088F8F36ad78d81C092Ec8Dc172C6c0fA09D1594",
+  "eip1967_slots": {
+   "impl_slot_0x360894a1...": "0x000000000000000000000000245194ed39516431ff511a74c7b6df4cb4b5f1f3",
+   "admin_slot_0xb5312768...": "0x000000000000000000000000ab36d30c1a1c683037bd7aac67f29b2e3ecc6576",
+   "storage_slots_read": {
+    "201": "strategyRegistry",
+    "202": "vaultRegistry",
+    "203": "stakingRewards",
+    "204": "gasVault"
+   }
+  },
+  "vault_paused": false,
+  "strategy_registry": "0xdca3251ebe8f85458e8d95813bcb816460e4bef1",
+  "vault_registry": "0xe240b9a2936f6fb8860219bc059349e50f03492e",
+  "staking_rewards": "0x36c796bca1e8e4031d3fdfa1ff0fa5ef429e0ed2",
+  "gas_vault": "0x7c31a819a36e29939058b61fdaea28bc3cfb66b8",
+  "orchestrator": "0xDe6024872d45032B9C62c2E015d2bcff2922B337",
+  "total_vault_count": 68,
+  "vault_states": "all 68 = PendingApproval (registry state 1)",
+  "vault_beacon": "0x25ddb84e4ea4d32df8ecb2405757b1887e230d38",
+  "vault_impl": "0x8032D063992f4f6A14bC2be69a0D24CB563365de",
+  "live_value_usd_total": 1475.55,
+  "probe_vault": {
+   "address": "0x6C21797DC7445A38C1E219A0146de7c784c92422",
+   "poke_permissionless": true,
+   "poke_fee_delta_1e6": {
+    "token0": 9527,
+    "token1": 8977
+   },
+   "steerCollectFees_unprivileged": "revert",
+   "emergencyBurn_unprivileged": "revert"
+  },
+  "roles": {
+   "STEER_ROLE": {
+    "member": "0x088F8F36ad78d81C092Ec8Dc172C6c0fA09D1594"
+   },
+   "MANAGER_ROLE": {
+    "member": "0xDe6024872d45032B9C62c2E015d2bcff2922B337"
+   },
+   "DEFAULT_ADMIN_ROLE": {
+    "memberCount": 0,
+    "note": "roles frozen - nobody can grant/revoke"
+   }
+  },
+  "vaults_with_value": [
+   {
+    "vault": "0x053093ba76a76dc8ffc40699b4fb32bf5c4c5f15",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 15471300000000000,
+    "maxTS": null,
+    "amt0": 4,
+    "amt1": 53490726088946667,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 223,
+    "sf1": 519338622708346,
+    "pool": "0x91098391cd135a95f775752f8cbf59286729a948",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x0571d20e59a2854b9b56f3e31a8285d6d4753be7",
+    "token0": "0x471ee749ba270eb4c1165b5ad95e614947f6fceb",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x2c0b777dba715e41e40b2a784706c3ad9ce72684",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x06a93c03a315d5836a1693bf40956f7a2dc3ccfb",
+    "token0": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 572885687991861468114,
+    "maxTS": null,
+    "amt0": 45139058915157591,
+    "amt1": 1732224409334533775428,
+    "f0": 39588188904081,
+    "f1": 662195297244787395,
+    "sf0": 5459904439467700,
+    "sf1": 27825047856802214728,
+    "pool": "0x112c4f94deb8ba95668712c46e35f3e10cb95026",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x0729696fe7887ce296cd761dfc2c059ef12706e3",
+    "token0": "0x7f5373ae26c3e8ffc4c77b7255df7ec1a9af52a6",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x14d87d5925f9f014ce3a5da36e9f8e74ddd38bdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x07c2410c09d16e19cd366c8f93523d301b112b9a",
+    "token0": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 911526092394988800,
+    "maxTS": null,
+    "amt0": 364332434479243,
+    "amt1": 911526092394988800,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x112c4f94deb8ba95668712c46e35f3e10cb95026",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x0825baca01b093891a11603345852c87fbab96c1",
+    "token0": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "token1": "0xeb466342c4d449bc9f53a865d5cb90586f405215",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x2568c313383b8b3dcffe01fbd22ee2f7b272cf31",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x08f2103ee7e21693886f6c51159ac69c1ab3168a",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xeb466342c4d449bc9f53a865d5cb90586f405215",
+    "TS": 250000,
+    "maxTS": null,
+    "amt0": 243936,
+    "amt1": 256174,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 4,
+    "sf1": 6,
+    "pool": "0xb5d2bc223cb96b61133a363f33535a9e0bace781",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x09a082d7fd3c5e7a5fb3607c69b47109971b17d5",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 6626073195898271,
+    "maxTS": null,
+    "amt0": 32519,
+    "amt1": 4982371237556629,
+    "f0": 49,
+    "f1": 12418026847392,
+    "sf0": 12164,
+    "sf1": 2564634000076370,
+    "pool": "0x40f45cc3dec7c843c6f7c8b478ff53adf7aa7488",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x1151c44eaf30adab3cf4a9aa3f656e990bdaa0a8",
+    "token0": "0x7f5373ae26c3e8ffc4c77b7255df7ec1a9af52a6",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x14d87d5925f9f014ce3a5da36e9f8e74ddd38bdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x1e19e544c27350fab2726575f339f9d214dea57b",
+    "token0": "0x52369b1539ea8f4e1eadeef18d85462dcf9a3658",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 4532291064172529418086,
+    "maxTS": null,
+    "amt0": 18603015672442997074848,
+    "amt1": 45609949125089486,
+    "f0": 659519760988148354023,
+    "f1": 958521500849316484,
+    "sf0": 22557636868382741130717,
+    "sf1": 334676257464518856309,
+    "pool": "0x8dc4a3df6ae668e3cd2d813d5a3b4dd6f9c8135c",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x2203e0e80bfa6243614c2d34a65648877eea20a0",
+    "token0": "0x2dfd4de5ae386cd3f4fc8e2cb39240852e47f5e8",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 294696091946572297566,
+    "maxTS": null,
+    "amt0": 23347977743557319,
+    "amt1": 900193667973860152707,
+    "f0": 126881277597964,
+    "f1": 2463517766420793354,
+    "sf0": 11091965723298186,
+    "sf1": 62597425229749801003,
+    "pool": "0xe89997a72423345958453ceac6bc671a3e1dbea4",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x229ba1db81c157426766ebc1135c4853f0af344f",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 145261905,
+    "maxTS": null,
+    "amt0": 38805008,
+    "amt1": 57487719,
+    "f0": 27537,
+    "f1": 81488,
+    "sf0": 5674394,
+    "sf1": 38433794,
+    "pool": "0xf08a8cc4f3e1883e41177cb956e577d389b43fdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x233ae2aac55980c95cddaf163af18ddcdda0e662",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xeb466342c4d449bc9f53a865d5cb90586f405215",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xb5d2bc223cb96b61133a363f33535a9e0bace781",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x23445611ff7c4b6345ee8844a59012ab20a80f8b",
+    "token0": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x112c4f94deb8ba95668712c46e35f3e10cb95026",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x254f61fa7cc2c35623860cbf3d42e02e50395c60",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 30000000000000000,
+    "maxTS": null,
+    "amt0": 377,
+    "amt1": 67871051744050364,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 1569132914809,
+    "pool": "0x91098391cd135a95f775752f8cbf59286729a948",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x296f1014fc63fd4a6f34ebe308f054211304968a",
+    "token0": "0x2dfd4de5ae386cd3f4fc8e2cb39240852e47f5e8",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 786477613025864,
+    "maxTS": null,
+    "amt0": 633014606406347,
+    "amt1": 1169251,
+    "f0": 86396891270477,
+    "f1": 265111,
+    "sf0": 14094299057220341,
+    "sf1": 37627753,
+    "pool": "0x5ab16173e4a22e9708fdc4d34a1848f2d3d1a145",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x2c1ed54297d06b908dcc47233723eccdaa9fefe4",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 1433723,
+    "maxTS": null,
+    "amt0": 3212,
+    "amt1": 2153521,
+    "f0": 1,
+    "f1": 942,
+    "sf0": 10721,
+    "sf1": 5855158,
+    "pool": "0xa11df70789c4fe546fe347f2a9705f6fccbc05ca",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x2c7508e2c3b3d2d2b2f2792b9c7042aa7e57b515",
+    "token0": "0x0018d96c579121a94307249d47f053e2d687b5e7",
+    "token1": "0x2dfd4de5ae386cd3f4fc8e2cb39240852e47f5e8",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xfdaef2c3e8c53c8a7aa9592e20ac13ad4a036c9f",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x2ccb2159218e22ca09cf9f97ed1f2f59ef99ced3",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xf08a8cc4f3e1883e41177cb956e577d389b43fdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x32384df7fd3855ef936454e75f37ce6fd25c55c7",
+    "token0": "0x7f5373ae26c3e8ffc4c77b7255df7ec1a9af52a6",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x14d87d5925f9f014ce3a5da36e9f8e74ddd38bdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x329f7ddc28b68623300b986d0879142115ab92ec",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x40f45cc3dec7c843c6f7c8b478ff53adf7aa7488",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x36150e23434e1ca8037ae4220dce454bb555d80e",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xed72131197b6dfb3f1862299ac4a6b0a0379168f",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x41d00e925467d94c11ce35ca40c4a0989f050992",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xeb466342c4d449bc9f53a865d5cb90586f405215",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 1,
+    "sf1": 0,
+    "pool": "0xb5d2bc223cb96b61133a363f33535a9e0bace781",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x4cc93fca418f77d1c2290f9b7f819566ae080cc6",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 157043,
+    "maxTS": null,
+    "amt0": 418,
+    "amt1": 48850370401331,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x82ae208c257e9e615c87bc7f6c7d7afbea0a54f7",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x4e2b853ea9fcea04a0ac2284d013e530eed18bcf",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x91098391cd135a95f775752f8cbf59286729a948",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x4e9ecbc7e799497b4b8ec37f9d10f693b8702a56",
+    "token0": "0x0018d96c579121a94307249d47f053e2d687b5e7",
+    "token1": "0x52369b1539ea8f4e1eadeef18d85462dcf9a3658",
+    "TS": 6000000000000000000,
+    "maxTS": null,
+    "amt0": 46612414373060717,
+    "amt1": 3880160677150325471,
+    "f0": 66181063833595,
+    "f1": 3844411016196445,
+    "sf0": 66181063833614,
+    "sf1": 3844411016196471,
+    "pool": "0xc0135341d5aa2cfcc9d7edf082cfe8fc00b162f3",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x500a23d1259d2bd05a62e2e6e1511a84ad4c4762",
+    "token0": "0x0018d96c579121a94307249d47f053e2d687b5e7",
+    "token1": "0x2dfd4de5ae386cd3f4fc8e2cb39240852e47f5e8",
+    "TS": 456182605163563216,
+    "maxTS": null,
+    "amt0": 3160973405394701332,
+    "amt1": 11644028573129,
+    "f0": 2599750102489473,
+    "f1": 13701598066,
+    "sf0": 2599750102489518,
+    "sf1": 13701598089,
+    "pool": "0xfdaef2c3e8c53c8a7aa9592e20ac13ad4a036c9f",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x5e175980bcbc1eda0c322a894cefaac3c8156330",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x91098391cd135a95f775752f8cbf59286729a948",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x6230bce2100956f413d28665876745d11bff3a9a",
+    "token0": "0xaf20f5f19698f1d19351028cd7103b63d30de7d7",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 27915587837118155,
+    "maxTS": null,
+    "amt0": 32172027885545491,
+    "amt1": 463184546585534,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 1400782793340259885,
+    "sf1": 5844403848443928,
+    "pool": "0xc81fde7f51e432ea173e87bb3d0c5670fc7b7ff9",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x6afad8c7f29def96a27bf208544f229bd29de5dc",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x40f45cc3dec7c843c6f7c8b478ff53adf7aa7488",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x6c21797dc7445a38c1e219a0146de7c784c92422",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xeb466342c4d449bc9f53a865d5cb90586f405215",
+    "TS": 230545172,
+    "maxTS": null,
+    "amt0": 227993656,
+    "amt1": 239360788,
+    "f0": 1822451,
+    "f1": 1804587,
+    "sf0": 60660905,
+    "sf1": 59891238,
+    "pool": "0xb5d2bc223cb96b61133a363f33535a9e0bace781",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x7c44dc3cda4b55c194412cde822a73a58315be91",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x40f45cc3dec7c843c6f7c8b478ff53adf7aa7488",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x80c6f12b7d525237d175d7dc8aa6c898fb07e9ca",
+    "token0": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x112c4f94deb8ba95668712c46e35f3e10cb95026",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x87206280db762dba4d5261c2b26141d8a6780c52",
+    "token0": "0x7f5373ae26c3e8ffc4c77b7255df7ec1a9af52a6",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 500000,
+    "maxTS": null,
+    "amt0": 158478,
+    "amt1": 844256,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 66,
+    "sf1": 74,
+    "pool": "0x14d87d5925f9f014ce3a5da36e9f8e74ddd38bdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x8dab864589539cdbf2dace49d51611c6768ab6a2",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x40f45cc3dec7c843c6f7c8b478ff53adf7aa7488",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x8dc8072e1e21e59c84d702ed89ef1c7f6815ea90",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xed72131197b6dfb3f1862299ac4a6b0a0379168f",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x8f6e94375d93e60b805cde30388da55b9f97210b",
+    "token0": "0x7f5373ae26c3e8ffc4c77b7255df7ec1a9af52a6",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 3870348,
+    "maxTS": null,
+    "amt0": 1236147,
+    "amt1": 6592326,
+    "f0": 4438,
+    "f1": 2748,
+    "sf0": 24623953,
+    "sf1": 27530173,
+    "pool": "0x14d87d5925f9f014ce3a5da36e9f8e74ddd38bdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x93f86df2daea5b56458e5cfc14ac765fc4f147c8",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x5498d64a1cf9f94a7932c939afc66aea62877734",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0x988ab9178205aa56beccdf445d414d4f82f65d30",
+    "token0": "0x471ee749ba270eb4c1165b5ad95e614947f6fceb",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 100000000000000000,
+    "maxTS": null,
+    "amt0": 199986322018789904,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x2c0b777dba715e41e40b2a784706c3ad9ce72684",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xaf00c86af4cc02d13cf53b7ed774845cf7f8aca1",
+    "token0": "0x471ee749ba270eb4c1165b5ad95e614947f6fceb",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x2c0b777dba715e41e40b2a784706c3ad9ce72684",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xafba11c756100b03994cd6b5ddbdbe6fc98f8b32",
+    "token0": "0x2dfd4de5ae386cd3f4fc8e2cb39240852e47f5e8",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xe89997a72423345958453ceac6bc671a3e1dbea4",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xb332705dbec106b5fef4d73c6e36825c1fdcb4f3",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xf3c091ed43de9c270593445163a41a876a0bb3dd",
+    "TS": 69411007110295986,
+    "maxTS": null,
+    "amt0": 1395,
+    "amt1": 71262914122957615,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x381435df5cf8e18dfbb0502b2bf5174bb709b2ea",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xb388dd3bd91dc838466f7432ca587f7e4150a735",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x40f45cc3dec7c843c6f7c8b478ff53adf7aa7488",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xb4943a97d53d731bf17e3809315aa482863b4762",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 7442116062549165,
+    "maxTS": null,
+    "amt0": 15276005,
+    "amt1": 4359814849600175,
+    "f0": 38644,
+    "f1": 12245051874025,
+    "sf0": 30320606,
+    "sf1": 11657970117553789,
+    "pool": "0x82ae208c257e9e615c87bc7f6c7d7afbea0a54f7",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xb6427fb95bbbcdc422479a1ac0622df8341c98e0",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 1339381062271831754978,
+    "maxTS": null,
+    "amt0": 220894384,
+    "amt1": 2609212060449913808128,
+    "f0": 3248052,
+    "f1": 18217472209918026511,
+    "sf0": 747139663,
+    "sf1": 1322951375171399387526,
+    "pool": "0x91098391cd135a95f775752f8cbf59286729a948",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xbb34778c7fb08f2a7f0392cff4443490ebda0633",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x40f45cc3dec7c843c6f7c8b478ff53adf7aa7488",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xbcc385bf422c6662512e7933245dc899adede513",
+    "token0": "0x471ee749ba270eb4c1165b5ad95e614947f6fceb",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x2c0b777dba715e41e40b2a784706c3ad9ce72684",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xbef1a389a2ef8a35835711f0b214123926d13271",
+    "token0": "0x471ee749ba270eb4c1165b5ad95e614947f6fceb",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x2c0b777dba715e41e40b2a784706c3ad9ce72684",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xc0ee5d4af96b297c4e898cd5c61ff198f94b9298",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x91098391cd135a95f775752f8cbf59286729a948",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xc130931117a204e6b3eb1223e36c495c23f7e946",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x9e1b951156ec830f1bb7925777ec3491c201ecf7",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xc41a7f432b92d9afb08d3fbfa83b3d28b93d6939",
+    "token0": "0x0018d96c579121a94307249d47f053e2d687b5e7",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 98999834002518,
+    "maxTS": null,
+    "amt0": 139325914792749,
+    "amt1": 56002107099083,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xd0289611f90f288643076d9aac9452c59780e010",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xc5c777c835bb1237ad1831d1ac75910c06888ba0",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 318401133877752987746,
+    "maxTS": null,
+    "amt0": 18357262,
+    "amt1": 318030900105211851090,
+    "f0": 40771,
+    "f1": 901409347426318195,
+    "sf0": 4900239,
+    "sf1": 61967295712441044752,
+    "pool": "0xed72131197b6dfb3f1862299ac4a6b0a0379168f",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xc6ed735f67056654fa62ff2f95dbf660f399fd64",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x91098391cd135a95f775752f8cbf59286729a948",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xd6a04eb475385ea8e34b51b5cad27c409f48aeb5",
+    "token0": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x91098391cd135a95f775752f8cbf59286729a948",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xd7d8d4577bf6052b72f7bf18d69ecc7b5abc3200",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 287614949273447,
+    "maxTS": null,
+    "amt0": 212330,
+    "amt1": 11837,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 2,
+    "sf1": 26882098762,
+    "pool": "0x9e1b951156ec830f1bb7925777ec3491c201ecf7",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xd880af2b922898bda1eabafbf09cb838ddbd26ae",
+    "token0": "0x7f5373ae26c3e8ffc4c77b7255df7ec1a9af52a6",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x14d87d5925f9f014ce3a5da36e9f8e74ddd38bdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xe09709993edfe5cbdefd7ead851625d85d662ba1",
+    "token0": null,
+    "token1": null,
+    "TS": null,
+    "maxTS": null,
+    "amt0": null,
+    "amt1": null,
+    "f0": null,
+    "f1": null,
+    "sf0": null,
+    "sf1": null,
+    "pool": null,
+    "owner": "0xe240b9a2936f6fb8860219bc059349e50f03492e",
+    "tErr": true
+   },
+   {
+    "vault": "0xe0fa7a614651d7c954ce76b64ffff0bbabedac75",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0x2dfd4de5ae386cd3f4fc8e2cb39240852e47f5e8",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 1,
+    "sf1": 179604584387,
+    "pool": "0x1c79443c656493a933bdd57ff14435939b662e02",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xe16e1c434d41f5c0042da27579b58e86e90537af",
+    "token0": "0x471ee749ba270eb4c1165b5ad95e614947f6fceb",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 430130010987124673,
+    "maxTS": null,
+    "amt0": 862093310755832124,
+    "amt1": 0,
+    "f0": 12791395394615,
+    "f1": 9,
+    "sf0": 281552075497140993,
+    "sf1": 262838,
+    "pool": "0x2c0b777dba715e41e40b2a784706c3ad9ce72684",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xe5fdb29dc864055eba0c4bc3c7955a82d8c77143",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xa11df70789c4fe546fe347f2a9705f6fccbc05ca",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xe88e7dc65d58eb25a7de7b67fec2ca1237ae9c5f",
+    "token0": "0x2dfd4de5ae386cd3f4fc8e2cb39240852e47f5e8",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 2695132563461709,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 5229729983943582,
+    "f0": 2485035324772,
+    "f1": 2540601925561,
+    "sf0": 334973290264776,
+    "sf1": 332997398280957,
+    "pool": "0xaf8b49bef99be4d69a1d582056a0a42a3fc246ad",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xeb1a0859c1b68ac38f6511bf68c32dddc720c060",
+    "token0": "0x1a35ee4640b0a3b87705b0a4b45d227ba60ca2ad",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xa11df70789c4fe546fe347f2a9705f6fccbc05ca",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xeb4eb392aba1e1abc1e0771fb257e8115f9c245a",
+    "token0": "0x52369b1539ea8f4e1eadeef18d85462dcf9a3658",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 2351470970311192426621,
+    "maxTS": null,
+    "amt0": 10474126297343781875183,
+    "amt1": 405427,
+    "f0": 6285506985640904886,
+    "f1": 9153,
+    "sf0": 15772607300488444691208,
+    "sf1": 101871264,
+    "pool": "0x0f0ce7e982a8e969227b7a4f4c1264882d1a657a",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xefeac7f3ef06bd8fd9f6503e5684a0259a7b38c9",
+    "token0": "0x7f5373ae26c3e8ffc4c77b7255df7ec1a9af52a6",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x14d87d5925f9f014ce3a5da36e9f8e74ddd38bdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xf1a7876908b8ba30ba6eb7befeef61038ae71480",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
+    "TS": 669998,
+    "maxTS": null,
+    "amt0": 100000,
+    "amt1": 669998,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0xf08a8cc4f3e1883e41177cb956e577d389b43fdd",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xf22feba36e72abc30c38621d7a04c9bc8efbf94b",
+    "token0": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x112c4f94deb8ba95668712c46e35f3e10cb95026",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xf35dff7e63828f2657268a1273edfafd5be690e6",
+    "token0": "0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3",
+    "token1": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x9e1b951156ec830f1bb7925777ec3491c201ecf7",
+    "owner": null,
+    "tErr": false
+   },
+   {
+    "vault": "0xfd083e92ca184902302879f45b213d95dfc3898b",
+    "token0": "0xb829b68f57cc546da7e5806a929e53be32a4625d",
+    "token1": "0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b",
+    "TS": 0,
+    "maxTS": null,
+    "amt0": 0,
+    "amt1": 0,
+    "f0": 0,
+    "f1": 0,
+    "sf0": 0,
+    "sf1": 0,
+    "pool": "0x112c4f94deb8ba95668712c46e35f3e10cb95026",
+    "owner": null,
+    "tErr": false
+   }
+  ],
+  "token_prices": {
+   "kava:0x0018d96c579121a94307249d47f053e2d687b5e7": {
+    "decimals": 18,
+    "symbol": "MVX",
+    "price": 0.025498134017530517,
+    "timestamp": 1792066084,
+    "confidence": 0.99
+   },
+   "kava:0x15932e26f5bd4923d46a2b205191c4b5d5f43fe3": {
+    "decimals": 6,
+    "symbol": "ATOM",
+    "price": 1.6992477572328588,
+    "timestamp": 1792065420,
+    "confidence": 0.99
+   },
+   "kava:0x2dfd4de5ae386cd3f4fc8e2cb39240852e47f5e8": {
+    "decimals": 18,
+    "symbol": "WETH",
+    "price": 2112.873554856458,
+    "timestamp": 1792066084,
+    "confidence": 0.99
+   },
+   "kava:0x7f5373ae26c3e8ffc4c77b7255df7ec1a9af52a6": {
+    "decimals": 6,
+    "symbol": "axlUSDT",
+    "price": 0.9990303923696168,
+    "timestamp": 1792066084,
+    "confidence": 0.99
+   },
+   "kava:0x919c1c267bc06a7039e03fcc2ef738525769109c": {
+    "decimals": 6,
+    "symbol": "USDT",
+    "price": 0.9990250091675384,
+    "timestamp": 1792066139,
+    "confidence": 0.99
+   },
+   "kava:0xaf20f5f19698f1d19351028cd7103b63d30de7d7": {
+    "decimals": 18,
+    "symbol": "WAGMI",
+    "price": 0.0004461046744369258,
+    "timestamp": 1792066084,
+    "confidence": 0.99
+   },
+   "kava:0xb829b68f57cc546da7e5806a929e53be32a4625d": {
+    "decimals": 18,
+    "symbol": "axlETH",
+    "price": 2353.0737667736225,
+    "timestamp": 1792066084,
+    "confidence": 0.99
+   },
+   "kava:0xc86c7c0efbd6a49b35e8714c5f59d99de09a225b": {
+    "decimals": 18,
+    "symbol": "WKAVA",
+    "price": 0.06879604057044186,
+    "timestamp": 1792065187,
+    "confidence": 0.99
+   },
+   "kava:0xeb466342c4d449bc9f53a865d5cb90586f405215": {
+    "decimals": 6,
+    "symbol": "axlUSDC",
+    "price": 0.9996110201952432,
+    "timestamp": 1792066084,
+    "confidence": 0.99
+   },
+   "kava:0xf3c091ed43de9c270593445163a41a876a0bb3dd": {
+    "decimals": 18,
+    "symbol": "ORBS",
+    "price": 0.006865554520007657,
+    "timestamp": 1792065169,
+    "confidence": 0.99
+   }
+  }
+ },
+ "incidents": {
+  "defillama_hacks_db_matches": [],
+  "web_search": "no incident reports found for these Kava deployments"
+ }
+}
