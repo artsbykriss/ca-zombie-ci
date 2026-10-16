@@ -1,0 +1,79 @@
+{
+  "finding": "Z3-C3",
+  "title": "Papertrade (HyperEVM/HyperCore) \u2014 BBO-oracle manipulation primitive live but economically closed at current caps; conditional re-open via keeper-trailing OI caps",
+  "chains": [
+    "hyperevm",
+    "hyperliquid"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "conditional_extractable": {
+    "per_cycle_usd": "15000-180000",
+    "realistic_total_before_response_usd": "100000-2000000",
+    "hard_ceiling_usd": 4958944.58,
+    "conditions": [
+      "official relayer forwards the attacker's signed intents (owner-only relayer allowlist; no self-registration)",
+      "attacker accumulates >=25-40M USD/side (ETH) or >=40-55M (BTC) through the keeper's trailing cap refills (~7-9M every 15-30s)",
+      "delta hedge (or luck) against the fixed ~4.8bp liquidation trigger during accumulation",
+      "keeper keeps refilling; guardian does not retire the market mid-attack"
+    ],
+    "confidence": "medium"
+  },
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 48648947,
+  "block_numbers": {
+    "hyperevm": 48648947,
+    "hyperliquid": 48648947
+  },
+  "targets_checked": 8,
+  "live_targets": 4,
+  "closed_reasons": [
+    "instantaneous per-side OI headroom (BTC $4.3-9.0M, ETH $7.0-8.6M) is 3-10x below the break-even deployable notional ($25-94M depending on market/move/fee tier)",
+    "manipulation round-trip cost from live HL book depth (ETH 15bp $37-45k; BTC 15bp $64-90k) exceeds the payout at current headroom ($7.7-10.4k) under every cost variant",
+    "even a zero-slippage fees-only floor is negative for BTC and ~break-even for ETH",
+    "opens/closes require the team's two allowlisted relayer EOAs (owner-only registration) - a fresh EOA cannot trade directly"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Oracle impl unchanged: 0x3997ffc8cbd281d4fc8d0548e505ae2fbbbd985a, 2475 bytes, keccak256 0x75f094dab1fb771fc5ed5953a02be453a5d35dc4878b53a9e6a11c7d9e4e679c (byte-identical to the Oct-15 pre-incident snapshot)",
+    "tradingPaused=false; pauseGuardian 0x696292762fd5ac3677a45edbe54eaece4194d1f6 (2-of-3); marketKeeper 0x3721476de31190dc1af8908026abe20efe25cf99 (hot EOA)",
+    "Oracle = raw Hyperliquid BBO mid ((bid+ask)/2, precompile 0x080e); only guards: nonzero and ask>=bid (crossed); PoC proves a +1018bp displaced uncrossed book is accepted (no deviation/TWAP/lookback)",
+    "Live headroom at block 48648947: BTC long $4.32M / short $9.01M; ETH long $7.00M / short $8.57M (packed storage mapping base 0x24, cross-checked against keeper setOiCaps calldata exactly at block 48648990: a=2833.9055 longCap, b=1993.0627 shortCap)",
+    "OI caps trail OI: keeper restores ~$7-9M headroom in steps every ~15-30s (74 cap changes in 110 samples over 40 min); 143-sample series: BTC long HR median $8.9M max $32.8M; ETH long median $6.8M max $17.9M",
+    "Payout per $1M notional (docs impact curve, live params: ETH mult 483.979, BTC 814.598, baseRate 10%, refNotional $100k): ETH 15bp $1,102 / 30bp $2,408; BTC 15bp $1,157 / 30bp $2,471",
+    "Round-trip manipulation cost (live HL books, mech B cross-and-rest, 2.25bp incident-implied fees): ETH 15bp $37k (30bp $98k); BTC 15bp $90k (30bp $164k); at 4.5bp base fees +10-20%",
+    "Break-even deployable N: ETH up 15bp $33.5M (2.25bp) / $40.7M (4.5bp) / $22.4M (slow unwind); BTC up 15bp $77.4M / $94.2M / $51.5M",
+    "Conditional accumulation economics (ETH up, live costs): N=$50M -> +$18-30k/cycle (15bp) or +$23-62k (30bp); N=$100M -> +$73-86k (15bp) or +$143-183k (30bp); a 3-9bp delta hedge reduces these by $15-90k",
+    "LP bankroll lpBankrollAvailable()=$4,958,944.58 (totalQueued=$0); Exchange HyperCore spot account holds ~$65.7M USDC; totalBalances $52.08M",
+    "Relayer set = exactly 0xc916e55b1909be6582bf1b2f017aaf82ad8eb0b4 and 0xe726b15cfa8808b2b033dd324a61e754dc6c1686; setAuthorizedRelayer (0x9011e5f9) is owner-only; fresh EOA batch call reverts NotAuthorizedRelayer (0x17fb2066)",
+    "Open=0xec6783f0 / close=0x2792e706, both require msg.sender==BatchExecutor (0x233Ff29b239abc1D7748605dA9b205C3e008626E); liquidations are permissionless and priced at the same BBO mid",
+    "Incident: Oct-10/11 $1.28M extracted via ~$20M HL order flow moving ETH BBO 10-20bp; consistent with ~$1B/side launch headroom x 15-20bp x impact curve; post-incident mitigation was caps only (headroom target cut ~100x), docs unchanged",
+    "Fixed ~4.8bp liquidation offset (instruments w5 = 0.000476 BTC / 0.000481 ETH) applies regardless of leverage, forcing hedged accumulation",
+    "Payout model validated against real closes: pid 874527 logged adjustedPnl 22.948697 vs model 22.9484 (raw 38.157039, fee 0.458974=2% of adjusted); pid 873990 adjusted 0.655196 vs model 0.655448; loss pid 873510 = full raw -1.638169 (no deadband/scaling on losses)"
+  ],
+  "caveats": [
+    "Book-depth costs from a single 23:10 UTC falling-tape snapshot; costs (and break-even N) scale linearly with depth - calm markets are deeper/higher cost",
+    "Accumulation path modeled, not executed (read-only mandate); keeper refill persistence under an adversarial burst is inferred from 40 min of observation + the documented hysteresis rule",
+    "Relayer forwarding/screening policy is off-chain and unverifiable from chain - the main non-economic gate",
+    "Hedge cost/slippage modeled at 3-9bp of N; actual depends on fee tier and execution",
+    "Historical storage reads on the public RPC are load-balancer-inconsistent (off-by-one block); all decisive figures are atomic latest-block reads with keeper-calldata cross-checks"
+  ],
+  "watch_triggers": [
+    "per-side headroom cap-OI sustained above ~$35M/side (ETH) or ~$70M/side (BTC)",
+    "OI-cap policy changes by keeper 0x3721476de31190dc1af8908026abe20efe25cf99",
+    "pauseMarket / setTradingPaused by pauseGuardian 0x696292762fd5ac3677a45edbe54eaece4194d1f6",
+    "oracle impl slot/hash change (0x75f094da...) or any new deviation/TWAP logic",
+    "authorizedRelayers set changes (BatchExecutor 0x233Ff29b...)",
+    "lpBankrollAvailable drop / totalQueued > 0"
+  ],
+  "one_liner": "Papertrade's BBO-mid oracle is unchanged and manipulation is still possible in principle, but at today's cap-imposed headroom ($4.3-9.0M/side) every manipulation size is net-negative (ETH 15bp pays $7.7k vs $37-45k cost); the prior $10-22k/cycle figure used a fees-only cost model and double-counted ETH sides - corrected headline E-U now = $0 (high confidence), with a conditional +$15k-180k/cycle re-opening path only if an attacker accumulates $25-100M/side through the keeper's trailing cap refills (bounded by the $4.96M LP bankroll) and the official relayer forwards their intents."
+}
