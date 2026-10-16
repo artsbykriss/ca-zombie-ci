@@ -1,0 +1,60 @@
+{
+ "finding": "Z3-H4",
+ "title": "The Red Village (Polygon): public forwardRequest + router-held _authorizeUpgrade -> SeasonService takeover -> ZooKeeper approval drain",
+ "chains": [
+  "polygon"
+ ],
+ "headline_extractable_usd": 0,
+ "headline_confidence": "high",
+ "categories": {
+  "E-U": 0,
+  "H-O": 0,
+  "P": 50.51,
+  "S": 333.7
+ },
+ "latest_block": 95606102,
+ "block_numbers": {
+  "polygon": 95606102
+ },
+ "targets_checked": 12,
+ "live_targets": 0,
+ "closed_reasons": [
+  "PolygonTRVRouter proxy implementation replaced by a 'stopped' brick (0x7babf2638eadd2bc41d62ba632d2948ba1efb8a1) at block 94,241,212; forwardRequest now reverts 'stopped' and the brick exposes no upgrade function (permanently frozen)",
+  "PolygonTRVRegistry bricked the same way at block 94,241,214",
+  "SeasonService proxy still runs the attacker's impl (0xA3822CdF2Bb59CeFC7E70Fa5d693B7E9fBc50aFa); its upgradeTo/upgradeToAndCall/delegatecall backdoors are gated to tx.origin == attacker EOAs 0xa566592c.. / 0xe3c4e2ea.. (fresh callers revert NotUpgrader()/NotAuthorized())",
+  "All ZooKeeper role lists are empty (team revoked transferERC20In/Out, transferERC721In/Out, transferERC1155In/Out, setAccessControlProvider at blocks 94,227,393-94,227,448); hasRole(SeasonService, ZooKeeper, transferERC20In) was true at block 94,200,340 and is false now",
+  "ZooKeeper WETH balance is 0; AccessControl role admin is owner-only (all grantRoles/grantMaster members empty)",
+  "Full-history sweep of all 324,696 Approval events to the ZooKeeper: 691 unique approvers, 488 still carry allowances, 487 of 488 have zero balance; the single live pair (0.020692910651366064 WETH) is drainable only by the ZooKeeper owner EOA (privileged)"
+ ],
+ "poc": {
+  "tests_passed": 10,
+  "tests_total": 10,
+  "ci_run_urls": [
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38837619929"
+  ],
+  "iteration_runs": [
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38836603861",
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38837226456"
+  ],
+  "fork_block": 95606441,
+  "historical_fork_block": 94200340
+ },
+ "key_facts": [
+  "Incident 2026-09-21: upgrade tx 0xac0666c534dcad575cdb1fbcbe5b74e8bba418e35f4273933f62167d5143d55d @ block 94,200,341; drain tx 0x3730141adea0cd5a64824c0a541c4405256b4054ac54d8c1de65fe6ba210dd35 @ block 94,200,868; 31.426018474517367982 WETH (~$80.7K at the time) from 299 players' standing approvals",
+  "Mitigation by team EOA 0xCD3b6008ba2F5115004ab7A07Be779cAa63CdF3F: 25+ revokeMaster calls (94,227,393-94,227,448), 10 modifyServiceInstance calls pointing 5 system services at stubs (94,240,965-94,241,005), then router+registry upgradeTo(stopped brick) at 94,241,212/94,241,214",
+  "SeasonService proxy (0xb172E15974FEAAe221EbC0860B578Dd7B6B06b77) permanently runs the attacker's impl; the team cannot upgrade it (router bricked, backdoor gates on attacker tx.origin)",
+  "Live allowance+balance set: exactly 1 wallet 0xa1f5760901dfc4251e0506f179ba9c2a56e28d77 (allowance 9.99508 WETH, balance 0.020692910651366064 WETH ~$50.51), drainable only by ZooKeeper owner 0xBd28b1786060AdE61f0bFcEde736a80fC64ba13c (P)",
+  "Standing-allowance re-arm surface: 488 wallets / ~3,417.70 WETH nominal (431 wallets <=100 WETH each); 272 of the 299 documented victims still carry allowances (1,924.07 WETH in the <=100 WETH bucket) - corrects the prior pass's 4.158 WETH undercount",
+  "Post-drain approvals: zero new approvals; 15 approve(ZK,0) revocations (some via EIP-7702 batch-revoke tools, latest at block 95,224,548)",
+  "NFT operator re-arm surface: 62 active ApprovalForAll(ZooKeeper) grants; 46 owners still hold 1,365 TRV NFTs",
+  "Stuck (S): 0.0167 WETH in SummonChampions 0x57f698d99d964aef66d974739b98ec694724b1b8 + 0.12 WETH in TRVBPToken 0x4055e3503d1221af4b187cf3b4aa8744332a4d0b (no ERC20 withdrawal functions); total 0.1367 WETH ~ $333.70"
+ ],
+ "caveats": [
+  "The attacker's impl is unverified bytecode; gating established by disassembly + eth_call probing (custom errors NotUpgrader()=0xa4174502, NotAuthorized()=0xea8e4eb5, NotProxy()=0xbf10dd3a, NotContract()=0x6f7c43f1)",
+  "Residual allowances are liabilities, not recoverable value; USD at WETH=$2,441.10 (DefiLlama 2026-10-16)",
+  "Re-arm requires a privileged action (AccessControl-owner role re-grant) or a key compromise; no unprivileged action re-arms the system",
+  "57 wallets carry non-standard huge allowances (up to 8e17 WETH nominal); their balances are zero so they do not change the conclusion",
+  "Reads are point-in-time; re-verify before acting"
+ ],
+ "one_liner": "External unprivileged attacker can extract $0 live: the router relay is permanently bricked, the SeasonService backdoor is tx.origin-gated to the attacker's own EOAs, and all ZooKeeper roles were revoked - only the ZooKeeper owner key (P) can still pull the single live pair (0.0207 WETH ~$50.51); re-arm requires a privileged role re-grant, and even then the drain is attacker-key-gated, not fresh-attacker usable."
+}
