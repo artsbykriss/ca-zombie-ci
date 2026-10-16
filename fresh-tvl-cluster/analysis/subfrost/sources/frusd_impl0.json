@@ -1,0 +1,1650 @@
+{
+ "proxyResolution": {
+  "isProxy": false,
+  "proxyType": null,
+  "implementations": []
+ },
+ "compilation": {
+  "language": "Solidity",
+  "compiler": "solc",
+  "compilerVersion": "0.8.24+commit.e11b9ed9",
+  "compilerSettings": {
+   "viaIR": true,
+   "metadata": {
+    "appendCBOR": true,
+    "bytecodeHash": "ipfs",
+    "useLiteralContent": false
+   },
+   "optimizer": {
+    "runs": 200,
+    "enabled": true
+   },
+   "evmVersion": "cancun",
+   "remappings": [
+    "forge-std/=lib/forge-std/src/",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "bip340-solidity/=lib/bip340-solidity/src/",
+    "ds-test/=lib/bip340-solidity/lib/forge-std/lib/ds-test/src/",
+    "openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/",
+    "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+   ]
+  },
+  "name": "VaultImpl",
+  "fullyQualifiedName": "src-usd/VaultImpl.sol:VaultImpl"
+ },
+ "sources": {
+  "src-usd/VaultImpl.sol": {
+   "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\nimport {IERC20} from \"@openzeppelin/contracts/token/ERC20/IERC20.sol\";\nimport {IERC20Metadata} from \"@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol\";\nimport {SafeERC20} from \"@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol\";\nimport {ReentrancyGuard} from \"@openzeppelin/contracts/utils/ReentrancyGuard.sol\";\nimport {Initializable} from \"@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol\";\nimport {UUPSUpgradeable} from \"@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol\";\n\nimport {Bip340NaiveLib} from \"./Bip340NaiveLib.sol\";\nimport {Bip340Util} from \"bip340-solidity/Bip340Util.sol\";\nimport {Secp256k1} from \"bip340-solidity/Secp256k1.sol\";\nimport {IMultiAssetStrategy} from \"./interfaces/IMultiAssetStrategy.sol\";\n\n/// @title VaultImpl\n/// @notice A MULTI-ASSET custody vault backing a Bitcoin-native fr-asset (frUSD,\n///         frETH, \u2026). It custodies several ERC20s (USDC and USDT today) under one\n///         contract, each named by the `assetId` a Bitcoin-side burn carries, and\n///         releases them EXCLUSIVELY under a FROST (BIP340) group signature. The\n///         fr-asset is a Bitcoin alkane \u2014 there is NO ERC20 fr-asset here, and no\n///         EVM mint/burn.\n///\n/// @dev UPGRADE MODEL: UUPS behind a single `ERC1967Proxy`.\n///\n///      `_authorizeUpgrade` is `onlyAuth`, so replacing the implementation takes\n///      exactly the authority that already moves the money: a FROST signature\n///      over the calldata, bound to this address, the chain id and `authNonce`,\n///      submitted through `authenticatedCall`. There is no second key, no\n///      separate admin contract and no second verifier \u2014 the upgrade path and\n///      the withdrawal path are the same gate.\n///\n///      This REPLACES the previous beacon topology (`FrostBeacon` + one\n///      `BeaconProxy` per asset). That shape existed to share one implementation\n///      across several single-asset vaults; with one vault holding every asset\n///      there is nothing left to share, and the beacon only added a second\n///      upgrade authority that \u2014 as deployed \u2014 held the same key, so a single\n///      compromise granted both withdrawal AND arbitrary implementation\n///      replacement.\n///\n///      Two bridge directions (the asset is named by `assetId`, resolved HERE):\n///        * IN  \u2014 `depositAndBridge(assetId, amount, bridgeData)`: lock the asset,\n///                emit `PaymentQueued`; the coordinator mints on Bitcoin.\n///        * OUT \u2014 `withdrawFromBridge(bridgeNonce, assetId, amount, target, script)`:\n///                release the asset against a Bitcoin burn. FROST-gated\n///                (`onlyAuth`) + at-most-once per burn (`usedBridgeNonce`).\n///\n///      STORAGE: `Initializable` (ERC-7201), `ReentrancyGuard` (computed slot) and\n///      `UUPSUpgradeable` (none) all declare NO sequential storage, so the layout\n///      below starts at slot 0 and the inheritance list does not shift it. Pinned\n///      by `test_AUDIT_StorageLayoutIsPinned`.\ncontract VaultImpl is\n    Initializable,\n    ReentrancyGuard,\n    UUPSUpgradeable\n{\n    using SafeERC20 for IERC20;\n\n    /// @notice A queued bridge-in: asset locked here -> fr-asset minted on Bitcoin.\n    ///\n    /// This is the ONE payment record \u2014 stored in `payments` and returned\n    /// verbatim by `getUnprocessedPayments`, so the coordinator reads exactly\n    /// what the vault holds and there is no second shape to keep in sync.\n    ///\n    /// `frAmount` is stored rather than derived on read: it fixes the 6->8\n    /// scaling at the instant of the deposit, so a later change to\n    /// `assetDecimals` can never retroactively restate what a queued deposit is\n    /// owed. `paymentId` is the index, carried inline so a record stays\n    /// self-identifying once it has been copied out of the array.\n    ///\n    /// Field order is chosen for packing: `timestamp` (64) + `depositor` (160)\n    /// + `processed` (8) = 232 bits share one slot, so carrying the two extra\n    /// fields costs no more storage than the five-field version did.\n    ///\n    /// NOTE: there is deliberately no transaction hash here \u2014 Solidity cannot\n    /// observe its own txid. The coordinator's at-most-once key is\n    /// (this vault's address, `paymentId`).\n    struct Payment {\n        uint256 paymentId;   // index into `payments`\n        uint256 assetAmount; // NET asset locked (after fee), in the asset's own base units\n        uint256 frAmount;    // the same value in 8-dec fr-asset base units\n        uint64 timestamp;    // when payment was queued\n        address depositor;   // who initiated the bridge\n        uint8 assetId;       // which registered asset was deposited\n        bytes bridgeData;    // opaque, coordinator-interpreted (see bridge_data.proto)\n    }\n\n    /// @notice The ERC20s this vault custodies, indexed by asset id.\n    ///\n    /// The id is what a Bitcoin-side burn names (0 = USDC, 1 = USDT), and the\n    /// vault resolves it HERE. That direction matters: if the coordinator mapped\n    /// ids to addresses from its own config, a misconfigured manifest would pay\n    /// out the wrong token under a valid FROST signature.\n    mapping(uint8 => IERC20) public assets;\n\n    /// @notice Decimals of each registered asset, captured at registration.\n    mapping(uint8 => uint8) public assetDecimalsOf;\n\n    /// @notice Whether an id has been registered (0 is a valid id, so a null\n    /// address check alone cannot distinguish \"unset\" from \"id 0\").\n    mapping(uint8 => bool) public assetRegistered;\n\n    /// @notice Highest registered id + 1, for enumeration.\n    uint8 public assetCount;\n\n    /// @notice The authorized Schnorr public key (the FROST group). Gates every onlyAuth op.\n    /// @dev BIP340 verification is done in-contract via the inlined `Bip340NaiveLib`\n    /// (full-coordinate, compares the actual 256-bit x(R)==rx \u2014 B4 audit). No separate\n    /// verifier contract; the verifier travels with the impl (fixable via a beacon upgrade).\n    bytes32 public defaultPublicKey;\n\n    /// @notice Nonce for authenticated operations (monotonic).\n    uint256 public authNonce;\n\n    /// @notice Protocol fee in basis points (100 = 1%, 10 = 0.1%).\n    uint256 public protocolFeeBps;\n\n    /// @notice Flat fee charged once per bridge-in and once per bridge-out, in\n    /// THIS VAULT'S ASSET UNITS (e.g. 1_990_000 = $1.99 of 6-dec USDC).\n    ///\n    /// Denominated in asset units, not USD, so the contract never needs a price\n    /// feed. For a volatile asset the operator re-prices it with `setFlatFee`.\n    /// It is charged in ADDITION to `protocolFeeBps`, and both accrue to\n    /// `feesCollected`.\n    uint256 public flatFee;\n\n    /// @notice Fee recipient address.\n    address public feeRecipient;\n\n    /// @notice Optional yield strategy, shared by every registered asset\n    /// (null-guarded). Asset-aware: see `IMultiAssetStrategy`.\n    IMultiAssetStrategy public strategy;\n\n    /// @notice NET asset committed to not-yet-settled bridge-ins, per asset.\n    mapping(uint8 => uint256) public pending;\n\n    /// @notice Asset deployed to the strategy, per asset.\n    mapping(uint8 => uint256) public inStrategy;\n\n    /// @notice Protocol fees accrued, per asset.\n    mapping(uint8 => uint256) public feesCollected;\n\n    /// @notice Queue of bridge-in payments.\n    Payment[] public payments;\n\n    /// @notice B2 (audit): on-chain at-most-once anchor for the reverse bridge.\n    /// Keyed by the Bitcoin burn's on-chain `bridge_id` (unique per burn). A second\n    /// withdrawFromBridge for the same burn reverts, independent of coordinator\n    /// liveness/ordering/restart or a reorg re-mining the burn.\n    mapping(uint256 => bool) public usedBridgeNonce;\n\n    /// @notice Highest burn nonce paid out, + 1 \u2014 where the coordinator resumes.\n    ///\n    /// Symmetric with the alkane's `/next_payment_id`: the chain that PERFORMS\n    /// the action records that it happened, so neither side needs an\n    /// acknowledgement round-trip. `usedBridgeNonce` stays as the actual\n    /// at-most-once guard \u2014 this is only a scan hint, and replacing the map with\n    /// it would lose per-nonce replay protection.\n    ///\n    /// Stores next-not-last for the same reason the alkane does: nonces start at\n    /// 0, so a \"last paid\" of 0 is indistinguishable from \"nothing paid\".\n    uint256 public nextBurnNonce;\n\n    /// @notice Addresses permitted to SUBMIT an authenticated call.\n    ///\n    /// This is a liveness/anti-grief control, NOT an authority over funds. What\n    /// may happen is decided entirely by the BIP340 signature, which commits to\n    /// the calldata, its order, the nonce and this vault; a relayer can only\n    /// choose whether and when to submit a payload it cannot alter.\n    ///\n    /// The reason to gate it at all: without this, anyone watching the mempool\n    /// can copy a signed payload and land it first. The signature is nonce-bound,\n    /// so their transaction succeeds and the real relayer's then reverts on\n    /// `InvalidNonce`, wasting its gas. Repeated, that is a cheap way to drain a\n    /// relayer while the bridge appears merely slow.\n    mapping(address => bool) public isRelayer;\n\n    /// @notice May add and remove relayers. Set to the deployer at initialize.\n    ///\n    /// Deliberately SEPARATE from the FROST authority, and deliberately unable to\n    /// move money. Gating the submit path makes it a liveness dependency, so\n    /// there must be a way back when a relayer key is lost \u2014 and `onlyAuth`\n    /// alone cannot provide one, because an `onlyAuth` call has to be submitted\n    /// through the very path that is gated. That is a deadlock. This admin is\n    /// the independent second path; the FROST group can also manage the set.\n    address public relayerAdmin;\n\n    /// @notice How many relayers are currently authorised.\n    ///\n    /// The gate must open when this reaches zero (see `onlyRelayer`), and a\n    /// mapping cannot be enumerated, so the count is tracked explicitly.\n    ///\n    /// APPENDED, not inserted. Placing it above `relayerAdmin` \u2014 which the first\n    /// attempt did \u2014 moves that field from slot 13 to 14 and silently corrupts\n    /// every upgraded proxy. `test_AUDIT_StorageLayoutIsPinned` caught it.\n    uint256 public relayerCount;\n\n    /// @notice Per asset: idle balance below which an incoming deposit is NOT\n    /// swept to the strategy. `0` = sweep every deposit.\n    ///\n    /// A sweep is a real position entry \u2014 an `add_liquidity` into a Curve pool,\n    /// hundreds of thousands of gas. Charging that to every `depositAndBridge`\n    /// makes a small deposit uneconomic and buys a dust LP position for it.\n    /// Holding until the idle balance clears this bar batches many deposits into\n    /// one entry; `depositToStrategy` always flushes regardless.\n    ///\n    /// PER ASSET because the value is denominated in the asset's own base units,\n    /// and this vault registers assets with different decimals (6-dec USDC/USDT,\n    /// 18-dec WETH). One scalar would mean \"$1000\" for one asset and 1e-15 of a\n    /// unit for another. Defaulted at registration, see `_registerAsset`.\n    ///\n    /// APPENDED, and `__gap` shrunk to match \u2014 see the note on `relayerCount`.\n    mapping(uint8 => uint256) public minSweep;\n\n    /// @notice Per asset: granularity of a strategy pull, in the asset's units.\n    ///\n    /// A payout sources from the idle balance first and only asks the strategy\n    /// for the shortfall \u2014 but that ask is an exit from the position\n    /// (`remove_liquidity_one_coin`), and it costs the same whether it pulls $10\n    /// or $1000. Paying it once per small withdrawal is the expensive shape.\n    ///\n    /// So the shortfall is rounded UP to a multiple of this, and the excess\n    /// stays idle in the vault where the NEXT withdrawals can be served with a\n    /// plain `transfer`. One expensive exit amortizes over many cheap payouts.\n    ///\n    /// The cost is that the excess is out of the position and stops earning\n    /// until it is either paid out or re-swept, so this trades a little yield\n    /// for a lot of gas. `0` (or 1) disables rounding and pulls exactly what is\n    /// needed.\n    mapping(uint8 => uint256) public withdrawChunk;\n\n    /// @dev Storage gap so future appends don't shift layout across impl upgrades.\n    /// Reduced from 45 as fields were appended above \u2014 the SUM must stay constant\n    /// or an upgrade shifts every slot after it.\n    uint256[40] private __gap;\n\n    /// @dev The fr-asset on Bitcoin is 8-decimal (Alkanes-aligned). `assetDecimals`\n    /// is captured at initialize so 6-dec (USDC/USDT ->x100) and 18-dec (WETH ->/1e10)\n    /// assets convert correctly; see `_toFrAmount`.\n    uint8 private constant FR_DECIMALS = 8;\n\n    /// @dev Default `minSweep` and `withdrawChunk`, in WHOLE units of the asset,\n    /// applied at registration. 1000 units of a 6-dec stablecoin is $1000 \u2014\n    /// large enough that one Curve entry/exit is amortized over a meaningful\n    /// balance, small enough that little value sits idle.\n    ///\n    /// For a non-USD asset this default is denominated in that asset, so 1000\n    /// WETH is not a sane bar and the operator must re-price it with\n    /// `setMinSweep`/`setWithdrawChunk`. That is the same limitation, and the\n    /// same remedy, as `flatFee`.\n    uint256 private constant DEFAULT_THRESHOLD_UNITS = 1000;\n\n    // Events\n    /// @notice Emitted on a bridge-in. `frAmount` is the 8-dec fr-asset to mint on\n    /// Bitcoin; `assetAmount` is the NET asset locked in the asset's own base units.\n    /// The coordinator's poll-deposits reads `data = [frAmount, assetAmount]` and\n    /// build-mint mints `frAmount` verbatim \u2014 keep this layout in lockstep.\n    event PaymentQueued(uint256 indexed paymentId, address indexed depositor, uint256 frAmount, uint256 assetAmount);\n    event FlatFeeUpdated(uint256 oldFee, uint256 newFee);\n    event PaymentProcessed(uint256 indexed paymentId, address indexed processor);\n    event StrategyUpdated(address indexed oldStrategy, address indexed newStrategy);\n    event DefaultPublicKeyUpdated(bytes32 indexed oldKey, bytes32 indexed newKey);\n    event AuthenticatedCall(address indexed caller, bytes4 indexed selector, uint256 nonce);\n    event AuthenticatedMulticall(address indexed caller, uint256 callCount, uint256 nonce);\n    event BridgeWithdrawal(address indexed target, uint256 amount, address fallbackAddress, bool targetCallSuccess);\n    event AssetsDeployedToStrategy(uint256 amount);\n    event AssetsWithdrawnFromStrategy(uint256 amount);\n    event MinSweepUpdated(uint8 indexed assetId, uint256 oldValue, uint256 newValue);\n    event WithdrawChunkUpdated(uint8 indexed assetId, uint256 oldValue, uint256 newValue);\n    event ProtocolFeeUpdated(uint256 oldFeeBps, uint256 newFeeBps);\n    event FeeRecipientUpdated(address indexed oldRecipient, address indexed newRecipient);\n    event FeesWithdrawn(address indexed recipient, uint256 amount);\n    /// @notice B2 (audit): emitted once per unique bridge burn payout.\n    event BridgeWithdrawalProcessed(uint256 indexed bridgeNonce, address indexed target, uint256 amount);\n\n    // Errors\n    error InvalidSignature();\n    error InvalidNonce();\n    error NotSelf();\n    error ZeroPublicKey();\n    error ZeroAddress();\n    error PaymentAlreadyProcessed();\n    error PaymentNotFound();\n    error InsufficientAssets();\n    error ZeroAmount();\n    /// @notice B2 (audit): reverse-bridge replay of an already-paid Bitcoin burn.\n    error BridgeNonceAlreadyUsed();\n    /// @notice A payout target that would let the scripted call escape its budget:\n    /// the vault itself (which would satisfy `onlyAuth`) or the custody asset\n    /// (whose `transfer` the vault would then be invoking on itself).\n    error InvalidTarget();\n    /// @notice A scripted payout consumed more of the asset than it was allotted.\n    error WithdrawalOverspend();\n    /// Amount does not cover `flatFee`, so the transfer would net nothing.\n    error BelowFlatFee();\n    /// A batch with no calls would burn a nonce and do nothing.\n    error EmptyBatch();\n    /// A batch may not contain another authenticated entry point.\n    error NestedAuthCall();\n    /// `msg.sender` is not an authorised relayer.\n    error NotRelayer();\n    /// An asset id that was never registered.\n    error UnknownAsset();\n    /// Asset ids are permanent; re-pointing one would re-denominate existing records.\n    error AssetAlreadyRegistered();\n    /// Caller is neither the relayer admin nor the vault itself (FROST).\n    error NotRelayerAdmin();\n    /// `initialize` was given no assets, or more ids than a uint8 can carry.\n    error InvalidAssetList();\n    /// The same ERC20 was registered under two ids \u2014 two ledgers over one pot.\n    error DuplicateAsset();\n    /// Repointing `strategy` while the current one still holds a position would\n    /// strand it \u2014 drain it first.\n    error StrategyNotEmpty();\n\n    /// @notice A relayer was authorised or revoked.\n    event RelayerSet(address indexed relayer, bool allowed);\n    /// @notice An ERC20 was registered under an asset id.\n    event AssetRegistered(uint8 indexed id, address indexed token, uint8 decimals);\n    /// @notice The relayer admin changed.\n    event RelayerAdminTransferred(address indexed from, address indexed to);\n\n    /// @custom:oz-upgrades-unsafe-allow constructor\n    constructor() {\n        _disableInitializers();\n    }\n\n    /// @notice Initializes the vault with its full set of custody assets.\n    /// @param assets_ The ERC20s this vault custodies, registered under ids\n    ///        0, 1, \u2026 in the order given. For the frUSD topology that is\n    ///        `[USDC, USDT]`, so USDC is id 0 and USDT is id 1 \u2014 and those ids\n    ///        are exactly what a Bitcoin-side burn names.\n    ///\n    ///        EVERY asset is registered HERE, at deploy, and there is no way to\n    ///        add one afterwards \u2014 the asset set is fixed for the life of the\n    ///        deployment.\n    ///\n    ///        Registering atomically closes a real window: the previous\n    ///        `addAsset` was `onlyAuth`, so a second asset needed a FROST-signed\n    ///        call, which means the signing group had to already be live \u2014 and\n    ///        until it landed, `depositAndBridge` was permissionlessly open for\n    ///        asset 0 while a burn naming asset 1 could not be paid at all.\n    /// @param _defaultPublicKey The FROST group key (the withdrawal authority)\n    /// @param flatFee_ Flat bridge fee, in ASSET UNITS, shared by every asset.\n    ///        Correct while all registered assets have the SAME decimals (USDC\n    ///        and USDT are both 6). Registering an 18-dec asset alongside them\n    ///        would make one number mean two very different values \u2014 re-price it\n    ///        per asset before doing so.\n    /// @param initialRelayer_ The address permitted to SUBMIT authenticated\n    ///        calls from launch \u2014 normally the coordinator's gas-paying EOA,\n    ///        which is not usually the deployer. Pass `address(0)` to seed the\n    ///        deployer instead.\n    ///\n    ///        `relayerAdmin` is always the deployer regardless, so the party\n    ///        that can repair the relayer set is separate from the party that\n    ///        submits. A vault must never initialize with NO relayer: every\n    ///        authenticated entry point is gated, so not even the call adding the\n    ///        first relayer could be submitted.\n    function initialize(\n        address[] calldata assets_,\n        bytes32 _defaultPublicKey,\n        uint256 flatFee_,\n        address initialRelayer_\n    ) external initializer {\n        // At least one asset, or the vault is inert. At most 255: `_registerAsset`\n        // sets `assetCount = id + 1` on a uint8, so id 255 would panic \u2014 and an\n        // unchecked `uint8(i)` cast past that would silently wrap and re-register\n        // id 0, overwriting the first asset's decimals.\n        if (assets_.length == 0 || assets_.length > 255) revert InvalidAssetList();\n        // Validate the key with the SAME rules as `setDefaultPublicKey`. Deploying\n        // with an unusable key is unrecoverable: `_verifySignature` could never\n        // return true, so no withdrawal and no key rotation would ever be possible,\n        // while `depositAndBridge` stays permissionlessly open for users to lock\n        // funds into a vault that can never release them.\n        _validatePublicKey(_defaultPublicKey);\n\n        // Ids are positional. `_registerAsset` rejects a zero address and a\n        // duplicate id, and captures each asset's decimals + sweep thresholds.\n        for (uint256 i = 0; i < assets_.length; i++) {\n            _registerAsset(uint8(i), assets_[i]);\n        }\n        defaultPublicKey = _defaultPublicKey;\n        protocolFeeBps = 10;          // 0.1%\n        flatFee = flatFee_;           // asset units; re-priceable via setFlatFee\n        feeRecipient = address(this); // can be changed later (onlyAuth)\n\n        // The creator is the first relayer and the relayer admin. A vault that\n        // initialized with NO relayer would be inert: every authenticated entry\n        // point is gated, so not even the call that adds the first relayer could\n        // be submitted.\n        relayerAdmin = msg.sender;\n        address firstRelayer = initialRelayer_ == address(0) ? msg.sender : initialRelayer_;\n        isRelayer[firstRelayer] = true;\n        relayerCount = 1;\n        emit RelayerAdminTransferred(address(0), msg.sender);\n        emit RelayerSet(firstRelayer, true);\n    }\n\n    /// Register an ERC20 under `id`.\n    ///\n    /// `initialize` is the ONLY caller \u2014 the asset set is fixed for the life of\n    /// the deployment. The public `addAsset(uint8,address)` that used to sit\n    /// here is gone: with both assets registered at initialize it had no\n    /// remaining use, and it was a live FROST-gated entry point that could\n    /// re-denominate the vault's accounting for every queued payment and every\n    /// unpaid burn record. Deleting it is not a one-way door \u2014 under UUPS a\n    /// future asset can be introduced by an implementation upgrade, which is a\n    /// deliberate, reviewable act rather than a standing capability.\n    ///\n    /// Ids are positional and permanent. The `assetRegistered` guard below is\n    /// therefore unreachable from `initialize` (which walks 0..n-1) and is kept\n    /// as defence-in-depth for any future caller.\n    function _registerAsset(uint8 id, address token) internal {\n        if (token == address(0)) revert ZeroAddress();\n        if (assetRegistered[id]) revert AssetAlreadyRegistered();\n\n        // The same ERC20 must never occupy two ids. Nothing above stops it: the\n        // guard beside this one rejects a reused ID, not a reused TOKEN.\n        //\n        // Two ids over one token means two ledgers over one pot. `feesCollected`,\n        // `pending` and `inStrategy` would each split across ids that share a\n        // single balance, and `totalAssets(0)` and `totalAssets(1)` would BOTH\n        // report the whole balance \u2014 the backing reads as double what it is.\n        //\n        // This is a deploy-time footgun now that `initialize` takes a list: a\n        // mistyped `[USDC, USDC]` would otherwise produce a silently\n        // double-counting vault with no later call that surfaces it. O(n) over a\n        // handful of ids, and it costs no storage slot.\n        for (uint8 i = 0; i < assetCount; i++) {\n            if (assetRegistered[i] && address(assets[i]) == token) revert DuplicateAsset();\n        }\n\n        assets[id] = IERC20(token);\n        uint8 dec = IERC20Metadata(token).decimals();\n        assetDecimalsOf[id] = dec;\n        assetRegistered[id] = true;\n        if (id >= assetCount) assetCount = id + 1;\n\n        // Seed the gas-amortization thresholds so a vault is never deployed in\n        // the degenerate configuration (sweep every dust deposit, pull the exact\n        // shortfall for every payout) purely because nobody set them.\n        //\n        // Guarded at 18 decimals: `10 ** dec` overflows above 77 and would make\n        // registration revert on a pathological token. Such an asset simply\n        // starts at 0 (the old behaviour) and the operator configures it.\n        if (dec <= 18) {\n            uint256 unit = DEFAULT_THRESHOLD_UNITS * (10 ** uint256(dec));\n            minSweep[id] = unit;\n            withdrawChunk[id] = unit;\n            emit MinSweepUpdated(id, 0, unit);\n            emit WithdrawChunkUpdated(id, 0, unit);\n        }\n\n        emit AssetRegistered(id, token, dec);\n    }\n\n    /// Resolve a burn-side selector to a registered ERC20.\n    ///\n    /// Reverts on an unknown id rather than defaulting to asset 0 \u2014 a burn that\n    /// named an unregistered asset must not be quietly paid in a different one.\n    function _asset(uint8 id) internal view returns (IERC20) {\n        if (!assetRegistered[id]) revert UnknownAsset();\n        return assets[id];\n    }\n\n    // ============ Modifiers ============\n\n    modifier onlyAuth() {\n        if (msg.sender != address(this)) revert NotSelf();\n        _;\n    }\n\n    /// Only an authorised relayer may SUBMIT an authenticated call.\n    ///\n    /// UPGRADE SAFETY: `relayerAdmin == address(0)` means this vault predates\n    /// relayer gating \u2014 `initialize` has already run and cannot run again, so a\n    /// beacon upgrade leaves both new fields zeroed. Enforcing the gate in that\n    /// state would brick the vault permanently: no relayer is authorised, and\n    /// `setRelayer` needs an admin that does not exist. So an unconfigured vault\n    /// stays OPEN, exactly as it behaved before, and gating switches on the\n    /// moment an admin is set (`claimRelayerAdmin`, a FROST-authorised call that\n    /// is submittable precisely because the gate is still open).\n    modifier onlyRelayer() {\n        // Open when NOBODY is authorised. Two states reach that, and both must\n        // stay recoverable:\n        //\n        //  * `relayerAdmin == 0` \u2014 a vault upgraded from an implementation that\n        //    predates gating, whose `initialize` cannot run again.\n        //  * `relayerCount == 0` \u2014 every relayer revoked.\n        //\n        // The second is the important one. Gating makes submission a liveness\n        // dependency, and `onlyAuth` cannot rescue it because an `onlyAuth` call\n        // has to arrive through the gated path. So a hostile or careless admin\n        // that revoked everyone would otherwise hold every custodied asset\n        // hostage INDEFINITELY, with no override available to the FROST group\n        // that actually owns the funds. Failing open costs only the mempool\n        // grief protection \u2014 the BIP340 signature still authorises everything \u2014\n        // and it leaves the group a way back in.\n        if (relayerAdmin != address(0) && relayerCount != 0 && !isRelayer[msg.sender]) {\n            revert NotRelayer();\n        }\n        _;\n    }\n\n    /// The relayer admin, or the vault itself (i.e. a FROST-authorised call).\n    /// Two independent paths on purpose \u2014 see `relayerAdmin`.\n    modifier onlyRelayerAdmin() {\n        if (msg.sender != relayerAdmin && msg.sender != address(this)) {\n            revert NotRelayerAdmin();\n        }\n        _;\n    }\n\n    // ============ View ============\n\n    /// @notice Total asset controlled by this vault (in-vault + in-strategy).\n    function totalAssets(uint8 assetId) public view returns (uint256) {\n        uint256 vaultBalance = _asset(assetId).balanceOf(address(this));\n        uint256 strategyBalance =\n            address(strategy) != address(0) ? strategy.totalAssets(assetId) : 0;\n        return vaultBalance + strategyBalance;\n    }\n\n    /// @dev Converts a NET asset amount (asset's own base units) to the 8-dec\n    /// fr-asset amount minted on Bitcoin. 6-dec -> x100; 18-dec -> /1e10 (sub-1e10-wei\n    /// dust is truncated and remains as backing).\n    function _toFrAmount(uint8 assetId, uint256 amount) internal view returns (uint256) {\n        if (assetDecimalsOf[assetId] <= FR_DECIMALS) {\n            return amount * (10 ** uint256(FR_DECIMALS - assetDecimalsOf[assetId]));\n        }\n        return amount / (10 ** uint256(assetDecimalsOf[assetId] - FR_DECIMALS));\n    }\n\n    // ============ Bridge In ============\n\n    /// @notice Locks `amount` of the vault's asset and queues a bridge-in to Bitcoin.\n    /// The coordinator observes `PaymentQueued`, reads `bridgeData` off the payment\n    /// record, and mints the fr-asset on Bitcoin to the destination it encodes. The\n    /// vault treats `bridgeData` as opaque \u2014 it stores the bytes verbatim and makes\n    /// no assumption about their format (the coordinator interprets them). No EVM\n    /// token is minted.\n    function depositAndBridge(\n        uint8 assetId,\n        uint256 amount,\n        bytes calldata bridgeData\n    ) external nonReentrant returns (uint256 netAmount) {\n        IERC20 token = _asset(assetId);\n        if (amount == 0) revert ZeroAmount();\n\n        // Credit what actually ARRIVED, not what was requested. USDC/USDT/WETH move\n        // the full amount today, but USDT carries a dormant, owner-toggleable\n        // transfer fee (`setParams`) \u2014 if it is ever switched on, crediting `amount`\n        // would mint fr-asset on Bitcoin that this vault does not hold.\n        uint256 balanceBefore = token.balanceOf(address(this));\n        token.safeTransferFrom(msg.sender, address(this), amount);\n        uint256 received = token.balanceOf(address(this)) - balanceBefore;\n        if (received == 0) revert ZeroAmount();\n\n        // Flat fee first, then the bps fee on what remains. Reverting (rather\n        // than accepting and crediting nothing) keeps the user's funds with the\n        // user: a deposit too small to bridge never leaves their wallet.\n        if (received <= flatFee) revert BelowFlatFee();\n        uint256 afterFlat = received - flatFee;\n        uint256 feeAmount = (afterFlat * protocolFeeBps) / 10000;\n        netAmount = afterFlat - feeAmount;\n        feesCollected[assetId] += flatFee + feeAmount;\n\n        uint256 paymentId = payments.length;\n        Payment storage payment = payments.push();\n        payment.paymentId = paymentId;\n        payment.depositor = msg.sender;\n        payment.assetId = assetId;\n        payment.assetAmount = netAmount;\n        payment.frAmount = _toFrAmount(assetId, netAmount);\n        payment.bridgeData = bridgeData;\n        payment.timestamp = uint64(block.timestamp);\n\n        pending[assetId] += netAmount;\n\n        emit PaymentQueued(paymentId, msg.sender, payment.frAmount, netAmount);\n\n        // Deploy by DEFAULT. Idle custody earns nothing, and requiring an\n        // operator to notice each deposit and sign a `depositToStrategy` makes\n        // the yield a function of how attentive the operator is. Anything above\n        // `minSweep` goes straight out; below it, the balance accumulates until\n        // the next deposit clears the bar.\n        //\n        // Deliberately AFTER the payment record and the event: the bridge-in is\n        // complete and observable at this point, so the sweep is an independent\n        // step rather than something the coordinator's view depends on.\n        _sweepToStrategy(assetId, minSweep[assetId]);\n        return netAmount;\n    }\n\n    // ============ Payment getters ============\n\n    function getPaymentsLength() external view returns (uint256) {\n        return payments.length;\n    }\n\n    function getPayment(uint256 index)\n        external\n        view\n        returns (\n            address depositor,\n            uint256 assetAmount,\n            bytes memory bridgeData,\n            uint256 timestamp,\n            uint8 assetId\n        )\n    {\n        if (index >= payments.length) revert PaymentNotFound();\n        Payment storage p = payments[index];\n        return (p.depositor, p.assetAmount, p.bridgeData, p.timestamp, p.assetId);\n    }\n\n    /// @notice Batch-reads unprocessed bridge-ins for coordinator efficiency.\n    ///\n    /// This is the coordinator's ONLY deposit read. It replaces scanning\n    /// `PaymentQueued` logs plus a `getPayment` per hit: one `eth_call`, already\n    /// filtered to unprocessed, with no block-range window to fall out of.\n    /// Call it at a finality-lagged block to gate against reorgs.\n    ///\n    /// Returns the stored `Payment` records verbatim \u2014 same type, same fields \u2014\n    /// so there is no projection that can drift from what the vault holds.\n    ///\n    /// The return is named `unprocessed`, not `pending`: `pending` is the\n    /// vault's NET-asset-committed accumulator, and reusing the name shadows it.\n    function getPayments(uint256 startIndex, uint256 maxCount)\n        external\n        view\n        returns (Payment[] memory page)\n    {\n        // A plain ranged read. There is no `processed` flag any more: the ALKANE\n        // records how far the coordinator has minted (`/next_payment_id`) inside\n        // the same call that mints, and passes that value here as `startIndex`.\n        //\n        // That removes the second EVM transaction the forward leg used to need\n        // purely to acknowledge a mint \u2014 `markPaymentProcessed`, the settle\n        // batch, and the ~1M-gas BIP340 verify it carried. The reverse leg\n        // already worked this way (`withdrawFromBridge` records its own nonce);\n        // this makes the two symmetric.\n        uint256 endIndex = startIndex + maxCount;\n        if (endIndex > payments.length) endIndex = payments.length;\n        if (startIndex >= endIndex) return new Payment[](0);\n\n        page = new Payment[](endIndex - startIndex);\n        for (uint256 i = startIndex; i < endIndex; i++) {\n            page[i - startIndex] = payments[i];\n        }\n    }\n\n    // ============ Authenticated ops ============\n\n    /// @notice Executes an authenticated call with Schnorr signature verification.\n    /// The signed message binds (data, nonce, chainid, address(this)) \u2014 so a\n    /// signature can't be replayed on another chain or another vault.\n    /// @notice Domain tag mixed into the multicall digest.\n    ///\n    /// Keeps a batch signature from ever being replayable against\n    /// `authenticatedCall` (or the reverse). Without it the two digests differ\n    /// only by ABI encoding shape, which is a thin thing to rely on for a\n    /// signature that moves custody.\n    bytes32 private constant MULTICALL_DOMAIN =\n        keccak256(\"SUBFROST_VAULT_MULTICALL_V1\");\n\n    /// @notice Execute several authenticated actions under ONE signature.\n    ///\n    /// The point is gas. Every `authenticatedCall` pays for a BIP340\n    /// verification in pure Solidity \u2014 around 1M gas, far more than the actions\n    /// themselves. Settling a batch (say, three `markPaymentProcessed` plus two\n    /// `withdrawFromBridge`) as five separate calls pays that five times; as one\n    /// batch it is paid once.\n    ///\n    /// The signature commits to the WHOLE array, so the relayer \u2014 which is an\n    /// untrusted gas payer with no on-chain role \u2014 cannot reorder, drop or add\n    /// calls. The batch consumes exactly ONE nonce, so it is a single replay\n    /// unit, and it is ATOMIC: if any call reverts the whole batch reverts and\n    /// no nonce is spent.\n    ///\n    /// @param calls ABI-encoded calls, executed in order against this contract.\n    /// @param nonce Must equal `authNonce`.\n    /// @param signature BIP340 signature by `defaultPublicKey` over\n    ///        keccak256(abi.encode(DOMAIN, calls, nonce, chainid, address(this))).\n    function authenticatedMulticall(\n        bytes[] calldata calls,\n        uint256 nonce,\n        bytes calldata signature\n    ) external onlyRelayer returns (bytes[] memory results) {\n        if (calls.length == 0) revert EmptyBatch();\n        if (nonce != authNonce) revert InvalidNonce();\n\n        bytes32 message = keccak256(\n            abi.encode(MULTICALL_DOMAIN, calls, nonce, block.chainid, address(this))\n        );\n        if (!_verifySignature(message, signature)) revert InvalidSignature();\n\n        // Effects before interactions: the nonce is spent before any call runs,\n        // so a re-entrant attempt cannot reuse it.\n        authNonce = nonce + 1;\n\n        results = new bytes[](calls.length);\n        for (uint256 i = 0; i < calls.length; i++) {\n            bytes calldata call_ = calls[i];\n            // A nested authenticated entry point inside a batch would consume a\n            // second nonce and muddy \"one batch = one replay unit\". Each action\n            // is already authorised by the batch signature, so nesting has no\n            // legitimate use.\n            if (call_.length >= 4) {\n                bytes4 sel = bytes4(call_[:4]);\n                if (\n                    sel == this.authenticatedCall.selector ||\n                    sel == this.authenticatedMulticall.selector\n                ) revert NestedAuthCall();\n            }\n\n            (bool success, bytes memory returnData) = address(this).call(call_);\n            if (!success) {\n                // Bubble the inner revert verbatim so the operator sees WHICH\n                // action failed and why, not a generic batch error.\n                assembly {\n                    revert(add(returnData, 32), mload(returnData))\n                }\n            }\n            results[i] = returnData;\n        }\n\n        emit AuthenticatedMulticall(msg.sender, calls.length, nonce);\n        return results;\n    }\n\n    function authenticatedCall(\n        bytes calldata data,\n        uint256 nonce,\n        bytes calldata signature\n    ) external onlyRelayer returns (bytes memory result) {\n        if (nonce != authNonce) revert InvalidNonce();\n\n        bytes32 message = keccak256(abi.encode(data, nonce, block.chainid, address(this)));\n        if (!_verifySignature(message, signature)) revert InvalidSignature();\n\n        authNonce = nonce + 1;\n\n        (bool success, bytes memory returnData) = address(this).call(data);\n        if (!success) {\n            assembly {\n                revert(add(returnData, 32), mload(returnData))\n            }\n        }\n\n        emit AuthenticatedCall(msg.sender, bytes4(data[:4]), nonce);\n        return returnData;\n    }\n\n    // `_closePayment` and `markPaymentProcessed` are GONE.\n    //\n    // The forward leg no longer acknowledges anything on this chain. The alkane\n    // records how far it has minted, in the same call that mints, and the\n    // coordinator reads that as the `startIndex` for `getPayments`. So the\n    // ~1M-gas authenticated ack per batch \u2014 and the whole settle-batch and\n    // relayer-envelope path built to carry it \u2014 is unnecessary.\n    //\n    // `pending` is therefore never decremented here. It is now a monotonic\n    // record of gross asset committed per id; it was already read by nothing\n    // (audit F3), so nothing regressed. If a solvency invariant is added later\n    // it must net against the alkane's mark rather than a local flag, since this\n    // contract no longer knows what has been minted.\n\n    // ============ Bridge Out ============    // ============ Bridge Out ============\n\n    /// @notice Releases `amount` of the asset to `target` against a Bitcoin burn.\n    /// @param bridgeNonce The burn's on-chain `bridge_id` \u2014 unique per burn. B2 (audit):\n    ///        on-chain at-most-once payout.\n    function withdrawFromBridge(\n        uint256 bridgeNonce,\n        uint8 assetId,\n        uint256 amount,\n        address target,\n        bytes calldata script\n    ) external onlyAuth nonReentrant {\n        // Resolved HERE, from the id the burn record named. The coordinator\n        // passes the index through verbatim and never chooses the token.\n        IERC20 token = _asset(assetId);\n        if (amount == 0) revert ZeroAmount();\n        if (target == address(0)) revert ZeroAddress();\n        // A payout must go OUT of the vault. Targeting the vault itself would make\n        // the scripted call satisfy `onlyAuth` (turning a withdrawal signature into\n        // an unlabelled arbitrary-admin call); targeting the asset would have the\n        // vault invoke `transfer` on its own balance, escaping `amount` entirely.\n        if (target == address(this) || target == address(token)) revert InvalidTarget();\n\n        // B2: dedup \u2014 reject a replay of the same Bitcoin burn.\n        // check-and-set BEFORE any transfer/strategy pull (effects-before-interactions).\n        if (usedBridgeNonce[bridgeNonce]) revert BridgeNonceAlreadyUsed();\n        usedBridgeNonce[bridgeNonce] = true;\n        // Resume hint for the coordinator, recorded in the same call that pays\n        // out \u2014 the mirror of the alkane's /next_payment_id. Monotonic, and\n        // next-not-last because nonces start at 0. The per-nonce map above stays\n        // the actual at-most-once guard; this only saves the coordinator from\n        // re-reading burns it has already settled.\n        if (bridgeNonce + 1 > nextBurnNonce) nextBurnNonce = bridgeNonce + 1;\n        emit BridgeWithdrawalProcessed(bridgeNonce, target, amount);\n\n        // Same flat fee on the way out. Checked BEFORE the nonce is burned\n        // would be wrong \u2014 the nonce marks the Bitcoin burn as settled, and a\n        // reverting call rolls that back with everything else, so ordering here\n        // is safe either way.\n        if (amount <= flatFee) revert BelowFlatFee();\n        uint256 afterFlat = amount - flatFee;\n        uint256 feeAmount = (afterFlat * protocolFeeBps) / 10000;\n        uint256 netAmount = afterFlat - feeAmount;\n        feesCollected[assetId] += flatFee + feeAmount;\n\n        // With auto-sweep on, the idle balance is normally near zero, so a payout\n        // sourcing from the strategy is the RULE rather than the exception.\n        if (_ensureLiquidity(assetId, token, amount) < amount) revert InsufficientAssets();\n\n        if (script.length > 0 && target.code.length > 0) {\n            _executeContractWithdrawal(token, netAmount, target, script);\n        } else {\n            token.safeTransfer(target, netAmount);\n            emit BridgeWithdrawal(target, netAmount, target, true);\n        }\n    }\n\n    function _executeContractWithdrawal(\n        IERC20 token,\n        uint256 amount,\n        address target,\n        bytes calldata script\n    ) internal {\n        address fallbackAddress;\n        bytes memory callData;\n        (fallbackAddress, callData) = abi.decode(script, (address, bytes));\n        if (fallbackAddress == address(0)) fallbackAddress = target;\n\n        uint256 balanceBefore = token.balanceOf(address(this));\n        token.forceApprove(target, amount);\n        (bool success,) = target.call(callData);\n\n        // Retract the allowance immediately. Without this, a target that spends\n        // less than it was approved for keeps a standing approval for the residue\n        // AND receives that residue back via the refund below \u2014 letting it take the\n        // same value a second time (and every later bridge-out tops the approval\n        // back up). Clearing here caps the target at exactly one `amount`.\n        token.forceApprove(target, 0);\n\n        uint256 balanceAfter = token.balanceOf(address(this));\n        uint256 spent = balanceBefore - balanceAfter;\n        // Defence in depth: the approval bounded the pull at `amount`, so this can\n        // only trip if the asset behaves unexpectedly (e.g. a rebase during the call).\n        if (spent > amount) revert WithdrawalOverspend();\n\n        if (spent < amount) {\n            token.safeTransfer(fallbackAddress, amount - spent);\n        }\n        emit BridgeWithdrawal(target, amount, fallbackAddress, success);\n    }\n\n    // ============ Strategy ============\n\n    /// @notice Point the vault at a yield strategy, and immediately deploy the\n    ///         idle balance of EVERY registered asset into it.\n    ///\n    /// The outgoing strategy must already be empty. Repointing over a funded one\n    /// would strand its position: the vault stops reading that address,\n    /// `inStrategy` is overwritten with the new strategy's (zero) balance, and\n    /// the backing becomes recoverable only through the old strategy's own\n    /// escape hatch \u2014 a silent loss of custody that no later call would surface.\n    /// Drain it first with `withdrawAllFromStrategy` per asset.\n    function setStrategy(address _strategy) external onlyAuth {\n        IMultiAssetStrategy old = strategy;\n        if (address(old) != address(0)) {\n            for (uint8 id = 0; id < assetCount; id++) {\n                if (assetRegistered[id] && old.totalAssets(id) != 0) revert StrategyNotEmpty();\n                inStrategy[id] = 0;\n            }\n        }\n\n        emit StrategyUpdated(address(old), _strategy);\n        strategy = IMultiAssetStrategy(_strategy);\n        if (_strategy == address(0)) return;\n\n        // Threshold 0: wiring a strategy is an explicit, signed operator action,\n        // so there is nothing to batch for \u2014 deploy whatever is idle now.\n        for (uint8 id = 0; id < assetCount; id++) {\n            if (assetRegistered[id]) _sweepToStrategy(id, 0);\n        }\n    }\n\n    /// @notice Set this asset's auto-sweep threshold. See `minSweep`.\n    function setMinSweep(uint8 assetId, uint256 newMinSweep) external onlyAuth {\n        emit MinSweepUpdated(assetId, minSweep[assetId], newMinSweep);\n        minSweep[assetId] = newMinSweep;\n    }\n\n    /// @notice Set this asset's strategy-pull granularity. See `withdrawChunk`.\n    function setWithdrawChunk(uint8 assetId, uint256 newChunk) external onlyAuth {\n        emit WithdrawChunkUpdated(assetId, withdrawChunk[assetId], newChunk);\n        withdrawChunk[assetId] = newChunk;\n    }\n\n    /// Round a strategy ask UP to the asset's chunk size.\n    ///\n    /// Deliberately NOT capped at what the strategy holds: the vault cannot know\n    /// that without another external call, and a strategy asked for more than it\n    /// has returns what it can (`CrvUsdStrategy` caps the LP burn at its\n    /// balance). `_ensureLiquidity` re-reads the balance afterwards, so an\n    /// over-ask degrades to \"drained the strategy\", never to a revert.\n    function _chunked(uint8 assetId, uint256 shortfall) internal view returns (uint256) {\n        uint256 chunk = withdrawChunk[assetId];\n        if (chunk <= 1) return shortfall;\n        // Round up. `shortfall` is non-zero here (the caller checked), so this\n        // never returns 0 and never asks the strategy for nothing.\n        return ((shortfall + chunk - 1) / chunk) * chunk;\n    }\n\n    /// @notice Flush this asset's idle balance to the strategy now, ignoring\n    ///         `minSweep`.\n    function depositToStrategy(uint8 assetId) external onlyAuth {\n        _asset(assetId); // reverts on an unregistered id\n        if (address(strategy) == address(0)) revert ZeroAddress();\n        _sweepToStrategy(assetId, 0);\n    }\n\n    function withdrawFromStrategy(uint8 assetId, uint256 amount) external onlyAuth {\n        if (address(strategy) == address(0)) revert ZeroAddress();\n        if (amount == 0) revert ZeroAmount();\n        strategy.withdraw(assetId, amount);\n        inStrategy[assetId] = strategy.totalAssets(assetId); // resync to actual (audit #6)\n        emit AssetsWithdrawnFromStrategy(amount);\n    }\n\n    function withdrawAllFromStrategy(uint8 assetId) external onlyAuth {\n        if (address(strategy) == address(0)) revert ZeroAddress();\n        uint256 amount = strategy.withdrawAll(assetId);\n        inStrategy[assetId] = 0;\n        emit AssetsWithdrawnFromStrategy(amount);\n    }\n\n    /// Move this asset's idle balance into the strategy, keeping the fee reserve\n    /// behind. Returns what was actually deployed.\n    ///\n    /// `threshold` is the minimum idle balance that justifies the entry:\n    /// `depositAndBridge` passes `minSweep` so small deposits batch, everything\n    /// else passes 0 to flush unconditionally.\n    ///\n    /// Returns 0 rather than reverting when there is no strategy, it is paused,\n    /// or there is nothing to move. This runs inside `depositAndBridge`, and a\n    /// user's bridge-in must not fail because of how the yield side is\n    /// configured \u2014 pausing the strategy degrades the vault to plain custody\n    /// instead of closing the front door.\n    function _sweepToStrategy(uint8 assetId, uint256 threshold) internal returns (uint256) {\n        IMultiAssetStrategy s = strategy;\n        if (address(s) == address(0) || !s.isActive()) return 0;\n\n        IERC20 token = assets[assetId];\n        // Do NOT deploy the fee reserve (audit): fees are held here and paid by\n        // withdrawFees(), so sweeping them would make paying out money the vault\n        // already holds depend on a strategy round-trip.\n        uint256 bal = token.balanceOf(address(this));\n        uint256 fees = feesCollected[assetId];\n        uint256 available = bal > fees ? bal - fees : 0;\n        if (available == 0 || available < threshold) return 0;\n\n        token.forceApprove(address(s), available);\n        s.deposit(assetId, available);\n        // Retract any residue: a strategy that pulled less than it was approved\n        // for would otherwise keep a standing allowance over custody funds.\n        token.forceApprove(address(s), 0);\n\n        inStrategy[assetId] = s.totalAssets(assetId); // resync to actual (audit #6)\n        emit AssetsDeployedToStrategy(available);\n        return available;\n    }\n\n    /// Make sure `needed` of `token` is sitting in the vault, pulling the\n    /// shortfall back from the strategy. Returns the balance actually available\n    /// afterwards, which the caller must check \u2014 a strategy can deliver less\n    /// than it was asked for.\n    ///\n    /// IDLE BALANCE FIRST. A payout served from what is already sitting here is\n    /// a plain ERC20 transfer; one served from the strategy is a Curve exit\n    /// costing an order of magnitude more gas. So the strategy is touched only\n    /// for the part the idle balance cannot cover, and not at all when it can.\n    ///\n    /// When it IS touched, the ask is rounded up to `withdrawChunk` \u2014 the exit\n    /// costs the same whether it pulls the exact shortfall or a round lot, and\n    /// the excess stays here to serve later payouts by transfer alone.\n    function _ensureLiquidity(uint8 assetId, IERC20 token, uint256 needed)\n        internal\n        returns (uint256 available)\n    {\n        available = token.balanceOf(address(this));\n        if (available >= needed || address(strategy) == address(0)) return available;\n\n        strategy.withdraw(assetId, _chunked(assetId, needed - available));\n        // Resync to the strategy's actual value (audit #6): a lossy strategy may\n        // return slightly less; reading totalAssets() keeps it exact + safe.\n        inStrategy[assetId] = strategy.totalAssets(assetId);\n        available = token.balanceOf(address(this));\n    }\n\n    // ============ Key rotation / fees ============\n\n    /// @notice Rotates the FROST key (FROST-gated). Validates the new key so a bad\n    /// DKG output can't brick the fund gate: reject zero, reject x in [N,P), and\n    /// require it to lift to a real on-curve point (TOB-VAULT-005/006).\n    function setDefaultPublicKey(bytes32 newPublicKey) external onlyAuth {\n        _validatePublicKey(newPublicKey);\n        bytes32 oldKey = defaultPublicKey;\n        defaultPublicKey = newPublicKey;\n        emit DefaultPublicKeyUpdated(oldKey, newPublicKey);\n    }\n\n    /// @dev Rejects a key that could never verify a signature: zero, x outside the\n    /// curve order, or an x with no corresponding curve point (TOB-VAULT-005/006).\n    function _validatePublicKey(bytes32 key) private pure {\n        if (key == bytes32(0)) revert ZeroPublicKey();\n        uint256 kx = uint256(key);\n        if (kx >= Secp256k1.NN) revert ZeroPublicKey();\n        (, bool liftOk) = Bip340Util.liftX(kx);\n        if (!liftOk) revert ZeroPublicKey();\n    }\n\n    function setProtocolFee(uint256 newFeeBps) external onlyAuth {\n        if (newFeeBps > 100) revert(\"Fee too high\"); // Max 1%\n        uint256 oldFee = protocolFeeBps;\n        protocolFeeBps = newFeeBps;\n        emit ProtocolFeeUpdated(oldFee, newFeeBps);\n    }\n\n    /// @notice Re-price the flat fee (asset units).\n    ///\n    /// `onlyAuth` is the vault's sole authority \u2014 a FROST group signature\n    /// routed through `authenticatedCall`. There is no owner or admin role, so\n    /// this is the \"admin\" path: threshold-signed, replay-guarded by authNonce.\n    ///\n    /// Deliberately unbounded: for an 18-dec asset a sane fee is a large number,\n    /// and any cap expressed here would be wrong for some asset. The threshold\n    /// signature is the control.\n    /// @notice Authorise or revoke a relayer.\n    ///\n    /// Callable by the relayer admin OR through a FROST-authorised call, so a\n    /// lost key on either side is recoverable from the other.\n    ///\n    /// Keep at least two funded relayers. A relayer holds no authority over\n    /// funds, but it is the ONLY way to submit one \u2014 with none authorised, and\n    /// the admin key also lost, the vault can never move money again.\n    function setRelayer(address relayer, bool allowed) external onlyRelayerAdmin {\n        if (relayer == address(0)) revert ZeroAddress();\n        if (isRelayer[relayer] != allowed) {\n            isRelayer[relayer] = allowed;\n            // Kept exact rather than incremented blindly: a repeated\n            // setRelayer(x, true) would otherwise inflate the count and the\n            // gate could never re-open.\n            if (allowed) relayerCount += 1;\n            else relayerCount -= 1;\n            emit RelayerSet(relayer, allowed);\n        }\n    }\n\n    /// @notice Turn on relayer gating for a vault upgraded from a version that\n    ///         predates it.\n    ///\n    /// Only callable while `relayerAdmin` is unset, and only through a\n    /// FROST-authorised call \u2014 which works because an unconfigured vault is\n    /// still open. After this the gate is live and `setRelayer` is the way in.\n    ///\n    /// Not needed for a fresh deploy: `initialize` seeds the creator.\n    function claimRelayerAdmin(address admin, address firstRelayer) external onlyAuth {\n        if (relayerAdmin != address(0)) revert NotRelayerAdmin();\n        if (admin == address(0) || firstRelayer == address(0)) revert ZeroAddress();\n        relayerAdmin = admin;\n        isRelayer[firstRelayer] = true;\n        relayerCount += 1;\n        emit RelayerAdminTransferred(address(0), admin);\n        emit RelayerSet(firstRelayer, true);\n    }\n\n    /// @notice Hand the relayer admin role to another address (e.g. a multisig).\n    ///\n    /// Not renounceable to `address(0)`: that would delete one of the two\n    /// recovery paths and leave the FROST group unable to re-authorise a relayer\n    /// if it ever lost all of them.\n    function transferRelayerAdmin(address newAdmin) external onlyRelayerAdmin {\n        if (newAdmin == address(0)) revert ZeroAddress();\n        emit RelayerAdminTransferred(relayerAdmin, newAdmin);\n        relayerAdmin = newAdmin;\n    }\n\n    function setFlatFee(uint256 newFlatFee) external onlyAuth {\n        uint256 oldFee = flatFee;\n        flatFee = newFlatFee;\n        emit FlatFeeUpdated(oldFee, newFlatFee);\n    }\n\n    function setFeeRecipient(address newRecipient) external onlyAuth {\n        if (newRecipient == address(0)) revert ZeroAddress();\n        address oldRecipient = feeRecipient;\n        feeRecipient = newRecipient;\n        emit FeeRecipientUpdated(oldRecipient, newRecipient);\n    }\n\n    function withdrawFees(uint8 assetId) external onlyAuth nonReentrant {\n        IERC20 token = _asset(assetId);\n        uint256 amount = feesCollected[assetId];\n        if (amount == 0) revert ZeroAmount();\n        // `feeRecipient` defaults to this vault. Paying out to that default would be\n        // a self-transfer: it zeroes the ledger while no tokens move, silently\n        // folding accrued fees into general backing and emitting a FeesWithdrawn\n        // event that indexers would read as revenue actually paid. Require a real\n        // recipient to be configured first.\n        address recipient = feeRecipient;\n        if (recipient == address(this)) revert InvalidTarget();\n\n        // The reserve is never SWEPT (`_sweepToStrategy` holds it back), but a\n        // payout can still consume it: `withdrawFromBridge` sources from the idle\n        // balance first, and that balance includes the reserve. So pull the\n        // shortfall back rather than refusing to pay out fees the vault\n        // demonstrably earned. `nonReentrant` because this now makes an external\n        // strategy call before zeroing the ledger.\n        if (_ensureLiquidity(assetId, token, amount) < amount) revert InsufficientAssets();\n\n        feesCollected[assetId] = 0;\n        token.safeTransfer(recipient, amount);\n        emit FeesWithdrawn(recipient, amount);\n    }\n\n    // ============ Upgrade ============\n\n    /// @notice Authorizes a UUPS implementation swap.\n    ///\n    /// @dev `onlyAuth` \u2014 the same gate as `withdrawFromBridge`. An upgrade is\n    ///      therefore a FROST BIP340 signature over the calldata, bound to this\n    ///      vault, this chain id and `authNonce`, submitted by an authorised\n    ///      relayer through `authenticatedCall`. Replacing the implementation is\n    ///      strictly more powerful than any single withdrawal, so it must not sit\n    ///      behind a weaker or merely different authority than the funds do.\n    ///\n    ///      Deliberately NOT delegated to a separate admin contract. The obvious\n    ///      candidate here, `SchnorrProxyAdmin`, verifies with `Bip340Ecrec`,\n    ///      whose check ends at `ecrecover(...) == fakeAddr` \u2014 a 160-bit ADDRESS\n    ///      comparison. This vault verifies with `Bip340NaiveLib`, which compares\n    ///      the full 256-bit x(R) (the B4 audit fix). Routing upgrades through the\n    ///      ecrecover variant would put total custody behind a weaker check than\n    ///      the withdrawals it protects.\n    ///\n    ///      Standard UUPS caveat: an implementation that drops this function ends\n    ///      upgradeability permanently. Verify any candidate implementation still\n    ///      inherits `UUPSUpgradeable` before signing the swap.\n    function _authorizeUpgrade(address newImplementation) internal override onlyAuth {\n        // The zero address would brick the proxy \u2014 every subsequent call\n        // delegates to code that does not exist.\n        if (newImplementation == address(0)) revert ZeroAddress();\n    }\n\n    // ============ Internal ============\n\n    function _verifySignature(bytes32 message, bytes calldata signature)\n        internal\n        view\n        returns (bool)\n    {\n        if (signature.length != 64) return false;\n        uint256 rx = uint256(bytes32(signature[0:32]));\n        uint256 s = uint256(bytes32(signature[32:64]));\n        return Bip340NaiveLib.verify(uint256(defaultPublicKey), rx, s, message);\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/IERC20.sol)\n\npragma solidity >=0.4.16;\n\n/**\n * @dev Interface of the ERC-20 standard as defined in the ERC.\n */\ninterface IERC20 {\n    /**\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\n     * another (`to`).\n     *\n     * Note that `value` may be zero.\n     */\n    event Transfer(address indexed from, address indexed to, uint256 value);\n\n    /**\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\n     * a call to {approve}. `value` is the new allowance.\n     */\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    /**\n     * @dev Returns the value of tokens in existence.\n     */\n    function totalSupply() external view returns (uint256);\n\n    /**\n     * @dev Returns the value of tokens owned by `account`.\n     */\n    function balanceOf(address account) external view returns (uint256);\n\n    /**\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * Emits a {Transfer} event.\n     */\n    function transfer(address to, uint256 value) external returns (bool);\n\n    /**\n     * @dev Returns the remaining number of tokens that `spender` will be\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\n     * zero by default.\n     *\n     * This value changes when {approve} or {transferFrom} are called.\n     */\n    function allowance(address owner, address spender) external view returns (uint256);\n\n    /**\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\n     * caller's tokens.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\n     * that someone may use both the old and the new allowance by unfortunate\n     * transaction ordering. One possible solution to mitigate this race\n     * condition is to first reduce the spender's allowance to 0 and set the\n     * desired value afterwards:\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\n     *\n     * Emits an {Approval} event.\n     */\n    function approve(address spender, uint256 value) external returns (bool);\n\n    /**\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the\n     * allowance mechanism. `value` is then deducted from the caller's\n     * allowance.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * Emits a {Transfer} event.\n     */\n    function transferFrom(address from, address to, uint256 value) external returns (bool);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/extensions/IERC20Metadata.sol)\n\npragma solidity >=0.6.2;\n\nimport {IERC20} from \"../IERC20.sol\";\n\n/**\n * @dev Interface for the optional metadata functions from the ERC-20 standard.\n */\ninterface IERC20Metadata is IERC20 {\n    /**\n     * @dev Returns the name of the token.\n     */\n    function name() external view returns (string memory);\n\n    /**\n     * @dev Returns the symbol of the token.\n     */\n    function symbol() external view returns (string memory);\n\n    /**\n     * @dev Returns the decimals places of the token.\n     */\n    function decimals() external view returns (uint8);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.5.0) (token/ERC20/utils/SafeERC20.sol)\n\npragma solidity ^0.8.20;\n\nimport {IERC20} from \"../IERC20.sol\";\nimport {IERC1363} from \"../../../interfaces/IERC1363.sol\";\n\n/**\n * @title SafeERC20\n * @dev Wrappers around ERC-20 operations that throw on failure (when the token\n * contract returns false). Tokens that return no value (and instead revert or\n * throw on failure) are also supported, non-reverting calls are assumed to be\n * successful.\n * To use this library you can add a `using SafeERC20 for IERC20;` statement to your contract,\n * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.\n */\nlibrary SafeERC20 {\n    /**\n     * @dev An operation with an ERC-20 token failed.\n     */\n    error SafeERC20FailedOperation(address token);\n\n    /**\n     * @dev Indicates a failed `decreaseAllowance` request.\n     */\n    error SafeERC20FailedDecreaseAllowance(address spender, uint256 currentAllowance, uint256 requestedDecrease);\n\n    /**\n     * @dev Transfer `value` amount of `token` from the calling contract to `to`. If `token` returns no value,\n     * non-reverting calls are assumed to be successful.\n     */\n    function safeTransfer(IERC20 token, address to, uint256 value) internal {\n        if (!_safeTransfer(token, to, value, true)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Transfer `value` amount of `token` from `from` to `to`, spending the approval given by `from` to the\n     * calling contract. If `token` returns no value, non-reverting calls are assumed to be successful.\n     */\n    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {\n        if (!_safeTransferFrom(token, from, to, value, true)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Variant of {safeTransfer} that returns a bool instead of reverting if the operation is not successful.\n     */\n    function trySafeTransfer(IERC20 token, address to, uint256 value) internal returns (bool) {\n        return _safeTransfer(token, to, value, false);\n    }\n\n    /**\n     * @dev Variant of {safeTransferFrom} that returns a bool instead of reverting if the operation is not successful.\n     */\n    function trySafeTransferFrom(IERC20 token, address from, address to, uint256 value) internal returns (bool) {\n        return _safeTransferFrom(token, from, to, value, false);\n    }\n\n    /**\n     * @dev Increase the calling contract's allowance toward `spender` by `value`. If `token` returns no value,\n     * non-reverting calls are assumed to be successful.\n     *\n     * IMPORTANT: If the token implements ERC-7674 (ERC-20 with temporary allowance), and if the \"client\"\n     * smart contract uses ERC-7674 to set temporary allowances, then the \"client\" smart contract should avoid using\n     * this function. Performing a {safeIncreaseAllowance} or {safeDecreaseAllowance} operation on a token contract\n     * that has a non-zero temporary allowance (for that particular owner-spender) will result in unexpected behavior.\n     */\n    function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {\n        uint256 oldAllowance = token.allowance(address(this), spender);\n        forceApprove(token, spender, oldAllowance + value);\n    }\n\n    /**\n     * @dev Decrease the calling contract's allowance toward `spender` by `requestedDecrease`. If `token` returns no\n     * value, non-reverting calls are assumed to be successful.\n     *\n     * IMPORTANT: If the token implements ERC-7674 (ERC-20 with temporary allowance), and if the \"client\"\n     * smart contract uses ERC-7674 to set temporary allowances, then the \"client\" smart contract should avoid using\n     * this function. Performing a {safeIncreaseAllowance} or {safeDecreaseAllowance} operation on a token contract\n     * that has a non-zero temporary allowance (for that particular owner-spender) will result in unexpected behavior.\n     */\n    function safeDecreaseAllowance(IERC20 token, address spender, uint256 requestedDecrease) internal {\n        unchecked {\n            uint256 currentAllowance = token.allowance(address(this), spender);\n            if (currentAllowance < requestedDecrease) {\n                revert SafeERC20FailedDecreaseAllowance(spender, currentAllowance, requestedDecrease);\n            }\n            forceApprove(token, spender, currentAllowance - requestedDecrease);\n        }\n    }\n\n    /**\n     * @dev Set the calling contract's allowance toward `spender` to `value`. If `token` returns no value,\n     * non-reverting calls are assumed to be successful. Meant to be used with tokens that require the approval\n     * to be set to zero before setting it to a non-zero value, such as USDT.\n     *\n     * NOTE: If the token implements ERC-7674, this function will not modify any temporary allowance. This function\n     * only sets the \"standard\" allowance. Any temporary allowance will remain active, in addition to the value being\n     * set here.\n     */\n    function forceApprove(IERC20 token, address spender, uint256 value) internal {\n        if (!_safeApprove(token, spender, value, false)) {\n            if (!_safeApprove(token, spender, 0, true)) revert SafeERC20FailedOperation(address(token));\n            if (!_safeApprove(token, spender, value, true)) revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Performs an {ERC1363} transferAndCall, with a fallback to the simple {ERC20} transfer if the target has no\n     * code. This can be used to implement an {ERC721}-like safe transfer that relies on {ERC1363} checks when\n     * targeting contracts.\n     *\n     * Reverts if the returned value is other than `true`.\n     */\n    function transferAndCallRelaxed(IERC1363 token, address to, uint256 value, bytes memory data) internal {\n        if (to.code.length == 0) {\n            safeTransfer(token, to, value);\n        } else if (!token.transferAndCall(to, value, data)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Performs an {ERC1363} transferFromAndCall, with a fallback to the simple {ERC20} transferFrom if the target\n     * has no code. This can be used to implement an {ERC721}-like safe transfer that relies on {ERC1363} checks when\n     * targeting contracts.\n     *\n     * Reverts if the returned value is other than `true`.\n     */\n    function transferFromAndCallRelaxed(\n        IERC1363 token,\n        address from,\n        address to,\n        uint256 value,\n        bytes memory data\n    ) internal {\n        if (to.code.length == 0) {\n            safeTransferFrom(token, from, to, value);\n        } else if (!token.transferFromAndCall(from, to, value, data)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Performs an {ERC1363} approveAndCall, with a fallback to the simple {ERC20} approve if the target has no\n     * code. This can be used to implement an {ERC721}-like safe transfer that rely on {ERC1363} checks when\n     * targeting contracts.\n     *\n     * NOTE: When the recipient address (`to`) has no code (i.e. is an EOA), this function behaves as {forceApprove}.\n     * Oppositely, when the recipient address (`to`) has code, this function only attempts to call {ERC1363-approveAndCall}\n     * once without retrying, and relies on the returned value to be true.\n     *\n     * Reverts if the returned value is other than `true`.\n     */\n    function approveAndCallRelaxed(IERC1363 token, address to, uint256 value, bytes memory data) internal {\n        if (to.code.length == 0) {\n            forceApprove(token, to, value);\n        } else if (!token.approveAndCall(to, value, data)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Imitates a Solidity `token.transfer(to, value)` call, relaxing the requirement on the return value: the\n     * return value is optional (but if data is returned, it must not be false).\n     *\n     * @param token The token targeted by the call.\n     * @param to The recipient of the tokens\n     * @param value The amount of token to transfer\n     * @param bubble Behavior switch if the transfer call reverts: bubble the revert reason or return a false boolean.\n     */\n    function _safeTransfer(IERC20 token, address to, uint256 value, bool bubble) private returns (bool success) {\n        bytes4 selector = IERC20.transfer.selector;\n\n        assembly (\"memory-safe\") {\n            let fmp := mload(0x40)\n            mstore(0x00, selector)\n            mstore(0x04, and(to, shr(96, not(0))))\n            mstore(0x24, value)\n            success := call(gas(), token, 0, 0x00, 0x44, 0x00, 0x20)\n            // if call success and return is true, all is good.\n            // otherwise (not success or return is not true), we need to perform further checks\n            if iszero(and(success, eq(mload(0x00), 1))) {\n                // if the call was a failure and bubble is enabled, bubble the error\n                if and(iszero(success), bubble) {\n                    returndatacopy(fmp, 0x00, returndatasize())\n                    revert(fmp, returndatasize())\n                }\n                // if the return value is not true, then the call is only successful if:\n                // - the token address has code\n                // - the returndata is empty\n                success := and(success, and(iszero(returndatasize()), gt(extcodesize(token), 0)))\n            }\n            mstore(0x40, fmp)\n        }\n    }\n\n    /**\n     * @dev Imitates a Solidity `token.transferFrom(from, to, value)` call, relaxing the requirement on the return\n     * value: the return value is optional (but if data is returned, it must not be false).\n     *\n     * @param token The token targeted by the call.\n     * @param from The sender of the tokens\n     * @param to The recipient of the tokens\n     * @param value The amount of token to transfer\n     * @param bubble Behavior switch if the transfer call reverts: bubble the revert reason or return a false boolean.\n     */\n    function _safeTransferFrom(\n        IERC20 token,\n        address from,\n        address to,\n        uint256 value,\n        bool bubble\n    ) private returns (bool success) {\n        bytes4 selector = IERC20.transferFrom.selector;\n\n        assembly (\"memory-safe\") {\n            let fmp := mload(0x40)\n            mstore(0x00, selector)\n            mstore(0x04, and(from, shr(96, not(0))))\n            mstore(0x24, and(to, shr(96, not(0))))\n            mstore(0x44, value)\n            success := call(gas(), token, 0, 0x00, 0x64, 0x00, 0x20)\n            // if call success and return is true, all is good.\n            // otherwise (not success or return is not true), we need to perform further checks\n            if iszero(and(success, eq(mload(0x00), 1))) {\n                // if the call was a failure and bubble is enabled, bubble the error\n                if and(iszero(success), bubble) {\n                    returndatacopy(fmp, 0x00, returndatasize())\n                    revert(fmp, returndatasize())\n                }\n                // if the return value is not true, then the call is only successful if:\n                // - the token address has code\n                // - the returndata is empty\n                success := and(success, and(iszero(returndatasize()), gt(extcodesize(token), 0)))\n            }\n            mstore(0x40, fmp)\n            mstore(0x60, 0)\n        }\n    }\n\n    /**\n     * @dev Imitates a Solidity `token.approve(spender, value)` call, relaxing the requirement on the return value:\n     * the return value is optional (but if data is returned, it must not be false).\n     *\n     * @param token The token targeted by the call.\n     * @param spender The spender of the tokens\n     * @param value The amount of token to transfer\n     * @param bubble Behavior switch if the transfer call reverts: bubble the revert reason or return a false boolean.\n     */\n    function _safeApprove(IERC20 token, address spender, uint256 value, bool bubble) private returns (bool success) {\n        bytes4 selector = IERC20.approve.selector;\n\n        assembly (\"memory-safe\") {\n            let fmp := mload(0x40)\n            mstore(0x00, selector)\n            mstore(0x04, and(spender, shr(96, not(0))))\n            mstore(0x24, value)\n            success := call(gas(), token, 0, 0x00, 0x44, 0x00, 0x20)\n            // if call success and return is true, all is good.\n            // otherwise (not success or return is not true), we need to perform further checks\n            if iszero(and(success, eq(mload(0x00), 1))) {\n                // if the call was a failure and bubble is enabled, bubble the error\n                if and(iszero(success), bubble) {\n                    returndatacopy(fmp, 0x00, returndatasize())\n                    revert(fmp, returndatasize())\n                }\n                // if the return value is not true, then the call is only successful if:\n                // - the token address has code\n                // - the returndata is empty\n                success := and(success, and(iszero(returndatasize()), gt(extcodesize(token), 0)))\n            }\n            mstore(0x40, fmp)\n        }\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.5.0) (utils/ReentrancyGuard.sol)\n\npragma solidity ^0.8.20;\n\nimport {StorageSlot} from \"./StorageSlot.sol\";\n\n/**\n * @dev Contract module that helps prevent reentrant calls to a function.\n *\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\n * available, which can be applied to functions to make sure there are no nested\n * (reentrant) calls to them.\n *\n * Note that because there is a single `nonReentrant` guard, functions marked as\n * `nonReentrant` may not call one another. This can be worked around by making\n * those functions `private`, and then adding `external` `nonReentrant` entry\n * points to them.\n *\n * TIP: If EIP-1153 (transient storage) is available on the chain you're deploying at,\n * consider using {ReentrancyGuardTransient} instead.\n *\n * TIP: If you would like to learn more about reentrancy and alternative ways\n * to protect against it, check out our blog post\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\n *\n * IMPORTANT: Deprecated. This storage-based reentrancy guard will be removed and replaced\n * by the {ReentrancyGuardTransient} variant in v6.0.\n *\n * @custom:stateless\n */\nabstract contract ReentrancyGuard {\n    using StorageSlot for bytes32;\n\n    // keccak256(abi.encode(uint256(keccak256(\"openzeppelin.storage.ReentrancyGuard\")) - 1)) & ~bytes32(uint256(0xff))\n    bytes32 private constant REENTRANCY_GUARD_STORAGE =\n        0x9b779b17422d0df92223018b32b4d1fa46e071723d6817e2486d003becc55f00;\n\n    // Booleans are more expensive than uint256 or any type that takes up a full\n    // word because each write operation emits an extra SLOAD to first read the\n    // slot's contents, replace the bits taken up by the boolean, and then write\n    // back. This is the compiler's defense against contract upgrades and\n    // pointer aliasing, and it cannot be disabled.\n\n    // The values being non-zero value makes deployment a bit more expensive,\n    // but in exchange the refund on every call to nonReentrant will be lower in\n    // amount. Since refunds are capped to a percentage of the total\n    // transaction's gas, it is best to keep them low in cases like this one, to\n    // increase the likelihood of the full refund coming into effect.\n    uint256 private constant NOT_ENTERED = 1;\n    uint256 private constant ENTERED = 2;\n\n    /**\n     * @dev Unauthorized reentrant call.\n     */\n    error ReentrancyGuardReentrantCall();\n\n    constructor() {\n        _reentrancyGuardStorageSlot().getUint256Slot().value = NOT_ENTERED;\n    }\n\n    /**\n     * @dev Prevents a contract from calling itself, directly or indirectly.\n     * Calling a `nonReentrant` function from another `nonReentrant`\n     * function is not supported. It is possible to prevent this from happening\n     * by making the `nonReentrant` function external, and making it call a\n     * `private` function that does the actual work.\n     */\n    modifier nonReentrant() {\n        _nonReentrantBefore();\n        _;\n        _nonReentrantAfter();\n    }\n\n    /**\n     * @dev A `view` only version of {nonReentrant}. Use to block view functions\n     * from being called, preventing reading from inconsistent contract state.\n     *\n     * CAUTION: This is a \"view\" modifier and does not change the reentrancy\n     * status. Use it only on view functions. For payable or non-payable functions,\n     * use the standard {nonReentrant} modifier instead.\n     */\n    modifier nonReentrantView() {\n        _nonReentrantBeforeView();\n        _;\n    }\n\n    function _nonReentrantBeforeView() private view {\n        if (_reentrancyGuardEntered()) {\n            revert ReentrancyGuardReentrantCall();\n        }\n    }\n\n    function _nonReentrantBefore() private {\n        // On the first call to nonReentrant, _status will be NOT_ENTERED\n        _nonReentrantBeforeView();\n\n        // Any calls to nonReentrant after this point will fail\n        _reentrancyGuardStorageSlot().getUint256Slot().value = ENTERED;\n    }\n\n    function _nonReentrantAfter() private {\n        // By storing the original value once again, a refund is triggered (see\n        // https://eips.ethereum.org/EIPS/eip-2200)\n        _reentrancyGuardStorageSlot().getUint256Slot().value = NOT_ENTERED;\n    }\n\n    /**\n     * @dev Returns true if the reentrancy guard is currently set to \"entered\", which indicates there is a\n     * `nonReentrant` function in the call stack.\n     */\n    function _reentrancyGuardEntered() internal view returns (bool) {\n        return _reentrancyGuardStorageSlot().getUint256Slot().value == ENTERED;\n    }\n\n    function _reentrancyGuardStorageSlot() internal pure virtual returns (bytes32) {\n        return REENTRANCY_GUARD_STORAGE;\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.20;\n\nimport {Initializable} from \"@openzeppelin/contracts/proxy/utils/Initializable.sol\";\n"
+  },
+  "lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.22;\n\nimport {UUPSUpgradeable} from \"@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol\";\n"
+  },
+  "src-usd/Bip340NaiveLib.sol": {
+   "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\nimport {EllipticCurve} from \"bip340-solidity/EllipticCurve.sol\";\nimport {Secp256k1} from \"bip340-solidity/Secp256k1.sol\";\nimport {Bip340Util} from \"bip340-solidity/Bip340Util.sol\";\n\n/// @title Bip340NaiveLib\n/// @notice INTERNAL-library form of bip340-solidity's `Bip340Naive` full-coordinate\n/// BIP340 verifier. Making it an internal library inlines the verify into the vault\n/// bytecode, so:\n///   * no separate verifier contract to deploy,\n///   * no external STATICCALL per verification (saved on every FROST-gated op), and\n///   * the verifier travels with the UUPS implementation \u2014 a verifier fix ships via\n///     a FROST-authorized vault upgrade instead of being frozen in an immutable contract.\n///\n/// The logic is byte-identical to `Bip340Naive.{verify,verifyFull}` and reuses the\n/// SAME audited primitives (EllipticCurve / Secp256k1 / Bip340Util). Equivalence to\n/// the standalone contract is pinned by a differential test (see USDVaultSecurity.t.sol).\nlibrary Bip340NaiveLib {\n    /// Verifies a BIP340 signature `(rx, s)` against message `m` and pubkey x-coord `px`.\n    function verify(uint256 px, uint256 rx, uint256 s, bytes32 m) internal pure returns (bool) {\n        // Check pubkey is in range.\n        if (px >= Secp256k1.PP) {\n            return false;\n        }\n\n        // Let P = lift_x(int(pk)); fail if that fails.\n        (uint256 py, bool liftOk) = Bip340Util.liftX(px);\n        if (!liftOk) {\n            return false;\n        }\n\n        // Check pubkey is on curve.\n        if (!EllipticCurve.isOnCurve(px, py, Secp256k1.AA, Secp256k1.BB, Secp256k1.PP)) {\n            return false;\n        }\n\n        return _verifyFull(px, py, rx, s, m);\n    }\n\n    /// The point must already be on the curve (verify() validates it first).\n    function _verifyFull(uint256 _px, uint256 _py, uint256 rx, uint256 s, bytes32 m)\n        private\n        pure\n        returns (bool)\n    {\n        // Check rx and s are in-range.\n        if (rx >= Secp256k1.PP || s >= Secp256k1.NN) {\n            return false;\n        }\n\n        // Let e = int(hashBIP0340/challenge(bytes(r) || bytes(P) || m)) mod n.\n        uint256 e = Bip340Util.computeChallenge(bytes32(rx), bytes32(_px), m);\n\n        // Let R = s\u22c5G - e\u22c5P.\n        (uint256 rvx, uint256 rvy) = (0, 0);\n        {\n            uint256 px = _px;\n            uint256 py = _py;\n            (uint256 sgx, uint256 sgy, uint256 sgz) =\n                EllipticCurve.jacMul(s, Secp256k1.GX, Secp256k1.GY, 1, Secp256k1.AA, Secp256k1.PP);\n            (uint256 epx, uint256 epy, uint256 epz) =\n                EllipticCurve.jacMul(e, px, py, 1, Secp256k1.AA, Secp256k1.PP);\n\n            // Check if it's safe to use jacAdd.\n            if (Bip340Util.xToAffine(sgx, sgz, Secp256k1.PP) == Bip340Util.xToAffine(epx, epz, Secp256k1.PP)) {\n                return false;\n            }\n\n            uint256 epy_inv = (Secp256k1.PP - epy) % Secp256k1.PP; // flip the y coordinate\n            (uint256 jrvx, uint256 jrvy, uint256 jrvz) =\n                EllipticCurve.jacAdd(sgx, sgy, sgz, epx, epy_inv, epz, Secp256k1.PP);\n\n            // Convert back to affine now that we're done.\n            (rvx, rvy) = EllipticCurve.toAffine(jrvx, jrvy, jrvz, Secp256k1.PP);\n        }\n\n        // Fail if is_infinite(R).\n        if (rvx == 0 && rvy == 0) {\n            return false;\n        }\n\n        // Fail if not has_even_y(R).\n        if ((rvy & 1) != 0) {\n            return false;\n        }\n\n        // Fail if x(R) \u2260 r.\n        return (rvx == rx);\n    }\n}\n"
+  },
+  "lib/bip340-solidity/src/Bip340Util.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n\npragma solidity >=0.8.0;\n\nimport \"./EllipticCurve.sol\";\nimport \"./Secp256k1.sol\";\n\nlibrary Bip340Util {\n    /// BIP340 challenge function.\n    ///\n    /// Hopefully the first SHA256 call gets inlined.\n    function computeChallenge(bytes32 rx, bytes32 px, bytes32 m) internal pure returns (uint256) {\n        // Precomputed `sha256(\"BIP0340/challenge\")`.\n        //\n        // Saves ~10k gas, mostly from byte shuffling to prepare the call.\n        //bytes32 tag = sha256(\"BIP0340/challenge\");\n        bytes32 tag = 0x7bb52d7a9fef58323eb1bf7a407db382d2f3f2d81bb1224f49fe518f6d48d37c;\n\n        // Let e = int(hashBIP0340/challenge(bytes(r) || bytes(P) || m)) mod n.\n        return uint256(sha256(abi.encodePacked(tag, tag, rx, px, m))) % Secp256k1.NN;\n    }\n\n    /// Given an x coordinate, returns the y coordinate of an even point on\n    /// the secp256k1 curve.  This can be used to precompute the pubkey Y as\n    /// mentioned in a few places.\n    ///\n    /// The second return value specifies if the operation was successful.\n    function liftX(uint256 _x) internal pure returns (uint256, bool) {\n        uint256 _pp = Secp256k1.PP;\n        uint256 _aa = Secp256k1.AA;\n        uint256 _bb = Secp256k1.BB;\n\n        if (_x >= _pp) {\n            return (0, false);\n        }\n        \n        // c = x^3 + a*x + b  (secp256k1: a=0, b=7)\n        uint256 c = addmod(mulmod(_x, mulmod(_x, _x, _pp), _pp), addmod(mulmod(_x, _aa, _pp), _bb, _pp), _pp);\n        // Candidate square root via the p \u2261 3 (mod 4) shortcut.\n        uint256 y = EllipticCurve.expMod(c, (_pp + 1) / 4, _pp);\n        // B4/TOB-VAULT-002 (audit): REJECT non-residues. Without this, expMod returns\n        // a bogus value for any x that is NOT a valid curve x-coordinate, so liftX would\n        // return (garbage, true) and accept an OFF-CURVE point \u2014 widening the acceptance\n        // surface of every caller (rx expansion and the setDefaultPublicKey pubkey check).\n        // Euler: for a non-residue c, y*y == -c != c, so this catches exactly off-curve x.\n        if (mulmod(y, y, _pp) != c) {\n            return (0, false);\n        }\n        // Normalize to even Y (BIP340 x-only convention).\n        if ((y & 1) == 1) {\n            y = _pp - y;\n        }\n\n        return (y, true);\n    }\n\n    /// Internal function for doing the affine conversion for only the x coordinate.\n    function xToAffine(uint256 _x, uint256 _z, uint256 _pp) internal pure returns (uint256) {\n        uint256 zInv = EllipticCurve.invMod(_z, _pp);\n        uint256 zInv2 = mulmod(zInv, zInv, _pp);\n        return mulmod(_x, zInv2, _pp);\n    }\n\n    /// Converts a BIP340 pubkey X coord to what it would look like as an\n    /// Ethereum address.\n    function convToFakeAddr(uint256 px) internal pure returns (address, bool) {\n        (uint256 py, bool ok) = liftX(px);\n        if (!ok) {\n            return (address(0), false);\n        }\n        bytes32 h = keccak256(abi.encodePacked(bytes32(px), bytes32(py)));\n        return (address(uint160(uint256(h))), true);\n    }\n}\n\n"
+  },
+  "lib/bip340-solidity/src/Secp256k1.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n//\n// Modified from https://raw.githubusercontent.com/witnet/elliptic-curve-solidity/master/examples/Secp256k1.sol\n//\n// See license terms from the above original source.\n\npragma solidity >=0.8.0;\n\nimport \"./EllipticCurve.sol\";\n\n/**\n * @title Secp256k1 Elliptic Curve\n * @notice Example of particularization of Elliptic Curve for secp256k1 curve\n * @author Witnet Foundation\n */\nlibrary Secp256k1 {\n\n  uint256 public constant GX = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798;\n  uint256 public constant GY = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8;\n  uint256 public constant AA = 0;\n  uint256 public constant BB = 7;\n  uint256 public constant PP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;\n  uint256 public constant NN = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141; // curve order\n\n  /// @notice Public Key derivation from private key\n  /// Warning: this is just an example. Do not expose your private key.\n  /// @param privKey The private key\n  /// @return (qx, qy) The Public Key\n  function derivePubKey(uint256 privKey) external pure returns (uint256, uint256) {\n    return EllipticCurve.ecMul(\n      privKey,\n      GX,\n      GY,\n      AA,\n      PP\n    );\n  }\n}\n\n"
+  },
+  "src-usd/interfaces/IMultiAssetStrategy.sol": {
+   "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\n/// @title IMultiAssetStrategy\n/// @notice A yield strategy for a MULTI-asset custody vault (`VaultImpl`), which\n///         holds several ERC20s under one contract and names each by the same\n///         `assetId` a Bitcoin-side burn uses.\n///\n/// @dev Deliberately NOT `IStrategy`, and not an extension of it.\n///\n///      `IStrategy` is single-asset (`deposit(uint256)`) and is still\n///      implemented by `SubfrostVault`, `EthStakingStrategy` and\n///      `StablecoinStrategy`; widening it would force all of them to change for\n///      no benefit. The substantive reason is that a single-asset signature\n///      cannot say WHICH token a call is about, so one strategy serving one\n///      vault holding both USDC and USDT would have to infer it. The previous\n///      `CrvUsdStrategy` inferred it from `msg.sender`, which is exactly why it\n///      needed a separate strategy instance \u2014 and a separate vault \u2014 per asset.\n///\n///      Every mutating method is expected to be callable ONLY by the wired\n///      vault. The vault is the custody boundary; a strategy that let anyone\n///      else withdraw would move that boundary to whoever asked.\ninterface IMultiAssetStrategy {\n    /// @notice The ERC20 this strategy accepts and pays out for `assetId`.\n    function asset(uint8 assetId) external view returns (address);\n\n    /// @notice Value currently attributable to `assetId`, in that asset's own\n    ///         base units.\n    ///\n    /// @dev A strategy backing several assets with ONE pooled position must\n    ///      attribute it, not report the whole position for each id \u2014 the vault\n    ///      reads this per asset, so reporting the full position twice would\n    ///      double-count the backing.\n    function totalAssets(uint8 assetId) external view returns (uint256);\n\n    /// @notice Pull `amount` of `assetId` from the vault and deploy it.\n    /// @dev The vault approves first; the strategy pulls.\n    function deposit(uint8 assetId, uint256 amount) external;\n\n    /// @notice Return `amount` of `assetId` to the vault.\n    /// @return actualAmount What was ACTUALLY delivered, which may differ from\n    ///         the request in either direction (fees, slippage, rounding). The\n    ///         vault must account against this, never against the request.\n    function withdraw(uint8 assetId, uint256 amount) external returns (uint256 actualAmount);\n\n    /// @notice Return everything attributable to `assetId` to the vault,\n    ///         leaving any other asset's backing invested.\n    function withdrawAll(uint8 assetId) external returns (uint256 amount);\n\n    /// @notice Whether the strategy is accepting deposits.\n    /// @dev The vault checks this before an automatic sweep, so pausing here is\n    ///      a kill-switch that degrades the vault to plain custody rather than\n    ///      blocking user deposits.\n    function isActive() external view returns (bool);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC1363.sol)\n\npragma solidity >=0.6.2;\n\nimport {IERC20} from \"./IERC20.sol\";\nimport {IERC165} from \"./IERC165.sol\";\n\n/**\n * @title IERC1363\n * @dev Interface of the ERC-1363 standard as defined in the https://eips.ethereum.org/EIPS/eip-1363[ERC-1363].\n *\n * Defines an extension interface for ERC-20 tokens that supports executing code on a recipient contract\n * after `transfer` or `transferFrom`, or code on a spender contract after `approve`, in a single transaction.\n */\ninterface IERC1363 is IERC20, IERC165 {\n    /*\n     * Note: the ERC-165 identifier for this interface is 0xb0202a11.\n     * 0xb0202a11 ===\n     *   bytes4(keccak256('transferAndCall(address,uint256)')) ^\n     *   bytes4(keccak256('transferAndCall(address,uint256,bytes)')) ^\n     *   bytes4(keccak256('transferFromAndCall(address,address,uint256)')) ^\n     *   bytes4(keccak256('transferFromAndCall(address,address,uint256,bytes)')) ^\n     *   bytes4(keccak256('approveAndCall(address,uint256)')) ^\n     *   bytes4(keccak256('approveAndCall(address,uint256,bytes)'))\n     */\n\n    /**\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\n     * @param to The address which you want to transfer to.\n     * @param value The amount of tokens to be transferred.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function transferAndCall(address to, uint256 value) external returns (bool);\n\n    /**\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\n     * @param to The address which you want to transfer to.\n     * @param value The amount of tokens to be transferred.\n     * @param data Additional data with no specified format, sent in call to `to`.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function transferAndCall(address to, uint256 value, bytes calldata data) external returns (bool);\n\n    /**\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the allowance mechanism\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\n     * @param from The address which you want to send tokens from.\n     * @param to The address which you want to transfer to.\n     * @param value The amount of tokens to be transferred.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function transferFromAndCall(address from, address to, uint256 value) external returns (bool);\n\n    /**\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the allowance mechanism\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\n     * @param from The address which you want to send tokens from.\n     * @param to The address which you want to transfer to.\n     * @param value The amount of tokens to be transferred.\n     * @param data Additional data with no specified format, sent in call to `to`.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function transferFromAndCall(address from, address to, uint256 value, bytes calldata data) external returns (bool);\n\n    /**\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\n     * caller's tokens and then calls {IERC1363Spender-onApprovalReceived} on `spender`.\n     * @param spender The address which will spend the funds.\n     * @param value The amount of tokens to be spent.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function approveAndCall(address spender, uint256 value) external returns (bool);\n\n    /**\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\n     * caller's tokens and then calls {IERC1363Spender-onApprovalReceived} on `spender`.\n     * @param spender The address which will spend the funds.\n     * @param value The amount of tokens to be spent.\n     * @param data Additional data with no specified format, sent in call to `spender`.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function approveAndCall(address spender, uint256 value, bytes calldata data) external returns (bool);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.1.0) (utils/StorageSlot.sol)\n// This file was procedurally generated from scripts/generate/templates/StorageSlot.js.\n\npragma solidity ^0.8.20;\n\n/**\n * @dev Library for reading and writing primitive types to specific storage slots.\n *\n * Storage slots are often used to avoid storage conflict when dealing with upgradeable contracts.\n * This library helps with reading and writing to such slots without the need for inline assembly.\n *\n * The functions in this library return Slot structs that contain a `value` member that can be used to read or write.\n *\n * Example usage to set ERC-1967 implementation slot:\n * ```solidity\n * contract ERC1967 {\n *     // Define the slot. Alternatively, use the SlotDerivation library to derive the slot.\n *     bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;\n *\n *     function _getImplementation() internal view returns (address) {\n *         return StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value;\n *     }\n *\n *     function _setImplementation(address newImplementation) internal {\n *         require(newImplementation.code.length > 0);\n *         StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;\n *     }\n * }\n * ```\n *\n * TIP: Consider using this library along with {SlotDerivation}.\n */\nlibrary StorageSlot {\n    struct AddressSlot {\n        address value;\n    }\n\n    struct BooleanSlot {\n        bool value;\n    }\n\n    struct Bytes32Slot {\n        bytes32 value;\n    }\n\n    struct Uint256Slot {\n        uint256 value;\n    }\n\n    struct Int256Slot {\n        int256 value;\n    }\n\n    struct StringSlot {\n        string value;\n    }\n\n    struct BytesSlot {\n        bytes value;\n    }\n\n    /**\n     * @dev Returns an `AddressSlot` with member `value` located at `slot`.\n     */\n    function getAddressSlot(bytes32 slot) internal pure returns (AddressSlot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := slot\n        }\n    }\n\n    /**\n     * @dev Returns a `BooleanSlot` with member `value` located at `slot`.\n     */\n    function getBooleanSlot(bytes32 slot) internal pure returns (BooleanSlot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := slot\n        }\n    }\n\n    /**\n     * @dev Returns a `Bytes32Slot` with member `value` located at `slot`.\n     */\n    function getBytes32Slot(bytes32 slot) internal pure returns (Bytes32Slot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := slot\n        }\n    }\n\n    /**\n     * @dev Returns a `Uint256Slot` with member `value` located at `slot`.\n     */\n    function getUint256Slot(bytes32 slot) internal pure returns (Uint256Slot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := slot\n        }\n    }\n\n    /**\n     * @dev Returns a `Int256Slot` with member `value` located at `slot`.\n     */\n    function getInt256Slot(bytes32 slot) internal pure returns (Int256Slot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := slot\n        }\n    }\n\n    /**\n     * @dev Returns a `StringSlot` with member `value` located at `slot`.\n     */\n    function getStringSlot(bytes32 slot) internal pure returns (StringSlot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := slot\n        }\n    }\n\n    /**\n     * @dev Returns an `StringSlot` representation of the string storage pointer `store`.\n     */\n    function getStringSlot(string storage store) internal pure returns (StringSlot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := store.slot\n        }\n    }\n\n    /**\n     * @dev Returns a `BytesSlot` with member `value` located at `slot`.\n     */\n    function getBytesSlot(bytes32 slot) internal pure returns (BytesSlot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := slot\n        }\n    }\n\n    /**\n     * @dev Returns an `BytesSlot` representation of the bytes storage pointer `store`.\n     */\n    function getBytesSlot(bytes storage store) internal pure returns (BytesSlot storage r) {\n        assembly (\"memory-safe\") {\n            r.slot := store.slot\n        }\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.3.0) (proxy/utils/Initializable.sol)\n\npragma solidity ^0.8.20;\n\n/**\n * @dev This is a base contract to aid in writing upgradeable contracts, or any kind of contract that will be deployed\n * behind a proxy. Since proxied contracts do not make use of a constructor, it's common to move constructor logic to an\n * external initializer function, usually called `initialize`. It then becomes necessary to protect this initializer\n * function so it can only be called once. The {initializer} modifier provided by this contract will have this effect.\n *\n * The initialization functions use a version number. Once a version number is used, it is consumed and cannot be\n * reused. This mechanism prevents re-execution of each \"step\" but allows the creation of new initialization steps in\n * case an upgrade adds a module that needs to be initialized.\n *\n * For example:\n *\n * [.hljs-theme-light.nopadding]\n * ```solidity\n * contract MyToken is ERC20Upgradeable {\n *     function initialize() initializer public {\n *         __ERC20_init(\"MyToken\", \"MTK\");\n *     }\n * }\n *\n * contract MyTokenV2 is MyToken, ERC20PermitUpgradeable {\n *     function initializeV2() reinitializer(2) public {\n *         __ERC20Permit_init(\"MyToken\");\n *     }\n * }\n * ```\n *\n * TIP: To avoid leaving the proxy in an uninitialized state, the initializer function should be called as early as\n * possible by providing the encoded function call as the `_data` argument to {ERC1967Proxy-constructor}.\n *\n * CAUTION: When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure\n * that all initializers are idempotent. This is not verified automatically as constructors are by Solidity.\n *\n * [CAUTION]\n * ====\n * Avoid leaving a contract uninitialized.\n *\n * An uninitialized contract can be taken over by an attacker. This applies to both a proxy and its implementation\n * contract, which may impact the proxy. To prevent the implementation contract from being used, you should invoke\n * the {_disableInitializers} function in the constructor to automatically lock it when it is deployed:\n *\n * [.hljs-theme-light.nopadding]\n * ```\n * /// @custom:oz-upgrades-unsafe-allow constructor\n * constructor() {\n *     _disableInitializers();\n * }\n * ```\n * ====\n */\nabstract contract Initializable {\n    /**\n     * @dev Storage of the initializable contract.\n     *\n     * It's implemented on a custom ERC-7201 namespace to reduce the risk of storage collisions\n     * when using with upgradeable contracts.\n     *\n     * @custom:storage-location erc7201:openzeppelin.storage.Initializable\n     */\n    struct InitializableStorage {\n        /**\n         * @dev Indicates that the contract has been initialized.\n         */\n        uint64 _initialized;\n        /**\n         * @dev Indicates that the contract is in the process of being initialized.\n         */\n        bool _initializing;\n    }\n\n    // keccak256(abi.encode(uint256(keccak256(\"openzeppelin.storage.Initializable\")) - 1)) & ~bytes32(uint256(0xff))\n    bytes32 private constant INITIALIZABLE_STORAGE = 0xf0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00;\n\n    /**\n     * @dev The contract is already initialized.\n     */\n    error InvalidInitialization();\n\n    /**\n     * @dev The contract is not initializing.\n     */\n    error NotInitializing();\n\n    /**\n     * @dev Triggered when the contract has been initialized or reinitialized.\n     */\n    event Initialized(uint64 version);\n\n    /**\n     * @dev A modifier that defines a protected initializer function that can be invoked at most once. In its scope,\n     * `onlyInitializing` functions can be used to initialize parent contracts.\n     *\n     * Similar to `reinitializer(1)`, except that in the context of a constructor an `initializer` may be invoked any\n     * number of times. This behavior in the constructor can be useful during testing and is not expected to be used in\n     * production.\n     *\n     * Emits an {Initialized} event.\n     */\n    modifier initializer() {\n        // solhint-disable-next-line var-name-mixedcase\n        InitializableStorage storage $ = _getInitializableStorage();\n\n        // Cache values to avoid duplicated sloads\n        bool isTopLevelCall = !$._initializing;\n        uint64 initialized = $._initialized;\n\n        // Allowed calls:\n        // - initialSetup: the contract is not in the initializing state and no previous version was\n        //                 initialized\n        // - construction: the contract is initialized at version 1 (no reinitialization) and the\n        //                 current contract is just being deployed\n        bool initialSetup = initialized == 0 && isTopLevelCall;\n        bool construction = initialized == 1 && address(this).code.length == 0;\n\n        if (!initialSetup && !construction) {\n            revert InvalidInitialization();\n        }\n        $._initialized = 1;\n        if (isTopLevelCall) {\n            $._initializing = true;\n        }\n        _;\n        if (isTopLevelCall) {\n            $._initializing = false;\n            emit Initialized(1);\n        }\n    }\n\n    /**\n     * @dev A modifier that defines a protected reinitializer function that can be invoked at most once, and only if the\n     * contract hasn't been initialized to a greater version before. In its scope, `onlyInitializing` functions can be\n     * used to initialize parent contracts.\n     *\n     * A reinitializer may be used after the original initialization step. This is essential to configure modules that\n     * are added through upgrades and that require initialization.\n     *\n     * When `version` is 1, this modifier is similar to `initializer`, except that functions marked with `reinitializer`\n     * cannot be nested. If one is invoked in the context of another, execution will revert.\n     *\n     * Note that versions can jump in increments greater than 1; this implies that if multiple reinitializers coexist in\n     * a contract, executing them in the right order is up to the developer or operator.\n     *\n     * WARNING: Setting the version to 2**64 - 1 will prevent any future reinitialization.\n     *\n     * Emits an {Initialized} event.\n     */\n    modifier reinitializer(uint64 version) {\n        // solhint-disable-next-line var-name-mixedcase\n        InitializableStorage storage $ = _getInitializableStorage();\n\n        if ($._initializing || $._initialized >= version) {\n            revert InvalidInitialization();\n        }\n        $._initialized = version;\n        $._initializing = true;\n        _;\n        $._initializing = false;\n        emit Initialized(version);\n    }\n\n    /**\n     * @dev Modifier to protect an initialization function so that it can only be invoked by functions with the\n     * {initializer} and {reinitializer} modifiers, directly or indirectly.\n     */\n    modifier onlyInitializing() {\n        _checkInitializing();\n        _;\n    }\n\n    /**\n     * @dev Reverts if the contract is not in an initializing state. See {onlyInitializing}.\n     */\n    function _checkInitializing() internal view virtual {\n        if (!_isInitializing()) {\n            revert NotInitializing();\n        }\n    }\n\n    /**\n     * @dev Locks the contract, preventing any future reinitialization. This cannot be part of an initializer call.\n     * Calling this in the constructor of a contract will prevent that contract from being initialized or reinitialized\n     * to any version. It is recommended to use this to lock implementation contracts that are designed to be called\n     * through proxies.\n     *\n     * Emits an {Initialized} event the first time it is successfully executed.\n     */\n    function _disableInitializers() internal virtual {\n        // solhint-disable-next-line var-name-mixedcase\n        InitializableStorage storage $ = _getInitializableStorage();\n\n        if ($._initializing) {\n            revert InvalidInitialization();\n        }\n        if ($._initialized != type(uint64).max) {\n            $._initialized = type(uint64).max;\n            emit Initialized(type(uint64).max);\n        }\n    }\n\n    /**\n     * @dev Returns the highest version that has been initialized. See {reinitializer}.\n     */\n    function _getInitializedVersion() internal view returns (uint64) {\n        return _getInitializableStorage()._initialized;\n    }\n\n    /**\n     * @dev Returns `true` if the contract is currently initializing. See {onlyInitializing}.\n     */\n    function _isInitializing() internal view returns (bool) {\n        return _getInitializableStorage()._initializing;\n    }\n\n    /**\n     * @dev Pointer to storage slot. Allows integrators to override it with a custom storage location.\n     *\n     * NOTE: Consider following the ERC-7201 formula to derive storage locations.\n     */\n    function _initializableStorageSlot() internal pure virtual returns (bytes32) {\n        return INITIALIZABLE_STORAGE;\n    }\n\n    /**\n     * @dev Returns a pointer to the storage namespace.\n     */\n    // solhint-disable-next-line var-name-mixedcase\n    function _getInitializableStorage() private pure returns (InitializableStorage storage $) {\n        bytes32 slot = _initializableStorageSlot();\n        assembly {\n            $.slot := slot\n        }\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.5.0) (proxy/utils/UUPSUpgradeable.sol)\n\npragma solidity ^0.8.22;\n\nimport {IERC1822Proxiable} from \"../../interfaces/draft-IERC1822.sol\";\nimport {ERC1967Utils} from \"../ERC1967/ERC1967Utils.sol\";\n\n/**\n * @dev An upgradeability mechanism designed for UUPS proxies. The functions included here can perform an upgrade of an\n * {ERC1967Proxy}, when this contract is set as the implementation behind such a proxy.\n *\n * A security mechanism ensures that an upgrade does not turn off upgradeability accidentally, although this risk is\n * reinstated if the upgrade retains upgradeability but removes the security mechanism, e.g. by replacing\n * `UUPSUpgradeable` with a custom implementation of upgrades.\n *\n * The {_authorizeUpgrade} function must be overridden to include access restriction to the upgrade mechanism.\n *\n * @custom:stateless\n */\nabstract contract UUPSUpgradeable is IERC1822Proxiable {\n    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable\n    address private immutable __self = address(this);\n\n    /**\n     * @dev The version of the upgrade interface of the contract. If this getter is missing, both `upgradeTo(address)`\n     * and `upgradeToAndCall(address,bytes)` are present, and `upgradeTo` must be used if no function should be called,\n     * while `upgradeToAndCall` will invoke the `receive` function if the second argument is the empty byte string.\n     * If the getter returns `\"5.0.0\"`, only `upgradeToAndCall(address,bytes)` is present, and the second argument must\n     * be the empty byte string if no function should be called, making it impossible to invoke the `receive` function\n     * during an upgrade.\n     */\n    string public constant UPGRADE_INTERFACE_VERSION = \"5.0.0\";\n\n    /**\n     * @dev The call is from an unauthorized context.\n     */\n    error UUPSUnauthorizedCallContext();\n\n    /**\n     * @dev The storage `slot` is unsupported as a UUID.\n     */\n    error UUPSUnsupportedProxiableUUID(bytes32 slot);\n\n    /**\n     * @dev Check that the execution is being performed through a delegatecall call and that the execution context is\n     * a proxy contract with an implementation (as defined in ERC-1967) pointing to self. This should only be the case\n     * for UUPS and transparent proxies that are using the current contract as their implementation. Execution of a\n     * function through ERC-1167 minimal proxies (clones) would not normally pass this test, but is not guaranteed to\n     * fail.\n     */\n    modifier onlyProxy() {\n        _checkProxy();\n        _;\n    }\n\n    /**\n     * @dev Check that the execution is not being performed through a delegate call. This allows a function to be\n     * callable on the implementing contract but not through proxies.\n     */\n    modifier notDelegated() {\n        _checkNotDelegated();\n        _;\n    }\n\n    /**\n     * @dev Implementation of the ERC-1822 {proxiableUUID} function. This returns the storage slot used by the\n     * implementation. It is used to validate the implementation's compatibility when performing an upgrade.\n     *\n     * IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks\n     * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this\n     * function revert if invoked through a proxy. This is guaranteed by the `notDelegated` modifier.\n     */\n    function proxiableUUID() external view notDelegated returns (bytes32) {\n        return ERC1967Utils.IMPLEMENTATION_SLOT;\n    }\n\n    /**\n     * @dev Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call\n     * encoded in `data`.\n     *\n     * Calls {_authorizeUpgrade}.\n     *\n     * Emits an {Upgraded} event.\n     *\n     * @custom:oz-upgrades-unsafe-allow-reachable delegatecall\n     */\n    function upgradeToAndCall(address newImplementation, bytes memory data) public payable virtual onlyProxy {\n        _authorizeUpgrade(newImplementation);\n        _upgradeToAndCallUUPS(newImplementation, data);\n    }\n\n    /**\n     * @dev Reverts if the execution is not performed via delegatecall or the execution\n     * context is not of a proxy with an ERC-1967 compliant implementation pointing to self.\n     */\n    function _checkProxy() internal view virtual {\n        if (\n            address(this) == __self || // Must be called through delegatecall\n            ERC1967Utils.getImplementation() != __self // Must be called through an active proxy\n        ) {\n            revert UUPSUnauthorizedCallContext();\n        }\n    }\n\n    /**\n     * @dev Reverts if the execution is performed via delegatecall.\n     * See {notDelegated}.\n     */\n    function _checkNotDelegated() internal view virtual {\n        if (address(this) != __self) {\n            // Must not be called through delegatecall\n            revert UUPSUnauthorizedCallContext();\n        }\n    }\n\n    /**\n     * @dev Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by\n     * {upgradeToAndCall}.\n     *\n     * Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.\n     *\n     * ```solidity\n     * function _authorizeUpgrade(address) internal onlyOwner {}\n     * ```\n     */\n    function _authorizeUpgrade(address newImplementation) internal virtual;\n\n    /**\n     * @dev Performs an implementation upgrade with a security check for UUPS proxies, and additional setup call.\n     *\n     * As a security check, {proxiableUUID} is invoked in the new implementation, and the return value\n     * is expected to be the implementation slot in ERC-1967.\n     *\n     * Emits an {IERC1967-Upgraded} event.\n     */\n    function _upgradeToAndCallUUPS(address newImplementation, bytes memory data) private {\n        try IERC1822Proxiable(newImplementation).proxiableUUID() returns (bytes32 slot) {\n            if (slot != ERC1967Utils.IMPLEMENTATION_SLOT) {\n                revert UUPSUnsupportedProxiableUUID(slot);\n            }\n            ERC1967Utils.upgradeToAndCall(newImplementation, data);\n        } catch {\n            // The implementation is not UUPS\n            revert ERC1967Utils.ERC1967InvalidImplementation(newImplementation);\n        }\n    }\n}\n"
+  },
+  "lib/bip340-solidity/src/EllipticCurve.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n//\n// Taken from https://github.com/witnet/elliptic-curve-solidity/blob/master/contracts/EllipticCurve.sol\n//\n// See license terms from the above original source.\n\npragma solidity >=0.8.0;\n\n/**\n * @title Elliptic Curve Library\n * @dev Library providing arithmetic operations over elliptic curves.\n * This library does not check whether the inserted points belong to the curve\n * `isOnCurve` function should be used by the library user to check the aforementioned statement.\n * @author Witnet Foundation\n */\nlibrary EllipticCurve {\n\n  // Pre-computed constant for 2 ** 255\n  uint256 constant private U255_MAX_PLUS_1 = 57896044618658097711785492504343953926634992332820282019728792003956564819968;\n\n  /// @dev Modular euclidean inverse of a number (mod p).\n  /// @param _x The number\n  /// @param _pp The modulus\n  /// @return q such that x*q = 1 (mod _pp)\n  function invMod(uint256 _x, uint256 _pp) internal pure returns (uint256) {\n    require(_x != 0 && _x != _pp && _pp != 0, \"Invalid number\");\n    uint256 q = 0;\n    uint256 newT = 1;\n    uint256 r = _pp;\n    uint256 t;\n    while (_x != 0) {\n      t = r / _x;\n      (q, newT) = (newT, addmod(q, (_pp - mulmod(t, newT, _pp)), _pp));\n      (r, _x) = (_x, r - t * _x);\n    }\n\n    return q;\n  }\n\n  /// @dev Modular exponentiation, b^e % _pp.\n  /// Source: https://github.com/androlo/standard-contracts/blob/master/contracts/src/crypto/ECCMath.sol\n  /// @param _base base\n  /// @param _exp exponent\n  /// @param _pp modulus\n  /// @return r such that r = b**e (mod _pp)\n  function expMod(uint256 _base, uint256 _exp, uint256 _pp) internal pure returns (uint256) {\n    require(_pp!=0, \"Modulus is zero\");\n\n    if (_base == 0)\n      return 0;\n    if (_exp == 0)\n      return 1;\n\n    uint256 r = 1;\n    uint256 bit = U255_MAX_PLUS_1;\n    assembly {\n      for { } gt(bit, 0) { }{\n        r := mulmod(mulmod(r, r, _pp), exp(_base, iszero(iszero(and(_exp, bit)))), _pp)\n        r := mulmod(mulmod(r, r, _pp), exp(_base, iszero(iszero(and(_exp, div(bit, 2))))), _pp)\n        r := mulmod(mulmod(r, r, _pp), exp(_base, iszero(iszero(and(_exp, div(bit, 4))))), _pp)\n        r := mulmod(mulmod(r, r, _pp), exp(_base, iszero(iszero(and(_exp, div(bit, 8))))), _pp)\n        bit := div(bit, 16)\n      }\n    }\n\n    return r;\n  }\n\n  /// @dev Converts a point (x, y, z) expressed in Jacobian coordinates to affine coordinates (x', y', 1).\n  /// @param _x coordinate x\n  /// @param _y coordinate y\n  /// @param _z coordinate z\n  /// @param _pp the modulus\n  /// @return (x', y') affine coordinates\n  function toAffine(\n    uint256 _x,\n    uint256 _y,\n    uint256 _z,\n    uint256 _pp)\n  internal pure returns (uint256, uint256)\n  {\n    uint256 zInv = invMod(_z, _pp);\n    uint256 zInv2 = mulmod(zInv, zInv, _pp);\n    uint256 x2 = mulmod(_x, zInv2, _pp);\n    uint256 y2 = mulmod(_y, mulmod(zInv, zInv2, _pp), _pp);\n\n    return (x2, y2);\n  }\n\n  /// @dev Derives the y coordinate from a compressed-format point x [[SEC-1]](https://www.secg.org/SEC1-Ver-1.0.pdf).\n  /// @param _prefix parity byte (0x02 even, 0x03 odd)\n  /// @param _x coordinate x\n  /// @param _aa constant of curve\n  /// @param _bb constant of curve\n  /// @param _pp the modulus\n  /// @return y coordinate y\n  function deriveY(\n    uint8 _prefix,\n    uint256 _x,\n    uint256 _aa,\n    uint256 _bb,\n    uint256 _pp)\n  internal pure returns (uint256)\n  {\n    require(_prefix == 0x02 || _prefix == 0x03, \"Invalid compressed EC point prefix\");\n\n    // x^3 + ax + b\n    uint256 y2 = addmod(mulmod(_x, mulmod(_x, _x, _pp), _pp), addmod(mulmod(_x, _aa, _pp), _bb, _pp), _pp);\n    y2 = expMod(y2, (_pp + 1) / 4, _pp);\n    // uint256 cmp = yBit ^ y_ & 1;\n    uint256 y = (y2 + _prefix) % 2 == 0 ? y2 : _pp - y2;\n\n    return y;\n  }\n\n  /// @dev Check whether point (x,y) is on curve defined by a, b, and _pp.\n  /// @param _x coordinate x of P1\n  /// @param _y coordinate y of P1\n  /// @param _aa constant of curve\n  /// @param _bb constant of curve\n  /// @param _pp the modulus\n  /// @return true if x,y in the curve, false else\n  function isOnCurve(\n    uint _x,\n    uint _y,\n    uint _aa,\n    uint _bb,\n    uint _pp)\n  internal pure returns (bool)\n  {\n    if (0 == _x || _x >= _pp || 0 == _y || _y >= _pp) {\n      return false;\n    }\n    // y^2\n    uint lhs = mulmod(_y, _y, _pp);\n    // x^3\n    uint rhs = mulmod(mulmod(_x, _x, _pp), _x, _pp);\n    if (_aa != 0) {\n      // x^3 + a*x\n      rhs = addmod(rhs, mulmod(_x, _aa, _pp), _pp);\n    }\n    if (_bb != 0) {\n      // x^3 + a*x + b\n      rhs = addmod(rhs, _bb, _pp);\n    }\n\n    return lhs == rhs;\n  }\n\n  /// @dev Calculate inverse (x, -y) of point (x, y).\n  /// @param _x coordinate x of P1\n  /// @param _y coordinate y of P1\n  /// @param _pp the modulus\n  /// @return (x, -y)\n  function ecInv(\n    uint256 _x,\n    uint256 _y,\n    uint256 _pp)\n  internal pure returns (uint256, uint256)\n  {\n    return (_x, (_pp - _y) % _pp);\n  }\n\n  /// @dev Add two points (x1, y1) and (x2, y2) in affine coordinates.\n  /// @param _x1 coordinate x of P1\n  /// @param _y1 coordinate y of P1\n  /// @param _x2 coordinate x of P2\n  /// @param _y2 coordinate y of P2\n  /// @param _aa constant of the curve\n  /// @param _pp the modulus\n  /// @return (qx, qy) = P1+P2 in affine coordinates\n  function ecAdd(\n    uint256 _x1,\n    uint256 _y1,\n    uint256 _x2,\n    uint256 _y2,\n    uint256 _aa,\n    uint256 _pp)\n    internal pure returns(uint256, uint256)\n  {\n    uint x = 0;\n    uint y = 0;\n    uint z = 0;\n\n    // Double if x1==x2 else add\n    if (_x1==_x2) {\n      // y1 = -y2 mod p\n      if (addmod(_y1, _y2, _pp) == 0) {\n        return(0, 0);\n      } else {\n        // P1 = P2\n        (x, y, z) = jacDouble(\n          _x1,\n          _y1,\n          1,\n          _aa,\n          _pp);\n      }\n    } else {\n      (x, y, z) = jacAdd(\n        _x1,\n        _y1,\n        1,\n        _x2,\n        _y2,\n        1,\n        _pp);\n    }\n    // Get back to affine\n    return toAffine(\n      x,\n      y,\n      z,\n      _pp);\n  }\n\n  /// @dev Substract two points (x1, y1) and (x2, y2) in affine coordinates.\n  /// @param _x1 coordinate x of P1\n  /// @param _y1 coordinate y of P1\n  /// @param _x2 coordinate x of P2\n  /// @param _y2 coordinate y of P2\n  /// @param _aa constant of the curve\n  /// @param _pp the modulus\n  /// @return (qx, qy) = P1-P2 in affine coordinates\n  function ecSub(\n    uint256 _x1,\n    uint256 _y1,\n    uint256 _x2,\n    uint256 _y2,\n    uint256 _aa,\n    uint256 _pp)\n  internal pure returns(uint256, uint256)\n  {\n    // invert square\n    (uint256 x, uint256 y) = ecInv(_x2, _y2, _pp);\n    // P1-square\n    return ecAdd(\n      _x1,\n      _y1,\n      x,\n      y,\n      _aa,\n      _pp);\n  }\n\n  /// @dev Multiply point (x1, y1, z1) times d in affine coordinates.\n  /// @param _k scalar to multiply\n  /// @param _x coordinate x of P1\n  /// @param _y coordinate y of P1\n  /// @param _aa constant of the curve\n  /// @param _pp the modulus\n  /// @return (qx, qy) = d*P in affine coordinates\n  function ecMul(\n    uint256 _k,\n    uint256 _x,\n    uint256 _y,\n    uint256 _aa,\n    uint256 _pp)\n  internal pure returns(uint256, uint256)\n  {\n    // Jacobian multiplication\n    (uint256 x1, uint256 y1, uint256 z1) = jacMul(\n      _k,\n      _x,\n      _y,\n      1,\n      _aa,\n      _pp);\n    // Get back to affine\n    return toAffine(\n      x1,\n      y1,\n      z1,\n      _pp);\n  }\n\n  /// @dev Adds two points (x1, y1, z1) and (x2 y2, z2).\n  /// @param _x1 coordinate x of P1\n  /// @param _y1 coordinate y of P1\n  /// @param _z1 coordinate z of P1\n  /// @param _x2 coordinate x of square\n  /// @param _y2 coordinate y of square\n  /// @param _z2 coordinate z of square\n  /// @param _pp the modulus\n  /// @return (qx, qy, qz) P1+square in Jacobian\n  function jacAdd(\n    uint256 _x1,\n    uint256 _y1,\n    uint256 _z1,\n    uint256 _x2,\n    uint256 _y2,\n    uint256 _z2,\n    uint256 _pp)\n  internal pure returns (uint256, uint256, uint256)\n  {\n    if (_x1==0 && _y1==0)\n      return (_x2, _y2, _z2);\n    if (_x2==0 && _y2==0)\n      return (_x1, _y1, _z1);\n\n    // We follow the equations described in https://pdfs.semanticscholar.org/5c64/29952e08025a9649c2b0ba32518e9a7fb5c2.pdf Section 5\n    uint[4] memory zs; // z1^2, z1^3, z2^2, z2^3\n    zs[0] = mulmod(_z1, _z1, _pp);\n    zs[1] = mulmod(_z1, zs[0], _pp);\n    zs[2] = mulmod(_z2, _z2, _pp);\n    zs[3] = mulmod(_z2, zs[2], _pp);\n\n    // u1, s1, u2, s2\n    zs = [\n      mulmod(_x1, zs[2], _pp),\n      mulmod(_y1, zs[3], _pp),\n      mulmod(_x2, zs[0], _pp),\n      mulmod(_y2, zs[1], _pp)\n    ];\n\n    // In case of zs[0] == zs[2] && zs[1] == zs[3], double function should be used\n    require(zs[0] != zs[2] || zs[1] != zs[3], \"Use jacDouble function instead\");\n\n    uint[4] memory hr;\n    //h\n    hr[0] = addmod(zs[2], _pp - zs[0], _pp);\n    //r\n    hr[1] = addmod(zs[3], _pp - zs[1], _pp);\n    //h^2\n    hr[2] = mulmod(hr[0], hr[0], _pp);\n    // h^3\n    hr[3] = mulmod(hr[2], hr[0], _pp);\n    // qx = -h^3  -2u1h^2+r^2\n    uint256 qx = addmod(mulmod(hr[1], hr[1], _pp), _pp - hr[3], _pp);\n    qx = addmod(qx, _pp - mulmod(2, mulmod(zs[0], hr[2], _pp), _pp), _pp);\n    // qy = -s1*z1*h^3+r(u1*h^2 -x^3)\n    uint256 qy = mulmod(hr[1], addmod(mulmod(zs[0], hr[2], _pp), _pp - qx, _pp), _pp);\n    qy = addmod(qy, _pp - mulmod(zs[1], hr[3], _pp), _pp);\n    // qz = h*z1*z2\n    uint256 qz = mulmod(hr[0], mulmod(_z1, _z2, _pp), _pp);\n    return(qx, qy, qz);\n  }\n\n  /// @dev Doubles a points (x, y, z).\n  /// @param _x coordinate x of P1\n  /// @param _y coordinate y of P1\n  /// @param _z coordinate z of P1\n  /// @param _aa the a scalar in the curve equation\n  /// @param _pp the modulus\n  /// @return (qx, qy, qz) 2P in Jacobian\n  function jacDouble(\n    uint256 _x,\n    uint256 _y,\n    uint256 _z,\n    uint256 _aa,\n    uint256 _pp)\n  internal pure returns (uint256, uint256, uint256)\n  {\n    if (_z == 0)\n      return (_x, _y, _z);\n\n    // We follow the equations described in https://pdfs.semanticscholar.org/5c64/29952e08025a9649c2b0ba32518e9a7fb5c2.pdf Section 5\n    // Note: there is a bug in the paper regarding the m parameter, M=3*(x1^2)+a*(z1^4)\n    // x, y, z at this point represent the squares of _x, _y, _z\n    uint256 x = mulmod(_x, _x, _pp); //x1^2\n    uint256 y = mulmod(_y, _y, _pp); //y1^2\n    uint256 z = mulmod(_z, _z, _pp); //z1^2\n\n    // s\n    uint s = mulmod(4, mulmod(_x, y, _pp), _pp);\n    // m\n    uint m = addmod(mulmod(3, x, _pp), mulmod(_aa, mulmod(z, z, _pp), _pp), _pp);\n\n    // x, y, z at this point will be reassigned and rather represent qx, qy, qz from the paper\n    // This allows to reduce the gas cost and stack footprint of the algorithm\n    // qx\n    x = addmod(mulmod(m, m, _pp), _pp - addmod(s, s, _pp), _pp);\n    // qy = -8*y1^4 + M(S-T)\n    y = addmod(mulmod(m, addmod(s, _pp - x, _pp), _pp), _pp - mulmod(8, mulmod(y, y, _pp), _pp), _pp);\n    // qz = 2*y1*z1\n    z = mulmod(2, mulmod(_y, _z, _pp), _pp);\n\n    return (x, y, z);\n  }\n\n  /// @dev Multiply point (x, y, z) times d.\n  /// @param _d scalar to multiply\n  /// @param _x coordinate x of P1\n  /// @param _y coordinate y of P1\n  /// @param _z coordinate z of P1\n  /// @param _aa constant of curve\n  /// @param _pp the modulus\n  /// @return (qx, qy, qz) d*P1 in Jacobian\n  function jacMul(\n    uint256 _d,\n    uint256 _x,\n    uint256 _y,\n    uint256 _z,\n    uint256 _aa,\n    uint256 _pp)\n  internal pure returns (uint256, uint256, uint256)\n  {\n    // Early return in case that `_d == 0`\n    if (_d == 0) {\n      return (_x, _y, _z);\n    }\n\n    uint256 remaining = _d;\n    uint256 qx = 0;\n    uint256 qy = 0;\n    uint256 qz = 1;\n\n    // Double and add algorithm\n    while (remaining != 0) {\n      if ((remaining & 1) != 0) {\n        (qx, qy, qz) = jacAdd(\n          qx,\n          qy,\n          qz,\n          _x,\n          _y,\n          _z,\n          _pp);\n      }\n      remaining = remaining / 2;\n      (_x, _y, _z) = jacDouble(\n        _x,\n        _y,\n        _z,\n        _aa,\n        _pp);\n    }\n    return (qx, qy, qz);\n  }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC20.sol)\n\npragma solidity >=0.4.16;\n\nimport {IERC20} from \"../token/ERC20/IERC20.sol\";\n"
+  },
+  "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC165.sol)\n\npragma solidity >=0.4.16;\n\nimport {IERC165} from \"../utils/introspection/IERC165.sol\";\n"
+  },
+  "lib/openzeppelin-contracts/contracts/interfaces/draft-IERC1822.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/draft-IERC1822.sol)\n\npragma solidity >=0.4.16;\n\n/**\n * @dev ERC-1822: Universal Upgradeable Proxy Standard (UUPS) documents a method for upgradeability through a simplified\n * proxy whose upgrades are fully controlled by the current implementation.\n */\ninterface IERC1822Proxiable {\n    /**\n     * @dev Returns the storage slot that the proxiable contract assumes is being used to store the implementation\n     * address.\n     *\n     * IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks\n     * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this\n     * function revert if invoked through a proxy.\n     */\n    function proxiableUUID() external view returns (bytes32);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Utils.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (proxy/ERC1967/ERC1967Utils.sol)\n\npragma solidity ^0.8.21;\n\nimport {IBeacon} from \"../beacon/IBeacon.sol\";\nimport {IERC1967} from \"../../interfaces/IERC1967.sol\";\nimport {Address} from \"../../utils/Address.sol\";\nimport {StorageSlot} from \"../../utils/StorageSlot.sol\";\n\n/**\n * @dev This library provides getters and event emitting update functions for\n * https://eips.ethereum.org/EIPS/eip-1967[ERC-1967] slots.\n */\nlibrary ERC1967Utils {\n    /**\n     * @dev Storage slot with the address of the current implementation.\n     * This is the keccak-256 hash of \"eip1967.proxy.implementation\" subtracted by 1.\n     */\n    // solhint-disable-next-line private-vars-leading-underscore\n    bytes32 internal constant IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;\n\n    /**\n     * @dev The `implementation` of the proxy is invalid.\n     */\n    error ERC1967InvalidImplementation(address implementation);\n\n    /**\n     * @dev The `admin` of the proxy is invalid.\n     */\n    error ERC1967InvalidAdmin(address admin);\n\n    /**\n     * @dev The `beacon` of the proxy is invalid.\n     */\n    error ERC1967InvalidBeacon(address beacon);\n\n    /**\n     * @dev An upgrade function sees `msg.value > 0` that may be lost.\n     */\n    error ERC1967NonPayable();\n\n    /**\n     * @dev Returns the current implementation address.\n     */\n    function getImplementation() internal view returns (address) {\n        return StorageSlot.getAddressSlot(IMPLEMENTATION_SLOT).value;\n    }\n\n    /**\n     * @dev Stores a new address in the ERC-1967 implementation slot.\n     */\n    function _setImplementation(address newImplementation) private {\n        if (newImplementation.code.length == 0) {\n            revert ERC1967InvalidImplementation(newImplementation);\n        }\n        StorageSlot.getAddressSlot(IMPLEMENTATION_SLOT).value = newImplementation;\n    }\n\n    /**\n     * @dev Performs implementation upgrade with additional setup call if data is nonempty.\n     * This function is payable only if the setup call is performed, otherwise `msg.value` is rejected\n     * to avoid stuck value in the contract.\n     *\n     * Emits an {IERC1967-Upgraded} event.\n     */\n    function upgradeToAndCall(address newImplementation, bytes memory data) internal {\n        _setImplementation(newImplementation);\n        emit IERC1967.Upgraded(newImplementation);\n\n        if (data.length > 0) {\n            Address.functionDelegateCall(newImplementation, data);\n        } else {\n            _checkNonPayable();\n        }\n    }\n\n    /**\n     * @dev Storage slot with the admin of the contract.\n     * This is the keccak-256 hash of \"eip1967.proxy.admin\" subtracted by 1.\n     */\n    // solhint-disable-next-line private-vars-leading-underscore\n    bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;\n\n    /**\n     * @dev Returns the current admin.\n     *\n     * TIP: To get this value clients can read directly from the storage slot shown below (specified by ERC-1967) using\n     * the https://eth.wiki/json-rpc/API#eth_getstorageat[`eth_getStorageAt`] RPC call.\n     * `0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103`\n     */\n    function getAdmin() internal view returns (address) {\n        return StorageSlot.getAddressSlot(ADMIN_SLOT).value;\n    }\n\n    /**\n     * @dev Stores a new address in the ERC-1967 admin slot.\n     */\n    function _setAdmin(address newAdmin) private {\n        if (newAdmin == address(0)) {\n            revert ERC1967InvalidAdmin(address(0));\n        }\n        StorageSlot.getAddressSlot(ADMIN_SLOT).value = newAdmin;\n    }\n\n    /**\n     * @dev Changes the admin of the proxy.\n     *\n     * Emits an {IERC1967-AdminChanged} event.\n     */\n    function changeAdmin(address newAdmin) internal {\n        emit IERC1967.AdminChanged(getAdmin(), newAdmin);\n        _setAdmin(newAdmin);\n    }\n\n    /**\n     * @dev The storage slot of the UpgradeableBeacon contract which defines the implementation for this proxy.\n     * This is the keccak-256 hash of \"eip1967.proxy.beacon\" subtracted by 1.\n     */\n    // solhint-disable-next-line private-vars-leading-underscore\n    bytes32 internal constant BEACON_SLOT = 0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50;\n\n    /**\n     * @dev Returns the current beacon.\n     */\n    function getBeacon() internal view returns (address) {\n        return StorageSlot.getAddressSlot(BEACON_SLOT).value;\n    }\n\n    /**\n     * @dev Stores a new beacon in the ERC-1967 beacon slot.\n     */\n    function _setBeacon(address newBeacon) private {\n        if (newBeacon.code.length == 0) {\n            revert ERC1967InvalidBeacon(newBeacon);\n        }\n\n        StorageSlot.getAddressSlot(BEACON_SLOT).value = newBeacon;\n\n        address beaconImplementation = IBeacon(newBeacon).implementation();\n        if (beaconImplementation.code.length == 0) {\n            revert ERC1967InvalidImplementation(beaconImplementation);\n        }\n    }\n\n    /**\n     * @dev Change the beacon and trigger a setup call if data is nonempty.\n     * This function is payable only if the setup call is performed, otherwise `msg.value` is rejected\n     * to avoid stuck value in the contract.\n     *\n     * Emits an {IERC1967-BeaconUpgraded} event.\n     *\n     * CAUTION: Invoking this function has no effect on an instance of {BeaconProxy} since v5, since\n     * it uses an immutable beacon without looking at the value of the ERC-1967 beacon slot for\n     * efficiency.\n     */\n    function upgradeBeaconToAndCall(address newBeacon, bytes memory data) internal {\n        _setBeacon(newBeacon);\n        emit IERC1967.BeaconUpgraded(newBeacon);\n\n        if (data.length > 0) {\n            Address.functionDelegateCall(IBeacon(newBeacon).implementation(), data);\n        } else {\n            _checkNonPayable();\n        }\n    }\n\n    /**\n     * @dev Reverts if `msg.value` is not zero. It can be used to avoid `msg.value` stuck in the contract\n     * if an upgrade doesn't perform an initialization call.\n     */\n    function _checkNonPayable() private {\n        if (msg.value > 0) {\n            revert ERC1967NonPayable();\n        }\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (utils/introspection/IERC165.sol)\n\npragma solidity >=0.4.16;\n\n/**\n * @dev Interface of the ERC-165 standard, as defined in the\n * https://eips.ethereum.org/EIPS/eip-165[ERC].\n *\n * Implementers can declare support of contract interfaces, which can then be\n * queried by others ({ERC165Checker}).\n *\n * For an implementation, see {ERC165}.\n */\ninterface IERC165 {\n    /**\n     * @dev Returns true if this contract implements the interface defined by\n     * `interfaceId`. See the corresponding\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[ERC section]\n     * to learn more about how these ids are created.\n     *\n     * This function call must use less than 30 000 gas.\n     */\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/proxy/beacon/IBeacon.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (proxy/beacon/IBeacon.sol)\n\npragma solidity >=0.4.16;\n\n/**\n * @dev This is the interface that {BeaconProxy} expects of its beacon.\n */\ninterface IBeacon {\n    /**\n     * @dev Must return an address that can be used as a delegate call target.\n     *\n     * {UpgradeableBeacon} will check that this address is a contract.\n     */\n    function implementation() external view returns (address);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/interfaces/IERC1967.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC1967.sol)\n\npragma solidity >=0.4.11;\n\n/**\n * @dev ERC-1967: Proxy Storage Slots. This interface contains the events defined in the ERC.\n */\ninterface IERC1967 {\n    /**\n     * @dev Emitted when the implementation is upgraded.\n     */\n    event Upgraded(address indexed implementation);\n\n    /**\n     * @dev Emitted when the admin account has changed.\n     */\n    event AdminChanged(address previousAdmin, address newAdmin);\n\n    /**\n     * @dev Emitted when the beacon is changed.\n     */\n    event BeaconUpgraded(address indexed beacon);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/utils/Address.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.5.0) (utils/Address.sol)\n\npragma solidity ^0.8.20;\n\nimport {Errors} from \"./Errors.sol\";\nimport {LowLevelCall} from \"./LowLevelCall.sol\";\n\n/**\n * @dev Collection of functions related to the address type\n */\nlibrary Address {\n    /**\n     * @dev There's no code at `target` (it is not a contract).\n     */\n    error AddressEmptyCode(address target);\n\n    /**\n     * @dev Replacement for Solidity's `transfer`: sends `amount` wei to\n     * `recipient`, forwarding all available gas and reverting on errors.\n     *\n     * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost\n     * of certain opcodes, possibly making contracts go over the 2300 gas limit\n     * imposed by `transfer`, making them unable to receive funds via\n     * `transfer`. {sendValue} removes this limitation.\n     *\n     * https://consensys.net/diligence/blog/2019/09/stop-using-soliditys-transfer-now/[Learn more].\n     *\n     * IMPORTANT: because control is transferred to `recipient`, care must be\n     * taken to not create reentrancy vulnerabilities. Consider using\n     * {ReentrancyGuard} or the\n     * https://solidity.readthedocs.io/en/v0.8.20/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].\n     */\n    function sendValue(address payable recipient, uint256 amount) internal {\n        if (address(this).balance < amount) {\n            revert Errors.InsufficientBalance(address(this).balance, amount);\n        }\n        if (LowLevelCall.callNoReturn(recipient, amount, \"\")) {\n            // call successful, nothing to do\n            return;\n        } else if (LowLevelCall.returnDataSize() > 0) {\n            LowLevelCall.bubbleRevert();\n        } else {\n            revert Errors.FailedCall();\n        }\n    }\n\n    /**\n     * @dev Performs a Solidity function call using a low level `call`. A\n     * plain `call` is an unsafe replacement for a function call: use this\n     * function instead.\n     *\n     * If `target` reverts with a revert reason or custom error, it is bubbled\n     * up by this function (like regular Solidity function calls). However, if\n     * the call reverted with no returned reason, this function reverts with a\n     * {Errors.FailedCall} error.\n     *\n     * Returns the raw returned data. To convert to the expected return value,\n     * use https://solidity.readthedocs.io/en/latest/units-and-global-variables.html?highlight=abi.decode#abi-encoding-and-decoding-functions[`abi.decode`].\n     *\n     * Requirements:\n     *\n     * - `target` must be a contract.\n     * - calling `target` with `data` must not revert.\n     */\n    function functionCall(address target, bytes memory data) internal returns (bytes memory) {\n        return functionCallWithValue(target, data, 0);\n    }\n\n    /**\n     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],\n     * but also transferring `value` wei to `target`.\n     *\n     * Requirements:\n     *\n     * - the calling contract must have an ETH balance of at least `value`.\n     * - the called Solidity function must be `payable`.\n     */\n    function functionCallWithValue(address target, bytes memory data, uint256 value) internal returns (bytes memory) {\n        if (address(this).balance < value) {\n            revert Errors.InsufficientBalance(address(this).balance, value);\n        }\n        bool success = LowLevelCall.callNoReturn(target, value, data);\n        if (success && (LowLevelCall.returnDataSize() > 0 || target.code.length > 0)) {\n            return LowLevelCall.returnData();\n        } else if (success) {\n            revert AddressEmptyCode(target);\n        } else if (LowLevelCall.returnDataSize() > 0) {\n            LowLevelCall.bubbleRevert();\n        } else {\n            revert Errors.FailedCall();\n        }\n    }\n\n    /**\n     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],\n     * but performing a static call.\n     */\n    function functionStaticCall(address target, bytes memory data) internal view returns (bytes memory) {\n        bool success = LowLevelCall.staticcallNoReturn(target, data);\n        if (success && (LowLevelCall.returnDataSize() > 0 || target.code.length > 0)) {\n            return LowLevelCall.returnData();\n        } else if (success) {\n            revert AddressEmptyCode(target);\n        } else if (LowLevelCall.returnDataSize() > 0) {\n            LowLevelCall.bubbleRevert();\n        } else {\n            revert Errors.FailedCall();\n        }\n    }\n\n    /**\n     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],\n     * but performing a delegate call.\n     */\n    function functionDelegateCall(address target, bytes memory data) internal returns (bytes memory) {\n        bool success = LowLevelCall.delegatecallNoReturn(target, data);\n        if (success && (LowLevelCall.returnDataSize() > 0 || target.code.length > 0)) {\n            return LowLevelCall.returnData();\n        } else if (success) {\n            revert AddressEmptyCode(target);\n        } else if (LowLevelCall.returnDataSize() > 0) {\n            LowLevelCall.bubbleRevert();\n        } else {\n            revert Errors.FailedCall();\n        }\n    }\n\n    /**\n     * @dev Tool to verify that a low level call to smart-contract was successful, and reverts if the target\n     * was not a contract or bubbling up the revert reason (falling back to {Errors.FailedCall}) in case\n     * of an unsuccessful call.\n     *\n     * NOTE: This function is DEPRECATED and may be removed in the next major release.\n     */\n    function verifyCallResultFromTarget(\n        address target,\n        bool success,\n        bytes memory returndata\n    ) internal view returns (bytes memory) {\n        // only check if target is a contract if the call was successful and the return data is empty\n        // otherwise we already know that it was a contract\n        if (success && (returndata.length > 0 || target.code.length > 0)) {\n            return returndata;\n        } else if (success) {\n            revert AddressEmptyCode(target);\n        } else if (returndata.length > 0) {\n            LowLevelCall.bubbleRevert(returndata);\n        } else {\n            revert Errors.FailedCall();\n        }\n    }\n\n    /**\n     * @dev Tool to verify that a low level call was successful, and reverts if it wasn't, either by bubbling the\n     * revert reason or with a default {Errors.FailedCall} error.\n     */\n    function verifyCallResult(bool success, bytes memory returndata) internal pure returns (bytes memory) {\n        if (success) {\n            return returndata;\n        } else if (returndata.length > 0) {\n            LowLevelCall.bubbleRevert(returndata);\n        } else {\n            revert Errors.FailedCall();\n        }\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/utils/Errors.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.1.0) (utils/Errors.sol)\n\npragma solidity ^0.8.20;\n\n/**\n * @dev Collection of common custom errors used in multiple contracts\n *\n * IMPORTANT: Backwards compatibility is not guaranteed in future versions of the library.\n * It is recommended to avoid relying on the error API for critical functionality.\n *\n * _Available since v5.1._\n */\nlibrary Errors {\n    /**\n     * @dev The ETH balance of the account is not enough to perform the operation.\n     */\n    error InsufficientBalance(uint256 balance, uint256 needed);\n\n    /**\n     * @dev A call to an address target failed. The target may have reverted.\n     */\n    error FailedCall();\n\n    /**\n     * @dev The deployment failed.\n     */\n    error FailedDeployment();\n\n    /**\n     * @dev A necessary precompile is missing.\n     */\n    error MissingPrecompile(address);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/utils/LowLevelCall.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.5.0) (utils/LowLevelCall.sol)\n\npragma solidity ^0.8.20;\n\n/**\n * @dev Library of low level call functions that implement different calling strategies to deal with the return data.\n *\n * WARNING: Using this library requires an advanced understanding of Solidity and how the EVM works. It is recommended\n * to use the {Address} library instead.\n */\nlibrary LowLevelCall {\n    /// @dev Performs a Solidity function call using a low level `call` and ignoring the return data.\n    function callNoReturn(address target, bytes memory data) internal returns (bool success) {\n        return callNoReturn(target, 0, data);\n    }\n\n    /// @dev Same as {callNoReturn}, but allows to specify the value to be sent in the call.\n    function callNoReturn(address target, uint256 value, bytes memory data) internal returns (bool success) {\n        assembly (\"memory-safe\") {\n            success := call(gas(), target, value, add(data, 0x20), mload(data), 0x00, 0x00)\n        }\n    }\n\n    /// @dev Performs a Solidity function call using a low level `call` and returns the first 64 bytes of the result\n    /// in the scratch space of memory. Useful for functions that return a tuple of single-word values.\n    ///\n    /// WARNING: Do not assume that the results are zero if `success` is false. Memory can be already allocated\n    /// and this function doesn't zero it out.\n    function callReturn64Bytes(\n        address target,\n        bytes memory data\n    ) internal returns (bool success, bytes32 result1, bytes32 result2) {\n        return callReturn64Bytes(target, 0, data);\n    }\n\n    /// @dev Same as {callReturnBytes32Pair}, but allows to specify the value to be sent in the call.\n    function callReturn64Bytes(\n        address target,\n        uint256 value,\n        bytes memory data\n    ) internal returns (bool success, bytes32 result1, bytes32 result2) {\n        assembly (\"memory-safe\") {\n            success := call(gas(), target, value, add(data, 0x20), mload(data), 0x00, 0x40)\n            result1 := mload(0x00)\n            result2 := mload(0x20)\n        }\n    }\n\n    /// @dev Performs a Solidity function call using a low level `staticcall` and ignoring the return data.\n    function staticcallNoReturn(address target, bytes memory data) internal view returns (bool success) {\n        assembly (\"memory-safe\") {\n            success := staticcall(gas(), target, add(data, 0x20), mload(data), 0x00, 0x00)\n        }\n    }\n\n    /// @dev Performs a Solidity function call using a low level `staticcall` and returns the first 64 bytes of the result\n    /// in the scratch space of memory. Useful for functions that return a tuple of single-word values.\n    ///\n    /// WARNING: Do not assume that the results are zero if `success` is false. Memory can be already allocated\n    /// and this function doesn't zero it out.\n    function staticcallReturn64Bytes(\n        address target,\n        bytes memory data\n    ) internal view returns (bool success, bytes32 result1, bytes32 result2) {\n        assembly (\"memory-safe\") {\n            success := staticcall(gas(), target, add(data, 0x20), mload(data), 0x00, 0x40)\n            result1 := mload(0x00)\n            result2 := mload(0x20)\n        }\n    }\n\n    /// @dev Performs a Solidity function call using a low level `delegatecall` and ignoring the return data.\n    function delegatecallNoReturn(address target, bytes memory data) internal returns (bool success) {\n        assembly (\"memory-safe\") {\n            success := delegatecall(gas(), target, add(data, 0x20), mload(data), 0x00, 0x00)\n        }\n    }\n\n    /// @dev Performs a Solidity function call using a low level `delegatecall` and returns the first 64 bytes of the result\n    /// in the scratch space of memory. Useful for functions that return a tuple of single-word values.\n    ///\n    /// WARNING: Do not assume that the results are zero if `success` is false. Memory can be already allocated\n    /// and this function doesn't zero it out.\n    function delegatecallReturn64Bytes(\n        address target,\n        bytes memory data\n    ) internal returns (bool success, bytes32 result1, bytes32 result2) {\n        assembly (\"memory-safe\") {\n            success := delegatecall(gas(), target, add(data, 0x20), mload(data), 0x00, 0x40)\n            result1 := mload(0x00)\n            result2 := mload(0x20)\n        }\n    }\n\n    /// @dev Returns the size of the return data buffer.\n    function returnDataSize() internal pure returns (uint256 size) {\n        assembly (\"memory-safe\") {\n            size := returndatasize()\n        }\n    }\n\n    /// @dev Returns a buffer containing the return data from the last call.\n    function returnData() internal pure returns (bytes memory result) {\n        assembly (\"memory-safe\") {\n            result := mload(0x40)\n            mstore(result, returndatasize())\n            returndatacopy(add(result, 0x20), 0x00, returndatasize())\n            mstore(0x40, add(result, add(0x20, returndatasize())))\n        }\n    }\n\n    /// @dev Revert with the return data from the last call.\n    function bubbleRevert() internal pure {\n        assembly (\"memory-safe\") {\n            let fmp := mload(0x40)\n            returndatacopy(fmp, 0x00, returndatasize())\n            revert(fmp, returndatasize())\n        }\n    }\n\n    function bubbleRevert(bytes memory returndata) internal pure {\n        assembly (\"memory-safe\") {\n            revert(add(returndata, 0x20), mload(returndata))\n        }\n    }\n}\n"
+  }
+ },
+ "abi": [
+  {
+   "type": "constructor",
+   "inputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "AddressEmptyCode",
+   "type": "error",
+   "inputs": [
+    {
+     "name": "target",
+     "type": "address",
+     "internalType": "address"
+    }
+   ]
+  },
+  {
+   "name": "AssetAlreadyRegistered",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "BelowFlatFee",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "BridgeNonceAlreadyUsed",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "DuplicateAsset",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "ERC1967InvalidImplementation",
+   "type": "error",
+   "inputs": [
+    {
+     "name": "implementation",
+     "type": "address",
+     "internalType": "address"
+    }
+   ]
+  },
+  {
+   "name": "ERC1967NonPayable",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "EmptyBatch",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "FailedCall",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "InsufficientAssets",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "InvalidAssetList",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "InvalidInitialization",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "InvalidNonce",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "InvalidSignature",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "InvalidTarget",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "NestedAuthCall",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "NotInitializing",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "NotRelayer",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "NotRelayerAdmin",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "NotSelf",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "PaymentAlreadyProcessed",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "PaymentNotFound",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "ReentrancyGuardReentrantCall",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "SafeERC20FailedOperation",
+   "type": "error",
+   "inputs": [
+    {
+     "name": "token",
+     "type": "address",
+     "internalType": "address"
+    }
+   ]
+  },
+  {
+   "name": "StrategyNotEmpty",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "UUPSUnauthorizedCallContext",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "UUPSUnsupportedProxiableUUID",
+   "type": "error",
+   "inputs": [
+    {
+     "name": "slot",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    }
+   ]
+  },
+  {
+   "name": "UnknownAsset",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "WithdrawalOverspend",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "ZeroAddress",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "ZeroAmount",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "ZeroPublicKey",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "AssetRegistered",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "id",
+     "type": "uint8",
+     "indexed": true,
+     "internalType": "uint8"
+    },
+    {
+     "name": "token",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "decimals",
+     "type": "uint8",
+     "indexed": false,
+     "internalType": "uint8"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "AssetsDeployedToStrategy",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "amount",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "AssetsWithdrawnFromStrategy",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "amount",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "AuthenticatedCall",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "caller",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "selector",
+     "type": "bytes4",
+     "indexed": true,
+     "internalType": "bytes4"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "AuthenticatedMulticall",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "caller",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "callCount",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "BridgeWithdrawal",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "target",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "amount",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "fallbackAddress",
+     "type": "address",
+     "indexed": false,
+     "internalType": "address"
+    },
+    {
+     "name": "targetCallSuccess",
+     "type": "bool",
+     "indexed": false,
+     "internalType": "bool"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "BridgeWithdrawalProcessed",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "bridgeNonce",
+     "type": "uint256",
+     "indexed": true,
+     "internalType": "uint256"
+    },
+    {
+     "name": "target",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "amount",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "DefaultPublicKeyUpdated",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "oldKey",
+     "type": "bytes32",
+     "indexed": true,
+     "internalType": "bytes32"
+    },
+    {
+     "name": "newKey",
+     "type": "bytes32",
+     "indexed": true,
+     "internalType": "bytes32"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "FeeRecipientUpdated",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "oldRecipient",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "newRecipient",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "FeesWithdrawn",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "recipient",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "amount",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "FlatFeeUpdated",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "oldFee",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "newFee",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "Initialized",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "version",
+     "type": "uint64",
+     "indexed": false,
+     "internalType": "uint64"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "MinSweepUpdated",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "indexed": true,
+     "internalType": "uint8"
+    },
+    {
+     "name": "oldValue",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "newValue",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "PaymentProcessed",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "paymentId",
+     "type": "uint256",
+     "indexed": true,
+     "internalType": "uint256"
+    },
+    {
+     "name": "processor",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "PaymentQueued",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "paymentId",
+     "type": "uint256",
+     "indexed": true,
+     "internalType": "uint256"
+    },
+    {
+     "name": "depositor",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "frAmount",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "assetAmount",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "ProtocolFeeUpdated",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "oldFeeBps",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "newFeeBps",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "RelayerAdminTransferred",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "from",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "to",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "RelayerSet",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "relayer",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "allowed",
+     "type": "bool",
+     "indexed": false,
+     "internalType": "bool"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "StrategyUpdated",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "oldStrategy",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "newStrategy",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "Upgraded",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "implementation",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "WithdrawChunkUpdated",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "indexed": true,
+     "internalType": "uint8"
+    },
+    {
+     "name": "oldValue",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "newValue",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "UPGRADE_INTERFACE_VERSION",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "string",
+     "internalType": "string"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "assetCount",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "assetDecimalsOf",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "assetRegistered",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "assets",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "contract IERC20"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "authNonce",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "authenticatedCall",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "data",
+     "type": "bytes",
+     "internalType": "bytes"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "signature",
+     "type": "bytes",
+     "internalType": "bytes"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "result",
+     "type": "bytes",
+     "internalType": "bytes"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "authenticatedMulticall",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "calls",
+     "type": "bytes[]",
+     "internalType": "bytes[]"
+    },
+    {
+     "name": "nonce",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "signature",
+     "type": "bytes",
+     "internalType": "bytes"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "results",
+     "type": "bytes[]",
+     "internalType": "bytes[]"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "claimRelayerAdmin",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "admin",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "firstRelayer",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "defaultPublicKey",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "depositAndBridge",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "amount",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "bridgeData",
+     "type": "bytes",
+     "internalType": "bytes"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "netAmount",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "depositToStrategy",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "feeRecipient",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "feesCollected",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "flatFee",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "getPayment",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "index",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "depositor",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "assetAmount",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "bridgeData",
+     "type": "bytes",
+     "internalType": "bytes"
+    },
+    {
+     "name": "timestamp",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "getPayments",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "startIndex",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "maxCount",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "page",
+     "type": "tuple[]",
+     "components": [
+      {
+       "name": "paymentId",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "assetAmount",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "frAmount",
+       "type": "uint256",
+       "internalType": "uint256"
+      },
+      {
+       "name": "timestamp",
+       "type": "uint64",
+       "internalType": "uint64"
+      },
+      {
+       "name": "depositor",
+       "type": "address",
+       "internalType": "address"
+      },
+      {
+       "name": "assetId",
+       "type": "uint8",
+       "internalType": "uint8"
+      },
+      {
+       "name": "bridgeData",
+       "type": "bytes",
+       "internalType": "bytes"
+      }
+     ],
+     "internalType": "struct VaultImpl.Payment[]"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "getPaymentsLength",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "inStrategy",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "initialize",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assets_",
+     "type": "address[]",
+     "internalType": "address[]"
+    },
+    {
+     "name": "_defaultPublicKey",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    },
+    {
+     "name": "flatFee_",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "initialRelayer_",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "isRelayer",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "minSweep",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "nextBurnNonce",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "payments",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "paymentId",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "assetAmount",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "frAmount",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "timestamp",
+     "type": "uint64",
+     "internalType": "uint64"
+    },
+    {
+     "name": "depositor",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "bridgeData",
+     "type": "bytes",
+     "internalType": "bytes"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "pending",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "protocolFeeBps",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "proxiableUUID",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "relayerAdmin",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "relayerCount",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "setDefaultPublicKey",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "newPublicKey",
+     "type": "bytes32",
+     "internalType": "bytes32"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "setFeeRecipient",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "newRecipient",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "setFlatFee",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "newFlatFee",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "setMinSweep",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "newMinSweep",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "setProtocolFee",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "newFeeBps",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "setRelayer",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "relayer",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "allowed",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "setStrategy",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "_strategy",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "setWithdrawChunk",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "newChunk",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "strategy",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "contract IMultiAssetStrategy"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "totalAssets",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "transferRelayerAdmin",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "newAdmin",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "upgradeToAndCall",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "newImplementation",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "data",
+     "type": "bytes",
+     "internalType": "bytes"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "payable"
+  },
+  {
+   "name": "usedBridgeNonce",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "withdrawAllFromStrategy",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "withdrawChunk",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "withdrawFees",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "withdrawFromBridge",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "bridgeNonce",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "amount",
+     "type": "uint256",
+     "internalType": "uint256"
+    },
+    {
+     "name": "target",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "script",
+     "type": "bytes",
+     "internalType": "bytes"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "withdrawFromStrategy",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "amount",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  }
+ ],
+ "matchId": "43467509",
+ "creationMatch": "exact_match",
+ "runtimeMatch": "exact_match",
+ "verifiedAt": "2026-08-10T06:29:55Z",
+ "match": "exact_match",
+ "chainId": "1",
+ "address": "0x5376BeeDBa9Ba7F5b0396d28bd75473027B8Bd55",
+ "_address": "0x5376BeeDBa9Ba7F5b0396d28bd75473027B8Bd55"
+}

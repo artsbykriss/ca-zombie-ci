@@ -1,0 +1,75 @@
+{
+  "finding": "Z3-H17",
+  "title": "Fresh-TVL cluster (10 fresh 2026 deployments, $2.87M-$8.94M each) — fork-drift / config-rot / rate-provider deep dive",
+  "chains": ["ethereum", "robinhood-chain", "bsc", "arc", "rise", "solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 27367440.31, "P": 35398970, "S": 0},
+  "latest_block": 26202778,
+  "block_numbers": {
+    "ethereum": 26202778,
+    "robinhood-chain": 89804365,
+    "arc": 26207240,
+    "rise": 24520097,
+    "bsc": 127916619,
+    "solana_slot": 457493475
+  },
+  "targets_checked": 10,
+  "live_targets": 10,
+  "closed_reasons": [
+    "NaraUSD: mint and redeem are Keyring-credential-gated (hasValidCredentials(fresh)=false, fork-proven KeyringCredentialInvalid); parity is exact 1:1 with zero fees and no oracle in the path; instant-redeem collateral is only $2,958.50; all MCT/admin roles are Safe-held",
+    "SUBFROST (ETH side): every fund-moving selector is onlyAuth (BIP340 FROST), onlyVault (immutable), or owner-to-vault; garbage/flipped signatures revert from a live relayer; replay guards (authNonce + usedBridgeNonce) live; depositAndBridge is public but one-way",
+    "up v3: CLPool byte-identical (metadata-stripped) to audited aerodrome-finance/slipstream; NPM source == upstream; fee modules byte-identical; gauge auth canonical; fork-proven NNFT/F0/NA negatives; M-03 cap-mode bypass not armed (capMode==pendingCapMode==2)",
+    "Scorch: router instruction surface is swap/swap2022 only (IDL + 35-tx census, all user-signed); vault PDA-owned accounts can only move against a user in-side transfer; no withdraw instruction exists (core pricing internals unverifiable -> medium confidence)",
+    "Icarus CL: verified sources at every layer, auth canonical for the generation (NNFT/NA/F0 fork-proven); gauge registered but unfunded (rewardRate=0); NPM ETH balance 0",
+    "HertzFlow: wrapped-bank parity exact (reserves >= supply); bank mint is permissioned (isMintCaller) and mints only un-synced surplus to a whitelisted DepositVault; redeem is caller-scoped; makeExternalCalls is permissionless but the executor holds no RoleStore roles (DataStore writes revert Unauthorized)",
+    "Longbow: the 16 unverified pool feeds are 300-second Uniswap V3 TWAPs (fork-proven +54% same-tx slot0 move -> 0 bp feed move); Loopback oracle is floor/cap clamped; 37 equity markets ride operator-driven Chainlink proxies; singleton idle liquidity ~$115k caps borrow-side attacks",
+    "Meridian: processActions is onlySequencer; historical batch replay -> NotSequencer (attacker) / ActionAlreadyProcessed (sequencer, monotonic ids); EIP-712 + per-action nonces + expiry + strict ECDSA/ERC-1271; withdrawals enforce the user signature at finalizeWithdraw; merUSD exactly 1:1 backed by USDe",
+    "Aero Lite: factory+pool+linked library byte-identical to dromos-labs/metadex-slipstream-public; no gauge/voter/NPM layer exists (voter=0, registry gaugeFactory=0, all pools gauge=0/nft=0); admin negatives fork-proven",
+    "Fang: canonical Tomb math (fork-proven -2% round trip), 0/16 fee-on-transfer tokens, convert() unset, xGFANG redeem disabled, Masonry empty, Treasury pre-start; FangRedeem pot balance is 0"
+  ],
+  "e_u_conditional": [
+    {"protocol": "Fang", "trigger": "USDG.balanceOf(FangRedeem 0x6EF1e61E39195fA53189A9A880A89eF1D06E6F47) > 0 AND FANG obtainable below $1", "value_usd": 0, "note": "value = pot balance at trigger (unbounded by contract; drained a funded $1,000 pot in one fork call)"},
+    {"protocol": "NaraUSD", "trigger": "Keyring credential check returns true for an arbitrary fresh address (policy disabled/opened or gate removed in a UUPS upgrade) + live Curve pool imbalance", "value_usd": 270, "note": "mint at par, sell into imbalanced Curve NG pool 0xf05F1b7b...; single-shot optimum ~$270"},
+    {"protocol": "HertzFlow", "trigger": "any un-synced token donation to a redemption bank (balanceOf > recordedUnderlyingBalance); mint is permissionless but destination-locked to the DepositVault; capture needs winning the next-deposit race", "value_usd": 20, "note": "live surplus = 20.0 USD1"},
+    {"protocol": "Longbow", "trigger": "any market whose idle loan liquidity exceeds the manipulation cost of its collateral pool (300s TWAP distortion held >=5 min)", "value_usd": 654, "note": "best arithmetic case STONKBROKER +$654; immaterial and not executed; flips material on market growth without pool deepening"},
+    {"protocol": "up v3", "trigger": "permissionless voter.poke() on a decayed-lock veNFT (M-01, acknowledged) redistributes that epoch's Reward checkpoints to other depositors; caller gains only if they hold an existing veUP stake", "value_usd": 0, "note": "fork-proven permissionless on id 16; no direct caller payout"}
+  ],
+  "poc": {
+    "tests_passed": 65,
+    "tests_total": 65,
+    "ci_run_urls": [],
+    "files": [
+      "poc/test/UpV3.t.sol", "poc/test/AeroLite.t.sol", "poc/test/IcarusCL.t.sol",
+      "poc/test/NaraUSD.t.sol", "poc/test/Subfrost.t.sol", "poc/test/HertzFlow.t.sol",
+      "poc/test/Longbow.t.sol", "poc/test/Meridian.t.sol", "poc/test/Fang.t.sol"
+    ],
+    "solana_evidence": "analysis/scorch/scorch_evidence.sh + analysis/scorch/raw/**"
+  },
+  "key_facts": [
+    "All 10 targets verified live and funded on-chain; DefiLlama TVL 2026-10-16: SUBFROST $8.94M, Icarus CL $8.03M, HertzFlow $7.10M, NaraUSD $6.82M, up v3 $4.72M, Scorch $4.28M, Longbow $3.25M, Aero Lite $3.20M, Meridian $2.92M, Fang $2.87M (cluster ~$52.1M)",
+    "up v3 CLPool 0x11725976... is byte-identical to aerodrome-finance/slipstream main; 1,923 pools, 91 gauges holding 870,817 UP (~$241.9k); voter fee pots $167,190.96; capMode==pendingCapMode==2 (M-03 not armed)",
+    "Aero Lite factory/pool/library byte-identical to dromos-labs/metadex-slipstream-public; voter()==0x0; all 35 pools gauge=0/nft=0/stakedLiquidity=0",
+    "Icarus CL: 10 pools, 99.4% of $8.07M in one USDR/USDC.e pool 0xCBc0c0d2...; gauge rewardRate=0; owner Safe proxy 0x838fc415...",
+    "NaraUSD: MCT supply 9,839,512.46; Keyring policy 15,713,807 rejects fresh addresses; booked collateral 1,959.00 USDC + 999.50 USDT; corrected solvency: backing $9,139,735 = 92.89% coverage (gap ~$699.8k: 500,009 USDT to EOA 0xb0971be3... now $0; -133,022 mGLO migration shortfall); DefiLlama under-counts ~$2.32M (deprecated mGLOBAL wrapper)",
+    "SUBFROST ETH side: $58,387.84 under a single BIP340 FROST group key (defaultPublicKey 0xb6a6cf51...); authNonce=35; the same key gates UUPS upgrades; screening's 'impl unverified' corrected (Sourcify exact match); ~$8.88M BTC side is signing-group trust (P/S)",
+    "HertzFlow: HFUSD1 bank 7,079,499.92 vs supply 7,079,479.92 (+20.0 USD1 un-synced); makeExternalCalls permissionless but executor 0x95d312da... has no RoleStore roles; it IS isMintCaller on both banks (surplus-only, destination-locked mint)",
+    "Longbow: 55 Morpho markets; Morpho singleton USDG idle ~$53.7k; total supply ~$1.09M / borrows ~$987k; pool feeds = observe([300,0]) 300s TWAPs (decompiled); LoopbackOracle clamp(0.9*TWAP, floor, 5*floor) fork-verified to the wei; no staleness check inside Morpho",
+    "Meridian: sequencer is a single EOA 0x39f7e293...; owner 2-of-3 Safe 0xF8067d8c...; merUSD totalSupply == USDe backing == 1,733,782.135870236e18 exactly (parent-verified); historical processActions batch replay rejected both ways",
+    "Scorch: program SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn upgradeable with plain-keypair authority 6km771wAtWmH16R8fsRp8zEUduDFPF1vtEXWTx4buiWZ (parent-verified); vault PDA EHcege7dok... holds 38 SPL + 13 Token-2022 accounts worth $4,259,772 (parent-verified count)",
+    "Fang: GenesisFarm 0xC01B6891... holds $2,862,057 in 16 pools (2% deposit fee; round trip -20.00 on 1,000 USDG); FangRedeem 0x6EF1e61E... pays a hard-coded $1.00/FANG to any caller but its USDG balance is 0 (parent-verified); poolEndTime 2026-10-21 17:00 UTC; owner is EOA 0x608730...",
+    "65/65 fork tests PASS locally (9 suites, 108s); CI re-runs them plus a live-state snapshot (ci/run.sh -> ci-out/live_state.json)",
+    "Parent independent spot-checks (fresh reads): Fang pot 0; MCT supply; SUBFROST totalAssets(0)=617,294,561 + defaultPublicKey; up v3 pools=1,923 + capMode 2/2; Aero voter=0x0; Icarus pools=10; HertzFlow +20.0 USD1 surplus; Longbow Morpho USDG ~$53.7k; Meridian merUSD==USDe; Scorch authority + 51 accounts"
+  ],
+  "caveats": [
+    "Arc native-token precompiles block in-fork token transfers (Aero Lite positive flash-repayment test replaced by fee-bound assertions); structural negatives unaffected",
+    "Robinhood Chain public RPC refuses eth_getLogs (Etherscan V2 used for logs); the chain's Foundry header block space differs from eth_blockNumber (both cited)",
+    "BSC router/handlers are unverified (Etherscan V2 free tier unavailable for 56); DataStore/banks/wrapped tokens verified via Sourcify; router ABI reconstructed from the protocol's public SDK",
+    "Longbow pool-feed contracts are unverified (mechanism from heimdall decompilation + live structural reads, not source); CL depth approximated by reserve-side notional in the EV math",
+    "Scorch core AMM ojh19oja...Corch has no public IDL/source -> swap-pricing E-U cannot be positively excluded (no evidence of a path); IDL is community-published (shank), matches live behavior",
+    "P and H-O aggregates overlap by construction (the same assets are both user-recoverable and privileged-at-risk); Meridian P includes ~$1.83M of exchange collateral/LP vault under owner/sequencer control (not directly extractable by them without user signatures on withdrawals)",
+    "USD values are point-in-time DefiLlama/marks; unpriced memecoin legs excluded; fork tests run against live state so exact balances drift between runs (structural assertions used)",
+    "Out of scope and stated as such: SUBFROST BTC-side signing group; Meridian PerpEngine/Liquidation math (interface-level); Scorch core pricing; Longbow vault economics beyond reads"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live across all 10 fresh-TVL targets (65/65 fork tests): every class path is gated, byte-identical to audited upstreams, or economically closed; the only real defects are dormant conditionals (FangRedeem unfunded $1/FANG pot, NaraUSD <=$270 Keyring-off arb, HertzFlow <=$20 donation mint, Longbow +$654 arithmetic, up v3 M-01 poke) plus P-class key risks (Scorch $4.26M single-key upgrade, SUBFROST FROST group $8.94M, NaraUSD Safe $9.14M, Meridian single-EOA sequencer)."
+}

@@ -1,0 +1,120 @@
+{
+ "chain": 56,
+ "block": 127909265,
+ "deploymentB": {
+  "dataStore": "0xc244A37A17CE7aa14E1BDD73f6a047Ed6B56f6B8",
+  "reader": "0xFC370bA161F4B54B12574c7e0a2121Cea57854A1",
+  "roleStore": "0x616Ee07aa245EB578c7443E598dcc8b4451bEf30",
+  "exchangeRouter": "0x61e1116a943b27d21094599c2c5bd75e980170a5",
+  "externalCallExecutor": "0x95d312da653f8b9c6f04345f3b2463e91c7505b3",
+  "depositVault": "0x1de72acbcfd84f437b369fe195417caab4ffe115",
+  "bankFactory": "0xd87FC971768ABa37dbABb2565db5C28B58e6b269",
+  "adminSafe": "0x2492bD5a84577A1E1c0FeD975DB53733e61ed1F5",
+  "hfusd": "0x7F7AD43d1Baa6BeA7f53F72D97D90b4FC0f662DF",
+  "hfusd1": "0x026C39Ab4B07f4C8C62b5824F0F9D7BE5087405a",
+  "hfusdBank": "0x00ceA6655a2b5C4eAD8752EBb41dbC896D3eB5df",
+  "hfusd1Bank": "0xAB96931f9d151bE6Ff313449a926390cA292db62",
+  "bankBeacon": "0x38b70119bc1e5b707c8c85032765652930afa8bc",
+  "bankImpl": "0x9539cC7655C9BAc0Bc5b417Bd307DeC37b671ff0",
+  "markets": {
+   "0x5fD1FCee942D8699EBf565F71116900fa2C94E96": {
+    "index": "BTC/USD 0x26c52b0b",
+    "longShort": "HFUSD",
+    "poolAmount": 30388286889750454431467,
+    "hfud1_bal": 0,
+    "hf_usd_bal": 30388286889750454431467
+   },
+   "0xF59B083e6B700F011475c70A2F81FA49378e28d3": {
+    "index": "BTC/USD",
+    "longShort": "HFUSD1",
+    "poolAmount": 2965649417822591538356161
+   },
+   "0x4FE5cEc37022d6393a93c306F9818056eE9fAe13": {
+    "index": "ETH/USD",
+    "longShort": "HFUSD1",
+    "poolAmount": 1751358549253668501593305
+   },
+   "0x8122Dd2639b6C7C8503a85Bd13f2c6FdDa2f7961": {
+    "index": "BNB/USD",
+    "longShort": "HFUSD1",
+    "poolAmount": 1155412663863562807919723
+   },
+   "0x4eBaE5E546fa93512A0843bd6d6374bBF3e27379": {
+    "index": "BNB/USD",
+    "longShort": "HFUSD1",
+    "poolAmount": 1159925793465364102304131
+   }
+  },
+  "supplies": {
+   "HFUSD": "30429403909100018067099",
+   "HFUSD1": "7078585212162068475755047"
+  },
+  "bankReserves": {
+   "HFUSD_bank_U": "30429403909100018067099",
+   "HFUSD1_bank_USD1": "7078605212162068475755047",
+   "HFUSD1_surplus": "20000000000000000000"
+  },
+  "depositVault_balances": {
+   "HFUSD1": "2360542592515696500000",
+   "U": "0",
+   "USD1": "0"
+  },
+  "roles": {
+   "routerB": [
+    "CONTROLLER",
+    "ROUTER_PLUGIN"
+   ],
+   "helper_95d312da": [],
+   "adminSafe": [
+    "ROLE_ADMIN"
+   ]
+  },
+  "bank_acl": {
+   "B1.isMintCaller(helper)": true,
+   "B2.isMintCaller(helper)": true,
+   "B1.isMintReceiver(depositVault)": true,
+   "B2.isMintReceiver(depositVault)": true,
+   "borrowers": "none found (helper, router)",
+   "minReserveFactor": 0
+  },
+  "makeExternalCalls": {
+   "permissionless": true,
+   "inner_call_msg_sender": "0x95d312da653f8b9c6f04345f3b2463e91c7505b3",
+   "datastore_write_via_router": "reverts ExternalCallFailed(Unauthorized(helper,'CONTROLLER'))"
+  }
+ },
+ "deploymentA_fresh": {
+  "dataStore": "0x92A898D6c26fB69B532c0b78aAd0cD196972dcF0",
+  "exchangeRouter": "0xAdBc9D0390146AEE5778629A856e8EaaEee0D559",
+  "externalHandler": "0xebc460d6409174caede99314c2f1c62657039185",
+  "hfusd": "0x3Cc4C9cbDa158909D385e8B4EbDD80867067623E",
+  "hfusd1": "0x4928e8dBc3743241eACbC57172a2EC45e5284Cb2",
+  "banks": {
+   "A1": "0x1b40AE150e956EA1B01e6d6A9dfeE498961D6fFd",
+   "A2": "0xB5D271f5Ce7553bFFeCD6d840a37C315f7d17080"
+  },
+  "admin": "0x1a94a0430F1ffC8718Cd30FdedCCaFA59A69B46E (EOA, no code)",
+  "supplies": {
+   "HFUSD": "182549087960505371724",
+   "HFUSD1": "2136619750379852659"
+  },
+  "reserves": {
+   "A1_U": "182549087960505371724",
+   "A2_USD1": "2136619750379852659"
+  },
+  "note": "A = fresh deployment (SDK points here); B = value-bearing deployment (DL adapter). Roles: helperA is mintCaller on A banks."
+ },
+ "funding": {
+  "FUNDING_FACTOR": "20000000000000000000000 per market",
+  "FUNDING_EXPONENT_FACTOR": "1e30",
+  "MIN_COLLATERAL_USD": "1e30",
+  "MIN_POSITION_SIZE_USD": "1e30",
+  "MAX_LEVERAGE": 0,
+  "PRICE_FEED_keys": "all zero for BTC/USD, ETH/USD, BNB/USD, HFUSD, HFUSD1, U, USD1"
+ },
+ "treasury_usd_approx": {
+  "U_bank": "~$30.4k",
+  "USD1_bank": "~$7.079M",
+  "total": "~$7.11M"
+ }
+}

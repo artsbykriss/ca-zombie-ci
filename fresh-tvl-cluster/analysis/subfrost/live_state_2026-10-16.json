@@ -1,0 +1,82 @@
+{
+  "protocol": "SUBFROST",
+  "chain": "ethereum",
+  "read_at_blocks": {"first": 26202548, "last": 26202587, "test_fork_block": 26202587},
+  "rpc": "https://ethereum-rpc.publicnode.com (keyless public)",
+  "proxy": {
+    "address": "0x95779E7E1C943042255B8a78273fe6DE4823CF06",
+    "impl_slot_0x360894a1...": "0x0000000000000000000000005376beedba9ba7f5b0396d28bd75473027b8bd55",
+    "admin_slot_0xb5312768...": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "beacon_slot_0xa3f0ad74...": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "proxiableUUID_via_proxy": "reverts UUPSUnauthorizedCallContext (OZ5 notDelegated; expected)",
+    "verified": "Sourcify: ERC1967Proxy (match), impl VaultImpl (exact_match, solc 0.8.24)"
+  },
+  "vault": {
+    "assetCount": 2,
+    "assets": {"0": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 (USDC)", "1": "0xdAC17F958D2ee523a2206206994597C13D831ec7 (USDT)"},
+    "defaultPublicKey": "0xb6a6cf5121ae3aca081160fe538dc4981f92ffa206088603aa481baea26d2d31",
+    "authNonce": 35,
+    "relayerAdmin": "0x943210016467e6e93B579Eb22C55f8ad795bf9A8",
+    "relayerCount": 2,
+    "isRelayer_0x50746642693e05Cc8fc93678b2323B9c131e6385": true,
+    "flatFee_6dp": 1990000,
+    "protocolFeeBps": 10,
+    "feeRecipient": "0x95779E7E1C943042255B8a78273fe6DE4823CF06 (== vault)",
+    "strategy": "0x5c5D66C82e2C634074661C3E7427668737C70100",
+    "nextBurnNonce": 34,
+    "getPaymentsLength": 72,
+    "minSweep": {"0": "1000000000", "1": "1000000000"},
+    "withdrawChunk": {"0": "1000000000", "1": "1000000000"},
+    "storage_layout_pinned": {"slot3": "assetCount=2", "slot4": "defaultPublicKey", "slot5": "authNonce=35", "slot6": "protocolFeeBps=10", "slot7": "flatFee=1990000", "slot8": "feeRecipient", "slot9": "strategy", "slot15": "nextBurnNonce=34", "slot17": "relayerAdmin", "slot18": "relayerCount=2"}
+  },
+  "accounting": {
+    "USDC_idle_6dp": "530838469",
+    "USDT_idle_6dp": "3272955599",
+    "totalAssets0_6dp": "617294561",
+    "totalAssets1_6dp": "57770549243",
+    "pending0_6dp": "272048448",
+    "pending1_6dp": "1371713528564",
+    "inStrategy0_6dp": "85786246",
+    "inStrategy1_6dp": "54497593644",
+    "feesCollected0_6dp": "32785402",
+    "feesCollected1_6dp": "2867824356",
+    "eth_side_total_usd": 58387.84
+  },
+  "strategy": {
+    "address": "0x5c5D66C82e2C634074661C3E7427668737C70100",
+    "owner": "0x896F346bC711a8fd2cDA87eA6c84DE85BDd52e7c",
+    "vault": "0x95779E7E1C943042255B8a78273fe6DE4823CF06",
+    "pool": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+    "lpToken": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+    "isActive": true,
+    "slippageBps": 50,
+    "registeredIdCount": 2,
+    "shares0_18dp": "84675908757148612124",
+    "shares1_18dp": "53375454842026427556211",
+    "totalShares_18dp": "53460130750783576168335",
+    "lpBalance_18dp": "52493560997498315227136",
+    "strat_totalAssets0_6dp": "86456092",
+    "strat_totalAssets1_6dp": "54497593644",
+    "3CRV_vault_balance": "0"
+  },
+  "curve_3pool": {
+    "address": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+    "get_virtual_price_18dp": "1039823717424521011",
+    "balances": {"DAI_18dp": "23642308786994139269946159", "USDC_6dp": "23667585023640", "USDT_6dp": "112657050170150"}
+  },
+  "history": {
+    "PaymentQueued": {"n": 72, "first_block": 25677906, "last_block": 26187979},
+    "BridgeWithdrawalProcessed": {"n": 34, "last_block": 26183216},
+    "RelayerSet": {"n": 2, "grants": ["0x50746642693e05Cc8fc93678b2323B9c131e6385 @25671088", "0x896F346bC711a8fd2cDA87eA6c84DE85BDd52e7c @25696449"]},
+    "RelayerAdminTransferred": {"n": 1, "to": "0x943210016467e6e93B579Eb22C55f8ad795bf9A8 @25671088"}
+  },
+  "poc_precomputed_vectors": {
+    "note": "fork-only TEST key; used in poc/test/Subfrost.t.sol T5 via vm.store to slot 4/5",
+    "test_pubkey_x": "0xf41008cdda40dd2586bbb206eb420407eaa18225b7a4d83753508bb310b13a38",
+    "nonce": 777000,
+    "W1_withdrawFromBridge_bridgeNonce_0x51001_asset_0_amt_100e6": {"rx": "0x1f15ead3b25f4680c8ed1a5b3bf22f4f7a1acad04a21d886eb557f7ecc5b75af", "s": "0x97091b914250a68135085b8a7a3b149a6b3e8f0dfa17505e84cc1004d9f25cce"},
+    "W2_withdrawFromBridge_bridgeNonce_0x51002_asset_1_amt_900e6": {"rx": "0x2c7ac6fefed4060508f06846959b2a5395070dd682fdd5669030002a63dc6d4f", "s": "0xa37ecd5d003a1ce6a4c57c020d5c8979e8987f67e012b27b2cd66c33f4ec4d9f"},
+    "REPLAY_same_bridge_nonce_with_fresh_nonce": {"rx": "0x7d18285d9c5d4179ddd4f6ccf1f1a4fd1950bd377acee043e01fcba072549750", "s": "0x30977e9f967475bede4625cd89a60417790d61770d62d285e76023ddbd4202c0"}
+  },
+  "notes": "All reads keyless public RPC. Sources via Sourcify v2 (Etherscan V2 key expired). BTC side not tested by scope; DL $8,939,908 total = ~$58.4K Ethereum-side + ~$8.88M Bitcoin-side (signing-group trust)."
+}

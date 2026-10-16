@@ -1,0 +1,66 @@
+{
+  "protocol": "up v3",
+  "chains": ["Robinhood Chain (4663)"],
+  "addresses": {
+    "cl_factory": "0x1ac9dB4a2608ba45D6127B1737949b51Bb54B7F3",
+    "cl_pool_impl": "0x11725976BF1F38c4aB78d1F480bc5883d70D9dc3",
+    "nonfungible_position_manager": "0x07F44c47743A2f36414A82b9F558ECFCf0EEdCEf",
+    "voter": "0x7F749fDD351C1Ceed82d76d7699CB631Eb8332a7",
+    "veUP": "0x5d321dE36F0bf98D92b291280514F3878582B7B6",
+    "gauge_factory": "0x6Bdf3B9A782c28D6259356d0Cb7Ae22Ab1368863",
+    "gauge_impl": "0xb6eEC6dCeEFA7063b130211e1d5e7E15ADCfcCad",
+    "dynamic_swap_fee_module": "0xa8Bdc945bE050E451C97f935d7c0D6B0087cF94c",
+    "custom_unstaked_fee_module": "0xbb7A7015fD9744dF83d688D5C71C9efE613b976d",
+    "factory_registry": "0xbBb4FbD1e6Dbb39CAF24D724132876cAC1a53C8E",
+    "gauge_cap_controller": "0x5739B0FcF359DF7a386C0fDD27464Dd15eE1687D",
+    "owner_safe": "0x0eEA30aBa3f07abFA20E4b544F55e0f917d9DFd8",
+    "voting_rewards_factory": "0xD18170210f9064aFfd11e343D754FE7FDc13bF60",
+    "fee_voting_reward_pool0_gauge": "0xcf17e36333a7a96E0C22Eb40B751dc609111A371"
+  },
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "E-U-conditional": 0.0,
+    "H-O": 4935865.0,
+    "P": 167190.96,
+    "S": 0.0
+  },
+  "e_u_conditional": {
+    "trigger": "Shieldify M-01 (acknowledged): any address can call voter.poke(tokenId) after the epoch vote window; for a veNFT decayed to balanceOfNFT==0 it takes the _reset branch and zeroes the victim's current-epoch FeeVotingReward/BribeVotingReward checkpoints, redistributing that epoch's fees/bribes pro-rata to the OTHER depositors of those Reward contracts. The caller receives nothing directly; monetisation needs the attacker to already hold a veUP stake in the same Reward (gain = attacker share x victim forfeited share). Fork-proven live: poke(16) by a fresh address succeeds on a zero-weight veNFT. Second conditional: M-03 cap-mode bypass (permissionless updateFor while a governance cap-mode switch is queued) - not live today (pendingCapMode==capMode==2 Enforced, epoch 0).",
+    "value_usd": 0.0
+  },
+  "block_numbers": {
+    "main_state_reads_eth_blockNumber": 89759182,
+    "fork_test_header_space": 26202692
+  },
+  "key_facts": [
+    "CLPool impl byte-identical (metadata-stripped) to aerodrome-finance/slipstream main CLPool.sol (24,226 == 24,226 bytes)",
+    "1,923 pools (1,295 with liquidity), 91 gauges, 76 with stakedLiquidity>0; priced TVL $4,693,965 (matches DefiLlama $4.72M)",
+    "DynamicSwapFeeModule and CustomUnstakedFeeModule byte-match upstream; swapFeeManager/unstakedFeeManager = Safe 0x0eEA..DFd8",
+    "CLGaugeFactory byte-identical to slipstream commit f6a694b6d9 except immutable voter; CLGauge impl = same generation (same 34-selector dispatch, pre-penalty), fork-proven unauthorized withdraw/getReward/deposit revert NA",
+    "NPM source == upstream repo source; collect/decreaseLiquidity/burn isAuthorizedForToken; NPM ETH balance 0",
+    "Fork-proven: foreign NPM collect reverts; pool 6-arg collect reverts NNFT; flash without repay reverts F0; flash with exact repay leaves pool +exactly the 1% fee and attacker +0",
+    "Voter capMode=2 Enforced, pendingCapMode=2, liveAccountedReserve=1.371e25 UP held by voter, totalWeight=4.316e25",
+    "91 gauges hold 870,817 UP (about $241.9k) pending emissions; voter fee pots (FeeVotingReward) total $167,190.96 priced",
+    "M-01 poke path is live and permissionless (fork-proven on zero-weight veNFT id 16); no direct caller payout",
+    "NPM refundETH/sweepToken are canonical permissionless parks-claimers; 0 ETH parked today"
+  ],
+  "closed_reasons": [
+    "Pool core, NPM and both fee modules are byte/source-identical to audited upstream; all value-moving paths are msg.sender-scoped or onlyGauge/onlyNftManager/onlyGaugeFactory",
+    "Fork-proven negatives on every candidate unauthorized call (gauge withdraw/getReward/deposit NA, NPM foreign collect revert, pool 6-arg collect NNFT, flash no-repay F0, voter.initialize revert)",
+    "Flash repayment enforced by before/after balance checks; exact repayment leaves attacker delta 0 and pool +fee",
+    "No skim; direct donations to pools are stuck (S) and cannot be paid out to a caller",
+    "Gauge claims require _stakes[msg.sender]; fee pots are claimed via veUP-owner/approved-gated paths (Shieldify-audited generation, live selector match)",
+    "No live pending cap-mode switch (M-03 precondition absent); M-02 requires the privileged invalidator"
+  ],
+  "caveats": [
+    "Etherscan sources for factory/NPM/pool are SimilarMatch only; byte-identity checks vs upstream repos were used instead",
+    "Voter contract is unverified on-explorer; identified by 83-selector surface + semantics match to the Shieldify-reviewed up-contracts lineage, not by byte-identity",
+    "CLGauge impl is unverified; identified as the pre-penalty Slipstream generation by selector set/revert strings with an ~8-byte dependency-level delta vs the compiled 2024-04-30 commit",
+    "M-01 live exposure not fully enumerated (no sweep of all veNFTs for zero-weight + current-epoch checkpoints); value bounded by current-epoch Reward accrual shares",
+    "Prices are point-in-time DefiLlama; unpriced memecoin legs excluded; chain header block space differs from eth_blockNumber",
+    "Local fork runs used a patched ForkHelper copy because poc/src/ForkHelper.sol (parent-owned) re-declares VM_ADDRESS and does not compile with the vendored forge-std"
+  ],
+  "one_liner": "up v3 on Robinhood Chain is a byte-verified Aerodrome Slipstream v2 deployment (core/NPM/fee modules identical to audited upstream, gauge pair on the pre-penalty 2024 generation) with a cap-mode Voter matching the Shieldify-audited up-contracts: E-U $0 live (high), with one acknowledged unprivileged griefing path (M-01 poke zeroes decayed veNFT current-epoch checkpoints, no caller payout) and M-03 cap-mode bypass conditional on a governance-queued switch."
+}

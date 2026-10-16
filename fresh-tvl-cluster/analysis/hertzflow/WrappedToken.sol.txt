@@ -1,0 +1,229 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./interfaces/IHFBankRedemption.sol";
+
+/**
+ * @title WrappedToken
+ * @notice ERC20 wrapped representation of an underlying asset, with role-based mint/burn and holder routing.
+ * @dev Designed for controlled use by HFBank instances:
+ *      - admin: top-level controller; manages whitelist + grants registrars
+ *      - registrar: can grant/revoke minter role (typically the HFBankFactory)
+ *      - minter: can mint and burn (typically the issuing HFBank)
+ *      Transfers to approved holders remain standard ERC20 transfers. Transfers to any
+ *      other address are atomically redeemed through the permanently bound reserve bank.
+ *      This contract is pinned to OpenZeppelin 4.x ERC20 hook semantics
+ *      (`_beforeTokenTransfer`). OZ 5.x migrations must port this check to `_update`.
+ */
+contract WrappedToken is ERC20 {
+    uint8 private immutable _decimals;
+
+    address public admin;
+    address public pendingAdmin;
+
+    /// @notice Addresses authorized to grant/revoke minter role (e.g., HFBankFactory)
+    mapping(address => bool) public registrars;
+
+    /// @notice Addresses authorized to mint and burn (typically the issuing HFBank)
+    mapping(address => bool) public minters;
+
+    /// @notice Addresses permanently allowed to hold this token (HF market, vault, hook, etc.)
+    mapping(address => bool) public whitelistedHolders;
+
+    /// @notice The reserve bank that redeems transfers sent outside the holder whitelist.
+    IHFBankRedemption public redemptionBank;
+
+    error NotAdmin();
+    error NotPendingAdmin();
+    error NotRegistrar();
+    error NotMinter();
+    error ZeroAddress();
+    error PendingAdminAlreadySet();
+    error NotWhitelistedHolder(address account);
+    error RedemptionBankAlreadySet(address bank);
+    error InvalidRedemptionBank(address bank);
+    error RedemptionBankNotSet();
+
+    event AdminTransferProposed(address indexed currentAdmin, address indexed pendingAdmin);
+    event AdminTransferred(address indexed previousAdmin, address indexed newAdmin);
+    event AdminTransferCanceled(address indexed currentAdmin, address indexed canceledPendingAdmin);
+    event RegistrarAdded(address indexed account);
+    event RegistrarRemoved(address indexed account);
+    event MinterAdded(address indexed account);
+    event MinterRemoved(address indexed account);
+    event WhitelistedHolderAdded(address indexed account);
+    event WhitelistedHolderRemoved(address indexed account);
+    event RedemptionBankSet(address indexed bank);
+    event AutoRedeemed(
+        address indexed account,
+        address indexed receiver,
+        address indexed bank,
+        uint256 amount
+    );
+
+    modifier onlyAdmin() {
+        if (msg.sender != admin) revert NotAdmin();
+        _;
+    }
+
+    modifier onlyRegistrar() {
+        if (msg.sender != admin && !registrars[msg.sender]) revert NotRegistrar();
+        _;
+    }
+
+    modifier onlyMinter() {
+        if (!minters[msg.sender]) revert NotMinter();
+        _;
+    }
+
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_,
+        address admin_
+    ) ERC20(name_, symbol_) {
+        if (admin_ == address(0)) revert ZeroAddress();
+        _decimals = decimals_;
+        admin = admin_;
+        emit AdminTransferred(address(0), admin_);
+    }
+
+    function decimals() public view override returns (uint8) {
+        return _decimals;
+    }
+
+    // ============ Admin: two-step transfer ============
+
+    function proposeAdmin(address newAdmin) external onlyAdmin {
+        if (newAdmin == address(0)) revert ZeroAddress();
+        if (pendingAdmin != address(0) && pendingAdmin != newAdmin) revert PendingAdminAlreadySet();
+        pendingAdmin = newAdmin;
+        emit AdminTransferProposed(admin, newAdmin);
+    }
+
+    function acceptAdmin() external {
+        if (msg.sender != pendingAdmin) revert NotPendingAdmin();
+        address previousAdmin = admin;
+        admin = msg.sender;
+        pendingAdmin = address(0);
+        emit AdminTransferred(previousAdmin, msg.sender);
+    }
+
+    function cancelAdminTransfer() external onlyAdmin {
+        address canceledPendingAdmin = pendingAdmin;
+        pendingAdmin = address(0);
+        emit AdminTransferCanceled(admin, canceledPendingAdmin);
+    }
+
+    // ============ Admin: registrars (e.g., factory) ============
+
+    function addRegistrar(address account) external onlyAdmin {
+        if (account == address(0)) revert ZeroAddress();
+        registrars[account] = true;
+        emit RegistrarAdded(account);
+    }
+
+    function removeRegistrar(address account) external onlyAdmin {
+        registrars[account] = false;
+        emit RegistrarRemoved(account);
+    }
+
+    // ============ Admin: whitelist ============
+
+    function addWhitelistedHolder(address account) external onlyAdmin {
+        if (account == address(0)) revert ZeroAddress();
+        whitelistedHolders[account] = true;
+        emit WhitelistedHolderAdded(account);
+    }
+
+    function removeWhitelistedHolder(address account) external onlyAdmin {
+        whitelistedHolders[account] = false;
+        emit WhitelistedHolderRemoved(account);
+    }
+
+    // ============ Registrar: minter management ============
+
+    function addMinter(address account) external onlyRegistrar {
+        if (account == address(0)) revert ZeroAddress();
+        minters[account] = true;
+        emit MinterAdded(account);
+    }
+
+    function removeMinter(address account) external onlyRegistrar {
+        minters[account] = false;
+        emit MinterRemoved(account);
+    }
+
+    /**
+     * @notice Bind the reserve bank used for transfers to non-holder addresses.
+     * @dev The binding is permanent because a wrapped token may only be issued by one bank.
+     */
+    function setRedemptionBank(IHFBankRedemption bank) external onlyRegistrar {
+        if (address(redemptionBank) != address(0)) {
+            revert RedemptionBankAlreadySet(address(redemptionBank));
+        }
+        if (
+            address(bank) == address(0) ||
+            address(bank).code.length == 0 ||
+            bank.wrappedToken() != address(this)
+        ) {
+            revert InvalidRedemptionBank(address(bank));
+        }
+
+        redemptionBank = bank;
+        emit RedemptionBankSet(address(bank));
+    }
+
+    // ============ Minter: mint / burn ============
+
+    function mint(address to, uint256 amount) external onlyMinter {
+        _mint(to, amount);
+    }
+
+    function burn(address from, uint256 amount) external onlyMinter {
+        _burn(from, amount);
+    }
+
+    // ============ Public ============
+
+    function canHold(address account) public view returns (bool) {
+        return whitelistedHolders[account];
+    }
+
+    /**
+     * @notice Route transfers outside the holder whitelist through the reserve bank.
+     * @dev The bank burns `from` and releases the underlying token atomically. No wrapped
+     *      balance is ever credited to an address that is not allowed to hold it.
+     */
+    function _transfer(address from, address to, uint256 amount) internal override {
+        if (to != address(0) && !canHold(to)) {
+            if (amount == 0) {
+                if (from == address(0)) revert ZeroAddress();
+                emit Transfer(from, to, 0);
+                return;
+            }
+
+            IHFBankRedemption bank = redemptionBank;
+            if (address(bank) == address(0)) revert RedemptionBankNotSet();
+
+            bank.redeemFromWrappedTransfer(from, to, amount);
+            emit AutoRedeemed(from, to, address(bank), amount);
+            return;
+        }
+
+        super._transfer(from, to, amount);
+    }
+
+    /**
+     * @notice Override transfer hook to enforce holder restrictions on the recipient.
+     * @dev Mints (from == 0) and burns (to == 0) bypass the recipient check.
+     */
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
+        if (to != address(0) && !canHold(to)) {
+            revert NotWhitelistedHolder(to);
+        }
+        super._beforeTokenTransfer(from, to, amount);
+    }
+}
+

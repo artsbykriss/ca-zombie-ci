@@ -1,0 +1,52 @@
+{
+  "protocol": "SUBFROST",
+  "chains": ["ethereum", "bitcoin (out of scope: trust model documented only)"],
+  "addresses": {
+    "frUSD_vault_proxy": "0x95779E7E1C943042255B8a78273fe6DE4823CF06",
+    "frUSD_vault_impl": "0x5376BeeDBa9Ba7F5b0396d28bd75473027B8Bd55",
+    "curve3PoolStrategy": "0x5c5D66C82e2C634074661C3E7427668737C70100",
+    "3CRV": "0x6c3F90f043a72FA612cbac8115EE7e52BDe6E490",
+    "curve3pool": "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+    "relayerAdmin_EOA": "0x943210016467e6e93B579Eb22C55f8ad795bf9A8",
+    "relayer1_EOA": "0x50746642693e05Cc8fc93678b2323B9c131e6385",
+    "relayer2_EOA_eq_strategy_owner": "0x896F346bC711a8fd2cDA87eA6c84DE85BDd52e7c"
+  },
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 0, "H-O": 0, "P": 8939908, "S": 0},
+  "e_u_conditional": null,
+  "block_numbers": {"ethereum": 26202587, "live_reads_range": [26202548, 26202587]},
+  "key_facts": [
+    "frUSD is a BITCOIN alkane; the Ethereum contract (VaultImpl, Sourcify exact_match, solc 0.8.24) is a USDC+USDT custody vault with no ERC20 fr-asset, no EVM mint and no EVM redeem",
+    "every fund-moving selector is onlyAuth, onlyVault or onlyOwner->vault; onlyAuth executes address(this).call only behind a BIP340 FROST signature over keccak(abi.encode(data, nonce, chainid, address(this)))",
+    "verifier is the inlined audited bip340-solidity primitive: standard tagged challenge sha256(7bb52d7a..||7bb52d7a..||rx||px||m), rx<P and s<n range checks, on-curve+non-residue liftX check, reject R=infinity and odd-y R, full 256-bit x(R)==rx comparison",
+    "fork-proven: direct withdrawFromBridge NotSelf; non-relayer NotRelayer; empty/zero/bit-flipped signatures InvalidSignature even from a live relayer; upgradeToAndCall and re-initialize revert (T3)",
+    "fork-proven accept-path (T5): a correctly-signed TEST-key payload (test pubkey vm.store'd to defaultPublicKey slot 4) was ACCEPTED by the deployed verifier and paid exactly 97,911,990 USDC + 897,111,990 USDT net of flatFee 1.99 + 10bps; both replay guards (authNonce, usedBridgeNonce) rejected replays",
+    "permissionless depositAndBridge takes only the caller's own funds: 100 USDC -> net credit 97,911,990 (6dp), payment queued; no EVM-side exit without the FROST key (one-way door by design)",
+    "strategy deposit/withdraw/withdrawAll onlyVault (immutable vault); emergencyWithdraw onlyOwner pays the immutable vault only (fork-proven: 52,493.56 3CRV exited, owner $0)",
+    "live ETH-side value: vault USDC 530.84 + USDT 3,272.96 idle; totalAssets(0)=617.29 USDC and totalAssets(1)=57,770.55 USDT incl. strategy; strategy holds 52,493.561 3CRV; 3pool get_virtual_price=1.03982; total ETH-side = $58,387.84",
+    "live config: authNonce=35, nextBurnNonce=34, 72 PaymentQueued, relayerCount=2, relayerAdmin EOA 0x94321001.., feeRecipient==vault (withdrawFees reverts InvalidTarget), defaultPublicKey 0xb6a6cf5121ae3aca..",
+    "proxy: EIP-1967 impl slot set, admin slot 0, no beacon; _authorizeUpgrade is onlyAuth -> the withdrawal authority and the upgrade authority are the SAME single FROST group key",
+    "BTC side (frBTC/frUSD Alkane + BRC2.0, ~$8.88M of DL's $8.94M) is a signing-group trust model: P/S, not E-U (documented, not tested, per scope)",
+    "impl and strategy were flagged 'unverified' at screening - FALSE: both are Sourcify exact matches (analysis/subfrost/sources)",
+    "poc/test/Subfrost.t.sol 5/5 PASS locally at fork block 26202587"
+  ],
+  "closed_reasons": [
+    "BIP340 FROST signature gate on the only path that can call the vault (authenticatedCall/Multicall); verifier hardened (full-coordinate compare, range checks, non-residue liftX, even-y R, no infinity) and fork-proven to reject all garbage signatures",
+    "withdrawFromBridge onlyAuth (msg.sender == vault), reachable only through that signed gate; usedBridgeNonce + authNonce block replays (fork-proven)",
+    "strategy fund movement onlyVault (immutable) / owner-only exit to the vault (fork-proven)",
+    "_authorizeUpgrade onlyAuth, no proxy admin, no beacon (fork-proven revert)",
+    "the only permissionless entry (depositAndBridge) moves the caller's own funds and creates no EVM-side claim"
+  ],
+  "caveats": [
+    "single on-chain FROST group key: no threshold, timelock or second admin is visible on-chain; a signing-quorum compromise drains ETH custody AND can upgrade the implementation (same gate) - quantified by the fork T5 simulation",
+    "no EVM-side self-service exit: users depend on the Bitcoin-side burn + coordinator + FROST group (H-O = 0 in the strict sense)",
+    "one benign verifier quirk: jacMul(0,..) returns the input point (not infinity), so s=0 is evaluated as s=1; it does not enable forgery",
+    "owner-key (EOA 0x896F346b..) can force-custody the strategy via emergencyWithdraw during a 3pool dislocation; cannot take custody",
+    "feeRecipient == vault today: accrued fees (32.79 USDC / 2,867.82 USDT) cannot be withdrawn until governance sets a recipient",
+    "the vendored poc/src/ForkHelper.sol does not compile against forge-std 1.9.6 (VM_ADDRESS redeclaration); parent must apply the 1-line fix (analysis/narausd/FORKHELPER-BLOCKER.md); tests carry identical logic inline meanwhile",
+    "ForkHelper note aside, gas ignored in all deltas; public RPC reads only"
+  ],
+  "poc": {"tests_passed": 5, "tests_total": 5, "ci_run_urls": [], "local_fork_block": 26202587},
+  "one_liner": "External unprivileged attacker extracts $0.00 on the SUBFROST Ethereum side: every fund-moving path sits behind a hardened BIP340 FROST signature (fork-proven, including a test-key drain simulation), the strategy is immutable-vault-gated, and the only public function (depositAndBridge) is a one-way door into the signing group's trust model that also custodies ~$8.88M on Bitcoin."
+}

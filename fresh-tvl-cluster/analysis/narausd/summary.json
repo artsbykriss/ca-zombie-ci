@@ -1,0 +1,62 @@
+{
+  "protocol": "NaraUSD",
+  "chains": ["ethereum"],
+  "addresses": {
+    "MCT_proxy": "0x4eD90999f558Fdc28606b7F7f9AFc7044befb803",
+    "MCT_impl": "0xD8E8C72AFEC564ee5BC88A6A713C54449Fc56469",
+    "NaraUSD_proxy": "0x5C6263904CCFD3Bcf1aAa6e7063dDd29743b3Bb7",
+    "NaraUSD_impl": "0x87cF5006E1Cbf0D35C622C5f1BE891B2f71878ea",
+    "NaraUSDPlus_proxy": "0x1aa23CDFC941f6b54251C72012A9Bfa4bF5394D6",
+    "NaraUSDPlus_impl": "0x9e1d521894C45FA26E0f06809674037c78E3c1b3",
+    "redeemSilo": "0x69e0e02b31B5623c6db029b531d4D55837098326",
+    "plusSilo": "0x12E4915C52E2d02e1c5477582577727E6fA35d13",
+    "protocolSafe": "0xaB05c0DB9D26e96A9dcEDCAFCA23341316F6fe6F",
+    "Keyring_proxy": "0xb0B5E2176E10B12d70e60E3a68738298A7DFe666",
+    "Keyring_impl": "0x2b3CF9e770Cae258768B15c467fBae79BcF02C8C",
+    "BlackopalBoringVault": "0x15e2579B1F0cBe973889a76826D3a2313b6509c6",
+    "BlackopalAccountant": "0xda594876BA13BCC22065E03fFcFB24A22E5c6724",
+    "BlackopalAuthority": "0xD1283b722cB86a978a4F3ACDc134cAF06Ec10Da0",
+    "collateral_USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "collateral_USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "curvePool_NaraUSD_USDC": "0xf05F1b7bC5D9f966193201e9f4F320A98aAF260C"
+  },
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 270, "H-O": 2958.5, "P": 9139735, "S": 0},
+  "e_u_conditional": {
+    "trigger": "Keyring credential check (checkCredential(policy=15713807)) returns true for an arbitrary fresh address (policy disabled/opened, or gate removed in a UUPS upgrade)",
+    "value_usd": 270,
+    "detail": "mint NaraUSD at exact par (1 USDC -> 1 NaraUSD, 0 fees) and sell into imbalanced Curve NG pool 0xf05F1b7b (NaraUSD 15,031.007 / USDC 19,332.79, A=100): single-shot arb optimum y-2*sqrt(x*y)+x ~= $270; par-par round trip is exactly 0; instant-redeem cap is only $2,958.50"
+  },
+  "block_numbers": {"ethereum": 26202536, "live_reads_range": [26202400, 26202548]},
+  "key_facts": [
+    "MCT supports only USDC+USDT (both 6dp); the Blackopal BoringVault share/sUSDS/mGLOBAL are NOT MCT collateral (fork-asserted isSupportedAsset=false)",
+    "mint and redeem are Keyring-gated; hasValidCredentials(fresh address) == false; fork-proven KeyringCredentialInvalid for both mint and redeem (even for holders)",
+    "conversion is pure decimals normalisation 1:1 with 0 mint/redeem fees (mintFeeBps=redeemFeeBps=0, min fees 0) - no oracle anywhere in the path",
+    "instant redeem capped by MCT collateralBalance: USDC 1,959.00 + USDT 999.50 = $2,958.50; booked == actual MCT balances exactly",
+    "MCT MINTER = NaraUSD proxy only; COLLATERAL_MANAGER/ADMIN = Safe; deployer renounced all roles",
+    "accountant updateExchangeRate requires auth (owner Safe / Blackopal RolesAuthority 0xD1283b72) and the rate is unused by NaraUSD mint/redeem",
+    "BoringVault enter/exit/manage requiresAuth (owner Safe + Authority 0xD1283b72); share round-trip hypothesis dead (BV not collateral)",
+    "history: $9,721,147.55 collateral in, $9,718,151.95 withdrawn - 100% to the protocol Safe; unbacked mint total 118,402.01 NaraUSD (19 events, Safe-only MINTER); supply reconciles exactly",
+    "live backing $9,139,735 (Safe USDC 29,923.06 + USDT 4,696,207.50 + sUSDS $122,842.56 + BoringVault shares $1,971,588.36 + mGLO 2,302,935.4559=$2,316,214.99 + MCT-held $2,958.50) vs supply 9,839,512.46 -> 92.89% covered, gap ~$699,777; dominated by 500,009.30 USDT to EOA 0xb0971be3 (now $0) and a -133,021.75 mGLO migration shortfall (2,435,957.20 mGLOBAL out vs 2,302,935.46 mGLO in); the 2,450,000 USDC to EOA 0xb38c7119 is the OTC payment for the mGLOBAL position (2,435,957.21 x 1.00577 = 2,450,000.0)",
+    "DefiLlama under-reports NaraUSD by ~$2.32M: adapter still lists deprecated mGLOBAL 0x74338069 (Safe balance 0) and misses the protocol's mGLO 0x1dd91a11",
+    "NaraUSD+ deposit is public (no Keyring) but 7-day cooldown; round-trip pays only protocol vesting yield: +0.224% per 7 days for 1,000 staked (fork-measured), bounded <1%",
+    "poc/test/NaraUSD.t.sol 9/9 PASS locally at fork block 26202536"
+  ],
+  "closed_reasons": [
+    "Keyring gate on both mint and redeem (fresh addresses rejected; fork-proven)",
+    "exact 1:1 par mint/redeem with zero fees and pure decimals scaling -> no positive-delta round trip even under a mocked keyring (delta exactly 0)",
+    "instant-redeem ceiling ($2,958.50 booked collateral) queues everything else to the Safe-solver; escrow returns via cancelRedeem",
+    "every MCT/silo/admin path is role-gated (MINTER=NaraUSD only, COLLATERAL_MANAGER/ADMIN=Safe, silos onlyVault), all fork-proven reverts",
+    "no rate/oracle input in the user-facing mint/redeem path; accountant/BoringVault authority closed"
+  ],
+  "caveats": [
+    "~$699.8K of NaraUSD claims are not matched by live backing (92.89% covered): 500,009.30 USDT sent to EOA 0xb0971be3 (holds $0 today) and a ~$133.8K mGLO migration shortfall are the main strands - a holder/queue-impairment risk, not attacker-extractable; recoverability is not determinable from public state alone",
+    "E-U-conditional ($270) assumes the Keyring stops gating; it also assumes the Curve pool keeps its current imbalance when the gate opens",
+    "Etherscan V2 + Dune keys were expired - sources via Sourcify v2 / Blockscout; event history via public getLogs gateways (Tenderly/mevblocker), blockscout API rate-limited",
+    "the vendored poc/src/ForkHelper.sol does not compile against forge-std 1.9.6 (VM_ADDRESS redeclaration); parent must apply the 1-line fix (analysis/narausd/FORKHELPER-BLOCKER.md); tests carry the identical logic inline meanwhile",
+    "gas ignored; NaraUSD/NaraUSD+ are UUPS proxies whose DEFAULT_ADMIN is the Safe (P-class upgrade risk)"
+  ],
+  "poc": {"tests_passed": 9, "tests_total": 9, "ci_run_urls": [], "local_fork_block": 26202536},
+  "one_liner": "External unprivileged attacker extracts $0.00 from NaraUSD today: mint/redeem are Keyring-gated and exact-par with no fees, instant redeem is capped at $2,958.50 of booked collateral, and every role/silo/rate path is closed (fork-proven 9/9); the live protocol is 92.89% collateralised (gap ~$699.8K; DefiLlama also under-reports ~$2.32M) - a holder/solvency question, not an attack path."
+}

@@ -1,0 +1,62 @@
+{
+  "protocol": "Scorch",
+  "chains": ["solana"],
+  "addresses": {
+    "router_vault_custodian_program": "SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn",
+    "router_programdata": "5TXQj77qXxFR4USAwkR3A5LQVnXyPxWCSUutj8R1fwdp",
+    "router_upgrade_authority": "6km771wAtWmH16R8fsRp8zEUduDFPF1vtEXWTx4buiWZ",
+    "vault_pda_seeds_authority_bump255": "EHcege7dok1iYs7SxL2XzDPvhg6XzMVcx2V5SkMUurJP",
+    "core_amm_program": "ojh19ojaKduoJZuaJADhcVGp4xt1TcdAvZmpVsCorch",
+    "core_programdata": "2LG7p9rfwyLPYN1Sisv9oVzu2pmAX4kqbXFceG7PgUuE",
+    "core_upgrade_authority": "F6qazjHEsMwHowDpLEVbwyJrtczPBecgYtFFTeptz862",
+    "other_route_program": "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u",
+    "other_route_authority": "CjoV5B96reuCfPh2rRK11G1QptG97jZdyZArTn3EN1Mj"
+  },
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 0,
+    "H-O": 0,
+    "P": 4259772.38,
+    "S": 0
+  },
+  "e_u_conditional": null,
+  "block_numbers": {
+    "solana_slot": 457493475
+  },
+  "key_facts": [
+    "Program SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn is UPGRADEABLE (BPFLoaderUpgradeab1e) with a single plain-keypair authority 6km771wAtWmH16R8fsRp8zEUduDFPF1vtEXWTx4buiWZ (system-owned, 0 data, 7.75 SOL, top-level signer in slot 454,866,345 -> NOT a multisig/PDA).",
+    "Vault PDA PDA([authority], SCoRcH..) = EHcege7dok1iYs7SxL2XzDPvhg6XzMVcx2V5SkMUurJP (bump 255, verified with @solana/web3.js) holds 51 SPL/Token-2022 accounts priced $4,259,772 (DL $4,275,230 +/-0.36%, 9 of 51 mints unpriced).",
+    "Router IDL (bitquery/solana-idl-lib, shank origin, address matches) has ONLY two instructions: swap (14 accounts) and swap2022 (18 accounts), args {id: u128, mode: ExactIn|ExactOut, amount: u64, other_amount_threshold: u64}; userTokenAuthority is a SIGNER; no withdraw/claim/admin instruction exists.",
+    "Instruction census over 35 recent successful txs (28 invocations): tags only 0x02 (27x) and 0x01 (1x), all 34-byte data, account counts 17/13, every tx has at least one non-program signer -> deployed surface equals the IDL.",
+    "Vault token accounts are owned by the router-program PDA, so ONLY the router program can move them; each observed flow is a balanced swap (e.g. -192.99 USDC / +1.83 wSOL in one tx) - no one-sided outflow observed.",
+    "Scorch is a routed DEX venue: Eco SDK SCORCH_CORE_PROGRAM_ID=ojh19oja..Corch (pricing engine), SCORCH_ROUTER_PROGRAM_ID=SCoRcH.. (real custodian), kind=constant-product, SCORCH_HAIRCUT_PPM=300000 (Eco trusts only 70% of naive CP output); Jupiter (JUP6Lk..) and Raydium LaunchLab routes CPI into it.",
+    "Upgrade history: >=9 successful router deployments, most recent slot 425,743,288 (~147 days before current 457.5M); one failed upgrade attempt slot 431,605,757. Key is active (direct program interaction slot 454,866,345).",
+    "No on-chain Anchor IDL (anchor:idl PDA F6Sw7Vx6.. and idl PDA HcRQNK5Z.. both missing); no security.txt PDA either.",
+    "Latest program invocations sampled show no instruction other than swaps and no unprivileged drain path; the core AMM ojh19oja..Corch has no public IDL/source -> swap-pricing internals unverified (residual E-U unknown, not a found path)."
+  ],
+  "closed_reasons": [
+    "Router instruction surface = 2 swap instructions only (IDL + live census); no withdraw/claim/settle/admin instruction exposed.",
+    "All swap invocations require userTokenAuthority signer and pull the in-side from the caller's own token account (SPL transfer authority check).",
+    "Vault token accounts are program-PDA-owned: only the router program can sign for them; the core AMM cannot move them directly.",
+    "Every sampled successful tx has >=1 non-program signer; no instruction tag outside {0x01,0x02} observed in 28 invocations / 35 txs.",
+    "No E-U-conditional trigger identified (no admin-configurable pot; no unfunded permissionless payout like the Fang case)."
+  ],
+  "caveats": [
+    "E-U cannot be POSITIVELY excluded: the core pricing engine ojh19oja..Corch (and the router's own swap math) has no public source/IDL; a swap-pricing or account-validation bug would be the only unprivileged monetization left and is not auditable from public data.",
+    "The community-published shank IDL matches live behavior but is not cryptographic proof.",
+    "The 800-byte PDA state account layout (discriminator 55804784ed6943fe) is unidentified (custom/shank layout).",
+    "In-session pure-Python PDA derivation initially produced a wrong candidate (8ehMMys..); the @solana/web3.js value EHcege7dok.. was verified on-chain via its 51 token accounts and is authoritative.",
+    "Token prices are point-in-time (DefiLlama); 9 of 51 mints unpriced (~0.3% of value); slot-stamped, values drift with trading.",
+    "Adjacent programs in the route (ojh19oja core, proVF4pM) were not deep-audited; their upgrade authorities were read but not further classified.",
+    "P-class value is what a malicious/compromised upgrade could take, not what an outside attacker can take today."
+  ],
+  "poc": {
+    "file": null,
+    "note": "Solana program - no forge test by design (no EVM-side component). Evidence script: analysis/scorch/scorch_evidence.sh (keyless, re-runnable, public RPC) + raw JSON dumps.",
+    "tests_passed": 0,
+    "tests_total": 0
+  },
+  "one_liner": "Scorch's routed DEX router has no unprivileged extraction path that could be found (only two user-signed swap instructions, vault PDA owned by the program, census-verified): E-U $0 at medium confidence (core pricing math unaudited), while the full ~$4.26M multi-token vault PDA is exposed to a single plain-keypair upgrade authority (P)."
+}

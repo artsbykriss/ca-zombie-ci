@@ -1,0 +1,50 @@
+{
+  "protocol": "Longbow",
+  "chains": ["robinhood"],
+  "addresses": {
+    "morphoSingleton": "0x9D53d5E3bd5E8d4Cbfa6DB1ca238AEA02E651010",
+    "loopbackOracle": "0xCDE9599059f8Ae6D6B9F33A0aF7877827ec75F16",
+    "wethUsdFeed": "0x78F3556b67E17Df817D51Ef5a990cDaF09E8d3A9",
+    "usdgUsdFeed": "0x61B7e5650328764B076A108EFF5fa7282a1B9aD2",
+    "nvdaFeed": "0x379EC4f7C378F34a1B47E4F3cbeBCbAC3E8E9F15",
+    "ponsPoolFeed": "0x89862bB8DFFc4DE3A85d7F5B1f0634Ed0b229A8D",
+    "stkPoolFeed": "0xB3F38BA8E7C9f4C7239384BbDFD341feF0038b3E",
+    "ponsPool": "0x10CC6BD38112cAc182db90B6a71d8Bb5939526bA",
+    "stkPool": "0xA9d49CAa5E906558dacDC66d563Ac78f0c26d4ef",
+    "ponsTopBorrower": "0x5526fDEbC37B6CB40bca10516A99c3D3972B39Ae"
+  },
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 1090000, "P": 1090000, "S": 0},
+  "e_u_conditional": {
+    "trigger": "any Longbow market whose idle loan liquidity exceeds the manipulation cost of its collateral pool (spot/TWAP pool feed family). Quantified per market: EV = idle - idle/(LLTV*F) - 2*fee*notional(F); STONKBROKER measured +$654 at F=10 (immaterial today, flips positive if the market grows)",
+    "value_usd": 654
+  },
+  "block_numbers": {"robinhood": 89790429},
+  "key_facts": [
+    "55 markets enumerated: 53 loan=USDG(6dp) + 2 loan=WETH; LLTVs 0.385/0.625/0.77/0.86; total supply ~$1.09M, borrows ~$987k, singleton USDG balance only $52.6k",
+    "all oracles are stock MorphoChainlinkOracleV2 (no staleness checks anywhere; freshness delegated entirely to feeds)",
+    "37 markets use EACAggregatorProxy feeds (DualAggregator, owner 0xeE27D5Ae...) - operator-driven, immutable, fresh (0.1-12.3h); no attacker update path",
+    "16 markets use unverified 'Uniswap V3 Pool Price in USD' feeds - heimdall-decompiled to observe([300,0]) 300-second Uniswap V3 TWAP x quoteChainlinkFeed(WETH/USD), 18dp; NOT spot readers",
+    "fork-proven (T2): dumping 40% of the pool base token in one tx moves slot0 +54% while the feed moves 0 bps - same-tx manipulation impossible",
+    "biggest market WSNET_NN ($952k supply/$922k borrow) uses LoopbackOracle: price = clamp(0.9*TWAP, floor, 5*floor)*index*1e6 - fork-verified exactly to live values; floor (treasury RFV/backingPerToken) and index (role-gated rebase) not outsider-manipulable",
+    "PONS top borrower ($15.0k debt/$54.6k collateral, LTV 27.5%) needs a 28.6% crash; required 863.8k PONS (~$289k) dump into a $3.2M-deep 1%-fee pool; round-trip fees ~$5-9k vs gross liquidation bonus $8-15k - EV ~0 or negative",
+    "no single-tx/flash manipulation path exists on any family; extraction capped by idle liquidity (~$115k total, mostly WSNET_NN $29.7k on the Loopback oracle)",
+    "RHNVDA collateral 7,146.52 ($1.56M) behind the DON feed; its market has $6.6k supply/$100 borrow - no liquidation play"
+  ],
+  "closed_reasons": [
+    "the 18-dec pool feeds are 300-second TWAPs (observe-based), so a swap cannot move the oracle within the same transaction or block (fork-proven 0 bps on a +54% slot0 move)",
+    "manipulation to move a 300s TWAP requires holding the distortion >=5 min; round-trip pool fees (0.3-1%/leg) plus the attacker's real collateral cost exceed each market's idle loan liquidity",
+    "the largest market's oracle (Loopback) is floor- and cap-clamped and fork-verified not to depend on instant spot; its TWAP/floor/index inputs are not outsider-manipulable",
+    "all equity majors use operator-driven Chainlink-proxy aggregators with no attacker-reachable update path",
+    "borrow-side extraction capped by idle liquidity (~$115k total); the only arithmetic-positive EV (STONKBROKER +$654) is below the cost of the required 5-minute capital commitment and gas"
+  ],
+  "caveats": [
+    "pool-feed contracts are unverified on Explore (heimdall decompilation + live structural reads used instead of source)",
+    "concentrated-liquidity depth approximated by reserve notional in the EV math; the inequality direction is robust but exact numbers may shift",
+    "Etherscan V2 logs limit 1000 rows per query (market history sampled via recent-borrower reads + positions rather than full replay)",
+    "sparse Uniswap v3 observations could make observe([300,0]) revert (fail-closed) on some pools - not tested pool-by-pool"
+  ],
+  "poc": {"tests_passed": 7, "tests_total": 7, "file": "poc/test/Longbow.t.sol", "local_only": true},
+  "one_liner": "external unprivileged attacker can extract ~$0 material from Longbow's Morpho markets: the pool feeds are 300-second TWAPs (same-tx manipulation fork-falsified), the biggest market's oracle is floor/cap-clamped, and every manipulation's cost exceeds the bounded idle liquidity"
+}

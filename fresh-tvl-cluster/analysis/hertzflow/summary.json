@@ -1,0 +1,64 @@
+{
+  "protocol": "HertzFlow",
+  "chains": ["bsc"],
+  "addresses": {
+    "deploymentB_value_bearing": {
+      "dataStore": "0xc244A37A17CE7aa14E1BDD73f6a047Ed6B56f6B8",
+      "reader": "0xFC370bA161F4B54B12574c7e0a2121Cea57854A1",
+      "exchangeRouter": "0x61e1116A943b27D21094599C2c5Bd75e980170a5",
+      "externalCallExecutor": "0x95d312Da653F8B9c6f04345f3B2463e91c7505b3",
+      "roleStore": "0x616Ee07aa245EB578c7443E598dcc8b4451bEf30",
+      "depositVault": "0x1de72AcBCfD84F437B369fE195417CAaB4ffE115",
+      "hfusdBank": "0x00ceA6655a2b5C4eAD8752EBb41dbC896D3eB5df",
+      "hfusd1Bank": "0xAB96931f9d151bE6Ff313449a926390cA292db62",
+      "hfusd": "0x7F7AD43d1Baa6BeA7f53F72D97D90b4FC0f662DF",
+      "hfusd1": "0x026C39Ab4B07f4C8C62b5824F0F9D7BE5087405a",
+      "bankImpl": "0x9539cC7655C9BAc0Bc5b417Bd307DeC37b671ff0",
+      "bankBeacon": "0x38b70119bc1e5b707c8c85032765652930afa8bc",
+      "bankFactory": "0xd87FC971768ABa37dbABb2565db5C28B58e6b269",
+      "adminSafe": "0x2492bD5a84577A1E1c0FeD975DB53733e61ed1F5",
+      "underlyingU": "0xcE24439F2D9C6a2289F741120FE202248B666666",
+      "underlyingUSD1": "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d"
+    },
+    "deploymentA_fresh": {
+      "dataStore": "0x92A898D6c26fB69B532c0b78aAd0cD196972dcF0",
+      "exchangeRouter": "0xAdBc9D0390146AEE5778629A856e8EaaEee0D559",
+      "externalHandler": "0xebc460d6409174caede99314c2f1c62657039185",
+      "adminEoa": "0x1a94a0430F1ffC8718Cd30FdedCCaFA59A69B46E"
+    }
+  },
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 20, "H-O": 7110000, "P": 7110000, "S": 0},
+  "e_u_conditional": {
+    "trigger": "any un-synced token donation to a redemption bank (balanceOf(bank) > recordedUnderlyingBalance()); then makeExternalCalls([bank],[bank.mint(depositVault)]) mints the surplus to the whitelisted DepositVault — capture requires winning the next-deposit execution race (vault-delta attribution)",
+    "value_usd": 20
+  },
+  "block_numbers": {"bsc": 127909605},
+  "key_facts": [
+    "exchangeRouter.makeExternalCalls is permissionless (fork-proven, fresh EOA) and executes arbitrary calls as shared executor 0x95d312da... which is isMintCaller=true on both banks",
+    "executor holds no RoleStore roles: DataStore.setUint via makeExternalCalls reverts ExternalCallFailed(Unauthorized(executor,'CONTROLLER')); router's own CONTROLLER role is not reachable",
+    "banks fully backed: U reserve 30429.403909100018067099 == HFUSD supply; USD1 reserve 7078605.212162068475755047 == HFUSD1 supply + 20.0 surplus",
+    "bank.mint = balance - recordedUnderlyingBalance, receiver must be whitelisted mintReceiver (DepositVault true); reverts ZeroAmount with no surplus",
+    "WrappedToken: mint/burn onlyMinter(bank); registrars only factory; transfers to non-holders auto-redeem sender's tokens 1:1; addMinter via router reverts NotRegistrar (fork-proven)",
+    "bank.redeem permissionless but burns msg.sender's tokens only (fork-proven revert for tokenless attacker)",
+    "two deployments exist (B value-bearing; A fresh with EOA admin 0x1a94a043); SDK points to A while DL adapter tracks B",
+    "PRICE_FEED DataStore keys unset; oracle is provider-fed (OracleUtils.SetPricesParams); order/deposit execution is keeper-relayed",
+    "minReserveFactor=0, no borrowers live; admin Safe 0x2492bD5a (threshold 3, ROLE_ADMIN)"
+  ],
+  "closed_reasons": [
+    "no surplus in either bank (reserve == recorded), so the permissionless mint primitive yields revert ZeroAmount today",
+    "minted surplus is credited to the whitelisted DepositVault, never to the caller's own balance; attacker delta measured = -1000 USD1/+0 HFUSD1",
+    "wrapped-token takeover blocked: registrar/minter/canHold are false for router & executor; addMinter reverts",
+    "redeem paths are caller-scoped and 1:1; reserves >= supply on both banks",
+    "no DataStore/market config write path reachable via makeExternalCalls (executor lacks CONTROLLER)"
+  ],
+  "caveats": [
+    "fork's ExchangeRouter/handlers are unverified on BSC (no Etherscan V2 free tier); ABI/behavior reconstructed from the protocol's public SDK + upstream gmx-synthetics semantics it matches",
+    "the deposit-vault capture step (recordTransferIn at execution) is upstream-semantic, not fork-verified; it bounds attacker profit on the conditional path",
+    "Etherscan V2 logs for BSC unavailable; eth_getLogs limited to recent ranges on public RPCs",
+    "deployment A (EOA admin, tiny TVL) was screened but not deeply audited"
+  ],
+  "poc": {"tests_passed": 8, "tests_total": 8, "file": "poc/test/HertzFlow.t.sol", "local_only": true},
+  "one_liner": "external unprivileged attacker can extract ~$0 live from HertzFlow: the wrapped-bank layer is exactly 1:1 and role-locked, and the permissionless makeExternalCalls path reaches only a surplus-mint primitive with zero surplus today (20 USD1 ceiling, destination-locked to the DepositVault)"
+}

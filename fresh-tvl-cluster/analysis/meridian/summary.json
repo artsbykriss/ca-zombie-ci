@@ -1,0 +1,50 @@
+{
+  "protocol": "Meridian Perps",
+  "chains": ["robinhood"],
+  "addresses": {
+    "gatewayProxy": "0xD540F47F214dC7D6D244E62A6aE7e06B586Ef44A",
+    "gatewayImpl": "0x0f17d8468c49d6C80E4ee10Cc87a767085A4B9A8",
+    "actionHandler": "0xEB9a61e37A28828E84D97e1487D66b444800a280",
+    "collateralManager": "0x719256070f9ec31dfa8df58791fdb80602e431a4",
+    "exchangeConfig": "0xc334010fdd465e5d7b758ec27f90094574de4183",
+    "perpEngine": "0x94e37b0a9e16e6efff842a9e373f0aa2edca0fc8",
+    "perpEngineAdmin": "0x14c899f08c26af5db8b33cbb4a01fce7898b2a20",
+    "liquidation": "0x03fff44b0d7192be942098bf69017cbb293121b0",
+    "sequencerEoa": "0x39f7e2936316f99E578489509c2dB036F384E574",
+    "ownerSafe": "0xF8067d8cA90b8510CE8ADe1eec24B7260eAfa5F7",
+    "merUSD": "0xAd221259D4A1f2d7376dc1012C561bc86640F009",
+    "merUSDImpl": "0x9a5c0ca8138923bf3788579fb48dabb0339bbbde",
+    "defaultWrappedToken": "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34",
+    "lpVault": "0x24b84023c8e4Da635be228C380C09bfE5271BF9d"
+  },
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "e_u_conditional": null,
+  "block_numbers": {"robinhood": 89792031},
+  "key_facts": [
+    "processActions is sequencer-gated: fresh caller gets NotSequencer(0x05967877) (fork-proven)",
+    "replaying a real historical sequencer batch (tx 0x44aca2f0..., block 89,792,031) as attacker -> NotSequencer; as the sequencer -> ActionAlreadyProcessed(0xb6132fdd) (monotonic lastActionId)",
+    "user signatures are EIP-712 (Meridian/1/chainId/verifyingContract=gateway) with per-(account,actionType,nonce) usedNonces, signedAt expiry buffers, Solady ECDSA (recovered==sender && recovered!=0) and ERC-1271 with 179k gas cap + strict magic value",
+    "InitiateWithdraw has no inline signature check by design: the user signature is carried in the action and enforced by CollateralManager.finalizeWithdraw (account.verifySignature); third-party finalize -> Unauthorized(), bogus digest -> WithdrawNotFound() (fork-proven)",
+    "direct ActionHandler calls are inert (own empty storage); gateway registry slot decodes to the verified handler address (fork-proven)",
+    "sequencer is a single EOA 0x39f7e293... (approved live; added block 48,039,484) -> P-class hot-key risk; owner is a 2-of-3 Safe",
+    "merUSD: totalSupply == USDe balance == 1,733,782.135870236e18 (exact 1:1); wrap/unwrap permissionless but restricted to the default wrapped token; non-default wrap reverts",
+    "ping() is permissionless by design and harmless (documented in source)",
+    "18 tokens listed (USD/merUSD, BTC, ETH, SOL, HYPE, XAU*, XAG*, SPY*, QQQ*, NEAR, ZEC, VVV, ENA, LIT); gateway live, not paused"
+  ],
+  "closed_reasons": [
+    "no permissionless action-execution path (sequencer gate + monotonic ActionId + per-action user signatures)",
+    "historical replay fails for both an unprivileged caller (NotSequencer) and the sequencer itself (ActionAlreadyProcessed)",
+    "withdraw finalization requires the user's signature (or owner rescue to the recorded destination after rescueDelay); third parties are rejected at the gateway",
+    "merUSD is exactly 1:1 backed and only wraps/unwraps the single default asset; no permissionless mint",
+    "direct handler calls cannot touch gateway state; the delegatecall targets are fixed registry records"
+  ],
+  "caveats": [
+    "PerpEngine/Liquidation/Deleverage internals reviewed at interface level only (mission scope was sequencer gating, signature discipline, merUSD parity)",
+    "LP vault (ERC-4626) only read for parity numbers, not audited",
+    "single-EOA sequencer means the *trusted* paths (funding/PnL/liquidations/withdraw initiation) carry the main residual risk - P-class, not E-U"
+  ],
+  "poc": {"tests_passed": 7, "tests_total": 7, "file": "poc/test/Meridian.t.sol", "local_only": true},
+  "one_liner": "external unprivileged attacker can extract ~$0 live from Meridian: actions are sequencer-gated with replay-proof ids and strict EIP-712/ERC-1271 user signatures, withdrawals enforce the user signature at finalization, and merUSD is exactly 1:1 backed by USDe; the real risk is the single-EOA sequencer (P)"
+}

@@ -1,0 +1,390 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "./WrappedToken.sol";
+
+/**
+ * @title HFBank
+ * @notice Upgradeable bank that escrows one underlying token and mints or burns its WrappedToken.
+ * @dev Beacon Proxy pattern. Each wrapped token is permanently bound to one reserve bank.
+ *      Uses ERC-7201 namespaced storage for bank-specific state.
+ */
+contract HFBank is Initializable, ReentrancyGuardUpgradeable, PausableUpgradeable {
+    using SafeERC20 for IERC20;
+
+    /// @custom:storage-location erc7201:hertzflow.storage.HFBank
+    struct BankStorage {
+        address admin;
+        address pendingAdmin;
+        IERC20 underlyingToken;
+        WrappedToken wrappedToken;
+        uint256 totalBorrowedAmount;
+        uint256 minReserveFactor;
+        uint256 recordedUnderlyingBalance;
+        mapping(address => bool) borrowers;
+        mapping(address => bool) mintCallers;
+        mapping(address => bool) mintReceivers;
+        mapping(address => uint256) borrowedAmounts;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("hertzflow.storage.HFBank")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant BANK_STORAGE_SLOT =
+        0xa9aa2bb36f326147ac6c45fe0f00a5b1a49a9990198c34c224db564da979f300;
+
+    uint256 public constant FACTOR_PRECISION = 1e30;
+
+    event Deposit(address indexed account, uint256 amount);
+    event Withdraw(address indexed account, uint256 amount);
+    event Redeem(address indexed account, address indexed receiver, uint256 amount);
+    event Borrow(address indexed borrower, address indexed recipient, uint256 amount);
+    event Repay(address indexed borrower, uint256 amount);
+    event Mint(address indexed caller, address indexed receiver, uint256 amount);
+    event AdminTransferProposed(address indexed currentAdmin, address indexed pendingAdmin);
+    event AdminTransferred(address indexed previousAdmin, address indexed newAdmin);
+    event AdminTransferCanceled(address indexed currentAdmin, address indexed canceledPendingAdmin);
+    event BorrowerSet(address indexed account, bool isBorrower);
+    event MinReserveFactorSet(uint256 minReserveFactor);
+    event MintCallerSet(address indexed account, bool isMintCaller);
+    event MintReceiverSet(address indexed account, bool isMintReceiver);
+
+    error OnlyAdmin();
+    error OnlyPendingAdmin();
+    error ZeroAmount();
+    error ZeroAddress();
+    error PendingAdminAlreadySet();
+    error DecimalsMismatch();
+    error OnlyBorrower();
+    error OnlyMintCaller();
+    error InvalidMintReceiver();
+    error InvalidRecordedUnderlyingBalance(uint256 recordedBalance, uint256 actualBalance);
+    error ReserveFactorTooHigh();
+    error InsufficientBankReserve(address token, uint256 reserve, uint256 required);
+    error MinReserveRatioNotMet(address token, uint256 reserve, uint256 supply, uint256 minReserveFactor);
+    error RepayAmountExceedsDebt(uint256 amount, uint256 debt);
+    error OnlyWrappedToken(address caller);
+
+    modifier onlyAdmin() {
+        if (msg.sender != _getBankStorage().admin) revert OnlyAdmin();
+        _;
+    }
+
+    modifier onlyBorrower() {
+        if (!_getBankStorage().borrowers[msg.sender]) revert OnlyBorrower();
+        _;
+    }
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
+        address underlyingToken_,
+        WrappedToken wrappedToken_,
+        address admin_
+    ) external initializer {
+        if (underlyingToken_ == address(0) || address(wrappedToken_) == address(0) || admin_ == address(0)) {
+            revert ZeroAddress();
+        }
+        if (wrappedToken_.decimals() != IERC20Metadata(underlyingToken_).decimals()) revert DecimalsMismatch();
+
+        __ReentrancyGuard_init();
+        __Pausable_init();
+
+        BankStorage storage store = _getBankStorage();
+        store.admin = admin_;
+        store.underlyingToken = IERC20(underlyingToken_);
+        store.wrappedToken = wrappedToken_;
+        store.recordedUnderlyingBalance = IERC20(underlyingToken_).balanceOf(address(this));
+    }
+
+    function _getBankStorage() private pure returns (BankStorage storage store) {
+        assembly {
+            store.slot := BANK_STORAGE_SLOT
+        }
+    }
+
+    // ============ View Functions ============
+
+    function admin() external view returns (address) {
+        return _getBankStorage().admin;
+    }
+
+    function underlyingToken() external view returns (IERC20) {
+        return _getBankStorage().underlyingToken;
+    }
+
+    function wrappedToken() external view returns (WrappedToken) {
+        return _getBankStorage().wrappedToken;
+    }
+
+    function pendingAdmin() external view returns (address) {
+        return _getBankStorage().pendingAdmin;
+    }
+
+    function isBorrower(address account) external view returns (bool) {
+        return _getBankStorage().borrowers[account];
+    }
+
+    function isMintCaller(address account) external view returns (bool) {
+        return _getBankStorage().mintCallers[account];
+    }
+
+    function isMintReceiver(address account) external view returns (bool) {
+        return _getBankStorage().mintReceivers[account];
+    }
+
+    function totalBorrowedAmount() external view returns (uint256) {
+        return _getBankStorage().totalBorrowedAmount;
+    }
+
+    function borrowedAmountOf(address account) external view returns (uint256) {
+        return _getBankStorage().borrowedAmounts[account];
+    }
+
+    function minReserveFactor() external view returns (uint256) {
+        return _getBankStorage().minReserveFactor;
+    }
+
+    function recordedUnderlyingBalance() external view returns (uint256) {
+        return _getBankStorage().recordedUnderlyingBalance;
+    }
+
+    function getReserve() external view returns (uint256 reserve, uint256 borrowedAmount) {
+        BankStorage storage store = _getBankStorage();
+        return (store.underlyingToken.balanceOf(address(this)), store.totalBorrowedAmount);
+    }
+
+    // ============ Admin Transfer (Two-Step) ============
+
+    function proposeAdmin(address newAdmin) external onlyAdmin {
+        if (newAdmin == address(0)) revert ZeroAddress();
+        BankStorage storage store = _getBankStorage();
+        if (store.pendingAdmin != address(0) && store.pendingAdmin != newAdmin) revert PendingAdminAlreadySet();
+        store.pendingAdmin = newAdmin;
+        emit AdminTransferProposed(store.admin, newAdmin);
+    }
+
+    function acceptAdmin() external {
+        BankStorage storage store = _getBankStorage();
+        if (msg.sender != store.pendingAdmin) revert OnlyPendingAdmin();
+
+        address previousAdmin = store.admin;
+        store.admin = msg.sender;
+        store.pendingAdmin = address(0);
+
+        emit AdminTransferred(previousAdmin, msg.sender);
+    }
+
+    function cancelAdminTransfer() external onlyAdmin {
+        BankStorage storage store = _getBankStorage();
+        address canceledPendingAdmin = store.pendingAdmin;
+        store.pendingAdmin = address(0);
+        emit AdminTransferCanceled(store.admin, canceledPendingAdmin);
+    }
+
+    // ============ Admin Functions ============
+
+    function pause() external onlyAdmin {
+        _pause();
+    }
+
+    function unpause() external onlyAdmin {
+        _unpause();
+    }
+
+    function setBorrower(address account, bool isBorrower_) external onlyAdmin {
+        if (account == address(0)) revert ZeroAddress();
+        _getBankStorage().borrowers[account] = isBorrower_;
+        emit BorrowerSet(account, isBorrower_);
+    }
+
+    function setMintCaller(address account, bool isMintCaller_) external onlyAdmin {
+        if (account == address(0)) revert ZeroAddress();
+        _getBankStorage().mintCallers[account] = isMintCaller_;
+        emit MintCallerSet(account, isMintCaller_);
+    }
+
+    function setMintReceiver(address account, bool isMintReceiver_) external onlyAdmin {
+        if (account == address(0)) revert ZeroAddress();
+        _getBankStorage().mintReceivers[account] = isMintReceiver_;
+        emit MintReceiverSet(account, isMintReceiver_);
+    }
+
+    function setMinReserveFactor(uint256 minReserveFactor_) external onlyAdmin {
+        if (minReserveFactor_ > FACTOR_PRECISION) revert ReserveFactorTooHigh();
+        _getBankStorage().minReserveFactor = minReserveFactor_;
+        emit MinReserveFactorSet(minReserveFactor_);
+    }
+
+    // ============ Recorded-Balance Minting ============
+
+    function mint(address receiver) external nonReentrant whenNotPaused returns (uint256 amount) {
+        _validateMintAccess(receiver);
+        BankStorage storage store = _getBankStorage();
+        amount = _recordTransferIn(store);
+        if (amount == 0) revert ZeroAmount();
+
+        store.wrappedToken.mint(receiver, amount);
+        emit Deposit(receiver, amount);
+        emit Mint(msg.sender, receiver, amount);
+    }
+
+    // ============ Operational Surplus Wrap/Unwrap (Borrower Only) ============
+
+    function deposit(uint256 amount) external nonReentrant whenNotPaused onlyBorrower returns (uint256 mintedAmount) {
+        if (amount == 0) revert ZeroAmount();
+
+        BankStorage storage store = _getBankStorage();
+        uint256 balanceBefore = store.underlyingToken.balanceOf(address(this));
+        store.underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
+        uint256 balanceAfter = store.underlyingToken.balanceOf(address(this));
+        mintedAmount = balanceAfter - balanceBefore;
+        if (mintedAmount == 0) revert ZeroAmount();
+
+        store.recordedUnderlyingBalance = balanceAfter;
+        store.wrappedToken.mint(msg.sender, mintedAmount);
+
+        emit Deposit(msg.sender, mintedAmount);
+    }
+
+    function withdraw(uint256 amount) external nonReentrant whenNotPaused onlyBorrower {
+        if (amount == 0) revert ZeroAmount();
+
+        BankStorage storage store = _getBankStorage();
+        store.wrappedToken.burn(msg.sender, amount);
+        _validateAvailableReserve(store.underlyingToken, amount);
+        store.underlyingToken.safeTransfer(msg.sender, amount);
+        _syncRecordedUnderlyingBalance(store);
+
+        emit Withdraw(msg.sender, amount);
+    }
+
+    function redeem(uint256 amount, address receiver) external nonReentrant whenNotPaused {
+        _redeem(msg.sender, receiver, amount);
+    }
+
+    function redeemFromWrappedTransfer(
+        address account,
+        address receiver,
+        uint256 amount
+    ) external nonReentrant whenNotPaused {
+        BankStorage storage store = _getBankStorage();
+        if (msg.sender != address(store.wrappedToken)) revert OnlyWrappedToken(msg.sender);
+        _redeem(account, receiver, amount);
+    }
+
+    // ============ Borrowing ============
+
+    function borrow(uint256 amount, address recipient) external nonReentrant whenNotPaused onlyBorrower {
+        if (amount == 0) revert ZeroAmount();
+        if (recipient == address(0)) revert ZeroAddress();
+
+        BankStorage storage store = _getBankStorage();
+        _validateBorrowReserve(store.underlyingToken, store.wrappedToken, amount);
+        store.borrowedAmounts[msg.sender] += amount;
+        store.totalBorrowedAmount += amount;
+        store.underlyingToken.safeTransfer(recipient, amount);
+        _syncRecordedUnderlyingBalance(store);
+
+        emit Borrow(msg.sender, recipient, amount);
+    }
+
+    function repay(uint256 amount) external nonReentrant whenNotPaused onlyBorrower {
+        if (amount == 0) revert ZeroAmount();
+
+        BankStorage storage store = _getBankStorage();
+        uint256 accountDebt = store.borrowedAmounts[msg.sender];
+        if (amount > accountDebt) {
+            revert RepayAmountExceedsDebt(amount, accountDebt);
+        }
+        store.borrowedAmounts[msg.sender] = accountDebt - amount;
+        store.totalBorrowedAmount -= amount;
+        store.underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
+        _syncRecordedUnderlyingBalance(store);
+
+        emit Repay(msg.sender, amount);
+    }
+
+    function _validateMintAccess(address receiver) private view {
+        BankStorage storage store = _getBankStorage();
+        if (!store.mintCallers[msg.sender]) revert OnlyMintCaller();
+        if (!store.mintReceivers[receiver]) revert InvalidMintReceiver();
+    }
+
+    function _redeem(address account, address receiver, uint256 amount) private {
+        if (amount == 0) revert ZeroAmount();
+        if (receiver == address(0)) revert ZeroAddress();
+
+        BankStorage storage store = _getBankStorage();
+        _validateAvailableReserve(store.underlyingToken, amount);
+        store.wrappedToken.burn(account, amount);
+        store.underlyingToken.safeTransfer(receiver, amount);
+        _syncRecordedUnderlyingBalance(store);
+
+        emit Redeem(account, receiver, amount);
+    }
+
+    function _validateAvailableReserve(IERC20 token, uint256 amount) private view {
+        uint256 reserve = token.balanceOf(address(this));
+        if (reserve < amount) revert InsufficientBankReserve(address(token), reserve, amount);
+    }
+
+    function _validateBorrowReserve(IERC20 token, WrappedToken tokenWrapper, uint256 amount) private view {
+        uint256 reserve = token.balanceOf(address(this));
+        if (reserve < amount) revert InsufficientBankReserve(address(token), reserve, amount);
+
+        uint256 reserveFactor = _getBankStorage().minReserveFactor;
+        if (reserveFactor == 0) {
+            return;
+        }
+
+        uint256 supply = tokenWrapper.totalSupply();
+        if (supply == 0) {
+            return;
+        }
+
+        uint256 nextReserve = reserve - amount;
+        if (nextReserve * FACTOR_PRECISION < supply * reserveFactor) {
+            revert MinReserveRatioNotMet(address(token), nextReserve, supply, reserveFactor);
+        }
+    }
+
+    function _recordTransferIn(BankStorage storage store) private returns (uint256) {
+        uint256 recordedBalance = store.recordedUnderlyingBalance;
+        uint256 actualBalance = store.underlyingToken.balanceOf(address(this));
+        if (actualBalance < recordedBalance) {
+            revert InvalidRecordedUnderlyingBalance(recordedBalance, actualBalance);
+        }
+
+        store.recordedUnderlyingBalance = actualBalance;
+        return actualBalance - recordedBalance;
+    }
+
+    function _syncRecordedUnderlyingBalance(BankStorage storage store) private {
+        store.recordedUnderlyingBalance = store.underlyingToken.balanceOf(address(this));
+    }
+
+    // Note: no __gap. All state lives in ERC-7201 namespaced slots; future fields go in BankStorage.
+}
+
+#####
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+interface IHFBankRedemption {
+    function wrappedToken() external view returns (address);
+
+    function redeemFromWrappedTransfer(
+        address account,
+        address receiver,
+        uint256 amount
+    ) external;
+}
+
+#####

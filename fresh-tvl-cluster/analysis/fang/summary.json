@@ -1,0 +1,73 @@
+{
+  "protocol": "Fang",
+  "chains": ["robinhood-4663"],
+  "addresses": {
+    "GenesisFarm": "0xC01B68919Cd0297B1bf43E4942880E98682D3bbF",
+    "Masonry": "0x33Be17082Bd477dC804EdabBa1A8D777Da3F668d",
+    "gFANG": "0x6376010d9D1F64de70D9e83c4093c8294515aC28",
+    "xGFANG": "0x6D60D2B9973Da40B5124358550d213BA8f266dF7",
+    "FANG": "0x9E7739480b45602e1706cE7369e06698F20052e1",
+    "FangRedeem": "0x6EF1e61E39195fA53189A9A880A89eF1D06E6F47",
+    "Treasury": "0x7399ef6694b6357Ee4BF3C51C83aa4450958851e",
+    "USDC_tkn_actually_USDG_6dp": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+    "ZapperGFang": "0x430A4a289f4c374FB8EA9e935e7A39c46942E77F",
+    "owner_and_deployer_EOA": "0x608730AabB55eE45Af29dADCC93bdB63470f0420",
+    "GFANG_USDC_shadow_LP_empty": "0x28eAc301FF97864f7F887A4fE4529f401A398045"
+  },
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 0,
+    "H-O": 2862056.97,
+    "P": 2862056.97,
+    "S": 0
+  },
+  "e_u_conditional": {
+    "trigger": "FangRedeem.redeemFang is permissionless and pays a hard-coded 1.00 USDG per FANG; it is dormant only because the contract's USDG balance is 0. Re-arms when USDG.balanceOf(0x6EF1e61E39195fA53189A9A880A89eF1D06E6F47) > 0 (owner supplyUSDC) AND FANG is obtainable below $1 (post-TGE market or armed convert window). Secondary: GenesisFarm.convert() window (auto-opens 2026-10-21 17:00 UTC) once owner sets `convertible` — owner-priced conversions are FCFS arbitrage if mispriced.",
+    "value_usd": 0,
+    "note": "value = pot balance at trigger time, drained to zero in one call; measured fork demo: $1,000 pot drained"
+  },
+  "block_numbers": {
+    "robinhood": 89767423
+  },
+  "key_facts": [
+    "GenesisFarm holds 16 genesis tokens worth $2,862,056.97 priced (DL TVL $2,874,309) at eth_blockNumber 89,767,423; matches DefiLlama.",
+    "poolStartTime 1791997200 (2026-10-14 17:00 UTC), poolEndTime 1792602000 (2026-10-21 17:00 UTC); every pool has depositFeeBP=200 (2%); alloc sum 10000; rewardPerSecond 9.9206e15 xGFANG.",
+    "Fork-proven: 1,000.000000 USDG deposit+withdraw round trip returns 980.000000 (attacker -20.00, owner +20.00) - no profitable farm path.",
+    "Empirical probe of all 16 pool tokens: 0 fee-on-transfer tokens; direct transfer into farm creates no stake credit or rewards.",
+    "convert() reverts today: farm.convertible()==0x0 ('GenesisFarm: convertible not set').",
+    "xGFANG fully backed 1:1 by gFANG (6,000e18 vs 6,000e18); redeemingEnabled==false live (owner toggle); redeem ratio math honest (10%..100% over 0..3 days).",
+    "Masonry totalSupply==0; donation of 50 gFANG is stranded and changes nothing (no share-price mechanism); allocateSeigniorage operator-only (Treasury).",
+    "FangRedeem: quoteRedeem(1e18)==1e6 (fixed $1.00), USDC pot balance == 0, redeemFang permissionless -> 'Insufficient USDC' live; funded-pot demo drains 1,000e6 USDG in one call.",
+    "Treasury epoch==0, startTime 1792609200 (2026-10-21 19:00 UTC); allocateSeigniorage reverts 'Treasury: not started yet'.",
+    "No DEX markets: GFANG/USDC Shadow LP 0x28eAc301 has 0 reserves; gFANG and FANG have only 2 lifetime transfers each; owner+0x145814600c... control all 252,000 FANG.",
+    "Owner/deployer is a single EOA 0x608730...; farm/Masonry/xGFANG/FANG/FangRedeem owner-gated controls are all P-class."
+  ],
+  "closed_reasons": [
+    "Farm math is canonical Tomb GenesisPool (verified by source review + live fork): reward slices via generated*alloc/totalAlloc, denominator balanceOf(farm), accRewardPerShare monotonic, rewardDebt reset on every touch; round trip loses the exact 2% deposit fee.",
+    "No fee-on-transfer/rebasing discrepancy usable with the 16 live pool tokens (0/16 FoT; and FoT can never make a single-attacker round trip positive given the 2% fee).",
+    "convert() not reachable: convertible unset (window also time-gated to poolEndTime..+24h).",
+    "xGFANG redeem disabled by owner flag; ratio curve cannot return more than 100% and immediate redeem forfeits 90%.",
+    "Masonry has no share-price math (1:1 staking, RPS snapshots); donation inert/stranded; epoch-locked and empty.",
+    "FangRedeem fixed-$1 pot is unfunded ($0) - the only reason it is not a live unprivileged drain.",
+    "Treasury seigniorage not started (epoch 0, startTime in future).",
+    "All owner/operator value paths (setConvertible, governanceRecoverUnsupported after +90d, setRedeemingEnabled, supplyUSDC/retrieveUSDC, treasury operator) are privileged (P)."
+  ],
+  "caveats": [
+    "REPO BLOCKER for parent: poc/src/ForkHelper.sol does not compile against vendored forge-std 1.9.6 (its VM_ADDRESS redeclares Base.VM_ADDRESS, solc error 9097); every forge test in poc/ fails to build until fixed. Fang.t.sol is self-contained (no ForkHelper import) and compiles once the file is repaired; local runs used an out-of-tree copy.",
+    "fBOMB/MCD/s33 are unpriced by DefiLlama (~$12k unvalued); fBOMB impl is unverified (behavior probed empirically).",
+    "Convertible contract address/token/prices unknown (unset); post-TGE re-screen recommended (window opens 2026-10-21 17:00 UTC).",
+    "FangRedeem 'USDC' is USDG 0x5fc5...d168 (6dp) - name/symbol mismatch is Protocol-wide.",
+    "Block citations use eth_blockNumber space; Robinhood chain header numbering differs.",
+    "No mainnet transactions; all PoC deltas measured on forks of live state."
+  ],
+  "poc": {
+    "file": "poc/test/Fang.t.sol",
+    "tests_passed": 7,
+    "tests_total": 7,
+    "run_scope": "local flock run vs live fork (block space 89,765,718-89,767,423); final CI executed by parent",
+    "log": "analysis/fang/poc-run-local.log"
+  },
+  "one_liner": "Fang's $2.86M Tomb-lineage genesis farm is clean for a fresh unprivileged attacker ($0 live: canonical farm math, 0 FoT tokens, convert window unarmed, xGFANG redeem owner-disabled, Masonry empty, Treasury not started); the one real defect is FangRedeem's permissionless fixed-$1.00/USDG redemption, dormant only because its pot is $0 - it drains fully the moment the owner funds it while FANG trades below $1."
+}

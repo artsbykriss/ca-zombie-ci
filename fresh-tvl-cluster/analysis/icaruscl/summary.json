@@ -1,0 +1,55 @@
+{
+  "protocol": "Icarus CL",
+  "chains": ["RISE (4153)"],
+  "addresses": {
+    "cl_factory": "0x6f7DA11c13Ba09A153dA06d376044e5859Db607B",
+    "cl_pool_impl": "0x4356B9347D963076406187ED7BE73c526F071E53",
+    "nonfungible_position_manager": "0x195D3037cb4AF610B96EF2984b4013eE836568E1",
+    "gauge_factory": "0x42ac2D74117BbCFa92142Bb4CBc045fbbb959329",
+    "gauge_impl": "0xe418Ae485B9057f13223dD76657eac103bCbF127",
+    "voter": "0xFB3773f03EFB35198b065e455090E55eE25D3177",
+    "main_pool_usdr_usdce": "0xCBc0c0d2782f97077A6309e28B9B70Dc73a934D2",
+    "main_pool_gauge": "0xbDf33a2237C862db56817C62c3771af83320591d",
+    "usdr": "0x62b7f5A5Be488ea58f660C5aff465647213Bc6e9",
+    "owner_safe_proxy": "0x838fc4155Fc13B3b75030950Fd9B58DbCE874aE0"
+  },
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "E-U-conditional": 0.0,
+    "H-O": 8067345.78,
+    "P": 0.0,
+    "S": 0.0
+  },
+  "e_u_conditional": null,
+  "block_numbers": {
+    "main_state_reads": 24515526,
+    "fork_test": 24519377
+  },
+  "key_facts": [
+    "10 pools; 99.4% of TVL is one pool 0xCBc0c0d2.. USDR/USDC.e ~= $8,017,213 (USDR 4,014,555.47 + USDC.e 3,992,638.74); priced total $8,067,346 (DefiLlama $8.03M)",
+    "Full verified stack on RISE Blockscout: CLFactory, CLPool, NPM, CLGauge, CLGaugeFactory; owner is a 172-byte Safe proxy (contract, not EOA)",
+    "CLPool delivered source = old-gen Aerodrome Slipstream; only cosmetic deltas (init-time gauge/nft, tokens() view, SLOAD cache); no auth drift in mint/burn/collect/swap/flash/stake/collectFees",
+    "Fork-proven negatives: gauge withdraw/getReward/deposit revert NA for a fresh caller; foreign NPM collect reverts; pool 6-arg collect reverts NNFT; flash without repay reverts F0; NPM ETH balance 0",
+    "Fork-proven positive: flash with exact repayment => pool +100,000 USDR (0.01% of 1e9) and attacker delta 0",
+    "Main pool stakedLiquidity = 532,697,711 (~0.0085% of pool liquidity 6.259e15); gauge rewardRate=0, periodFinish=0 (no emissions program running)",
+    "NPM contract verified old-gen (has _userPositions index; increaseLiquidity rejects staked positions; collect/decreaseLiquidity/burn all isAuthorizedForToken)",
+    "CLGauge source verified: deposit requires NFT ownership + pool match + voter.isAlive; withdraw/getReward(tokenId) require _stakes[msg.sender]; getReward(address) voter-only"
+  ],
+  "closed_reasons": [
+    "Verified deployed sources at every layer; pool/auth semantics canonical for the old-generation Slipstream design",
+    "Fork-proven unauthorized negatives on every candidate path (gauge claims, NPM collect, pool owner-scoped collect, flash without repayment)",
+    "Flash repayment enforced before/after balance; exact repayment leaves attacker delta 0",
+    "No live emissions (rewardRate 0) and no parked ETH in the NPM to claim",
+    "No skim; donations/dust in pools are unrecoverable (S) with no caller-directed payout"
+  ],
+  "caveats": [
+    "Etherscan V2 does not support chainid 4153; sources fetched from the RISE Blockscout explorer API (verified names/compilers consistent)",
+    "Byte-level compile check vs upstream was prioritized on the pool/NPM/gauge sources read; a full CI re-compile of the RISE bundle is left to the parent CI run",
+    "Sibling 'helios-v3' factory on RISE (0xbF30bD85..) not in scope; its allPools(uint256) ABI did not answer",
+    "Prices are point-in-time DefiLlama; a few dust pools hold unpriced tokens",
+    "Local fork runs used a patched ForkHelper copy because poc/src/ForkHelper.sol (parent-owned) re-declares VM_ADDRESS and does not compile with the vendored forge-std"
+  ],
+  "one_liner": "Icarus CL on RISE is an old-generation Slipstream deployment with a fully verified source stack (Safe-proxy owner, one $8.02M USDR/USDC.e pool): E-U $0 live (high), no running emissions program, all unauthorized paths fork-proven to revert."
+}

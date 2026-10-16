@@ -1,0 +1,91 @@
+{
+ "chain": 4663,
+ "gateway_proxy": "0xD540F47F214dC7D6D244E62A6aE7e06B586Ef44A",
+ "gateway_impl": "0x0f17d8468c49d6C80E4ee10Cc87a767085A4B9A8",
+ "registry": {
+  "ACTION_HANDLER": "0xeb9a61e37a28828e84d97e1487d66b444800a280",
+  "COLLATERAL_MANAGER": "0x719256070f9ec31dfa8df58791fdb80602e431a4",
+  "EXCHANGE_CONFIG": "0xc334010fdd465e5d7b758ec27f90094574de4183",
+  "PERP_ENGINE": "0x94e37b0a9e16e6efff842a9e373f0aa2edca0fc8",
+  "PERP_ENGINE_ADMIN": "0x14c899f08c26af5db8b33cbb4a01fce7898b2a20",
+  "LIQUIDATION": "0x03fff44b0d7192be942098bf69017cbb293121b0",
+  "DELEVERAGE": "0x4cd414a3c1d17d8d9ecea6b7628da790dc733966",
+  "DELEVERAGE_WITH_COMPENSATION": "0x5842d29f7266cb0eb327258a3b4fb03c2f8c7bf1"
+ },
+ "sequencer": {
+  "address": "0x39f7e2936316f99E578489509c2dB036F384E574",
+  "type": "EOA (code size 0)",
+  "approved": true,
+  "added_block": 48039484
+ },
+ "owner_safe": {
+  "address": "0xF8067d8cA90b8510CE8ADe1eec24B7260eAfa5F7",
+  "threshold": 2,
+  "owners": 3,
+  "owners_list": [
+   "0xF3D11F9829Fdb9F61a7d987CCAa858054E80Eb33",
+   "0xb6349012024331A6989cdc4cfDf480C40cfAE058",
+   "0xC18B0Cbe38E2e66f29e619Ec442B28a349F739a5"
+  ]
+ },
+ "merUSD": {
+  "proxy": "0xAd221259D4A1f2d7376dc1012C561bc86640F009",
+  "impl": "0x9a5c0ca8138923bf3788579fb48dabb0339bbbde",
+  "defaultWrappedToken": "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34 (USDe, 18dp)",
+  "totalSupply": "1733782135870236000000000",
+  "usde_backing": "1733782135870236000000000",
+  "parity": "exact 1:1"
+ },
+ "misc": {
+  "paused": false,
+  "pythLazer": "0xACeA761c27A909d4D3895128EBe6370FDE2dF481",
+  "pythMaxAge": 605100,
+  "feeCollector": "0xFF68FdA91B0e785B4aee674D3B428C4AB6d8EAa7",
+  "liquidator": "0x15982b91CFBCb0eF69D8d4c4c98C0003881917F7",
+  "tokens": [
+   "USD",
+   "BTC",
+   "ETH",
+   "SOL",
+   "HYPE",
+   "XAUUSD",
+   "XAU",
+   "XAGUSD",
+   "XAG",
+   "SPYUSD",
+   "SPY",
+   "QQQUSD",
+   "QQQ",
+   "NEAR",
+   "ZEC",
+   "VVV",
+   "ENA",
+   "LIT"
+  ],
+  "lp_vault": "0x24b84023c8e4Da635be228C380C09bfE5271BF9d",
+  "lp_vault_totalAssets": 96524630918214885865049,
+  "lp_vault_convertToAssets_1e18": 1007888253972866080
+ },
+ "historical_batch": {
+  "tx": "0x44aca2f0b0792053886dca88722e6bd74574c8fcb6bfb9de4abfcc53b56151a2",
+  "block": 89792031,
+  "from": "0x39f7e2936316f99E578489509c2dB036F384E574",
+  "selector": "0x7bc8a752",
+  "input_len": 1226
+ },
+ "revert_selectors": {
+  "NotSequencer(address)": "0x05967877",
+  "ActionAlreadyProcessed(uint64,uint64,uint64)": "0xb6132fdd",
+  "Unauthorized()": "0x82b42900",
+  "WithdrawNotFound()": "0xf2f05136"
+ },
+ "sig_review": {
+  "domain": "EIP-712 name=Meridian version=1 chainId verifyingContract=gateway (Solady)",
+  "nonces": "per-(account, actionType, nonce) usedNonces + monotonic ActionId lastActionId",
+  "expiry": "actionExpiryBuffers per ActionType vs message.signedAt",
+  "ecdsa": "solady tryRecover + recovered==sender && recovered!=0",
+  "eip1271": "staticcall cap 179k gas + exact 4-byte 0x1626ba7e magic check",
+  "initiateWithdraw": "no inline sig check; user signature carried and verified at finalizeWithdraw (CollateralManager -> account.verifySignature(digest, sig))",
+  "delegatecall_targets": "fixed registry records only (8 names), no user-controlled target"
+ }
+}

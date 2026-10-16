@@ -1,0 +1,687 @@
+{
+ "proxyResolution": {
+  "isProxy": false,
+  "proxyType": null,
+  "implementations": []
+ },
+ "compilation": {
+  "language": "Solidity",
+  "compiler": "solc",
+  "compilerVersion": "0.8.24+commit.e11b9ed9",
+  "compilerSettings": {
+   "viaIR": true,
+   "metadata": {
+    "appendCBOR": true,
+    "bytecodeHash": "ipfs",
+    "useLiteralContent": false
+   },
+   "optimizer": {
+    "runs": 200,
+    "enabled": true
+   },
+   "evmVersion": "cancun",
+   "remappings": [
+    "forge-std/=lib/forge-std/src/",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "bip340-solidity/=lib/bip340-solidity/src/",
+    "ds-test/=lib/bip340-solidity/lib/forge-std/lib/ds-test/src/",
+    "openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/",
+    "openzeppelin-contracts/=lib/openzeppelin-contracts/"
+   ]
+  },
+  "name": "Curve3PoolStrategy",
+  "fullyQualifiedName": "src-usd/strategies/Curve3PoolStrategy.sol:Curve3PoolStrategy"
+ },
+ "sources": {
+  "src-usd/strategies/Curve3PoolStrategy.sol": {
+   "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\nimport {IERC20} from \"@openzeppelin/contracts/token/ERC20/IERC20.sol\";\nimport {\n    IERC20Metadata\n} from \"@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol\";\nimport {\n    SafeERC20\n} from \"@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol\";\nimport {Ownable} from \"@openzeppelin/contracts/access/Ownable.sol\";\n\nimport {IMultiAssetStrategy} from \"../interfaces/IMultiAssetStrategy.sol\";\nimport {ICurvePool} from \"../interfaces/ICurvePool.sol\";\n\n/// @dev The slice of `VaultImpl` this strategy reads. The vault's asset registry\n///      is the SOURCE OF TRUTH for what `assetId` means \u2014 see `registeredIds`.\ninterface IAssetVault {\n    function assets(uint8 assetId) external view returns (address);\n    function assetRegistered(uint8 assetId) external view returns (bool);\n    function assetCount() external view returns (uint8);\n}\n\n/// @title Curve3PoolStrategy\n/// @notice Curve 3pool yield strategy: the vault's USDC and USDT are held as ONE\n///         Curve 3pool (DAI/USDC/USDT) LP position.\n///\n/// @dev WHY LP, RATHER THAN A ONE-SIDED SAVINGS POSITION.\n///      3pool holds USDC and USDT natively, so a payout in either is a single\n///      `remove_liquidity_one_coin` against the same LP \u2014 no swap, no second\n///      venue, no third-party router in the withdrawal path. That is precisely\n///      what lets ONE vault honour a burn that names either asset: the backing\n///      is not denominated in USDC or in USDT, it is denominated in pool shares,\n///      and the choice of payout token is made at withdrawal time.\n///\n///      The previous design routed everything through USDC -> crvUSD -> scrvUSD\n///      and swapped back out via Uniswap for the USDT leg. It could only serve\n///      one asset per instance (it inferred the asset from `msg.sender`), and\n///      every USDT round-trip crossed two extra venues.\n///\n///      MARKET-NEUTRAL: every position is a ~$1 stablecoin claim, so there is no\n///      directional exposure. The variance is the pool's imbalance fee (3pool\n///      charges 1bp) plus divergence between the three legs. Yield is the 3pool\n///      trading fee, which accrues INTO `get_virtual_price` \u2014 no reward claiming\n///      and no reward token to sell.\n///\n///      RESIDUAL RISK worth stating plainly: 3pool contains DAI, so the position\n///      is exposed to a DAI depeg pro-rata, and USDC/USDT remain freezable at\n///      their issuers. This strategy buys yield and dual-asset redemption, not\n///      censorship resistance. The crvUSD variant traded the opposite way.\n///\n/// @dev AUTHORITY. `owner` configures (pause, slippage) and can trigger the\n///      escape hatch, but CANNOT take custody: every exit path pays the\n///      `vault`, and `vault` is `immutable`. So a compromised owner key can stop\n///      the strategy and force it back to plain custody, and that is all.\n///\n///      Ownership is TRANSFERABLE (OZ `Ownable`) so a Safe or timelock can be\n///      migrated without redeploying, but NOT renounceable \u2014 see\n///      `renounceOwnership`.\ncontract Curve3PoolStrategy is IMultiAssetStrategy, Ownable {\n    using SafeERC20 for IERC20;\n\n    // ---- Immutable wiring ----\n\n    /// @notice Curve 3pool (DAI=0, USDC=1, USDT=2).\n    ICurvePool public immutable pool;\n\n    /// @notice The 3pool LP token (3Crv).\n    /// @dev Supplied at construction because 3pool exposes no `lp_token()`\n    ///      getter to read it from (verified against the deployed ABI).\n    IERC20 public immutable lpToken;\n\n    /// @dev Number of coins in 3pool. The pool's array arguments are fixed-size\n    /// `uint256[3]`, so this cannot be made generic without a different ABI.\n    uint256 private constant N_COINS = 3;\n\n    /// @dev Basis-point denominator.\n    uint256 private constant BPS = 10000;\n\n    /// @dev Hard ceiling on `slippageBps`. Above this the peg anchors below stop\n    /// being a meaningful bound and the strategy would accept an arbitrarily bad\n    /// fill; `owner` is not trusted with custody and must not be able to create\n    /// one by widening tolerance.\n    uint256 private constant MAX_SLIPPAGE_BPS = 500; // 5%\n\n    // ---- Config ----\n\n    /// @notice The ONE vault this strategy serves. Set at construction, forever.\n    ///\n    /// `immutable` because it is the only address funds can ever leave to. If the\n    /// owner could repoint it, the owner could point it at themselves and call\n    /// `withdrawAll` \u2014 the entire access-control model collapses to \"trust the\n    /// owner key\". The compiler enforces that here; nothing at runtime has to.\n    ///\n    /// Taking it in the constructor rather than a later `setVault` is free: the\n    /// wiring is one-directional (the vault's `setStrategy` is a separate\n    /// FROST-signed call), so the vault always exists first and its address is\n    /// known before this contract is deployed. That also removes the window in\n    /// which a deployed strategy sits unwired.\n    address public immutable vault;\n\n    /// @notice Whether the strategy accepts deposits. Owner kill-switch.\n    /// @dev Only gates DEPOSITS. Withdrawals must keep working while paused or\n    ///      pausing would strand the backing.\n    ///\n    ///      ACTIVE BY DEFAULT, so a deployment needs no owner call to finish and\n    ///      the owner can be set straight to its final address at construction.\n    ///      Safe because being active is not the same as being reachable: every\n    ///      fund movement is `onlyVault`, and the vault does not know this\n    ///      strategy exists until a FROST-signed `setStrategy` points it here. An\n    ///      active strategy nothing references is inert.\n    bool public isActive = true;\n\n    /// @notice Slippage tolerance applied to every pool interaction, in bps.\n    uint256 public slippageBps = 50; // 0.5%\n\n    /// @notice Per-asset wiring: which 3pool coin an `assetId` maps to.\n    /// @dev Every field is DERIVED at construction \u2014 nothing here is supplied by\n    ///      the deployer. See `registeredIds`.\n    struct AssetInfo {\n        IERC20 token; // read from the vault's registry\n        uint8 coinIndex; // located by scanning pool.coins() for that token\n        uint8 decimals; // read from the token\n        bool registered;\n    }\n\n    /// @notice `assetId` (the vault's / the burn's id) -> 3pool coin.\n    mapping(uint8 => AssetInfo) public assetInfo;\n\n    /// @notice Ids this strategy serves, mirrored from the vault at construction.\n    ///\n    /// @dev THE VAULT IS THE SOURCE OF TRUTH for what an `assetId` means, and the\n    ///      whole registry is derived from it rather than supplied alongside it.\n    uint8[] public registeredIds;\n\n    /// @notice Each asset's claim on the shared position, denominated in LP.\n    ///\n    /// @dev The position is SHARED: one LP balance backs both assets. To report\n    ///      `totalAssets(assetId)` without double-counting, it is split pro-rata\n    ///      by these shares, so yield accrues to each asset in proportion to\n    ///      what it is holding.\n    ///\n    ///      DENOMINATED IN LP, deliberately \u2014 this was originally contributed\n    ///      principal in USD, which is wrong. A share credited in USD but\n    ///      debited by an LP burn diverges as soon as yield accrues: withdrawing\n    ///      exactly what was deposited drives the recorded total to zero while\n    ///      the yield is still sitting in the pool, and that residual then reads\n    ///      as `totalAssets == 0` \u2014 invisible to the vault, undrainable by\n    ///      `withdrawAll`, and a false \"empty\" for the vault's `StrategyNotEmpty`\n    ///      guard. Crediting the LP minted and debiting the LP burned keeps both\n    ///      sides in the same unit, so the ratio stays exact and yield simply\n    ///      remains attributed to whoever still holds shares.\n    mapping(uint8 => uint256) public shares;\n\n    /// @notice Sum of `shares` over all registered assets.\n    /// @dev Tracked separately rather than read off the LP balance: a\n    ///      cross-asset exit (paying USDT out of a USDC-funded position) burns\n    ///      LP that no share backed, so the two legitimately diverge.\n    uint256 public totalShares;\n\n    // ---- Events ----\n    event AssetRegistered(\n        uint8 indexed assetId,\n        address indexed token,\n        uint8 coinIndex\n    );\n    /// @dev Emitted once, from the constructor \u2014 `vault` is immutable.\n    event VaultSet(address indexed vault);\n    event Deposited(uint8 indexed assetId, uint256 amountIn, uint256 lpMinted);\n    event Withdrawn(uint8 indexed assetId, uint256 amountOut, uint256 lpBurned);\n    event ActiveSet(bool active);\n    event SlippageUpdated(uint256 oldBps, uint256 newBps);\n    event EmergencyWithdrawn(address indexed vault, uint256 lpBurned);\n\n    // ---- Errors ----\n    error NotVault();\n    error StrategyInactive();\n    error ZeroAmount();\n    error ZeroAddress();\n    error UnknownAsset();\n    error UnsupportedDecimals();\n    error SlippageTooHigh();\n    error RenounceDisabled();\n    error NoSupportedAssets();\n\n    /// Every mutating fund movement is vault-only. `vault` is immutable and\n    /// non-zero, so there is no state in which this gate is open.\n    modifier onlyVault() {\n        if (msg.sender != vault) revert NotVault();\n        _;\n    }\n\n    /// @notice Wires the strategy and mirrors the vault's asset registry.\n    ///\n    /// @dev Takes NO asset arguments. Every id the vault serves that 3pool can\n    ///      hold is registered here, with its coin index located by scanning\n    ///      `pool.coins()` for the token the VAULT says that id means. There is\n    ///      no deployer input left for the two registries to disagree on.\n    ///\n    ///      Assets the pool cannot hold (a WETH id, say) are SKIPPED rather than\n    ///      rejected: the vault is general-purpose and this strategy serves the\n    ///      3pool subset of it. Skipping is safe precisely because nothing is\n    ///      supplied \u2014 a skip means the vault genuinely holds an asset 3pool does\n    ///      not, never that someone mistyped an index. If NOTHING matches, the\n    ///      strategy would be inert and the deployment is a mistake, so it fails.\n    ///\n    /// @param _owner Reverts `OwnableInvalidOwner` on address(0) \u2014 see `Ownable`.\n    constructor(\n        address _pool,\n        address _lpToken,\n        address _vault,\n        address _owner\n    ) Ownable(_owner) {\n        if (\n            _pool == address(0) ||\n            _lpToken == address(0) ||\n            _vault == address(0)\n        ) {\n            revert ZeroAddress();\n        }\n        pool = ICurvePool(_pool);\n        lpToken = IERC20(_lpToken);\n        vault = _vault;\n        emit VaultSet(_vault);\n\n        IAssetVault v = IAssetVault(_vault);\n        uint8 n = v.assetCount();\n        for (uint8 id = 0; id < n; id++) {\n            if (!v.assetRegistered(id)) continue;\n\n            address token = v.assets(id);\n            (uint8 coinIndex, bool inPool) = _coinIndexOf(token);\n            if (!inPool) continue; // not a 3pool coin \u2014 not ours to serve\n\n            uint8 dec = IERC20Metadata(token).decimals();\n            // `_toUsd18` scales UP by (18 - decimals); a >18-decimal coin would\n            // underflow it. 3pool has none, but the check keeps that a fact about\n            // the pool rather than an assumption in the arithmetic.\n            if (dec > 18) revert UnsupportedDecimals();\n\n            assetInfo[id] = AssetInfo({\n                token: IERC20(token),\n                coinIndex: coinIndex,\n                decimals: dec,\n                registered: true\n            });\n            registeredIds.push(id);\n            emit AssetRegistered(id, token, coinIndex);\n        }\n\n        if (registeredIds.length == 0) revert NoSupportedAssets();\n    }\n\n    /// Locate `token` among the pool's coins.\n    ///\n    /// @dev Scanned ONCE, at construction, and cached. Both inputs to this\n    ///      mapping are fixed for the life of their contracts \u2014 the vault's asset\n    ///      set is settled at its `initialize`, and 3pool's `coins` are set in its\n    ///      Vyper constructor with no setter \u2014 so the cached index cannot go\n    ///      stale, and re-deriving it on every deposit would spend three\n    ///      staticcalls per operation to recompute a constant.\n    function _coinIndexOf(address token) internal view returns (uint8, bool) {\n        for (uint256 i = 0; i < N_COINS; i++) {\n            if (pool.coins(i) == token) return (uint8(i), true);\n        }\n        return (0, false);\n    }\n\n    // ============ Owner config ============\n\n    /// @notice Disabled. Ownership can be TRANSFERRED but never abandoned.\n    ///\n    /// @dev `owner` holds the `setActive` kill-switch and `emergencyWithdraw`,\n    ///      which is the only path that forces the position back to plain\n    ///      custody. Renouncing would strand both permanently, leaving a\n    ///      strategy that can never be paused or unwound \u2014 for no benefit, since\n    ///      the owner cannot take custody anyway (every exit pays `vault`).\n    ///      `transferOwnership` to a Safe or timelock is the supported move.\n    function renounceOwnership() public view override onlyOwner {\n        revert RenounceDisabled();\n    }\n\n    function setActive(bool a) external onlyOwner {\n        isActive = a;\n        emit ActiveSet(a);\n    }\n\n    function setSlippage(uint256 bps) external onlyOwner {\n        if (bps > MAX_SLIPPAGE_BPS) revert SlippageTooHigh();\n        emit SlippageUpdated(slippageBps, bps);\n        slippageBps = bps;\n    }\n\n    // ============ Views ============\n\n    function asset(uint8 assetId) external view override returns (address) {\n        return address(_info(assetId).token);\n    }\n\n    /// @notice Value attributable to `assetId`, in that asset's own base units.\n    ///\n    /// @dev The whole LP position valued at `get_virtual_price`, then split\n    ///      pro-rata by `shares`. Returning the FULL position for each id\n    ///      instead would double-count the backing, since the vault adds this to\n    ///      its idle balance once per asset.\n    ///\n    ///      Uses `get_virtual_price` (invariant / LP supply), not\n    ///      `calc_withdraw_one_coin`: the former is monotone in fees and cannot\n    ///      be pushed down by imbalancing the pool within a transaction, so an\n    ///      attacker cannot make the vault under-report its own backing. It\n    ///      therefore excludes the imbalance fee an actual one-sided exit pays \u2014\n    ///      an accounting estimate, which is why `withdraw` accounts against the\n    ///      amount it MEASURES rather than this.\n    function totalAssets(uint8 assetId) public view override returns (uint256) {\n        if (!assetInfo[assetId].registered) return 0;\n        uint256 ts = totalShares;\n        if (ts == 0) return 0;\n\n        uint256 lpBal = lpToken.balanceOf(address(this));\n        if (lpBal == 0) return 0;\n\n        uint256 value18 = (lpBal * pool.get_virtual_price()) / 1e18;\n        return _fromUsd18(assetId, (value18 * shares[assetId]) / ts);\n    }\n\n    /// @notice Total 3pool LP held (both assets' backing combined).\n    function lpBalance() external view returns (uint256) {\n        return lpToken.balanceOf(address(this));\n    }\n\n    function registeredIdCount() external view returns (uint256) {\n        return registeredIds.length;\n    }\n\n    // ============ Deposit ============\n\n    /// @notice Pull `amount` of `assetId` from the vault and LP it into 3pool.\n    function deposit(\n        uint8 assetId,\n        uint256 amount\n    ) external override onlyVault {\n        if (!isActive) revert StrategyInactive();\n        AssetInfo memory a = _info(assetId);\n        if (amount == 0) revert ZeroAmount();\n\n        // Credit what ARRIVED, not what was asked for: USDT carries a dormant,\n        // owner-toggleable transfer fee, and crediting the request would record\n        // a share this strategy never received.\n        uint256 balBefore = a.token.balanceOf(address(this));\n        a.token.safeTransferFrom(vault, address(this), amount);\n        uint256 received = a.token.balanceOf(address(this)) - balBefore;\n        if (received == 0) revert ZeroAmount();\n\n        uint256[3] memory amounts;\n        amounts[a.coinIndex] = received;\n\n        a.token.forceApprove(address(pool), received);\n        uint256 lpBefore = lpToken.balanceOf(address(this));\n        pool.add_liquidity(amounts, _minLpForDeposit(assetId, received));\n        uint256 minted = lpToken.balanceOf(address(this)) - lpBefore;\n        // A pool that pulled less than approved would otherwise keep a standing\n        // allowance over this strategy's balance.\n        a.token.forceApprove(address(pool), 0);\n\n        shares[assetId] += minted;\n        totalShares += minted;\n\n        emit Deposited(assetId, received, minted);\n    }\n\n    // ============ Withdraw ============\n\n    /// @notice Return `amount` of `assetId` to the vault, burning LP for it.\n    ///\n    /// Delivers whatever the single-coin exit actually realized, which is\n    /// normally a little MORE than requested (the LP burn is over-estimated by\n    /// `slippageBps` so the exit clears `amount` even after the imbalance fee).\n    /// The surplus goes to the vault rather than being left loose here, where it\n    /// would sit outside `totalAssets` and read as a loss.\n    function withdraw(\n        uint8 assetId,\n        uint256 amount\n    ) external override onlyVault returns (uint256 actualAmount) {\n        AssetInfo memory a = _info(assetId);\n        if (amount == 0) revert ZeroAmount();\n\n        uint256 lpBal = lpToken.balanceOf(address(this));\n        // Nothing deployed. Return 0 rather than reverting: the vault treats a\n        // short delivery as `InsufficientAssets` at the point it actually\n        // matters, and a strategy with an empty position must not brick the\n        // vault's payout path.\n        if (lpBal == 0) return 0;\n\n        uint256[3] memory amounts;\n        amounts[a.coinIndex] = amount;\n        // `calc_token_amount` ignores fees, so it UNDER-states the LP needed for\n        // a one-sided exit. Over-burn by the slippage tolerance so the exit\n        // clears `amount`; the surplus is delivered, not kept.\n        uint256 lpNeeded = pool.calc_token_amount(amounts, false);\n        lpNeeded += (lpNeeded * slippageBps) / BPS;\n        if (lpNeeded > lpBal) lpNeeded = lpBal;\n\n        actualAmount = _exitOneCoin(assetId, a, lpNeeded);\n        _burnShares(assetId, lpNeeded);\n\n        a.token.safeTransfer(vault, actualAmount);\n        emit Withdrawn(assetId, actualAmount, lpNeeded);\n    }\n\n    /// @notice Return everything attributable to `assetId` to the vault.\n    ///\n    /// @dev Burns only THIS asset's pro-rata slice of the shared LP position \u2014\n    ///      the other asset's backing stays invested. Draining the whole\n    ///      position here would silently liquidate an asset the caller did not\n    ///      name and leave the vault's `inStrategy` for it overstated.\n    function withdrawAll(\n        uint8 assetId\n    ) external override onlyVault returns (uint256 amount) {\n        AssetInfo memory a = _info(assetId);\n\n        uint256 lpBal = lpToken.balanceOf(address(this));\n        uint256 ts = totalShares;\n        uint256 share = shares[assetId];\n        if (lpBal == 0 || ts == 0 || share == 0) return 0;\n\n        // `>=` rather than `==`: a cross-asset exit burns LP without burning any\n        // share, so `totalShares` can exceed the LP balance and the last\n        // remaining asset's share can equal the whole total. Cap at the balance.\n        uint256 lpShare = share >= ts ? lpBal : (lpBal * share) / ts;\n\n        amount = _exitOneCoin(assetId, a, lpShare);\n\n        totalShares = ts - share;\n        shares[assetId] = 0;\n\n        a.token.safeTransfer(vault, amount);\n        emit Withdrawn(assetId, amount, lpShare);\n    }\n\n    /// @notice Escape hatch: exit the whole LP position to the VAULT.\n    ///\n    /// @dev Pays the vault, never `owner` \u2014 this is what makes the owner key a\n    ///      configuration authority rather than a custody one. A compromised\n    ///      owner can force the backing home; it cannot take it.\n    ///\n    ///      Uses a BALANCED `remove_liquidity`, which takes a pro-rata slice of\n    ///      all three coins: no swap, no imbalance fee, and no price to\n    ///      manipulate \u2014 so it still works when a leg of the pool is dislocated\n    ///      and the one-sided paths would be refusing on their slippage bound.\n    ///      That is also why zero minimums are acceptable HERE and nowhere else:\n    ///      there is no exchange rate for a sandwicher to move.\n    ///\n    ///      The vault receives DAI too. It has no `assetId` for DAI, so that leg\n    ///      is not withdrawable through the normal path and is left for\n    ///      governance to unwind \u2014 deliberate, since the alternative is swapping\n    ///      it inside an emergency path that must not depend on a working venue.\n    function emergencyWithdraw() external onlyOwner {\n        address dest = vault;\n\n        uint256 lpBal = lpToken.balanceOf(address(this));\n        if (lpBal > 0) {\n            uint256[3] memory minAmounts; // all zero \u2014 see above\n            pool.remove_liquidity(lpBal, minAmounts);\n        }\n\n        for (uint256 i = 0; i < N_COINS; i++) {\n            IERC20 coin = IERC20(pool.coins(i));\n            uint256 bal = coin.balanceOf(address(this));\n            if (bal > 0) coin.safeTransfer(dest, bal);\n        }\n\n        // Reset attribution. Stale shares against an empty position would\n        // over-attribute anything deposited afterwards.\n        uint256 n = registeredIds.length;\n        for (uint256 i = 0; i < n; i++) {\n            shares[registeredIds[i]] = 0;\n        }\n        totalShares = 0;\n\n        // Deposits stop until the owner deliberately re-enables. An emergency\n        // exit that left the front door open would re-accumulate into whatever\n        // condition triggered it.\n        isActive = false;\n        emit ActiveSet(false);\n        emit EmergencyWithdrawn(dest, lpBal);\n    }\n\n    // ============ Internal ============\n\n    function _info(uint8 assetId) internal view returns (AssetInfo memory a) {\n        a = assetInfo[assetId];\n        if (!a.registered) revert UnknownAsset();\n    }\n\n    /// Burn `lpAmount` for a single coin and return what actually arrived.\n    function _exitOneCoin(\n        uint8 assetId,\n        AssetInfo memory a,\n        uint256 lpAmount\n    ) internal returns (uint256 received) {\n        if (lpAmount == 0) return 0;\n        uint256 balBefore = a.token.balanceOf(address(this));\n        pool.remove_liquidity_one_coin(\n            lpAmount,\n            int128(uint128(a.coinIndex)),\n            _minOutForLp(assetId, lpAmount)\n        );\n        received = a.token.balanceOf(address(this)) - balBefore;\n    }\n\n    /// Debit this asset's share by the LP actually burned.\n    ///\n    /// Floored at the recorded share because an exit may burn LP this asset\n    /// never contributed \u2014 paying USDT out of a USDC-funded position is the\n    /// supported case, not an error, and an unfloored subtraction would revert\n    /// on the underflow. The effect is that the burn falls on the remaining\n    /// shareholders, which is correct: the LP is one pot backing one liability.\n    function _burnShares(uint8 assetId, uint256 lpBurned) internal {\n        uint256 s = shares[assetId];\n        uint256 consumed = lpBurned > s ? s : lpBurned;\n        shares[assetId] = s - consumed;\n        totalShares -= consumed;\n    }\n\n    /// Minimum LP to accept for a one-sided deposit, anchored to the LP's\n    /// virtual price rather than to a same-transaction quote.\n    ///\n    /// `get_virtual_price` is invariant/supply: it only moves up as fees accrue\n    /// and cannot be pushed down by imbalancing the pool inside the transaction.\n    /// A `calc_token_amount` floor would float with a sandwicher's manipulation\n    /// and bound nothing.\n    function _minLpForDeposit(\n        uint8 assetId,\n        uint256 amount\n    ) internal view returns (uint256) {\n        uint256 value18 = _toUsd18(assetId, amount);\n        uint256 expectedLp = (value18 * 1e18) / pool.get_virtual_price();\n        return (expectedLp * (BPS - slippageBps)) / BPS;\n    }\n\n    /// Minimum coin to accept for burning `lpAmount`. Peg-anchored, same reason.\n    function _minOutForLp(\n        uint8 assetId,\n        uint256 lpAmount\n    ) internal view returns (uint256) {\n        uint256 value18 = (lpAmount * pool.get_virtual_price()) / 1e18;\n        return _fromUsd18(assetId, (value18 * (BPS - slippageBps)) / BPS);\n    }\n\n    /// Asset base units -> 18-decimal USD. Decimals are capped at 18 by the\n    /// constructor's registration loop, so the exponent cannot underflow.\n    function _toUsd18(\n        uint8 assetId,\n        uint256 amount\n    ) internal view returns (uint256) {\n        return amount * (10 ** uint256(18 - assetInfo[assetId].decimals));\n    }\n\n    /// 18-decimal USD -> asset base units.\n    function _fromUsd18(\n        uint8 assetId,\n        uint256 value18\n    ) internal view returns (uint256) {\n        return value18 / (10 ** uint256(18 - assetInfo[assetId].decimals));\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/IERC20.sol)\n\npragma solidity >=0.4.16;\n\n/**\n * @dev Interface of the ERC-20 standard as defined in the ERC.\n */\ninterface IERC20 {\n    /**\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\n     * another (`to`).\n     *\n     * Note that `value` may be zero.\n     */\n    event Transfer(address indexed from, address indexed to, uint256 value);\n\n    /**\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\n     * a call to {approve}. `value` is the new allowance.\n     */\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n\n    /**\n     * @dev Returns the value of tokens in existence.\n     */\n    function totalSupply() external view returns (uint256);\n\n    /**\n     * @dev Returns the value of tokens owned by `account`.\n     */\n    function balanceOf(address account) external view returns (uint256);\n\n    /**\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * Emits a {Transfer} event.\n     */\n    function transfer(address to, uint256 value) external returns (bool);\n\n    /**\n     * @dev Returns the remaining number of tokens that `spender` will be\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\n     * zero by default.\n     *\n     * This value changes when {approve} or {transferFrom} are called.\n     */\n    function allowance(address owner, address spender) external view returns (uint256);\n\n    /**\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\n     * caller's tokens.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\n     * that someone may use both the old and the new allowance by unfortunate\n     * transaction ordering. One possible solution to mitigate this race\n     * condition is to first reduce the spender's allowance to 0 and set the\n     * desired value afterwards:\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\n     *\n     * Emits an {Approval} event.\n     */\n    function approve(address spender, uint256 value) external returns (bool);\n\n    /**\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the\n     * allowance mechanism. `value` is then deducted from the caller's\n     * allowance.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * Emits a {Transfer} event.\n     */\n    function transferFrom(address from, address to, uint256 value) external returns (bool);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/extensions/IERC20Metadata.sol)\n\npragma solidity >=0.6.2;\n\nimport {IERC20} from \"../IERC20.sol\";\n\n/**\n * @dev Interface for the optional metadata functions from the ERC-20 standard.\n */\ninterface IERC20Metadata is IERC20 {\n    /**\n     * @dev Returns the name of the token.\n     */\n    function name() external view returns (string memory);\n\n    /**\n     * @dev Returns the symbol of the token.\n     */\n    function symbol() external view returns (string memory);\n\n    /**\n     * @dev Returns the decimals places of the token.\n     */\n    function decimals() external view returns (uint8);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.5.0) (token/ERC20/utils/SafeERC20.sol)\n\npragma solidity ^0.8.20;\n\nimport {IERC20} from \"../IERC20.sol\";\nimport {IERC1363} from \"../../../interfaces/IERC1363.sol\";\n\n/**\n * @title SafeERC20\n * @dev Wrappers around ERC-20 operations that throw on failure (when the token\n * contract returns false). Tokens that return no value (and instead revert or\n * throw on failure) are also supported, non-reverting calls are assumed to be\n * successful.\n * To use this library you can add a `using SafeERC20 for IERC20;` statement to your contract,\n * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.\n */\nlibrary SafeERC20 {\n    /**\n     * @dev An operation with an ERC-20 token failed.\n     */\n    error SafeERC20FailedOperation(address token);\n\n    /**\n     * @dev Indicates a failed `decreaseAllowance` request.\n     */\n    error SafeERC20FailedDecreaseAllowance(address spender, uint256 currentAllowance, uint256 requestedDecrease);\n\n    /**\n     * @dev Transfer `value` amount of `token` from the calling contract to `to`. If `token` returns no value,\n     * non-reverting calls are assumed to be successful.\n     */\n    function safeTransfer(IERC20 token, address to, uint256 value) internal {\n        if (!_safeTransfer(token, to, value, true)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Transfer `value` amount of `token` from `from` to `to`, spending the approval given by `from` to the\n     * calling contract. If `token` returns no value, non-reverting calls are assumed to be successful.\n     */\n    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {\n        if (!_safeTransferFrom(token, from, to, value, true)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Variant of {safeTransfer} that returns a bool instead of reverting if the operation is not successful.\n     */\n    function trySafeTransfer(IERC20 token, address to, uint256 value) internal returns (bool) {\n        return _safeTransfer(token, to, value, false);\n    }\n\n    /**\n     * @dev Variant of {safeTransferFrom} that returns a bool instead of reverting if the operation is not successful.\n     */\n    function trySafeTransferFrom(IERC20 token, address from, address to, uint256 value) internal returns (bool) {\n        return _safeTransferFrom(token, from, to, value, false);\n    }\n\n    /**\n     * @dev Increase the calling contract's allowance toward `spender` by `value`. If `token` returns no value,\n     * non-reverting calls are assumed to be successful.\n     *\n     * IMPORTANT: If the token implements ERC-7674 (ERC-20 with temporary allowance), and if the \"client\"\n     * smart contract uses ERC-7674 to set temporary allowances, then the \"client\" smart contract should avoid using\n     * this function. Performing a {safeIncreaseAllowance} or {safeDecreaseAllowance} operation on a token contract\n     * that has a non-zero temporary allowance (for that particular owner-spender) will result in unexpected behavior.\n     */\n    function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {\n        uint256 oldAllowance = token.allowance(address(this), spender);\n        forceApprove(token, spender, oldAllowance + value);\n    }\n\n    /**\n     * @dev Decrease the calling contract's allowance toward `spender` by `requestedDecrease`. If `token` returns no\n     * value, non-reverting calls are assumed to be successful.\n     *\n     * IMPORTANT: If the token implements ERC-7674 (ERC-20 with temporary allowance), and if the \"client\"\n     * smart contract uses ERC-7674 to set temporary allowances, then the \"client\" smart contract should avoid using\n     * this function. Performing a {safeIncreaseAllowance} or {safeDecreaseAllowance} operation on a token contract\n     * that has a non-zero temporary allowance (for that particular owner-spender) will result in unexpected behavior.\n     */\n    function safeDecreaseAllowance(IERC20 token, address spender, uint256 requestedDecrease) internal {\n        unchecked {\n            uint256 currentAllowance = token.allowance(address(this), spender);\n            if (currentAllowance < requestedDecrease) {\n                revert SafeERC20FailedDecreaseAllowance(spender, currentAllowance, requestedDecrease);\n            }\n            forceApprove(token, spender, currentAllowance - requestedDecrease);\n        }\n    }\n\n    /**\n     * @dev Set the calling contract's allowance toward `spender` to `value`. If `token` returns no value,\n     * non-reverting calls are assumed to be successful. Meant to be used with tokens that require the approval\n     * to be set to zero before setting it to a non-zero value, such as USDT.\n     *\n     * NOTE: If the token implements ERC-7674, this function will not modify any temporary allowance. This function\n     * only sets the \"standard\" allowance. Any temporary allowance will remain active, in addition to the value being\n     * set here.\n     */\n    function forceApprove(IERC20 token, address spender, uint256 value) internal {\n        if (!_safeApprove(token, spender, value, false)) {\n            if (!_safeApprove(token, spender, 0, true)) revert SafeERC20FailedOperation(address(token));\n            if (!_safeApprove(token, spender, value, true)) revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Performs an {ERC1363} transferAndCall, with a fallback to the simple {ERC20} transfer if the target has no\n     * code. This can be used to implement an {ERC721}-like safe transfer that relies on {ERC1363} checks when\n     * targeting contracts.\n     *\n     * Reverts if the returned value is other than `true`.\n     */\n    function transferAndCallRelaxed(IERC1363 token, address to, uint256 value, bytes memory data) internal {\n        if (to.code.length == 0) {\n            safeTransfer(token, to, value);\n        } else if (!token.transferAndCall(to, value, data)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Performs an {ERC1363} transferFromAndCall, with a fallback to the simple {ERC20} transferFrom if the target\n     * has no code. This can be used to implement an {ERC721}-like safe transfer that relies on {ERC1363} checks when\n     * targeting contracts.\n     *\n     * Reverts if the returned value is other than `true`.\n     */\n    function transferFromAndCallRelaxed(\n        IERC1363 token,\n        address from,\n        address to,\n        uint256 value,\n        bytes memory data\n    ) internal {\n        if (to.code.length == 0) {\n            safeTransferFrom(token, from, to, value);\n        } else if (!token.transferFromAndCall(from, to, value, data)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Performs an {ERC1363} approveAndCall, with a fallback to the simple {ERC20} approve if the target has no\n     * code. This can be used to implement an {ERC721}-like safe transfer that rely on {ERC1363} checks when\n     * targeting contracts.\n     *\n     * NOTE: When the recipient address (`to`) has no code (i.e. is an EOA), this function behaves as {forceApprove}.\n     * Oppositely, when the recipient address (`to`) has code, this function only attempts to call {ERC1363-approveAndCall}\n     * once without retrying, and relies on the returned value to be true.\n     *\n     * Reverts if the returned value is other than `true`.\n     */\n    function approveAndCallRelaxed(IERC1363 token, address to, uint256 value, bytes memory data) internal {\n        if (to.code.length == 0) {\n            forceApprove(token, to, value);\n        } else if (!token.approveAndCall(to, value, data)) {\n            revert SafeERC20FailedOperation(address(token));\n        }\n    }\n\n    /**\n     * @dev Imitates a Solidity `token.transfer(to, value)` call, relaxing the requirement on the return value: the\n     * return value is optional (but if data is returned, it must not be false).\n     *\n     * @param token The token targeted by the call.\n     * @param to The recipient of the tokens\n     * @param value The amount of token to transfer\n     * @param bubble Behavior switch if the transfer call reverts: bubble the revert reason or return a false boolean.\n     */\n    function _safeTransfer(IERC20 token, address to, uint256 value, bool bubble) private returns (bool success) {\n        bytes4 selector = IERC20.transfer.selector;\n\n        assembly (\"memory-safe\") {\n            let fmp := mload(0x40)\n            mstore(0x00, selector)\n            mstore(0x04, and(to, shr(96, not(0))))\n            mstore(0x24, value)\n            success := call(gas(), token, 0, 0x00, 0x44, 0x00, 0x20)\n            // if call success and return is true, all is good.\n            // otherwise (not success or return is not true), we need to perform further checks\n            if iszero(and(success, eq(mload(0x00), 1))) {\n                // if the call was a failure and bubble is enabled, bubble the error\n                if and(iszero(success), bubble) {\n                    returndatacopy(fmp, 0x00, returndatasize())\n                    revert(fmp, returndatasize())\n                }\n                // if the return value is not true, then the call is only successful if:\n                // - the token address has code\n                // - the returndata is empty\n                success := and(success, and(iszero(returndatasize()), gt(extcodesize(token), 0)))\n            }\n            mstore(0x40, fmp)\n        }\n    }\n\n    /**\n     * @dev Imitates a Solidity `token.transferFrom(from, to, value)` call, relaxing the requirement on the return\n     * value: the return value is optional (but if data is returned, it must not be false).\n     *\n     * @param token The token targeted by the call.\n     * @param from The sender of the tokens\n     * @param to The recipient of the tokens\n     * @param value The amount of token to transfer\n     * @param bubble Behavior switch if the transfer call reverts: bubble the revert reason or return a false boolean.\n     */\n    function _safeTransferFrom(\n        IERC20 token,\n        address from,\n        address to,\n        uint256 value,\n        bool bubble\n    ) private returns (bool success) {\n        bytes4 selector = IERC20.transferFrom.selector;\n\n        assembly (\"memory-safe\") {\n            let fmp := mload(0x40)\n            mstore(0x00, selector)\n            mstore(0x04, and(from, shr(96, not(0))))\n            mstore(0x24, and(to, shr(96, not(0))))\n            mstore(0x44, value)\n            success := call(gas(), token, 0, 0x00, 0x64, 0x00, 0x20)\n            // if call success and return is true, all is good.\n            // otherwise (not success or return is not true), we need to perform further checks\n            if iszero(and(success, eq(mload(0x00), 1))) {\n                // if the call was a failure and bubble is enabled, bubble the error\n                if and(iszero(success), bubble) {\n                    returndatacopy(fmp, 0x00, returndatasize())\n                    revert(fmp, returndatasize())\n                }\n                // if the return value is not true, then the call is only successful if:\n                // - the token address has code\n                // - the returndata is empty\n                success := and(success, and(iszero(returndatasize()), gt(extcodesize(token), 0)))\n            }\n            mstore(0x40, fmp)\n            mstore(0x60, 0)\n        }\n    }\n\n    /**\n     * @dev Imitates a Solidity `token.approve(spender, value)` call, relaxing the requirement on the return value:\n     * the return value is optional (but if data is returned, it must not be false).\n     *\n     * @param token The token targeted by the call.\n     * @param spender The spender of the tokens\n     * @param value The amount of token to transfer\n     * @param bubble Behavior switch if the transfer call reverts: bubble the revert reason or return a false boolean.\n     */\n    function _safeApprove(IERC20 token, address spender, uint256 value, bool bubble) private returns (bool success) {\n        bytes4 selector = IERC20.approve.selector;\n\n        assembly (\"memory-safe\") {\n            let fmp := mload(0x40)\n            mstore(0x00, selector)\n            mstore(0x04, and(spender, shr(96, not(0))))\n            mstore(0x24, value)\n            success := call(gas(), token, 0, 0x00, 0x44, 0x00, 0x20)\n            // if call success and return is true, all is good.\n            // otherwise (not success or return is not true), we need to perform further checks\n            if iszero(and(success, eq(mload(0x00), 1))) {\n                // if the call was a failure and bubble is enabled, bubble the error\n                if and(iszero(success), bubble) {\n                    returndatacopy(fmp, 0x00, returndatasize())\n                    revert(fmp, returndatasize())\n                }\n                // if the return value is not true, then the call is only successful if:\n                // - the token address has code\n                // - the returndata is empty\n                success := and(success, and(iszero(returndatasize()), gt(extcodesize(token), 0)))\n            }\n            mstore(0x40, fmp)\n        }\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/access/Ownable.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\n\npragma solidity ^0.8.20;\n\nimport {Context} from \"../utils/Context.sol\";\n\n/**\n * @dev Contract module which provides a basic access control mechanism, where\n * there is an account (an owner) that can be granted exclusive access to\n * specific functions.\n *\n * The initial owner is set to the address provided by the deployer. This can\n * later be changed with {transferOwnership}.\n *\n * This module is used through inheritance. It will make available the modifier\n * `onlyOwner`, which can be applied to your functions to restrict their use to\n * the owner.\n */\nabstract contract Ownable is Context {\n    address private _owner;\n\n    /**\n     * @dev The caller account is not authorized to perform an operation.\n     */\n    error OwnableUnauthorizedAccount(address account);\n\n    /**\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\n     */\n    error OwnableInvalidOwner(address owner);\n\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\n\n    /**\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\n     */\n    constructor(address initialOwner) {\n        if (initialOwner == address(0)) {\n            revert OwnableInvalidOwner(address(0));\n        }\n        _transferOwnership(initialOwner);\n    }\n\n    /**\n     * @dev Throws if called by any account other than the owner.\n     */\n    modifier onlyOwner() {\n        _checkOwner();\n        _;\n    }\n\n    /**\n     * @dev Returns the address of the current owner.\n     */\n    function owner() public view virtual returns (address) {\n        return _owner;\n    }\n\n    /**\n     * @dev Throws if the sender is not the owner.\n     */\n    function _checkOwner() internal view virtual {\n        if (owner() != _msgSender()) {\n            revert OwnableUnauthorizedAccount(_msgSender());\n        }\n    }\n\n    /**\n     * @dev Leaves the contract without owner. It will not be possible to call\n     * `onlyOwner` functions. Can only be called by the current owner.\n     *\n     * NOTE: Renouncing ownership will leave the contract without an owner,\n     * thereby disabling any functionality that is only available to the owner.\n     */\n    function renounceOwnership() public virtual onlyOwner {\n        _transferOwnership(address(0));\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\n     * Can only be called by the current owner.\n     */\n    function transferOwnership(address newOwner) public virtual onlyOwner {\n        if (newOwner == address(0)) {\n            revert OwnableInvalidOwner(address(0));\n        }\n        _transferOwnership(newOwner);\n    }\n\n    /**\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\n     * Internal function without access restriction.\n     */\n    function _transferOwnership(address newOwner) internal virtual {\n        address oldOwner = _owner;\n        _owner = newOwner;\n        emit OwnershipTransferred(oldOwner, newOwner);\n    }\n}\n"
+  },
+  "src-usd/interfaces/IMultiAssetStrategy.sol": {
+   "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\n/// @title IMultiAssetStrategy\n/// @notice A yield strategy for a MULTI-asset custody vault (`VaultImpl`), which\n///         holds several ERC20s under one contract and names each by the same\n///         `assetId` a Bitcoin-side burn uses.\n///\n/// @dev Deliberately NOT `IStrategy`, and not an extension of it.\n///\n///      `IStrategy` is single-asset (`deposit(uint256)`) and is still\n///      implemented by `SubfrostVault` and `EthStakingStrategy`; widening it\n///      would force both of them to change for no benefit. The substantive\n///      reason is that a single-asset signature cannot say WHICH token a call\n///      is about, so one strategy serving one vault holding both USDC and USDT\n///      would have to infer it. The superseded `StablecoinStrategy` inferred it\n///      from `msg.sender`, which is exactly why it needed a separate strategy\n///      instance \u2014 and a separate vault \u2014 per asset.\n///\n///      Every mutating method is expected to be callable ONLY by the wired\n///      vault. The vault is the custody boundary; a strategy that let anyone\n///      else withdraw would move that boundary to whoever asked.\ninterface IMultiAssetStrategy {\n    /// @notice The ERC20 this strategy accepts and pays out for `assetId`.\n    function asset(uint8 assetId) external view returns (address);\n\n    /// @notice Value currently attributable to `assetId`, in that asset's own\n    ///         base units.\n    ///\n    /// @dev A strategy backing several assets with ONE pooled position must\n    ///      attribute it, not report the whole position for each id \u2014 the vault\n    ///      reads this per asset, so reporting the full position twice would\n    ///      double-count the backing.\n    function totalAssets(uint8 assetId) external view returns (uint256);\n\n    /// @notice Pull `amount` of `assetId` from the vault and deploy it.\n    /// @dev The vault approves first; the strategy pulls.\n    function deposit(uint8 assetId, uint256 amount) external;\n\n    /// @notice Return `amount` of `assetId` to the vault.\n    /// @return actualAmount What was ACTUALLY delivered, which may differ from\n    ///         the request in either direction (fees, slippage, rounding). The\n    ///         vault must account against this, never against the request.\n    function withdraw(uint8 assetId, uint256 amount) external returns (uint256 actualAmount);\n\n    /// @notice Return everything attributable to `assetId` to the vault,\n    ///         leaving any other asset's backing invested.\n    function withdrawAll(uint8 assetId) external returns (uint256 amount);\n\n    /// @notice Whether the strategy is accepting deposits.\n    /// @dev The vault checks this before an automatic sweep, so pausing here is\n    ///      a kill-switch that degrades the vault to plain custody rather than\n    ///      blocking user deposits.\n    function isActive() external view returns (bool);\n}\n"
+  },
+  "src-usd/interfaces/ICurvePool.sol": {
+   "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\n/// @title ICurvePool\n/// @notice Interface for Curve Finance stablecoin pools\n/// @dev Minimal interface for 3pool interactions\ninterface ICurvePool {\n    /// @notice Deposit coins into the pool\n    /// @param amounts Array of amounts to deposit (one per coin)\n    /// @param min_mint_amount Minimum amount of LP tokens to mint\n    /// @dev Returns NOTHING. 3pool is Vyper 0.1.x and its `add_liquidity` has an\n    ///      empty output list (verified against the deployed ABI at\n    ///      0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7). This was previously\n    ///      declared `returns (uint256)`, which made every call revert in the\n    ///      ABI decoder on empty returndata \u2014 silently, since only fork tests\n    ///      reach the real pool. Read the LP balance delta instead.\n    function add_liquidity(uint256[3] calldata amounts, uint256 min_mint_amount) external;\n\n    /// @notice Withdraw coins from the pool\n    /// @param _amount Amount of LP tokens to burn\n    /// @param min_amounts Minimum amounts of each coin to receive\n    function remove_liquidity(uint256 _amount, uint256[3] calldata min_amounts) external;\n\n    /// @notice Withdraw a single coin from the pool\n    /// @param _token_amount Amount of LP tokens to burn\n    /// @param i Index of coin to receive\n    /// @param min_amount Minimum amount of coin to receive\n    function remove_liquidity_one_coin(uint256 _token_amount, int128 i, uint256 min_amount)\n        external;\n\n    /// @notice Get the balance of a specific coin in the pool\n    /// @param i Index of the coin\n    /// @return Balance of the coin\n    function balances(uint256 i) external view returns (uint256);\n\n    /// @notice Get the address of a specific coin\n    /// @param i Index of the coin\n    /// @return Address of the coin\n    function coins(uint256 i) external view returns (address);\n\n    /// @notice Calculate the amount of LP tokens received for a deposit\n    /// @param amounts Array of amounts to deposit\n    /// @param deposit True for deposit, false for withdrawal\n    /// @return Amount of LP tokens\n    function calc_token_amount(uint256[3] calldata amounts, bool deposit)\n        external\n        view\n        returns (uint256);\n\n    /// @notice Get the virtual price of the LP token\n    /// @return Virtual price scaled by 1e18\n    function get_virtual_price() external view returns (uint256);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/interfaces/IERC1363.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC1363.sol)\n\npragma solidity >=0.6.2;\n\nimport {IERC20} from \"./IERC20.sol\";\nimport {IERC165} from \"./IERC165.sol\";\n\n/**\n * @title IERC1363\n * @dev Interface of the ERC-1363 standard as defined in the https://eips.ethereum.org/EIPS/eip-1363[ERC-1363].\n *\n * Defines an extension interface for ERC-20 tokens that supports executing code on a recipient contract\n * after `transfer` or `transferFrom`, or code on a spender contract after `approve`, in a single transaction.\n */\ninterface IERC1363 is IERC20, IERC165 {\n    /*\n     * Note: the ERC-165 identifier for this interface is 0xb0202a11.\n     * 0xb0202a11 ===\n     *   bytes4(keccak256('transferAndCall(address,uint256)')) ^\n     *   bytes4(keccak256('transferAndCall(address,uint256,bytes)')) ^\n     *   bytes4(keccak256('transferFromAndCall(address,address,uint256)')) ^\n     *   bytes4(keccak256('transferFromAndCall(address,address,uint256,bytes)')) ^\n     *   bytes4(keccak256('approveAndCall(address,uint256)')) ^\n     *   bytes4(keccak256('approveAndCall(address,uint256,bytes)'))\n     */\n\n    /**\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\n     * @param to The address which you want to transfer to.\n     * @param value The amount of tokens to be transferred.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function transferAndCall(address to, uint256 value) external returns (bool);\n\n    /**\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\n     * @param to The address which you want to transfer to.\n     * @param value The amount of tokens to be transferred.\n     * @param data Additional data with no specified format, sent in call to `to`.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function transferAndCall(address to, uint256 value, bytes calldata data) external returns (bool);\n\n    /**\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the allowance mechanism\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\n     * @param from The address which you want to send tokens from.\n     * @param to The address which you want to transfer to.\n     * @param value The amount of tokens to be transferred.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function transferFromAndCall(address from, address to, uint256 value) external returns (bool);\n\n    /**\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the allowance mechanism\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\n     * @param from The address which you want to send tokens from.\n     * @param to The address which you want to transfer to.\n     * @param value The amount of tokens to be transferred.\n     * @param data Additional data with no specified format, sent in call to `to`.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function transferFromAndCall(address from, address to, uint256 value, bytes calldata data) external returns (bool);\n\n    /**\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\n     * caller's tokens and then calls {IERC1363Spender-onApprovalReceived} on `spender`.\n     * @param spender The address which will spend the funds.\n     * @param value The amount of tokens to be spent.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function approveAndCall(address spender, uint256 value) external returns (bool);\n\n    /**\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\n     * caller's tokens and then calls {IERC1363Spender-onApprovalReceived} on `spender`.\n     * @param spender The address which will spend the funds.\n     * @param value The amount of tokens to be spent.\n     * @param data Additional data with no specified format, sent in call to `spender`.\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\n     */\n    function approveAndCall(address spender, uint256 value, bytes calldata data) external returns (bool);\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/utils/Context.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\n\npragma solidity ^0.8.20;\n\n/**\n * @dev Provides information about the current execution context, including the\n * sender of the transaction and its data. While these are generally available\n * via msg.sender and msg.data, they should not be accessed in such a direct\n * manner, since when dealing with meta-transactions the account sending and\n * paying for execution may not be the actual sender (as far as an application\n * is concerned).\n *\n * This contract is only required for intermediate, library-like contracts.\n */\nabstract contract Context {\n    function _msgSender() internal view virtual returns (address) {\n        return msg.sender;\n    }\n\n    function _msgData() internal view virtual returns (bytes calldata) {\n        return msg.data;\n    }\n\n    function _contextSuffixLength() internal view virtual returns (uint256) {\n        return 0;\n    }\n}\n"
+  },
+  "lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC20.sol)\n\npragma solidity >=0.4.16;\n\nimport {IERC20} from \"../token/ERC20/IERC20.sol\";\n"
+  },
+  "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC165.sol)\n\npragma solidity >=0.4.16;\n\nimport {IERC165} from \"../utils/introspection/IERC165.sol\";\n"
+  },
+  "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol": {
+   "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.4.0) (utils/introspection/IERC165.sol)\n\npragma solidity >=0.4.16;\n\n/**\n * @dev Interface of the ERC-165 standard, as defined in the\n * https://eips.ethereum.org/EIPS/eip-165[ERC].\n *\n * Implementers can declare support of contract interfaces, which can then be\n * queried by others ({ERC165Checker}).\n *\n * For an implementation, see {ERC165}.\n */\ninterface IERC165 {\n    /**\n     * @dev Returns true if this contract implements the interface defined by\n     * `interfaceId`. See the corresponding\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[ERC section]\n     * to learn more about how these ids are created.\n     *\n     * This function call must use less than 30 000 gas.\n     */\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\n}\n"
+  }
+ },
+ "abi": [
+  {
+   "type": "constructor",
+   "inputs": [
+    {
+     "name": "_pool",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "_lpToken",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "_vault",
+     "type": "address",
+     "internalType": "address"
+    },
+    {
+     "name": "_owner",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "NoSupportedAssets",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "NotVault",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "OwnableInvalidOwner",
+   "type": "error",
+   "inputs": [
+    {
+     "name": "owner",
+     "type": "address",
+     "internalType": "address"
+    }
+   ]
+  },
+  {
+   "name": "OwnableUnauthorizedAccount",
+   "type": "error",
+   "inputs": [
+    {
+     "name": "account",
+     "type": "address",
+     "internalType": "address"
+    }
+   ]
+  },
+  {
+   "name": "RenounceDisabled",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "SafeERC20FailedOperation",
+   "type": "error",
+   "inputs": [
+    {
+     "name": "token",
+     "type": "address",
+     "internalType": "address"
+    }
+   ]
+  },
+  {
+   "name": "SlippageTooHigh",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "StrategyInactive",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "UnknownAsset",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "UnsupportedDecimals",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "ZeroAddress",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "ZeroAmount",
+   "type": "error",
+   "inputs": []
+  },
+  {
+   "name": "ActiveSet",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "active",
+     "type": "bool",
+     "indexed": false,
+     "internalType": "bool"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "AssetRegistered",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "indexed": true,
+     "internalType": "uint8"
+    },
+    {
+     "name": "token",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "coinIndex",
+     "type": "uint8",
+     "indexed": false,
+     "internalType": "uint8"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "Deposited",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "indexed": true,
+     "internalType": "uint8"
+    },
+    {
+     "name": "amountIn",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "lpMinted",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "EmergencyWithdrawn",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "vault",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "lpBurned",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "OwnershipTransferred",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "previousOwner",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    },
+    {
+     "name": "newOwner",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "SlippageUpdated",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "oldBps",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "newBps",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "VaultSet",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "vault",
+     "type": "address",
+     "indexed": true,
+     "internalType": "address"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "Withdrawn",
+   "type": "event",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "indexed": true,
+     "internalType": "uint8"
+    },
+    {
+     "name": "amountOut",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    },
+    {
+     "name": "lpBurned",
+     "type": "uint256",
+     "indexed": false,
+     "internalType": "uint256"
+    }
+   ],
+   "anonymous": false
+  },
+  {
+   "name": "asset",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "assetInfo",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "token",
+     "type": "address",
+     "internalType": "contract IERC20"
+    },
+    {
+     "name": "coinIndex",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "decimals",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "registered",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "deposit",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "amount",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "emergencyWithdraw",
+   "type": "function",
+   "inputs": [],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "isActive",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "lpBalance",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "lpToken",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "contract IERC20"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "owner",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "pool",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "contract ICurvePool"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "registeredIdCount",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "registeredIds",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "renounceOwnership",
+   "type": "function",
+   "inputs": [],
+   "outputs": [],
+   "stateMutability": "view"
+  },
+  {
+   "name": "setActive",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "a",
+     "type": "bool",
+     "internalType": "bool"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "setSlippage",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "bps",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "shares",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "slippageBps",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "totalAssets",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "totalShares",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "transferOwnership",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "newOwner",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "outputs": [],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "vault",
+   "type": "function",
+   "inputs": [],
+   "outputs": [
+    {
+     "name": "",
+     "type": "address",
+     "internalType": "address"
+    }
+   ],
+   "stateMutability": "view"
+  },
+  {
+   "name": "withdraw",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    },
+    {
+     "name": "amount",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "actualAmount",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  },
+  {
+   "name": "withdrawAll",
+   "type": "function",
+   "inputs": [
+    {
+     "name": "assetId",
+     "type": "uint8",
+     "internalType": "uint8"
+    }
+   ],
+   "outputs": [
+    {
+     "name": "amount",
+     "type": "uint256",
+     "internalType": "uint256"
+    }
+   ],
+   "stateMutability": "nonpayable"
+  }
+ ],
+ "matchId": "43648834",
+ "creationMatch": "exact_match",
+ "runtimeMatch": "exact_match",
+ "verifiedAt": "2026-08-15T03:28:06Z",
+ "match": "exact_match",
+ "chainId": "1",
+ "address": "0x5c5D66C82e2C634074661C3E7427668737C70100",
+ "_address": "0x5c5d66c82e2c634074661c3e7427668737c70100"
+}

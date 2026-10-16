@@ -1,0 +1,55 @@
+{
+  "protocol": "Aero Lite",
+  "chains": ["Arc (5042)"],
+  "addresses": {
+    "cl_factory": "0xb89Df768aF2CFE637ceB352c587Fe8edAf491d03",
+    "cl_pool_impl": "0x0Df9fc8730eeC048e9832B31B4bFf4351158e19B",
+    "cl_pool_linked_library": "0x22557c01cf181b14b925d83008ed1d19150cd50b",
+    "factory_registry": "0xCe44907DC45D3BFa3f5f6035B0e6E8B22D780A42",
+    "default_swap_hook": "0xaAf164008441F112e2858d9F7A2dB1B84b1E415",
+    "cl_pool_tape": "0x967f5352A6448e22D7361E149103350c49345Ee9",
+    "owner": "0x6b031ac7420c2730E65eD9F8B7b2BD0648be45c4",
+    "largest_pool_weth_usdc": "0x6F302dECb49fB30B2D2c609BDD16e04e7Dd096FC",
+    "largest_pool_cirbtc_usdc": "0xd945cAEe4635BcD7FB8A9fA74dC1D0c4C1472782",
+    "usdc_system_token": "0x3600000000000000000000000000000000000000"
+  },
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "E-U-conditional": 0.0,
+    "H-O": 3202689.06,
+    "P": 0.0,
+    "S": 0.0
+  },
+  "e_u_conditional": null,
+  "block_numbers": {
+    "main_state_reads": 26198229,
+    "fork_test": 26205724
+  },
+  "key_facts": [
+    "35 pools, all with gauge=0, nft=0, stakedLiquidity=0; factory voter()=0x0; registry targetFactoryToGaugeFactory(factory)=0x0 -> setGaugeAndPositionManager unreachable",
+    "CLFactory/CLPool/CLPoolNonSwapPath/SwapHookLib source-identical to dromos-labs/metadex-slipstream-public; compiled bytecode identical to chain code modulo embedded immutables/linked library address",
+    "Priced pool balances total $3,202,689 across 35 pools (matches DefiLlama $3.20M): cirBTC/USDC $1.11M, WETH/USDC $1.10M, USDC/EURC $476k, WETH/cirBTC $349k, USDC/GBPA $161k",
+    "Fork-proven: 6-arg collect reverts NNFT; stake/collectFees revert NG; setGaugeAndPositionManager reverts NGF; factory setDefaultSwapHook/setOwner/setSwapFeeManager revert for a fresh caller",
+    "Fee views bounded (pool0 200 pips, pool1 400 pips, <=10% cap); default hook wired for all pools; hook/factory admin = Safe-style proxy owner 0x6b031ac7",
+    "Arc USDC and the Circle-token family route through native system precompiles (0x1800..0001 isBlocklisted); Foundry forks cannot execute them (OpcodeNotFound) so no token transfer is simulatable on an Arc fork",
+    "Pool0 (USDC/EURC) has heavy live flash(..) activity from one bot contract; flash cost enforced by before/after balance checks (revert F0/F1; in-fork surfaces at TransferHelper TF)",
+    "No NPM is registered (nft=0 on every pool); LP principal is withdrawable through pool msg.sender-scoped burn/collect paths"
+  ],
+  "closed_reasons": [
+    "All deployed code byte-verified against the published upstream repo (factory, pool, linked library)",
+    "Every value-moving or admin path is gated (onlyGauge/onlyNftManager/validateGaugeFactory/owner/manager) and fork-proven to revert for a fresh caller",
+    "No staking layer exists: voter unset, no gauge factory linked, all pools gauge=0/nft=0/stakedLiquidity=0",
+    "No skim; donations to pools are stuck (S); no caller-directed payout exists",
+    "Flash repayment enforced before/after balance; fee <=10% cap"
+  ],
+  "caveats": [
+    "Arc's native-token precompiles make token transfers non-simulatable in Foundry forks, so the flash-repayment positive test was replaced by a fee-bounds/structural test",
+    "defaultSwapHook and clPoolTape contracts are unverified single-purpose helpers (admin-set; reviewed at call-site level only)",
+    "Registry has no owner()/standard getters; its admin surface inferred from the Metadex FactoryRegistry source semantics and live mapping reads",
+    "Prices are point-in-time DefiLlama; several pools hold unpriced memecoins excluded from USD totals",
+    "Local fork runs used a patched ForkHelper copy because poc/src/ForkHelper.sol (parent-owned) re-declares VM_ADDRESS and does not compile with the vendored forge-std"
+  ],
+  "one_liner": "Aero Lite on Arc is a byte-verified Metadex Slipstream CL deployment with no staking layer at all (voter unset, no gauge factory linked, every pool gauge=0/nft=0/staked=0): E-U $0 live (high), H-O $3.20M LP principal, only admin-gated surface remaining."
+}

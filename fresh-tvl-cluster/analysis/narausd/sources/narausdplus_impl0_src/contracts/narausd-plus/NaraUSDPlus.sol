@@ -1,0 +1,733 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.22;
+
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "../interfaces/narausd-plus/INaraUSDPlus.sol";
+import "./NaraUSDPlusSilo.sol";
+import "../interfaces/narausd/INaraUSD.sol";
+
+/**
+ * @title NaraUSDPlus
+ * @notice Staking contract for NaraUSD tokens with OVault integration and cooldown functionality (V2)
+ * @dev Users stake NaraUSD tokens and earn rewards. The contract uses ERC4626 standard
+ *      for vault operations and can be integrated with LayerZero's OVault for omnichain functionality.
+ *
+ *      Rewards are distributed by REWARDER_ROLE and vest over time to prevent MEV attacks.
+ *
+ * @dev If cooldown duration is set to zero, the NaraUSDPlus behavior follows ERC4626 standard
+ *      and disables cooldownShares and cooldownAssets methods. If cooldown duration is greater
+ *      than zero, the ERC4626 withdrawal and redeem functions are disabled, breaking the ERC4626
+ *      standard, and enabling the cooldownShares and the cooldownAssets functions.
+ *
+ * @dev Privileged roles:
+ * - DEFAULT_ADMIN_ROLE: Full administrative control. Can:
+ *   - Upgrade contract implementation (UUPS)
+ *   - Set core configuration (cooldown duration, vesting period)
+ *   - Rescue non-asset tokens from the contract
+ *   - Redistribute locked balances from restricted users
+ *   - Grant/revoke all other roles
+ * - GATEKEEPER_ROLE: Emergency controls. Can:
+ *   - Pause/unpause contract operations
+ * - REWARDER_ROLE: Reward operations. Can:
+ *   - Transfer in staking rewards (vested)
+ *   - Burn NaraUSD assets from the contract (deflationary action)
+ * - BLACKLIST_MANAGER_ROLE: Restriction controls. Can:
+ *   - Add/remove FULL_RESTRICTED_STAKER_ROLE on addresses
+ * - FULL_RESTRICTED_STAKER_ROLE: Restriction status (not an operator role). Addresses with this role:
+ *   - Cannot transfer tokens (including via transferFrom)
+ *   - Cannot stake, cooldown, or unstake
+ *   - Can have locked balances redistributed by admin
+ * @dev This contract is upgradeable using UUPS proxy pattern
+ */
+contract NaraUSDPlus is
+    Initializable,
+    AccessControlUpgradeable,
+    ReentrancyGuardUpgradeable,
+    ERC20PermitUpgradeable,
+    ERC4626Upgradeable,
+    INaraUSDPlus,
+    PausableUpgradeable,
+    UUPSUpgradeable
+{
+    using SafeERC20 for IERC20;
+
+    /* --------------- CONSTANTS --------------- */
+
+    /// @notice Role that can distribute rewards to this contract
+    bytes32 public constant REWARDER_ROLE = keccak256("REWARDER_ROLE");
+
+    /// @notice Role that can blacklist and un-blacklist addresses
+    bytes32 public constant BLACKLIST_MANAGER_ROLE = keccak256("BLACKLIST_MANAGER_ROLE");
+
+    /// @notice Role that prevents an address from transferring, staking, or unstaking
+    bytes32 public constant FULL_RESTRICTED_STAKER_ROLE = keccak256("FULL_RESTRICTED_STAKER_ROLE");
+
+    /// @notice Role for pause/unpause operations (aligns with NaraUSD's GATEKEEPER_ROLE pattern)
+    bytes32 public constant GATEKEEPER_ROLE = keccak256("GATEKEEPER_ROLE");
+
+    /// @notice Minimum non-zero shares to prevent donation attack
+    uint256 public constant MIN_SHARES = 1 ether;
+
+    /**
+     * @notice Get minimum shares constant (mixedCase getter for linter compliance)
+     * @return uint256 The minimum shares
+     */
+    function minShares() external pure returns (uint256) {
+        return MIN_SHARES;
+    }
+
+    /// @notice Maximum cooldown duration (90 days)
+    uint24 public constant MAX_COOLDOWN_DURATION = 90 days;
+
+    /// @notice Maximum vesting period (90 days)
+    uint256 public constant MAX_VESTING_PERIOD = 90 days;
+
+    /* --------------- STATE VARIABLES --------------- */
+
+    /// @notice Amount of the last asset distribution + unvested remainder
+    uint256 public vestingAmount;
+
+    /// @notice Timestamp of the last asset distribution
+    uint256 public lastDistributionTimestamp;
+
+    /// @notice Vesting period for rewards in seconds
+    uint256 public vestingPeriod;
+
+    /// @notice Cooldown duration in seconds
+    uint24 public cooldownDuration;
+
+    /// @notice Mapping of user addresses to their cooldown data
+    mapping(address => UserCooldown) public cooldowns;
+
+    /// @notice Silo contract for holding NaraUSD+ during cooldown
+    NaraUSDPlusSilo public silo;
+
+    /// @dev Storage gap for future upgrades
+    uint256[50] private __gap;
+
+    /* --------------- MODIFIERS --------------- */
+
+    /// @notice Ensure input amount is non-zero
+    modifier notZero(uint256 amount) {
+        _checkNotZero(amount);
+        _;
+    }
+
+    /// @notice Ensure blacklist target is not admin
+    modifier notAdmin(address target) {
+        _checkNotAdmin(target);
+        _;
+    }
+
+    /// @notice Ensure cooldownDuration is zero
+    modifier ensureCooldownOff() {
+        _checkCooldownOff();
+        _;
+    }
+
+    /// @notice Ensure cooldownDuration is gt 0
+    modifier ensureCooldownOn() {
+        _checkCooldownOn();
+        _;
+    }
+
+    /* --------------- INITIALIZER --------------- */
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    /**
+     * @notice Initialize the contract
+     * @param _asset The address of the NaraUSD token
+     * @param _initialRewarder The address of the initial rewarder
+     * @param _admin The address of the admin role
+     * @param _silo The silo address (must be deployed separately as upgradeable proxy)
+     */
+    function initialize(
+        IERC20 _asset,
+        address _initialRewarder,
+        address _admin,
+        NaraUSDPlusSilo _silo
+    ) public initializer {
+        if (_admin == address(0) || _initialRewarder == address(0) || address(_asset) == address(0)) {
+            revert InvalidZeroAddress();
+        }
+        if (address(_silo) == address(0)) {
+            revert InvalidZeroAddress();
+        }
+
+        __ReentrancyGuard_init();
+        __ERC20_init("NaraUSD+", "NaraUSD+");
+        __ERC20Permit_init("NaraUSD+");
+        __ERC4626_init(_asset);
+        __AccessControl_init();
+        __Pausable_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+        _grantRole(REWARDER_ROLE, _initialRewarder);
+        _grantRole(BLACKLIST_MANAGER_ROLE, _admin);
+        _grantRole(GATEKEEPER_ROLE, _admin);
+
+        // Set silo (must be deployed separately as upgradeable proxy)
+        silo = _silo;
+        cooldownDuration = 7 days;
+        vestingPeriod = 8 hours;
+    }
+
+    /**
+     * @notice Authorize upgrade (UUPS pattern)
+     * @dev Only DEFAULT_ADMIN_ROLE can upgrade.
+     */
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+
+    /* --------------- EXTERNAL --------------- */
+
+    /**
+     * @notice Transfer rewards from the rewarder into this contract
+     * @param amount The amount of rewards to transfer
+     */
+    function transferInRewards(
+        uint256 amount
+    ) external nonReentrant whenNotPaused onlyRole(REWARDER_ROLE) notZero(amount) {
+        _updateVestingAmount(amount);
+
+        // Transfer assets from rewarder to this contract
+        IERC20(asset()).safeTransferFrom(msg.sender, address(this), amount);
+
+        emit RewardsReceived(amount);
+    }
+
+    /**
+     * @notice Burn NaraUSD from the contract to decrease NaraUSD+ exchange rate
+     * @dev This calls NaraUSD's burn function which burns both NaraUSD and underlying MCT
+     * @dev Collateral stays in MCT, making remaining tokens more valuable (deflationary)
+     * @dev Unlike transferInRewards, this happens instantly without vesting
+     * @dev Deflationary - burns reduce all stakers' claimable amount.
+     * @param amount The amount of NaraUSD to burn
+     */
+    function burnAssets(uint256 amount) external nonReentrant onlyRole(REWARDER_ROLE) notZero(amount) {
+        // Verify contract has enough NaraUSD balance
+        uint256 contractBalance = IERC20(asset()).balanceOf(address(this));
+        if (contractBalance < amount) revert InvalidAmount();
+        // Prevent underflow in totalAssets()
+        uint256 unvested = getUnvestedAmount();
+        if (contractBalance - amount < unvested) revert InvalidAmount();
+        if (contractBalance - amount < 1 ether) revert ReserveTooLowAfterBurn();
+
+        // Call NaraUSD's burn function to properly burn NaraUSD and MCT
+        // NaraUSD.burn() burns from msg.sender (this contract), so NaraUSDPlus must own the tokens
+        INaraUSD naraUsd = INaraUSD(asset());
+        naraUsd.burn(amount);
+
+        emit AssetsBurned(amount);
+
+        // Auto-pause after deflationary burn so admin can review balances before resuming
+        _pause();
+    }
+
+    /**
+     * @notice Add an address to blacklist
+     * @param target The address to blacklist
+     */
+    function addToBlacklist(address target) external onlyRole(BLACKLIST_MANAGER_ROLE) notAdmin(target) {
+        if (target == address(0)) revert InvalidZeroAddress();
+        _grantRole(FULL_RESTRICTED_STAKER_ROLE, target);
+    }
+
+    /**
+     * @notice Remove an address from blacklist
+     * @param target The address to un-blacklist
+     */
+    function removeFromBlacklist(address target) external onlyRole(BLACKLIST_MANAGER_ROLE) {
+        _revokeRole(FULL_RESTRICTED_STAKER_ROLE, target);
+    }
+
+    /**
+     * @notice Rescue tokens accidentally sent to the contract
+     * @dev Cannot rescue the underlying asset (NaraUSD)
+     * @param token The token to be rescued
+     * @param amount The amount of tokens to be rescued
+     * @param to Where to send rescued tokens
+     */
+    function rescueTokens(
+        address token,
+        uint256 amount,
+        address to
+    ) external nonReentrant onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (token == address(0)) revert InvalidZeroAddress();
+        if (to == address(0)) revert InvalidZeroAddress();
+        if (amount == 0) revert InvalidAmount();
+        if (token == asset()) revert InvalidToken();
+        IERC20(token).safeTransfer(to, amount);
+    }
+
+    /**
+     * @notice Redistribute locked amount from full restricted user
+     * @dev Handles both direct balance and silo-held shares from cooldown
+     * @param from The address to burn the entire balance from (must have FULL_RESTRICTED_STAKER_ROLE)
+     * @param to The address to mint the entire balance to, or address(0) to burn NaraUSD+ and vest underlying NaraUSD
+     */
+    function redistributeLockedAmount(address from, address to) external nonReentrant onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (!_isBlacklisted(from) || _isBlacklisted(to)) {
+            revert OperationNotAllowed();
+        }
+
+        uint256 amountToDistribute = balanceOf(from);
+
+        // Include shares locked in cooldown
+        UserCooldown storage userCooldown = cooldowns[from];
+        uint256 siloShares = userCooldown.sharesAmount;
+        if (siloShares > 0) {
+            delete cooldowns[from];
+            // Withdraw silo shares to this contract first
+            silo.withdraw(address(this), siloShares);
+            amountToDistribute += siloShares;
+        }
+
+        if (amountToDistribute == 0) revert InvalidAmount();
+
+        uint256 naraUsdToVest = previewRedeem(amountToDistribute);
+
+        // Bypass blacklist check by calling super._update directly for the burn
+        // This is safe because it's admin-only and explicitly for moving frozen funds
+        // Burn direct balance from 'from'
+        uint256 directBalance = balanceOf(from);
+        if (directBalance > 0) {
+            super._update(from, address(0), directBalance);
+        }
+        // Burn silo shares that were withdrawn to this contract
+        if (siloShares > 0) {
+            super._update(address(this), address(0), siloShares);
+        }
+
+        // to address of address(0) enables burning
+        if (to == address(0)) {
+            // Accumulate into the existing vesting schedule without resetting
+            // `lastDistributionTimestamp`. Using `_updateVestingAmount` here
+            // would revert with `StillVesting` whenever a reward distribution
+            // is in progress, bricking the compliance-driven burn path for up
+            // to `vestingPeriod` (8 hours) after every reward push. The
+            // redistributed assets vest on the current schedule; no share-price
+            // invariant is violated because `totalAssets()` subtracts the
+            // unvested remainder.
+            //
+            // Semantic note: `vestingPeriod` describes the *schedule's* total
+            // duration, not the lifetime of each individual chunk added to
+            // `vestingAmount`. Multiple deposits inside the same window all
+            // unlock together at `lastDistributionTimestamp + vestingPeriod`
+            // per the formula in `getUnvestedAmount()`:
+            //   if (now - lastDistributionTimestamp >= vestingPeriod) return 0
+            //   else return (vestingPeriod - elapsed) * vestingAmount / vestingPeriod
+            //
+            // Three edge cases of the "+=" pattern (all acceptable, since this
+            // path is `onlyRole(DEFAULT_ADMIN_ROLE)` and called sparingly for
+            // compliance burns):
+            //
+            //   1. No prior distribution OR prior window fully elapsed
+            //      (`now - lastDistributionTimestamp >= vestingPeriod`):
+            //      `getUnvestedAmount()` returns 0 regardless of `vestingAmount`.
+            //      The redistributed assets register immediately in `totalAssets()`.
+            //      Acceptable — no schedule was running to "interrupt", and the
+            //      funds originated from a balance that was already
+            //      protocol-internal (the blacklisted user's locked stake), so
+            //      this is not a donation/inflation surface.
+            //
+            //   2. Prior window mid-flight (e.g. 4h into an 8h schedule):
+            //      the redistributed amount inherits the existing schedule and
+            //      vests over the remaining 4h. As `elapsed` grows toward
+            //      `vestingPeriod`, the unvested fraction `(vestingPeriod -
+            //      elapsed) / vestingPeriod` shrinks toward 0, so a redistribution
+            //      late in the window unlocks almost instantly (sliding into
+            //      case 1 at the boundary). Acceptable — faster vesting only
+            //      ever helps existing stakers; no MEV or sandwich vector
+            //      because the call is admin-only.
+            //
+            //   3. Multiple redistributions stacked inside the same window:
+            //      each call adds to the same pool, all vesting on the original
+            //      timer. Same justification as case 2.
+            //
+            // Option considered: maintain a second, independent vesting schedule
+            // for redistributions so each chunk gets its own clean `vestingPeriod`.
+            // Rejected as the added storage (2 slots), accounting surface (both
+            // `getUnvestedAmount()` and `totalAssets()` would need to sum two
+            // pools), audit re-scope, and test burden are not justified by the
+            // rare, admin-gated nature of this flow and the fact that share-price
+            // invariants already hold under the simpler accumulation. See
+            // `test/unit/RedistributeLockedVesting.t.sol` for regression coverage
+            // of all three cases.
+            vestingAmount += naraUsdToVest;
+        } else {
+            _mint(to, amountToDistribute);
+        }
+
+        _checkMinShares();
+
+        emit LockedAmountRedistributed(from, to, amountToDistribute);
+    }
+
+    /**
+     * @dev See {IERC4626-withdraw}.
+     * @notice Only enabled when cooldown is off
+     */
+    function withdraw(
+        uint256 assets,
+        address receiver,
+        address owner
+    ) public virtual override(ERC4626Upgradeable, IERC4626) whenNotPaused ensureCooldownOff returns (uint256) {
+        return super.withdraw(assets, receiver, owner);
+    }
+
+    /**
+     * @dev See {IERC4626-redeem}.
+     * @notice Only enabled when cooldown is off
+     */
+    function redeem(
+        uint256 shares,
+        address receiver,
+        address owner
+    ) public virtual override(ERC4626Upgradeable, IERC4626) whenNotPaused ensureCooldownOff returns (uint256) {
+        return super.redeem(shares, receiver, owner);
+    }
+
+    /**
+     * @notice Claim the staking amount after the cooldown has finished
+     * @dev When cooldown is on, NaraUSD+ is locked in the Silo. After cooldown, NaraUSD+ is redeemed for NaraUSD.
+     *      If cooldown duration is later set to 0, this function can still be used to claim remaining
+     *      NaraUSD+ locked in the Silo and redeem it for NaraUSD.
+     * @param receiver Address to receive the redeemed NaraUSD
+     */
+    function unstake(address receiver) external {
+        if (_isBlacklisted(msg.sender)) revert OperationNotAllowed();
+
+        UserCooldown storage userCooldown = cooldowns[msg.sender];
+        uint256 shares = userCooldown.sharesAmount; // locked NaraUSD+ shares
+
+        // Allow claim after cooldown ends, or if cooldown has been globally disabled
+        if (shares == 0 || (block.timestamp < userCooldown.cooldownEnd && cooldownDuration != 0)) {
+            revert InvalidCooldown();
+        }
+
+        userCooldown.cooldownEnd = 0;
+        userCooldown.sharesAmount = 0;
+
+        // Retrieve locked NaraUSD+ from the silo back to this contract
+        silo.withdraw(address(this), shares);
+
+        // Redeem NaraUSD+ shares held by this contract into NaraUSD for the receiver
+        uint256 assets = previewRedeem(shares);
+        _withdraw(address(this), receiver, address(this), assets, shares);
+    }
+
+    /**
+     * @notice Redeem assets and starts a cooldown to claim the converted underlying asset
+     * @dev Locks shares, not assets. Exchange rate may change during cooldown.
+     * @dev WARNING: Calling this while a cooldown is already active resets the unlock clock for
+     *      ALL locked shares (existing + newly added) to `block.timestamp + cooldownDuration`.
+     *      Users adding to an in-flight cooldown will wait a full fresh cooldown for the entire
+     *      balance. To avoid this, wait for the current cooldown to end (or call `unstake`) before
+     *      starting a new one.
+     * @param assets assets to redeem
+     */
+    function cooldownAssets(uint256 assets) external whenNotPaused ensureCooldownOn returns (uint256 shares) {
+        if (assets > maxWithdraw(msg.sender)) revert ExcessiveWithdrawAmount();
+
+        shares = previewWithdraw(assets);
+
+        // Lock NaraUSD+ shares in the silo and record them for the caller
+        cooldowns[msg.sender].cooldownEnd = uint104(block.timestamp) + cooldownDuration;
+        cooldowns[msg.sender].sharesAmount += uint152(shares);
+
+        // Transfer NaraUSD+ from user to silo (locks it)
+        _transfer(msg.sender, address(silo), shares);
+    }
+
+    /**
+     * @notice Redeem shares into assets and starts a cooldown to claim the converted underlying asset
+     * @dev WARNING: Calling this while a cooldown is already active resets the unlock clock for
+     *      ALL locked shares (existing + newly added) to `block.timestamp + cooldownDuration`.
+     *      Users adding to an in-flight cooldown will wait a full fresh cooldown for the entire
+     *      balance. To avoid this, wait for the current cooldown to end (or call `unstake`) before
+     *      starting a new one.
+     * @param shares shares to redeem
+     */
+    function cooldownShares(uint256 shares) external whenNotPaused ensureCooldownOn returns (uint256 assets) {
+        if (shares > maxRedeem(msg.sender)) revert ExcessiveRedeemAmount();
+
+        assets = previewRedeem(shares);
+
+        // Lock NaraUSD+ shares in the silo and record them for the caller
+        cooldowns[msg.sender].cooldownEnd = uint104(block.timestamp) + cooldownDuration;
+        cooldowns[msg.sender].sharesAmount += uint152(shares);
+
+        // Transfer NaraUSD+ from user to silo (locks it)
+        _transfer(msg.sender, address(silo), shares);
+    }
+
+    /**
+     * @notice Cancel an active cooldown and return locked NaraUSD+ to the user
+     */
+    function cancelCooldown() external nonReentrant whenNotPaused {
+        UserCooldown storage userCooldown = cooldowns[msg.sender];
+        uint256 shares = userCooldown.sharesAmount; // locked NaraUSD+ shares
+
+        if (shares == 0) {
+            revert InvalidCooldown();
+        }
+
+        userCooldown.cooldownEnd = 0;
+        userCooldown.sharesAmount = 0;
+
+        // Return locked NaraUSD+ from the silo back to the user
+        silo.withdraw(msg.sender, shares);
+    }
+
+    /**
+     * @notice Set cooldown duration
+     * @dev If cooldown duration is set to zero, the behavior follows ERC4626 standard and disables
+     *      cooldownShares and cooldownAssets methods. If cooldown duration is greater than zero,
+     *      the ERC4626 withdrawal and redeem functions are disabled, breaking the ERC4626 standard,
+     *      and enabling the cooldownShares and the cooldownAssets functions.
+     * @param duration Duration of the cooldown
+     */
+    function setCooldownDuration(uint24 duration) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (duration > MAX_COOLDOWN_DURATION) {
+            revert InvalidCooldown();
+        }
+        if (duration == cooldownDuration) revert InvalidAmount();
+
+        uint24 previousDuration = cooldownDuration;
+        cooldownDuration = duration;
+        emit CooldownDurationUpdated(previousDuration, cooldownDuration);
+    }
+
+    /**
+     * @notice Set vesting period for rewards
+     * @dev Cannot be changed while there's an active vesting period to prevent calculation errors
+     * @dev Setting period to 0 disables vesting (rewards vest instantly)
+     * @param period Vesting period in seconds (0 to disable vesting)
+     */
+    function setVestingPeriod(uint256 period) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (period > MAX_VESTING_PERIOD) {
+            revert InvalidAmount();
+        }
+        if (period == vestingPeriod) revert InvalidAmount();
+        if (getUnvestedAmount() > 0) revert StillVesting();
+
+        uint256 previousPeriod = vestingPeriod;
+        vestingPeriod = period;
+        emit VestingPeriodUpdated(previousPeriod, vestingPeriod);
+    }
+
+    /**
+     * @notice Pause all deposits, withdrawals, and cooldown operations
+     */
+    function pause() external onlyRole(GATEKEEPER_ROLE) {
+        _pause();
+    }
+
+    /**
+     * @notice Unpause all deposits, withdrawals, and cooldown operations
+     */
+    function unpause() external onlyRole(GATEKEEPER_ROLE) {
+        _unpause();
+    }
+
+    /* --------------- PUBLIC --------------- */
+
+    /**
+     * @notice Returns the amount of NaraUSD tokens that are vested in the contract
+     * @return The total vested assets
+     */
+    function totalAssets() public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        return IERC20(asset()).balanceOf(address(this)) - getUnvestedAmount();
+    }
+
+    /**
+     * @notice Returns the amount of NaraUSD tokens that are unvested in the contract
+     * @return The unvested amount
+     */
+    function getUnvestedAmount() public view returns (uint256) {
+        // If no vesting period or no vesting amount, return 0
+        if (vestingPeriod == 0 || vestingAmount == 0 || lastDistributionTimestamp == 0) {
+            return 0;
+        }
+
+        // Prevent underflow if lastDistributionTimestamp is somehow in the future
+        if (block.timestamp < lastDistributionTimestamp) {
+            return vestingAmount;
+        }
+
+        uint256 timeSinceLastDistribution = block.timestamp - lastDistributionTimestamp;
+
+        if (timeSinceLastDistribution >= vestingPeriod) {
+            return 0;
+        }
+
+        uint256 deltaT;
+        unchecked {
+            deltaT = (vestingPeriod - timeSinceLastDistribution);
+        }
+        return (deltaT * vestingAmount) / vestingPeriod;
+    }
+
+    /// @dev Necessary because both ERC20 (from ERC20Permit) and ERC4626 declare decimals()
+    function decimals() public pure override(ERC4626Upgradeable, ERC20Upgradeable, IERC20Metadata) returns (uint8) {
+        return 18;
+    }
+
+    /// @dev Override nonces to resolve conflict between ERC20Permit and other base classes
+    function nonces(
+        address owner
+    ) public view virtual override(ERC20PermitUpgradeable, IERC20Permit) returns (uint256) {
+        return super.nonces(owner);
+    }
+
+    /**
+     * @notice Override maxRedeem to respect MIN_SHARES invariant
+     * @dev Returns the maximum shares that can be redeemed without violating MIN_SHARES
+     * @param owner The address to check
+     * @return The maximum redeemable shares
+     */
+    function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        uint256 ownerShares = balanceOf(owner);
+        uint256 _totalSupply = totalSupply();
+
+        // If owner has no shares, return 0
+        if (ownerShares == 0) return 0;
+
+        // If redeeming all owner shares would leave totalSupply at 0, that's allowed
+        if (_totalSupply == ownerShares) return ownerShares;
+
+        // Otherwise, cap redemption to ensure totalSupply >= MIN_SHARES after
+        uint256 maxRedeemable = _totalSupply > MIN_SHARES ? _totalSupply - MIN_SHARES : 0;
+        return ownerShares < maxRedeemable ? ownerShares : maxRedeemable;
+    }
+
+    /**
+     * @notice Override maxWithdraw to respect MIN_SHARES invariant
+     * @dev Returns the maximum assets that can be withdrawn without violating MIN_SHARES
+     * @param owner The address to check
+     * @return The maximum withdrawable assets
+     */
+    function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        return convertToAssets(maxRedeem(owner));
+    }
+
+    /* --------------- INTERNAL --------------- */
+
+    /// @notice Ensure minimum shares to prevent donation attack
+    function _checkMinShares() internal view {
+        uint256 _totalSupply = totalSupply();
+        if (_totalSupply > 0 && _totalSupply < MIN_SHARES) revert MinSharesViolation();
+    }
+
+    /**
+     * @dev Deposit/mint common workflow with blacklist checks
+     */
+    function _deposit(
+        address caller,
+        address receiver,
+        uint256 assets,
+        uint256 shares
+    ) internal override nonReentrant whenNotPaused notZero(assets) notZero(shares) {
+        if (_isBlacklisted(caller) || _isBlacklisted(receiver)) {
+            revert OperationNotAllowed();
+        }
+        super._deposit(caller, receiver, assets, shares);
+        _checkMinShares();
+    }
+
+    /**
+     * @dev Withdraw/redeem common workflow with blacklist checks
+     */
+    function _withdraw(
+        address caller,
+        address receiver,
+        address owner,
+        uint256 assets,
+        uint256 shares
+    ) internal override nonReentrant whenNotPaused notZero(assets) notZero(shares) {
+        if (_isBlacklisted(caller) || _isBlacklisted(receiver) || _isBlacklisted(owner)) {
+            revert OperationNotAllowed();
+        }
+
+        super._withdraw(caller, receiver, owner, assets, shares);
+        _checkMinShares();
+    }
+
+    /**
+     * @notice Internal helper to check if an address is blacklisted
+     * @param account The address to check
+     * @return bool True if account has FULL_RESTRICTED_STAKER_ROLE
+     */
+    function _isBlacklisted(address account) internal view returns (bool) {
+        return hasRole(FULL_RESTRICTED_STAKER_ROLE, account);
+    }
+
+    /**
+     * @notice Public view helper to check if an address is blacklisted
+     * @param account The address to check
+     * @return bool True if account has FULL_RESTRICTED_STAKER_ROLE
+     */
+    function isBlacklisted(address account) external view returns (bool) {
+        return _isBlacklisted(account);
+    }
+
+    function _checkNotZero(uint256 amount) internal pure {
+        if (amount == 0) revert InvalidAmount();
+    }
+
+    function _checkNotAdmin(address target) internal view {
+        if (hasRole(DEFAULT_ADMIN_ROLE, target)) revert CantBlacklistOwner();
+    }
+
+    function _checkCooldownOff() internal view {
+        if (cooldownDuration != 0) revert OperationNotAllowed();
+    }
+
+    function _checkCooldownOn() internal view {
+        if (cooldownDuration == 0) revert OperationNotAllowed();
+    }
+
+    /**
+     * @notice Update vesting amount and timestamp
+     * @param newVestingAmount The new vesting amount to add
+     */
+    function _updateVestingAmount(uint256 newVestingAmount) internal {
+        if (getUnvestedAmount() > 0) revert StillVesting();
+
+        vestingAmount = newVestingAmount;
+        lastDistributionTimestamp = block.timestamp;
+    }
+
+    /**
+     * @dev Hook that is called before any transfer of tokens
+     * @dev Completely freezes blacklisted addresses - they cannot transfer, burn, or receive
+     * @dev Only admin can move their tokens via redistributeLockedAmount
+     */
+    function _update(address from, address to, uint256 value) internal virtual override(ERC20Upgradeable) {
+        if (_isBlacklisted(from)) revert OperationNotAllowed();
+        if (_isBlacklisted(to)) revert OperationNotAllowed();
+        // Prevent blacklisted operators from moving tokens via transferFrom
+        if (from != msg.sender && _isBlacklisted(msg.sender)) revert OperationNotAllowed();
+        super._update(from, to, value);
+    }
+
+    /**
+     * @dev Prevent renouncing roles to maintain contract security
+     */
+    function renounceRole(bytes32 role, address account) public virtual override(AccessControlUpgradeable) {
+        if (role == DEFAULT_ADMIN_ROLE) revert CantRenounceOwnership();
+        super.renounceRole(role, account);
+    }
+}

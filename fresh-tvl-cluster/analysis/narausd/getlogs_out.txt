@@ -1,0 +1,9 @@
+latest 26202448
+Traceback (most recent call last):
+  File "/home/heisenberg/CA/fresh-tvl-cluster/analysis/narausd/getlogs2.py", line 35, in <module>
+    res=getlogs(MCT,t)
+  File "/home/heisenberg/CA/fresh-tvl-cluster/analysis/narausd/getlogs2.py", line 28, in getlogs
+    res=rpc("eth_getLogs",[{"address":addr,"topics":[topic0],"fromBlock":hex(b),"toBlock":hex(e)}])
+  File "/home/heisenberg/CA/fresh-tvl-cluster/analysis/narausd/getlogs2.py", line 15, in rpc
+    raise RuntimeError(f"all RPCs failed: {last}")
+RuntimeError: all RPCs failed: {'code': -32602, 'message': 'eth_getLogs is limited to 0 - 50 blocks range'}
