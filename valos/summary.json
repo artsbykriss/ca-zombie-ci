@@ -1,0 +1,39 @@
+{
+  "finding": "Z3-H14",
+  "title": "Valos (Monad) AccountableAsyncRedeemVault — async-redeem price/strategy callback review; fresh-attacker E-U $0 (immutable whitelist gate)",
+  "chains": ["monad"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 160368.78, "P": 7693.02, "S": 0},
+  "latest_block": 113775837,
+  "block_numbers": {"monad": 113775837},
+  "targets_checked": 8,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Vault permissionLevel = Whitelist(2), set in constructor, no setter exists in source or the 65-function ABI — all value entry points (deposit/mint/requestRedeem/redeem/withdraw/cancelRedeemRequest/transfer) require allowed[account]; only the strategy (manager EOA) can whitelist",
+    "NAV/sharePrice is a pure function of stored state + block.timestamp (linear 6.75%/yr interest); no oracle/AMM/callback input; publishRate dead (dvnPublisher=0), priceOracle unset; both conversion directions floor => no round-trip gain",
+    "Instant-fill impossible today: minRedeem $94,319.88 > idle liquidity $7,693.02; every request queues and settles later at the same price function",
+    "Queue empty (totalQueuedShares=0, reservedLiquidity=0); permissionless cranks (accrueInterest/updateLateStatus/processAvailableWithdrawals) pay the caller nothing (fork-proven); acceptDefault dead (_defaultValidAt=0)",
+    "vUSD cannot be acquired by a non-whitelisted address via any route (mint gated, transfer recipient gated, Euler/Curvance/Morpho wrapper borrows and liquidations end in a gated vUSD transfer)"
+  ],
+  "poc": {"tests_passed": 6, "tests_total": 6, "ci_run_urls": ["PENDING_CI_URL"]},
+  "key_facts": [
+    "Vault 0x8d3F9f9Eb2f5E8B48EFBB4074440D1E2A34Bc365 (vUSD, 6dp, not a proxy); strategy 0x8dCE15fc6a98484C995Fc702cBfBdA14A30454af (UUPS proxy -> AccountableOpenTerm 0x62d83e8d579ec3b5911f29e02c70f4130092edd1); asset AUSD 0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a",
+    "Live: totalAssets=$7,693.02 idle AUSD; totalSupply=101,036,240.141419 vUSD; sharePrice=1.0479986236574825; NAV=convertToAssets(totalSupply)=$105,885,840.61; debt=outstandingPrincipal(100,867,309.956010)*scaleFactor(1.0496776512)=$105,878,161.00",
+    "Loan state OngoingDynamic(3); terms minDeposit $100k, minRedeem $90k shares ($94,319.88), maxCapacity $200M, interestRate 6.75%/yr, interestInterval 30d, withdrawalPeriod 0, reserveThreshold 0, depositPeriod 5d (started 2026-02-06)",
+    "borrower == investmentManager == 0xB83986E9F33a6De4624B18DA69cb474F6f94fc7C (plain EOA); securityAdmin == operationsAdmin == treasury == 0x4B07AaA370189E5603DF56C84f59c5A59181BFB1 (Gnosis Safe 1.4.1, 2-of-3); safetyModule/dvnPublisher/proofSigner/priceOracle unset; securityAdminEnabled=true, operationsAdminEnabled=false",
+    "Whitelist: 23 addresses, all allowed=true (no removals); largest holders are whitelisted contracts: Euler EVK evUSD-2 0xd8ec5b4917fef9058545e7d1dc2ac17f1d26305d (75,876,065.20 vUSD / $79.5M), Curvance cvUSD 0x42369afe4ba4225b800b8024acc5f14f42a3836c (24,745,177.56 / $25.9M), Morpho singleton 0xd5d960e8c380b724a48ac59e2dff1b2cb4a1eaee (250,003.00)",
+    "Treasury Safe holds 153,023.85 vUSD fee shares ($160,368.78) but is NOT whitelisted — cannot requestRedeem itself; recoverable via transfer to a whitelisted address or manager setLenders (H-O class)",
+    "History: 43 deposits = $115,550,994.75; 40 borrows = same $115,550,994.75 (borrower drew every deposit same-day); 7 repayments = $14,893,152.11 funding lender redemptions; 4 redeem requests, 9 claims, 6 withdrawals — all settled",
+    "Fork proofs (block 113775837): fresh caller reverts Unauthorized on all 7 value entry points; permissionless cranks gain $0; min-size redeem queues and the crank paid the queued Euler vault $7,693.02 at sharePrice with $0 to caller; NAV +365d = 1.1133683492 (time-only); borrower EOA borrows the full $7,693.02 idle (P-class demo)",
+    "Adjacent: 2 Morpho markets use vUSD as collateral (oracle MorphoChainlinkOracleV2 0xf07e835c4ec57ed880159aef393e8ff9f66e75c0 prices 1.048002e36 vs true 1.0479986 — accurate; markets tiny $6.4k/$146k supply)"
+  ],
+  "caveats": [
+    "Strategy implementation is UUPS-upgradeable (manager EOA or 2-of-3 Safe securityAdmin can upgrade) — reviewed code may change; monitor Upgraded events",
+    "All figures point-in-time at Monad block 113775837 (2026-10-16); CI re-dump verifies at run time",
+    "No independent audit performed; source-level review + fork proofs only",
+    "Manager EOA 0xB83986...fc7C compromise is the dominant live risk (borrow idle cash/future deposits, whitelist additions, unbounded rate approval via propose+approve, strategy upgrade) — P-class, not E-U",
+    "Wrapper shares evUSD/cvUSD are not whitelist-gated (redemption into vUSD still is); no live venue/exit found for a fresh attacker"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from the $105.9M Valos async-redeem vault: an immutable Whitelist permission level gates every value path, the NAV is time-only (no manipulable price callback), instant-fill headroom is zero (min-redeem $94k > idle $7.7k), and the queue is empty — re-arms only via whitelist additions or manager-EOA key compromise (P-class)."
+}
