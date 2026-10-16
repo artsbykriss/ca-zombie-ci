@@ -1,0 +1,83 @@
+{
+  "finding": "Z3-C1",
+  "title": "UNCX Network Vesting V2 \u2014 shared-pool share-accounting desync; $1.49M incident; residual live extraction $0 (contained by owner-set flat fees)",
+  "chains": [
+    "ethereum",
+    "bsc",
+    "base",
+    "robinhood",
+    "polygon",
+    "unichain",
+    "arbitrum",
+    "avalanche",
+    "optimism",
+    "ink"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 257000,
+    "P": 0,
+    "S": 36500
+  },
+  "categories_note": "E-U $0 today: no schedule creation possible on any main deployment (flatFee uint256.max / 35k BNB / 252.3M POL / 10M ARB-OP / 1e25 RH; zero fee exemptions on the main deployments (2 remain on the AVAX/Arbitrum secondaries, storage-verified)), and no attacker-controlled soft+topable schedule remains with a positive claim against a funded pool (ETH/Base fully drained+cancelled; BSC's 66 live schedules claimable 0 vs dust pool). H-O 257000 = upper end of hard-realizable holder value (ETH $66k-124k liquidity-bounded: AXGT 125.7M paper $806k/pool $133k, AXGT2 95M paper $217k/pool $68.6k, TCT, BOBINA, UPEG, ZC, SC, PEPE; Robinhood $60-118k: AGE/SLEUTH/ASI healthy pools; Polygon FCAR $7.5-15k; Base DOT ~$68.5k nominal and BSC ~$45.7k BscScan net worth counted at 0/uncertain, see caveats). S 36500 = Robinhood RKST residual stuck (pool share state corrupted: live schedules hold D=6.66e25 shares vs totalShares=2.2e22 -> release reverts) + ETH attacked pools over-subscribed (EDGEN/ZC/pepecoin/LO0P/PAAL; releases revert once the small remaining balance is exhausted).",
+  "latest_block": 26201400,
+  "block_numbers": {
+    "ethereum": 26201400,
+    "bsc": 127874818,
+    "base": 52659814,
+    "robinhood": 89634103
+  },
+  "targets_checked": 13,
+  "live_targets": 13,
+  "closed_reasons": [
+    "flatFee raised to uint256.max on ETH/Base/Unichain/AVAX/Ink (unpayable) and to 35,000 BNB / 252.3M POL / 10M ARB / 10M OP / 1e25 RH (>= $25M) on the rest \u2014 schedule creation, the exploit prerequisite, is economically impossible",
+    "all fee exemptions removed (ETH fork-verified: 3 creators + 1 token exemption now false; BSC/Base/RH verified in per-chain scans)",
+    "all 42 ETH incident schedules (5058-5099) and all Base incident schedules have claimable = 0; every soft+topable incident schedule is cancelled (topUp/cancel revert VestingAlreadyCancelled)",
+    "secondary 14.4KB deployments are code-exploitable end-to-end (fork-proven) but cost >=1 flat fee (100 ETH / 100 BNB) vs pools of $4.73 / $1.34 / $0.03",
+    "attacked pools are drained to dust (EDGEN 3.29e10 wei, ZC 96,728 ZC, PEPE 288.9, LO0P 6.5e6 wei, PAAL 0)",
+    "L2 chains: no topable schedule ever created (structurally impossible top-up/cancel cycle); zero VestingToppedUp events on those chains"
+  ],
+  "poc": {
+    "tests_passed": 11,
+    "tests_total": 11,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38826471606",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38829097636",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38841672140"
+    ],
+    "project": "poc/ (Foundry; test/UncxVesting.t.sol; historical replay of the real 48KB attack calldata at block 26,191,744 reproduces the exact post-attack state)",
+    "key_poc_numbers": {
+      "replay_post_EDGEN_balance_wei": 32941964644,
+      "replay_post_totalShares_EDGEN": 17572899,
+      "secondary_recipe_profit_tokens": 56862375487197786112020902,
+      "secondary_airdrop_single_flat_fee_profit_tokens": 7222730346054289891786066,
+      "secondary_real_pool_usdc": 4.735964,
+      "secondary_flat_fee_eth": 100
+    }
+  },
+  "key_facts": [
+    "Bug: cancel() computes vestedShare = V*D/T and removes D-vestedShare shares without covering already-released shares; release() pays pro-rata of the shared balance. Donations/top-ups skew _shareRatio=(S+1)e18/(B+1) so D/T > S/B and cancels over-reduce global shares; a receiver schedule then over-claims the concentrated pool. Validated integer model reproduces the on-chain EDGEN/ZC legs to the wei.",
+    "ETH exploit block 26,191,745 tx 0x35206537...23823d: 11 schedules, 26 top-ups, 11 releases, 6 cancels in 5 tokens; flash-swapped capital from the token's own V2 pair; EDGEN pool 57.34M -> dust; attacker net +107.07M EDGEN of which 57.34M was other holders' funds.",
+    "Containment (owner txs, ETH): flatFee 0.05 ETH -> 100 -> 10,000 -> uint256.max (blocks 26,192,030/26,192,977/26,193,348); feePercentage 10 -> 500; token+creator exemptions removed.",
+    "BSC: 355 schedules on BTCLE, pool 194,841 BTCLE -> dust, net theft ~$9.2k (DefiLlama BTCLE $0.0472) - not the $969k nominal incident figure; ALL incident schedules are cancelled or fully released (0 live soft+topable; direct scan ids 640-994); _totalTokenShares[BTCLE]=216,115 wei is anomalous but no live claimant was found (monitor future BTCLE deposits).",
+    "Base: 13 schedules on IMO; siphon schedule 836 (nominal 10k IMO) released 280,612.6 IMO; net theft ~$111.3k; 0 live manipulable.",
+    "Robinhood (26.7KB build): 42 schedules cancelled; attacked RKST pool share-corrupted -> ~$36.5k stuck; untouched AGE/SLEUTH/ASI pools healthy and holder-claimable ($60-118k hard).",
+    "Secondary 14.4KB builds (ETH 0xBcD6aee8, BSC 0xEc76C87E, Base 0xcb08b6d8) carry the identical vulnerable math; ETH pool $4.73, BSC $1.34, Base $0.03; flatFee 100 ETH / 100 BNB. Minimum attack cost = 1 flat fee via createAirdropVesting with 3 soft+topable beneficiaries (fork-proven).",
+    "Profitability is knife-edge in integer rounding: ~140 parameter combos searched, only the EDGEN-ratio family is solvent+profitable; attackers must simulate and tune.",
+    "Monitor: FlatFeeUpdated / FeePercentageUpdated / exemption events on 13 deployments; VestingCreated while fees are high; deposits into share-corrupted pools (BSC BTCLE; ETH EDGEN/ZC/PEPE/LO0P; RH RKST); owner Safe 0x31c44A17... (2-of-N) transactions.",
+    "L2 structural finding: on Unichain/Avalanche/Polygon/Arbitrum/OP/Ink no isTopable=true schedule has ever been created (Unichain 1,439 creations -> 0 topable, verified; 12,500+ creations decoded across the six chains -> 0 topable) - the exploit's top-up/cancel cycle is structurally impossible there, independent of the fee containment.",
+    "Residual fee exemptions (storage-verified, slot 19): 0x037287a8844835e663c392d7f86eb2dbf2a14a98 and 0x7618283e4d27c1cdca572b791b499e4de9d9954a remain fee-exempt on the AVAX and Arbitrum SECONDARY deployments (mains are clean); their pools are dust ($0.11/$0.50) -> no economic upside today, configuration-hygiene/monitor item."
+  ],
+  "caveats": [
+    "Point-in-time reads (2026-10-16); re-verify before acting.",
+    "Hard-realizable values are bounded by DEX pool depth (25-50% of deepest-pool liquidity assumed); tokens without a DEX pair are $0 hard even with a nominal mark (VEK $2.5M, OXN $337k); AXGT2's $68.6k pool has $0 24h volume (GeckoTerminal-indexed only).",
+    "BSC DROPS $1.12M nominal (GoldRush) conflicts with BscScan (~$0) - excluded from H-O; Base DOT $68.5k is a GoldRush mark, liquidity unverified.",
+    "Incident-feed loss figures are nominal ($1.49M total); wei-level reconstruction gives ~$242k ETH sweeps, ~$111.3k Base, ~$9.2k BSC (BTCLE price-dependent).",
+    "5 Robinhood schedule reads and a few L2 reads hit RPC glitches; symbols/decimals for some RH tokens resolved via Alchemy metadata.",
+    "The exploit needs 3 schedules (1 receiver + 2 manipulators) or 1 airdrop call; the donation/top-up capital is flash-swappable from the token's own AMM pair.",
+    "A child-agent draft reported 66 live soft+topable BSC schedules; direct on-chain re-scan (ids 640-994) found 0 - corrected in this report."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: the immutable share-accounting bug is fully contained by owner-set flat fees (uint256.max / >=$25M equivalents) and zero fee exemptions, all incident schedules are drained, and the secondary 14.4KB builds are code-exploitable but their 100-1000 native flat fee dwarfs their $0.03-$4.73 pools; ~$110-210k of holder value remains (ETH liquidity-bounded + Robinhood healthy pools) plus ~$36.5k stuck in the share-corrupted RKST pool, with re-arm possible via one owner parameter change."
+}

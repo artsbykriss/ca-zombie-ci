@@ -1,0 +1,1921 @@
+[
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_calculator",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "_svgGenerator",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "_feeCollector",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "target",
+    "type": "address"
+   }
+  ],
+  "name": "AddressEmptyCode",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "account",
+    "type": "address"
+   }
+  ],
+  "name": "AddressInsufficientBalance",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "sender",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "ERC721IncorrectOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "operator",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "ERC721InsufficientApproval",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "approver",
+    "type": "address"
+   }
+  ],
+  "name": "ERC721InvalidApprover",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "operator",
+    "type": "address"
+   }
+  ],
+  "name": "ERC721InvalidOperator",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "ERC721InvalidOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "receiver",
+    "type": "address"
+   }
+  ],
+  "name": "ERC721InvalidReceiver",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "sender",
+    "type": "address"
+   }
+  ],
+  "name": "ERC721InvalidSender",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "ERC721NonexistentToken",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "FailedInnerCall",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "FeeTransferFailed",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidAmount",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidArray",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidBeneficiary",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidCalculator",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidFeeCollector",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidFeePercentage",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidFlatFee",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidSVGGenerator",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidTime",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidToken",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NFTAlreadyMinted",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NoTokensToRelease",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NonTransferableToken",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotAuthorized",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotCancellable",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotSoftVesting",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotTopable",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotWhitelisted",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "OnlyCreatorCanCancel",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "OnlyOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnableInvalidOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "account",
+    "type": "address"
+   }
+  ],
+  "name": "OwnableUnauthorizedAccount",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ReentrancyGuardReentrantCall",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   }
+  ],
+  "name": "SafeERC20FailedOperation",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "TokenDoesNotExist",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "VestingAlreadyCancelled",
+  "type": "error"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "vestingIds",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "beneficiaries",
+    "type": "address[]"
+   }
+  ],
+  "name": "AirdropVestingCreated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "approved",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "Approval",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "operator",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "approved",
+    "type": "bool"
+   }
+  ],
+  "name": "ApprovalForAll",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "vestingIds",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   }
+  ],
+  "name": "BulkVestingCreated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "vestingIds",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "beneficiaries",
+    "type": "address[]"
+   }
+  ],
+  "name": "BulkVestingCreatedForBeneficiaries",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "address",
+    "name": "creator",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "isExempt",
+    "type": "bool"
+   }
+  ],
+  "name": "CreatorFeeExemptionUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "oldFeeCollector",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newFeeCollector",
+    "type": "address"
+   }
+  ],
+  "name": "FeeCollectorUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "FeeExemptionStatusUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "newFeePercentage",
+    "type": "uint256"
+   }
+  ],
+  "name": "FeePercentageUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "flatFee",
+    "type": "uint256"
+   }
+  ],
+  "name": "FeesCollected",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "newFlatFee",
+    "type": "uint256"
+   }
+  ],
+  "name": "FlatFeeUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferStarted",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferred",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "oldSVGGenerator",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newSVGGenerator",
+    "type": "address"
+   }
+  ],
+  "name": "SVGGeneratorUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "isExempt",
+    "type": "bool"
+   }
+  ],
+  "name": "TokenFeeExemptionUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "TokensReleased",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "Transfer",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   }
+  ],
+  "name": "VestingCancelled",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "time",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "amount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum IVestingCalculator.EquationType",
+      "name": "eqType",
+      "type": "uint8"
+     }
+    ],
+    "indexed": false,
+    "internalType": "struct IVestingCalculator.TimeAmount[]",
+    "name": "tranches",
+    "type": "tuple[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "isSoft",
+    "type": "bool"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "isTopable",
+    "type": "bool"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "isTransferable",
+    "type": "bool"
+   }
+  ],
+  "name": "VestingCreated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "sender",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "time",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "amount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum IVestingCalculator.EquationType",
+      "name": "eqType",
+      "type": "uint8"
+     }
+    ],
+    "indexed": false,
+    "internalType": "struct IVestingCalculator.TimeAmount[]",
+    "name": "tranches",
+    "type": "tuple[]"
+   }
+  ],
+  "name": "VestingToppedUp",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   }
+  ],
+  "name": "VestingTransferred",
+  "type": "event"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   }
+  ],
+  "name": "_getReleasableShares",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "acceptOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "approve",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "balanceOf",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "calculator",
+  "outputs": [
+   {
+    "internalType": "contract IVestingCalculator",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   }
+  ],
+  "name": "cancel",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "time",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "amount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum IVestingCalculator.EquationType",
+      "name": "eqType",
+      "type": "uint8"
+     }
+    ],
+    "internalType": "struct IVestingCalculator.TimeAmount[]",
+    "name": "tranches",
+    "type": "tuple[]"
+   },
+   {
+    "internalType": "address[]",
+    "name": "beneficiaries",
+    "type": "address[]"
+   },
+   {
+    "internalType": "bool",
+    "name": "isSoft",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isNftized",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTransferable",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTopable",
+    "type": "bool"
+   }
+  ],
+  "name": "createAirdropVesting",
+  "outputs": [
+   {
+    "internalType": "uint256[]",
+    "name": "",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "payable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "time",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "amount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum IVestingCalculator.EquationType",
+      "name": "eqType",
+      "type": "uint8"
+     }
+    ],
+    "internalType": "struct IVestingCalculator.TimeAmount[][]",
+    "name": "tranchesList",
+    "type": "tuple[][]"
+   },
+   {
+    "internalType": "address[]",
+    "name": "beneficiaries",
+    "type": "address[]"
+   },
+   {
+    "internalType": "bool",
+    "name": "isSoft",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isNftized",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTransferable",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTopable",
+    "type": "bool"
+   }
+  ],
+  "name": "createBulkVestingForBeneficiaries",
+  "outputs": [
+   {
+    "internalType": "uint256[]",
+    "name": "",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "payable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "time",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "amount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum IVestingCalculator.EquationType",
+      "name": "eqType",
+      "type": "uint8"
+     }
+    ],
+    "internalType": "struct IVestingCalculator.TimeAmount[][]",
+    "name": "tranchesList",
+    "type": "tuple[][]"
+   },
+   {
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "isSoft",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isNftized",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTransferable",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTopable",
+    "type": "bool"
+   }
+  ],
+  "name": "createBulkVestingForBeneficiary",
+  "outputs": [
+   {
+    "internalType": "uint256[]",
+    "name": "",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "payable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "time",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "amount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum IVestingCalculator.EquationType",
+      "name": "eqType",
+      "type": "uint8"
+     }
+    ],
+    "internalType": "struct IVestingCalculator.TimeAmount[]",
+    "name": "tranches",
+    "type": "tuple[]"
+   },
+   {
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   }
+  ],
+  "name": "createDailySoftVesting",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "payable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "time",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "amount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum IVestingCalculator.EquationType",
+      "name": "eqType",
+      "type": "uint8"
+     }
+    ],
+    "internalType": "struct IVestingCalculator.TimeAmount[]",
+    "name": "tranches",
+    "type": "tuple[]"
+   },
+   {
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "isSoft",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isNftized",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTransferable",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTopable",
+    "type": "bool"
+   }
+  ],
+  "name": "createVesting",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "payable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "feeCollector",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "feeExemptCreators",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "feeExemptTokens",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "feePercentage",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "flatFee",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "getApproved",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   }
+  ],
+  "name": "getReleasableAmount",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   }
+  ],
+  "name": "getVestedAmount",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   }
+  ],
+  "name": "getVestingSchedule",
+  "outputs": [
+   {
+    "components": [
+     {
+      "internalType": "address",
+      "name": "token",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "creator",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "beneficiary",
+      "type": "address"
+     },
+     {
+      "internalType": "uint256",
+      "name": "totalAmount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "released",
+      "type": "uint256"
+     },
+     {
+      "internalType": "bool",
+      "name": "isSoft",
+      "type": "bool"
+     },
+     {
+      "internalType": "bool",
+      "name": "isNftized",
+      "type": "bool"
+     },
+     {
+      "internalType": "bool",
+      "name": "cancelled",
+      "type": "bool"
+     },
+     {
+      "internalType": "bool",
+      "name": "isTopable",
+      "type": "bool"
+     },
+     {
+      "internalType": "enum IVesting.VestingType",
+      "name": "vestingType",
+      "type": "uint8"
+     },
+     {
+      "components": [
+       {
+        "internalType": "uint256",
+        "name": "time",
+        "type": "uint256"
+       },
+       {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+       },
+       {
+        "internalType": "enum IVestingCalculator.EquationType",
+        "name": "eqType",
+        "type": "uint8"
+       }
+      ],
+      "internalType": "struct IVestingCalculator.TimeAmount[]",
+      "name": "tranches",
+      "type": "tuple[]"
+     }
+    ],
+    "internalType": "struct IVestingManager.VestingSchedule",
+    "name": "",
+    "type": "tuple"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "operator",
+    "type": "address"
+   }
+  ],
+  "name": "isApprovedForAll",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   }
+  ],
+  "name": "mintVestingNFT",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "name",
+  "outputs": [
+   {
+    "internalType": "string",
+    "name": "",
+    "type": "string"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "nextVestingId",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "owner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "ownerOf",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "pendingOwner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   }
+  ],
+  "name": "release",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "renounceOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "safeTransferFrom",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   },
+   {
+    "internalType": "bytes",
+    "name": "data",
+    "type": "bytes"
+   }
+  ],
+  "name": "safeTransferFrom",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "operator",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "approved",
+    "type": "bool"
+   }
+  ],
+  "name": "setApprovalForAll",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_creator",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "_isExempt",
+    "type": "bool"
+   }
+  ],
+  "name": "setCreatorFeeExempt",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newFeeCollector",
+    "type": "address"
+   }
+  ],
+  "name": "setFeeCollector",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "_feePercentage",
+    "type": "uint256"
+   }
+  ],
+  "name": "setFeePercentage",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "_flatFee",
+    "type": "uint256"
+   }
+  ],
+  "name": "setFlatFee",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newSVGGenerator",
+    "type": "address"
+   }
+  ],
+  "name": "setSVGGenerator",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_token",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "_isExempt",
+    "type": "bool"
+   }
+  ],
+  "name": "setTokenFeeExempt",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4",
+    "name": "interfaceId",
+    "type": "bytes4"
+   }
+  ],
+  "name": "supportsInterface",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "svgGenerator",
+  "outputs": [
+   {
+    "internalType": "contract IVestingSVGGenerator",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "symbol",
+  "outputs": [
+   {
+    "internalType": "string",
+    "name": "",
+    "type": "string"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "tokenURI",
+  "outputs": [
+   {
+    "internalType": "string",
+    "name": "",
+    "type": "string"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   },
+   {
+    "components": [
+     {
+      "internalType": "uint256",
+      "name": "time",
+      "type": "uint256"
+     },
+     {
+      "internalType": "uint256",
+      "name": "amount",
+      "type": "uint256"
+     },
+     {
+      "internalType": "enum IVestingCalculator.EquationType",
+      "name": "eqType",
+      "type": "uint8"
+     }
+    ],
+    "internalType": "struct IVestingCalculator.TimeAmount[]",
+    "name": "additionalTranches",
+    "type": "tuple[]"
+   }
+  ],
+  "name": "topUpVesting",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "tokenId",
+    "type": "uint256"
+   }
+  ],
+  "name": "transferFrom",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "transferOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "vestingId",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "newBeneficiary",
+    "type": "address"
+   }
+  ],
+  "name": "transferVesting",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "name": "vestingSchedules",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "creator",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "totalAmount",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "released",
+    "type": "uint256"
+   },
+   {
+    "internalType": "bool",
+    "name": "isSoft",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isNftized",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "cancelled",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "isTopable",
+    "type": "bool"
+   },
+   {
+    "internalType": "enum IVesting.VestingType",
+    "name": "vestingType",
+    "type": "uint8"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ }
+]

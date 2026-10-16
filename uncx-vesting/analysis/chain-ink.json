@@ -1,0 +1,121 @@
+{
+  "chain": "ink",
+  "chainId": 57073,
+  "generated_utc": "2026-10-16T02:28:46Z",
+  "blocks": {
+    "latest_main_read": 58618278,
+    "latest_main_read_utc": "2026-10-16 ~02:18 UTC",
+    "window_start": 58437589,
+    "window_start_utc": "2026-10-14T00:00:00Z",
+    "chain_hint": "~1 s blocks",
+    "containment_timeline": [
+      {
+        "action": "FlatFeeUpdated(1e22 wei = 10,000 ETH)",
+        "block": 58498853,
+        "utc": "2026-10-14 17:01:04 UTC",
+        "tx": "0x643cadc1b8fc5bc0336f572893dbe08ae75886ff038a4c9cc14438c35b3886e2",
+        "sender": "0x85bd8ebf.. -> Safe"
+      },
+      {
+        "action": "FlatFeeUpdated(1e25 wei = 10,000,000 ETH) + FeePercentageUpdated(500)",
+        "block": 58514262,
+        "utc": "2026-10-14 21:17:53 UTC",
+        "tx": "0x4d23eff6d6856ce773da97f050da2a473ca182295db92626d73d52f84a3554fb",
+        "sender": "0x85bd8ebf.. -> Safe"
+      },
+      {
+        "action": "FlatFeeUpdated(uint256.max) + FeePercentageUpdated(500) + CreatorFeeExemptionUpdated x3 (a4068dcb, 037287a8, 7618283e -> false)",
+        "block": 58564441,
+        "utc": "2026-10-15 11:14:12 UTC",
+        "tx": "0x969a1e6ef6c30659d18f6cf3c7a2a177165248bff882e10c95ca1e7d14ce12e0",
+        "sender": "0x85bd8ebf.. -> Safe"
+      }
+    ]
+  },
+  "main": {
+    "address": "0xF28704c691290547924e2129D407dA36bda8ce0f",
+    "code_bytes": 18433,
+    "nextVestingId": 2,
+    "feePercentage": 500,
+    "feePercentage_note": "basis points /10000 = 5% currently (post-incident); was 0.1% pre-incident",
+    "flatFee_wei": "uint256.max",
+    "flatFee_note": "uint256.max - non-exempt creation disabled; all 3 fee-exempt creators removed Oct 15",
+    "owner": "0x31c44A17aa2E639B40f33DA805CB1DB55d969693",
+    "owner_note": "Gnosis Safe (same Safe as every other chain)",
+    "feeCollector": "0xD45dD91DF475bFD944335160f538c1A14888DC1C",
+    "native_balance_wei": "0"
+  },
+  "secondary": null,
+  "main_balances_snapshot": {
+    "source": "Explorer token inventory + on-chain balanceOf at blk 58,615,073 (2026-10-16 01:18:04 UTC)",
+    "tokens_nonzero": [
+      [
+        "USD\u20ae0 (USDT0)",
+        "0x0200c29006150606b650577bbe7b6248f58470c1",
+        6,
+        "417",
+        0.9987,
+        0.0004
+      ]
+    ],
+    "total_usd": 0.0004,
+    "total_note": "",
+    "columns": "[symbol, token_address, decimals, balance_raw, price_usd, value_usd]"
+  },
+  "secondary_balances_snapshot": null,
+  "creations": {
+    "main_n": 2,
+    "main_first": "2026-10-07 15:24:46 UTC (blk 57,888,275, id 0)",
+    "main_last": "2026-10-09 08:56:37 UTC (blk 58,037,786, id 1)",
+    "main_flags": "soft+transferable=2 (both); topable=0",
+    "sec_n": 0,
+    "sec_first": "-",
+    "sec_last": "-",
+    "sec_flags": "no secondary contract found (deployer nonce 0; main built by a non-UNCX-deployer)",
+    "cancels": "0",
+    "releases": "2 (id 1: 100,000 raw = 0.1 USDT0 at blk 58,048,817 2026-10-09 12:00:28 UTC; id 0: 583 raw = 0.000583 USDT0 at blk 58,048,824 2026-10-09 12:00:35 UTC) - both pre-window, creator/beneficiary a4068dcb",
+    "topped": "0 events (no top-up ever)"
+  },
+  "incident_window": {
+    "creations": 0,
+    "topups": 0,
+    "cancellations": 0,
+    "releases": 0,
+    "events_in_window": [
+      "FlatFeeUpdated x3 (58,498,853 / 58,514,262 / 58,564,441)",
+      "FeePercentageUpdated x2 (58,514,262 / 58,564,441)",
+      "CreatorFeeExemptionUpdated x3 (all -> false, 58,564,441)"
+    ],
+    "note": "No attacker activity on this chain in the incident window: zero creation/top-up/cancel/release events. Only UNCX containment actions (fee raises + de-exemptions)."
+  },
+  "live_manipulable_schedules": {
+    "criteria": "isSoft==true AND isTopable==true AND cancelled==false (current state)",
+    "count": 0,
+    "scan": "Full creation history decoded: no VestingCreated event on this chain ever carried isTopable=true -> the exploit sequence (release/topUp/cancel cycle) is structurally impossible on every schedule.",
+    "topup_simulation": "topUpVesting() eth_call simulation on sampled schedule ids reverts NotTopable (0x3813f790).",
+    "residual_extractability": "$0 - no live manipulable schedule; contract pools hold only dust (see balances)."
+  },
+  "other_negative_results": [
+    "Zero VestingToppedUp events in the entire history of every contract on this chain.",
+    "Attacker addresses 0x78c9b118.. / 0xf6D07225..: zero nonce, zero balance; not a beneficiary/creator of any schedule.",
+    "Ink main was deployed 2026-10-05..07 (first fee event Oct 5 13:29:06 UTC; first creation Oct 7 15:24:46 UTC) - the newest deployment of the six.",
+    "Both Ink schedules were created AND released (dust amounts) by fee-exempt creator a4068dcb on Oct 7-9, before the incident; both are non-topable, so no manipulation path even in principle.",
+    "Fee exemptions for a4068dcb, 037287a8, 7618283e were set Oct 7 (blocks 57,866,575-78) and removed in the Oct 15 containment tx."
+  ],
+  "sources": [
+    "Public RPCs: mainnet.unichain.org; api.avax.network; polygon-bor-rpc.publicnode.com; arb1.arbitrum.io; mainnet.optimism.io; rpc-gel.inkonchain.com (state reads, getters, eth_getLogs window scans, block timestamps)",
+    "Explorer APIs for full-history event downloads: Etherscan V2 (chainid 130/137/42161), Routescan (43114), Blockscout optimism.blockscout.com (10), explorer.inkonchain.com (57073)",
+    "DefiLlama coins.llama.fi (ETH $2431.50, AVAX $9.9715, POL $0.095672, ARB $0.192625, OP $0.136435, USDC $0.99958, USDT $0.99903, DAI $1.00017; 2026-10-16 ~01:50 UTC)",
+    "DexScreener API (USDT0 $0.9987; FCAR $18.54 w/ $30.1k liq; CIP $0.0008755 w/ $8.4k liq)"
+  ],
+  "caveats": [
+    "Analysis is read-only: no transactions sent, no keys used.",
+    "USD marks at 2026-10-16 ~01:50 UTC; stablecoin marks vary by <0.1%.",
+    "Incident window defined as 2026-10-14 00:00:00 UTC -> 2026-10-16 00:00:00 UTC; per-chain start blocks: uni 61,187,641; avax 97,485,346; poly 95,487,125; arb 514,581,113; op 158,168,612; ink 58,437,589 (Oct 14 00:00 UTC on each chain, verified by solver/er timestamps or block-delta).",
+    "Full-history event downloads (VestingCreated/ToppedUp/Cancelled/TokensReleased/FlatFeeUpdated/FeePercentageUpdated/CreatorFeeExemptionUpdated/TokenFeeExemptionUpdated) were chunk-scanned over each contract's entire lifetime; window scan = those events filtered to the window.",
+    "No VestingToppedUp event exists on any of the 11 contracts across all 6 chains (zero top-ups ever).",
+    "No VestingCreated event carries isTopable=true anywhere on these 6 chains (0 topable schedules ever created).",
+    "Attacker addresses from the Ethereum/BSC exploit 0x78c9b11853e4f183a34c63ffd1924d2319a2f5b3 and 0xf6D072254Eb8A9B06e0bA21221b498332C1BC35E have zero nonce and zero balance on all 6 chains.",
+    "topUpVesting() simulation on schedule samples across chains reverts NotTopable (0x3813f790) - the top-up path requires isTopable=true, which no schedule has."
+  ]
+}

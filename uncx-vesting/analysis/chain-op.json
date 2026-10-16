@@ -1,0 +1,143 @@
+{
+  "chain": "op",
+  "chainId": 10,
+  "generated_utc": "2026-10-16T02:28:46Z",
+  "blocks": {
+    "latest_main_read": 158258954,
+    "latest_main_read_utc": "2026-10-16 ~02:18 UTC",
+    "window_start": 158168612,
+    "window_start_utc": "2026-10-14T00:00:00Z",
+    "chain_hint": "~2 s blocks",
+    "containment_timeline": [
+      {
+        "action": "FlatFeeUpdated(1e22 wei = 10,000 ETH)",
+        "block": 158199132,
+        "utc": "2026-10-14 16:57:21 UTC",
+        "tx": "0x460d52a2e476231e5691d3bbf53a0acb538d962736983f4e9cb3b614b9085301",
+        "sender": "0x46565eed.. -> helper 0x78138875.."
+      },
+      {
+        "action": "FlatFeeUpdated(1e25 wei = 10,000,000 ETH) + FeePercentageUpdated(500)",
+        "block": 158206840,
+        "utc": "2026-10-14 21:14:17 UTC",
+        "tx": "0xc050ac3d81bef3f70044c383159909e77347af982ab3cbd56c7c0e3def38a693",
+        "sender": "0x85bd8ebf.. -> Safe"
+      }
+    ]
+  },
+  "main": {
+    "address": "0x2Ba0cb1153f10d2A95E16e0581324244b9227dDB",
+    "code_bytes": 18010,
+    "nextVestingId": 0,
+    "feePercentage": 500,
+    "feePercentage_note": "basis points /10000 = 5% currently (post-incident); was 0.1% pre-incident",
+    "flatFee_wei": "10000000000000000000000000",
+    "flatFee_note": "1e25 wei = 10,000,000 ETH (~$24.3B); nextVestingId=0 - contract NEVER used for any schedule",
+    "owner": "0x31c44A17aa2E639B40f33DA805CB1DB55d969693",
+    "owner_note": "Gnosis Safe (same Safe as every other chain)",
+    "feeCollector": "0xD45dD91DF475bFD944335160f538c1A14888DC1C",
+    "native_balance_wei": "0"
+  },
+  "secondary": {
+    "address": "0xAd2071A3021a118A92E95328A6D12bEE0E1C5D8d",
+    "code_bytes": 14391,
+    "nextVestingId": 501,
+    "feePercentage": 10,
+    "flatFee_wei": "100000000000000000000",
+    "flatFee_native": "100 ETH",
+    "flatFee_usd_at_report": 243150.0,
+    "flatFee_raised": {
+      "block": 157796917,
+      "utc": "2026-10-05 09:30:11 UTC",
+      "tx": "0x669623e47cc4ff60167bf16a0aee0db8bc017e91c9b499e574fb1bb8648e90bd",
+      "from": "0x46565eedb0bb948ae787dd105cce300f736da28e"
+    },
+    "owner": "0x31c44A17aa2E639B40f33DA805CB1DB55d969693",
+    "feeCollector": "0xD45dD91DF475bFD944335160f538c1A14888DC1C",
+    "native_balance_wei": "0",
+    "still_fee_exempt_creators": []
+  },
+  "main_balances_snapshot": {
+    "source": "Explorer token inventory + on-chain balanceOf at blk 158,257,346 (2026-10-16 01:17:49 UTC)",
+    "tokens_nonzero": [],
+    "total_usd": 0.0,
+    "total_note": "no tokens ever received",
+    "columns": "[symbol, token_address, decimals, balance_raw, price_usd, value_usd]"
+  },
+  "secondary_balances_snapshot": {
+    "source": "Explorer token inventory + on-chain balanceOf at blk 158,257,346 (2026-10-16 01:17:49 UTC)",
+    "tokens_nonzero": [
+      [
+        "USDC",
+        "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+        6,
+        "5050000",
+        0.999578,
+        5.0479
+      ],
+      [
+        "ACHIVX",
+        "0xfaf87e196a29969094be35dfb0ab9d0b8518db84",
+        6,
+        "100",
+        null,
+        null
+      ]
+    ],
+    "total_usd": 5.05,
+    "columns": "[symbol, token_address, decimals, balance_raw, price_usd, value_usd]"
+  },
+  "creations": {
+    "main_n": 0,
+    "main_first": "-",
+    "main_last": "-",
+    "main_flags": "no schedules ever (nextVestingId=0)",
+    "sec_n": 501,
+    "sec_first": "2025-08-13 08:18:55 UTC (blk 139,737,179)",
+    "sec_last": "2025-08-14 (blk 139,768,463)",
+    "sec_flags": "soft+transferable=501 (ALL); topable=0",
+    "cancels": "0 on both contracts",
+    "releases": "0 on both contracts",
+    "topped": "0 events on both contracts (no top-up ever)"
+  },
+  "incident_window": {
+    "creations": 0,
+    "topups": 0,
+    "cancellations": 0,
+    "releases": 0,
+    "events_in_window": [
+      "FlatFeeUpdated x2 (158,199,132 / 158,206,840)",
+      "FeePercentageUpdated x1 (158,206,840)"
+    ],
+    "note": "No attacker activity on this chain in the incident window: zero creation/top-up/cancel/release events. Only UNCX containment actions (fee raises + de-exemptions)."
+  },
+  "live_manipulable_schedules": {
+    "criteria": "isSoft==true AND isTopable==true AND cancelled==false (current state)",
+    "count": 0,
+    "scan": "Full creation history decoded: no VestingCreated event on this chain ever carried isTopable=true -> the exploit sequence (release/topUp/cancel cycle) is structurally impossible on every schedule.",
+    "topup_simulation": "topUpVesting() eth_call simulation on sampled schedule ids reverts NotTopable (0x3813f790).",
+    "residual_extractability": "$0 - no live manipulable schedule; contract pools hold only dust (see balances)."
+  },
+  "other_negative_results": [
+    "Zero VestingToppedUp events in the entire history of every contract on this chain.",
+    "Attacker addresses 0x78c9b118.. / 0xf6D07225..: zero nonce, zero balance; not a beneficiary/creator of any schedule.",
+    "OP main is a never-used shell (nextVestingId=0) - zero schedule state to exploit.",
+    "OP secondary: 501 schedules, all soft + non-topable; 501 distinct beneficiaries - looks like a 2025 campaign contract; dormant since Aug 2025."
+  ],
+  "sources": [
+    "Public RPCs: mainnet.unichain.org; api.avax.network; polygon-bor-rpc.publicnode.com; arb1.arbitrum.io; mainnet.optimism.io; rpc-gel.inkonchain.com (state reads, getters, eth_getLogs window scans, block timestamps)",
+    "Explorer APIs for full-history event downloads: Etherscan V2 (chainid 130/137/42161), Routescan (43114), Blockscout optimism.blockscout.com (10), explorer.inkonchain.com (57073)",
+    "DefiLlama coins.llama.fi (ETH $2431.50, AVAX $9.9715, POL $0.095672, ARB $0.192625, OP $0.136435, USDC $0.99958, USDT $0.99903, DAI $1.00017; 2026-10-16 ~01:50 UTC)",
+    "DexScreener API (USDT0 $0.9987; FCAR $18.54 w/ $30.1k liq; CIP $0.0008755 w/ $8.4k liq)"
+  ],
+  "caveats": [
+    "Analysis is read-only: no transactions sent, no keys used.",
+    "USD marks at 2026-10-16 ~01:50 UTC; stablecoin marks vary by <0.1%.",
+    "Incident window defined as 2026-10-14 00:00:00 UTC -> 2026-10-16 00:00:00 UTC; per-chain start blocks: uni 61,187,641; avax 97,485,346; poly 95,487,125; arb 514,581,113; op 158,168,612; ink 58,437,589 (Oct 14 00:00 UTC on each chain, verified by solver/er timestamps or block-delta).",
+    "Full-history event downloads (VestingCreated/ToppedUp/Cancelled/TokensReleased/FlatFeeUpdated/FeePercentageUpdated/CreatorFeeExemptionUpdated/TokenFeeExemptionUpdated) were chunk-scanned over each contract's entire lifetime; window scan = those events filtered to the window.",
+    "No VestingToppedUp event exists on any of the 11 contracts across all 6 chains (zero top-ups ever).",
+    "No VestingCreated event carries isTopable=true anywhere on these 6 chains (0 topable schedules ever created).",
+    "Attacker addresses from the Ethereum/BSC exploit 0x78c9b11853e4f183a34c63ffd1924d2319a2f5b3 and 0xf6D072254Eb8A9B06e0bA21221b498332C1BC35E have zero nonce and zero balance on all 6 chains.",
+    "topUpVesting() simulation on schedule samples across chains reverts NotTopable (0x3813f790) - the top-up path requires isTopable=true, which no schedule has."
+  ]
+}
