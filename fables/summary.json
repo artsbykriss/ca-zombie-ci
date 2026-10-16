@@ -1,0 +1,60 @@
+{
+  "finding": "Z3-H13",
+  "title": "Fables (Robinhood Chain) \u2014 v4 hooks + FablesLedger: permissionless sweeps are destination-locked; the only defect is a superseded hook's full-balance native refund",
+  "chains": [
+    "robinhood-chain"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 36007467,
+    "P": 22115,
+    "S": 0
+  },
+  "latest_block": 89740322,
+  "block_numbers": {
+    "robinhood-chain": 89740322
+  },
+  "targets_checked": 13,
+  "live_targets": 13,
+  "closed_reasons": [
+    "sweepClaimFee is permissionless but pays only the recorded pot to the fixed claimFeeRecipient (Safe 0x9F887B9930E9e716286333Bd8e291f64a8710F6f, 2-of-3) - fork-proven attacker receives nothing",
+    "sweepDistributor is a no-op: distributor == 0x0 and distributorOwed == 0 on all 13 hooks - fork-proven",
+    "all restricted selectors map to real roles 0/1/2/4/9; no PUBLIC_ROLE mapping on any target; targets not closed - fresh caller reverts, canCall/hasRole false",
+    "stake/syncRanges revert (ballotGate unset); zero-share sync doors closed",
+    "deposits pull principal from msg.sender; withdrawals burn the caller's own ERC-6909 receipts; fee pots are backed 1:1 by hook-held claims (0 under-backed pairs)",
+    "unlockCallback/beforeSwap/receive are PoolManager-only; foreign or unconfigured pool keys are refused by _checkKey",
+    "withdrawals are not pausable - fork-proven to work while the real PAUSER role holder has the hook paused"
+  ],
+  "poc": {
+    "tests_passed": 17,
+    "tests_total": 17,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38843722806",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38843184408"
+    ]
+  },
+  "key_facts": [
+    "Registry 0x159a113e012593d9b3cc63ad45e30f0467e13ef3 enumerates 68 active pools: FablesRamp 0x08E52564Bad99E05a694b4809F397edcA417A080 (37), FablesRWA 0x5Eb87F69bE00Df39981622Fd60A8De4b7837e080 (11), FablesRampETH 0x594e8e6281eDf2d363a0293a50004Cf868E7a080 (9), FablesRWAETH 0xca89f079AF00f752bfD3C345358Dc38d4d73e080 (2) + 10 single-pool sibling revisions",
+    "Permission bits of the main hooks decode to 0x2080 (beforeInitialize + beforeSwap only; no delta flags) and match _hookPermissions(); constructor runs Hooks.validateHookPermissions",
+    "PoolManager 0x8366a39CC670B4001A1121B8F6A443A643e40951 is stock v4-core (its libraries/types are byte-identical to the hooks' vendored v4-core)",
+    "AccessManager 0xA362D98B33A7bb5B5E2180a05f995A70FB404f30: ADMIN(0)=EIP-7702 account 0x359856655934338d798f9cce1f181486301d36a5, FEE_POKER(1)=3 EOAs, CALENDAR_OPS(2) delay 3600, PAUSER(4)=EOA 0x5cda43da..., REVENUE_OPS(9) unheld; NO PUBLIC_ROLE mapping",
+    "claimFeeRecipient is Safe v1.4.1 0x9F887B9930E9e716286333Bd8e291f64a8710F6f (3 owners / threshold 2); distributor and ffFeeSink are 0x0; ballotGate 0x0; nothing paused",
+    "Hook-held ERC-6909 claims (unclaimed LP fees + protocol pots) = $628,980 priced (+21 unpriced memecoin legs); claimFeeOwed pots = $21,132 priced (+15 unpriced, incl. 13.85M EARN, 2.18M NOSH); native pots 0.3935 ETH (FablesRampETH) + 0.0101 ETH (FablesRWAETH); distributorOwed = 0 everywhere",
+    "Backing invariant holds live: hook ERC-6909 claims >= claimFeeOwed + distributorOwed on every (hook, currency) pair (0 under-backed)",
+    "Native balance of all 13 hooks is 0 wei, including the pre-fix hook 0x06a889870C8f83640D6816319f72e2aA579b6080",
+    "E-U-conditional: the pre-fix FablesRampETH 0x06a889870C8f83640D6816319f72e2aA579b6080 refunds its ENTIRE native balance to any deposit caller and has no _checkPayoutTarget - fork-proven: a fresh attacker deposited 10,000 wei and captured a 1 ETH park (999,999,999,999,999,402 wei); the current revision 0x594e8e62... is delta-bounded and does not pay it (fork-proven)",
+    "No extraction from the ledger: deposit/withdraw round trip is loss-making (net -1 wei measured), donations are unrecoverable, forced foreign-range fee syncs cost the attacker and gain nothing",
+    "DefiLlama TVL $36,007,467 (2026-10-16); all 68 pools have nonzero v4 liquidity"
+  ],
+  "caveats": [
+    "Robinhood Chain public RPC refuses eth_getLogs (role/event reconstruction used the Blockscout MCP); no archive state for old blocks",
+    "The chain's block header number (26.2M space) differs from eth_blockNumber (89.7M space); Foundry reports the header number - block citations use eth_blockNumber plus header hash",
+    "H-O is the DefiLlama TVL upper bound: it includes any direct v4 LPs and all ledger principal; exact per-range principal was not enumerated (requires Deposited-event replay)",
+    "USD totals exclude 21 unpriced memecoin/token legs (priced legs only); prices are point-in-time DefiLlama",
+    "Two contract-revision families exist; every statement here is qualified by hook address",
+    "The pre-fix hook's conditional drain cannot be triggered by the attacker alone: it needs an ETH park created by a third party's mis-addressed payout or a forced transfer"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live: the permissionless sweeps only push pre-recorded pots to fixed sinks (Safe 2-of-3 / unset), all admin selectors are role-gated with no PUBLIC_ROLE mapping, the ledger mints claims 1:1 with real collections and all pots are backed, and withdrawals stay open even under a pause; the single real defect is a superseded FablesRampETH (0x06a88987...) whose full-balance native refund hands any ETH park to the next depositor - $0 today because its balance is 0 wei, re-arming the moment any ETH lands there."
+}
