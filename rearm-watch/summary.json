@@ -1,0 +1,87 @@
+{
+  "finding": "Z3-H6/H7/H9/H10",
+  "title": "re-arm-on-deposit cluster \u2014 BitBay UsdcDaiV4Vault (Polygon), X7 Finance X7Pioneer (Ethereum), Unistreet LaunchpadFactoryAuto (Ethereum), DAOstack Genesis Alpha (Ethereum)",
+  "chains": [
+    "ethereum",
+    "polygon"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 26201740,
+  "block_numbers": {
+    "ethereum": 26201740,
+    "polygon": 95605449
+  },
+  "targets_checked": 4,
+  "live_targets": 0,
+  "closed_reasons": [
+    "BitBay: vault empty (0 DAI/USDC, liquidity 0) AND mintThis=true since block 95,605,021 (2026-10-16 01:07:39 UTC) gates reposition() to the minter",
+    "X7: pool holds 0.021581 ETH ($52.72) but the drain requires owning a never-claimed tokenId; zero marketplace listings, no public mint, airdrop disabled \u2014 no acquisition path for a fresh attacker",
+    "Unistreet: factory custodies 0 LP positions (POSM.balanceOf(factory)=0); launchpad dormant since 2026-08-05",
+    "DAOstack: Genesis Alpha avatar holds 0 ETH (drained 4.025 ETH on 2026-09-26); no other org on the shared UController holds funds"
+  ],
+  "poc": {
+    "tests_passed": 12,
+    "tests_total": 12,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38835297257"
+    ],
+    "ci_note": "run 38835297257 = final PASS (12/12 tests + live-state snapshot job); run 38834801702 = failed only on CI's set-but-empty POLYGON_RPC_URL secret, fixed via poc/src/ForkEnv.sol _rpc() empty-aware helper"
+  },
+  "e_u_conditional": {
+    "note": "capture per re-arm event, fork-measured; cost = gas + (BitBay ~$31 swap loss / X7 flash-loan fee 0-0.0169 ETH + NFT cost / others gas only)",
+    "bitbay": {
+      "trigger": "mintThis->false + any deposit, OR minter-mode boundary race (attacker parks price at range top; minter's own reposition zeroes liquidity)",
+      "capture": "100% of vault DAI+USDC balance",
+      "fork_measured": "5,000.34 DAI swept by 1-wei share; net 4,969.39 DAI; profitable >~$40 pot"
+    },
+    "x7": {
+      "trigger": "any ETH inflow + an unlocked never-claimed tokenId becoming acquirable for < balance",
+      "capture": "100% of contract ETH balance B",
+      "fork_measured": "B=0.021581 ETH captured net; +0.5 ETH deposit captured 100% in cycle 2"
+    },
+    "unistreet": {
+      "trigger": "any new launch through the factory",
+      "capture": "100% of every new launch's LP position",
+      "fork_measured": "fresh 0.025 ETH-seed launch -> 60.95 USDC + 988,428 PIGCON swept"
+    },
+    "daostack": {
+      "trigger": "any ETH/token inflow to the Genesis Alpha avatar",
+      "capture": "100% of inflow",
+      "fork_measured": "re-funded 4.025 ETH avatar -> fresh attacker captured 4.0256 ETH"
+    }
+  },
+  "key_facts": [
+    "BitBay _withdraw() liquidity==0 branch pays the entire DAI+USDC balance with no share weighting; the Oct-9-2026 incident (tx 0x5b795dc5..., 14,838 DAI) used deposit(1 wei) + boundary swap + permissionless reposition() + withdraw(1)",
+    "BitBay: the zero-liquidity outcome requires the swap price limit sqrtPriceAtTick(tickUpper+1)-1 (price in the last wei of tick tickUpper) so _getRequiredRatio integer-rounds to 0; this detail was fork-derived and is what makes reposition leave newLiquidity=0",
+    "BitBay live change during this investigation: minter 0xC70F0Ec950c51BB4E410A94c21468247bFDdF29c called minterOnly(true) at 2026-10-16 01:07:39 UTC (Polygon block 95,605,021); non-minter reposition now reverts OnlyMinter (fork-verified)",
+    "BitBay minter-mode race: with mintThis=true the attack still works if the attacker parks the price at the range-top boundary and the minter's routine recentering reposition zeroes liquidity; any 1-wei share then sweeps everything (fork-verified with impersonated minter)",
+    "X7 claimRewards bumps totalRewards by (balance-lastETHBalance) on every call but refreshes lastETHBalance only when claimable>0; the incident left totalRewards=21,580.12e18 so a fresh attacker needs L~33.80 ETH flash loan to keep the payout <= balance; net = whole pool balance",
+    "X7: 639 tokens total, 223 permanently transfer-unlocked; zero listings anywhere today; only price precedent 0.15 ETH ($384.63, Blur 2026-10-08, token 300 bought by the attacker 44 min before the exploit); the original attacker still owns unlocked token 300; unclaimedRewards(300)=0 and unclaimed tokens revert (claimable 33.77 ETH > balance) so the 0.0216 ETH is not even holder-recoverable",
+    "Unistreet launch() forwards caller initCalldata/modifyCalldata verbatim into POSM.multicall as the factory (owner of every launch LP NFT) -> setApprovalForAll injection -> BURN_POSITION+TAKE_PAIR sweep; factory is NOT a proxy (EIP-1967 slots zero, 9,323-byte runtime)",
+    "Unistreet: 4 operator approvals injected during the Aug-2026 incident are still live on POSM today (0xc7d8C70F..., 0xEda1f193..., 0x3C59433D..., 0xDE2e6079...); incident drained 15/15 positions incl. a second factory 0xd5799fd8...",
+    "DAOstack UController.newOrganization is permissionless and trusts the caller-supplied avatar's nativeReputation()/nativeToken() (shape-shifting fake avatar) -> register as 0x1F scheme against the victim's Reputation -> mintReputation majority -> propose/vote/execute -> sendEther; fresh-attacker path still works today (fork-verified)",
+    "DAOstack: incumbent attacker schemes (0x304a8e57..., perms 0x1F) remain registered on Genesis Alpha and still pass sendEther/externalTokenTransfer/mintTokens/registerScheme/upgradeController via eth_call; attacker #2 holds 99.85% of Genesis reputation",
+    "Only 3 orgs were ever registered on the shared UController (Genesis Alpha + 2 fake attacker avatars, both empty); no other live orgs with funds"
+  ],
+  "monitors": [
+    "BitBay: minterOnly(bool) tx from minter 0xC70F0Ec950c51BB4E410A94c21468247bFDdF29c (mintThis flip), Deposited events, liquidity()==0 with balances>0",
+    "X7: X7Pioneer ETH balance growth (~0.0027 ETH/day), RewardsClaimed events, TransferUnlocked events + any marketplace listing of the 223 unlocked tokenIds",
+    "Unistreet: Launched events on 0xFB60CD0B36aD4bD839b91767a6Ad9055AB6aD825, POSM.balanceOf(factory)>0, new isApprovedForAll(factory,*) grants",
+    "DAOstack: any ETH transfer to avatar 0x7b11dFb29504abc8C0DFA60DC7E0Aa2AAe836DB0; newOrganization/mintReputation/sendEther events on UController 0xD5bEe5D9Ae589094c51e533f35656963fdA87305"
+  ],
+  "caveats": [
+    "X7 acquisition blocker could vanish if any unlocked token is listed below the pool balance; pool balance grows with fee inflows",
+    "BitBay trigger (b) requires holding the exact boundary price until the minter repositions (arbitrage pressure); code path proven, real-world race not tested against bots",
+    "DAOstack fresh-attacker capture assumes dormant incumbent rep holders do not coordinate a NO vote; minting 2x supply keeps YES above all incumbent NO votes at the current distribution",
+    "Unistreet victim-launch calldata is a byte-exact re-encoding of the incident's own Pigcon launch with a fresh salt (eth_call + fork e2e verified); marketplace/floor data for X7 comes from public pages (provided OpenSea key invalid/401)",
+    "All PoCs are fork-only; no mainnet transaction was signed or sent; no keyed RPC URLs or secrets in any file"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live across all four re-arm-on-deposit targets; every one of them re-arms in full on the next deposit/launch/funding (BitBay 100% of vault balance incl. a minter-mode race, X7 100% of contract balance once a token is acquirable, Unistreet 100% of each new launch's LP, DAOstack 100% of any avatar inflow) \u2014 fork-verified with 12/12 tests."
+}
