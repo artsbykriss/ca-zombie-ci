@@ -1,0 +1,20 @@
+Redemption pricing verification (shares burned -> assets paid at NAV/supply_before; expect exact, no fee):
+blk 84538571: assets=24207478 shares=127426292576842631 supply_before=530.902968 nav=100856.91
+   price_ref=189.972399 price_paid=189.972395 diff=-0.0000%
+blk 84909805: assets=11492801 shares=60131106879323980 supply_before=530.775541 nav=101446.62
+   price_ref=191.129048 price_paid=191.129044 diff=-0.0000%
+blk 85956121: assets=545420564 shares=2751231399698019411 supply_before=530.715410 nav=105212.20
+   price_ref=198.245980 price_paid=198.245980 diff=-0.0000%
+blk 86001751: assets=1020541281 shares=5152938943424171120 supply_before=527.964179 nav=104563.48
+   price_ref=198.050335 price_paid=198.050334 diff=-0.0000%
+blk 88091015: assets=16726979 shares=84807549788751766 supply_before=522.811240 nav=103116.44
+   price_ref=197.234554 price_paid=197.234551 diff=-0.0000%
+
+Deposit pricing verification (assets -> shares at NAV/supply_after minus 25bps share fee):
+blk 88166415: assets=1943406433 shares=9946352590261404239 nav=101879.58 price_ref=191.261097 price_paid=195.388854 effective_fee=+2.1582%
+blk 88864046: assets=10215695 shares=56970699730103163 nav=95277.37 price_ref=178.847479 price_paid=179.314894 effective_fee=+0.2613%
+blk 88864767: assets=3604460120 shares=20414115154385366386 nav=93827.37 price_ref=169.625609 price_paid=176.567051 effective_fee=+4.0922%
+Deposit pricing (correct ref: price = (oldNav+assets)/supply_after):
+blk 88166415: assets=1943406433 shares=9946352590261404239 nav_after=103822.99 price_ref=194.909503 price_paid=195.388854 effective_deposit_fee=+0.2459%
+blk 88864046: assets=10215695 shares=56970699730103163 nav_after=95287.59 price_ref=178.866655 price_paid=179.314894 effective_deposit_fee=+0.2506%
+blk 88864767: assets=3604460120 shares=20414115154385366386 nav_after=97431.83 price_ref=176.141925 price_paid=176.567051 effective_deposit_fee=+0.2414%

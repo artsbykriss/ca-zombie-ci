@@ -1,0 +1,51 @@
+{
+  "finding": "Z3-H12",
+  "title": "Arcus Perps pTokens (Robinhood Chain) — signer-pushed NAV vaults behind unverified impls; no unprivileged extraction",
+  "chains": ["robinhood-chain"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 723606, "S": 0},
+  "latest_block": 89750332,
+  "block_numbers": {"robinhood-chain": 89750332},
+  "targets_checked": 20,
+  "live_targets": 16,
+  "closed_reasons": [
+    "NAV (totalAssets) is a stored, signer-signed (EIP-712 domain 'PerpsVaultNavOracle'), manager-EOA-pushed value; USDG donations cannot move it (verified on fork)",
+    "Deposit/redeem pricing uses the operator's fresh NAV at fulfill (NAV tracks 3x BTC, median implied leverage 3.006 over 87 multi-hour intervals); no exploitable stale-NAV window vs the 0.25% fee",
+    "All NAV-update/fulfill/config entry points revert for unprivileged callers; fulfill gate = msg.sender == factory.managerOf(pToken) (0x6c981570 NotManager, fork-traced); signed payloads are single-use/time-bound (replay reverts 0x3ac328da)",
+    "Deposits are quota-gated per (token, account): a privileged role grants {assetQuota, shareQuota}; fork-verified that an allowlisted user's requestDeposit succeeds while a fresh address (and a fresh controller under an allowlisted owner) reverts; today only $100 of quota is open anywhere (pBTC3x); redeems stay open to any share holder",
+    "Claims are single-use pro-rata on fulfill-time quota counters (vault-favouring rounding; chunking invariant; over-claim reverts 0x6565c4ec; no re-inflation) - child-verified on a fork",
+    "Empty pToken (pTEST3) initial price fixed at $100/share and it has no quota for anyone (maxDeposit/maxMint/maxRedeem = 0; deposit reverts 0x6565c4ec(amount,0)) - no first-depositor inflation, no entry",
+    "DefiLlama $57.9M is the Arcus perps exchange TVL, not custody in the reviewed contracts: 17 pTokens sum to ~$717.3k-$723.6k NAV (block-dependent)"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38844033248",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38843541968",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38839708953"
+    ]
+  },
+  "key_facts": [
+    "factory proxy 0x9c3663FA9ab976E67B42939486EC4966Cb41a0BB -> impl 0x58bdc1d3068a0a79d7a662dee033d62cbd4f589f (UUPS v3, unverified, EIP-1967 admin slot = 0; 6 impls since deploy, upgrades now DEFAULT_ADMIN/Safe-only)",
+    "pToken impl (BeaconProxy target, all 17 pTokens) 0x1815A37B6027Ae8066720d873A508F25fC151AC5 (unverified; 10th impl, set at block 47,233,756); beacon 0x33846348210A0Cc0345F354d9DE52b89AD473A76 owned by Gnosis Safe 0x81B80499... (2-of-3) since block 51,223,179",
+    "NAV_SIGNER_ROLE = single EOA 0xC70352b9a07be0e6aFDce63AC05c540E7d8Fe45A; manager EOA 0xB7410dc44e2715161E9914272e2D55D7c5061FAa (holds no factory roles); factory roleA 0xb91dda2c... gates setManager/createPToken; roleB 0xfb488cd4... gates deposit allowlists/limits (deployer EOA 0x38d0eaba... still holds roleB)",
+    "exact share math: convertToShares(assets)=assets*(totalSupply+1e7)*1000/(NAV*1000+1); convertToAssets(shares)=shares*(NAV*1000+1)/(totalSupply+1e7)/1000; NAV stored at ERC-7201 slot 0xd9fd...2a0a (x1000)",
+    "BTC-3x pToken 0x4472C69d299382F8847ebCE4FC6Ed8e295510E3e: NAV $97,431.83, supply 553.14e18, price $176.141924/share, depositFeeBps 25, depositsPaused false, factory limit $350,000",
+    "17 pTokens total NAV ~= $717.3k-$723.6k (block-dependent: $723,606.49 @ 89,675,792; $717,518.73 @ 89,711,278; $717,274.41 @ 89,750,332); BTC-3x holds $25,064.52 USDG in-contract (rest bridged to the perp account via bridge vault 0xD42c46c7...)",
+    "NAV history rebuilt from all 797 NAV-affecting events (343 deposit fulfills, 411 redeem fulfills, 43 pure revaluations); PnL refreshed at every fulfill (median inter-event NAV drift $166.61)",
+    "deposits are quota-gated per (token,account) on the pToken ({assetQuota,shareQuota} at ns+0x12) plus factory allowlists (0xd3c5ee0e per-token / 0xfe618ab1 global, roleB-gated); fulfill credits exactly the pre-granted quota; only $100 of quota open today; redeems open to any share holder",
+    "claim math is pro-rata on frozen fulfill-time quota counters (deposit shares=floor(a*CS/CA), mint assets=ceil(s*CA/CS), withdraw shares=ceil(a*CS/CA), redeem assets=floor(s*CA/CS)); chunking yields identical totals; independent child verification found no bug",
+    "DefiLlama parent#arcus = $58,379,835 (perps exchange TVL) - mis-attributed to the pToken vaults in the screening note"
+  ],
+  "caveats": [
+    "Implementations unverified; semantics reconstructed from heimdall decompilation, anvil debug_traceCall storage tracing, fork flow tests, and black-box behavior",
+    "No archive RPC on Robinhood Chain public endpoint (historical state unavailable): signed NAV payloads could only be replayed at current state where they are time-bound; token-binding of the NAV digest is inferred (EIP-712 domain is factory-wide; pToken address is a struct field) - replay blocked today by per-token epoch state + time-bound payloads + manager gating (fork-traced for the bridge/fulfill family)",
+    "Quota/allowlist state is time-varying (6/8 historical depositors read the factory flag true today; quota grants are consumed); the exact flag semantics were pinned down by child state-override experiments but depend on live state",
+    "convertToShares/convertToAssets lose <=1 wei on round-trip (floor/ceil asymmetry); quoted values are raw contract outputs read at blocks 89,675,792 / 89,717,726 / 89,747,812",
+    "Re-arm conditions: a fresh quota grant + operator NAV lag > ~0.5% at fulfill would re-open stale-NAV arb; NAV-signer or manager EOA key compromise converts P-class into a drain",
+    "USD values assume USDG = $1 and use on-chain amounts; BTC reference prices from CoinGecko hourly"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Arcus pTokens: the NAV is a signer-signed operator-pushed stored value (donations/price reads cannot move it), deposits are quota+allowlist-gated (only $100 of quota open anywhere), deposits/redeems are priced at a fresh NAV at fulfill (verified 3.006x BTC tracking), claims are single-use pro-rata on frozen counters, and all update paths are manager-gated - the only live risk is privileged (signer/manager EOAs, role holders incl. the deployer, Safe 2-of-3) over ~$717k-$724k of pToken NAV."
+}
