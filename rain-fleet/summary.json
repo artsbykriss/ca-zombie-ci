@@ -1,0 +1,36 @@
+{
+  "finding": "Z3-H11",
+  "title": "Rain white-label card fleet (Solana) — post-incident residual extractability",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 56396.40, "P": 0, "S": 0},
+  "latest_block": 457438049,
+  "block_numbers": {"solana": 457438049},
+  "targets_checked": 77,
+  "live_targets": 77,
+  "closed_reasons": [
+    "historical attack path requires a multi-admin Collateral account (Anchor disc 7b82ea3ffff0ff5c); ZERO such accounts exist fleet-wide (all migrated to SingleSignerCollateral, disc 132d631dc432e475)",
+    "all 66 programs under current authority 7MoSDo66 have last-deploy slots on/after the 2026-08-28 20:22 UTC remediation rollout (except C4y8t56f V1 which holds $2)",
+    "the 11 programs still under the incident-era authority EfQ2zvc1 (pre-incident builds, 796952-803336 B, matching the pre-patch size class) have ZERO accounts of any kind",
+    "LiteSVM replay of the exact historical exploit txs: every live build rejects SubmitSignatures on the migrated account model (MultiAdminOnly 6023) or fails to deserialize it (AccountDiscriminatorMismatch 3002); the pre-incident 801160 B build requires the multi-admin type"
+  ],
+  "poc": {"tests_passed": 24, "tests_total": 24, "ci_run_urls": []},
+  "key_facts": [
+    "Incident: 2026-08-28, ~$1.1M drained (Avici $500,859.22/1,685 users; Tria $431,945/636); 4 programs shared identical vulnerable bytecode: 26DkA98jjctzPkBEteUsN935CR4dsKx3XvjrtE7MeL4a, CWgkFB7ngUc9cGD1LryyhP7h6xYWtwrAjhSKKCoR1gkz, 3zVB27Gap6fbxpAcV2hsBBUcV3vRjkCikBXREiyBzDuc, 8r2jms1vAnHhtCWxDNSgiHvQNSzzJvGa9oBRCbBPCBNN",
+    "Bug: ed25519 precompile instructions re-read by the program; second ed25519 ix payload offsets point into the first (sig_ix=0/pk_ix=0/msg_ix=0), so ONE attacker signature counted twice against the two-authorization requirement; instructions SubmitSignatures/AddCollateralAdmin/WithdrawCollateralAsset (discs c2051298f590864d/0871bd5f3c38533d/2f6c1645ee9fa7d3)",
+    "Pre-patch code size <= 801,280 B (from patch-tx rent math: buffers 8ktBtH2W/9sfeXCvK = 801,205 B => 801,168 B patched code at 19:18:37/19:41:08 UTC; ProgramData did not grow)",
+    "Fleet: 66 programs under current authority 7MoSDo66 (299,935 SingleSignerCollateral accounts) + 11 dormant programs under incident-era authority EfQ2zvc1 (pre-incident builds, 0 accounts) + 0 multi-admin Collateral accounts chain-wide",
+    "Fleet-wide fund scan of single-signer vaults (partial 51-53/66 programs at report time): USDC $11,167.74 + USDT $45,228.67 = ~$56,396 user balances (H-O, owner-withdrawable; not attacker-extractable)",
+    "Attacker admin entry persists in migrated account data (e.g. offset 139 of Ao7nbAbk2aHwbEj2zfrQ7tpMBPdJjZjSzyiWVbaA1Bx8) — inert because the vulnerable instruction is unreachable",
+    "Residual dust in incident-program vaults: Fn8nf3c7B9rc5a1AAwPkHri83gKevgajR549cNQR9nGN 6.783 USDT, H7ANUpwVcRExtB6wdNB6zYJ9Y9Q8EJWtC4QVvE53RzJG 60.225 USDT (authority PDAs closed; program-path only)",
+    "C4y8t56fmNzCsR9kNoZtBUmJ7pNEAKKyTRBvSQZredEi (V1 build, 2026-08-21, never upgraded): 1 collateral, vault holds 2.000000 USDC"
+  ],
+  "caveats": [
+    "the exact pre-patch binary is not recoverable from chain state (overwritten by the remediation upgrades); the replay uses the closest surviving pre-incident build (801,160 B) plus the account-model gate evidence",
+    "coverage limit: only deployments findable on-chain (by upgrade authority + chain-wide code-size filters) are enumerated; tenant forks under other authorities/code sizes are not covered; Rain's partner list is unpublished",
+    "fund scan is partial (51-53/66 programs settled; big programs re-run separately) — H-O figure is a lower bound",
+    "vendor statements (Rain/Blockaid) are attributed, not trusted; all load-bearing claims are on-chain verified"
+  ],
+  "one_liner": "external unprivileged attacker can extract $0 live from the Rain card fleet: the historical drain path requires a multi-admin Collateral account and zero such accounts remain (all 299,935 migrated to SingleSignerCollateral), every live build gates the vulnerable instruction to that type (MultiAdminOnly) or cannot deserialize it, and the only surviving pre-incident builds sit on 11 dormant programs with no accounts; residual risk is re-use of those dormant programs."
+}
