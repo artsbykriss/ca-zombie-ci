@@ -1,0 +1,43 @@
+{
+  "finding": "Z3-C4",
+  "title": "BisonFi (Solana dark-amm RFQ v3 prop-AMM) — live E-U $0; the 2026-03-28 'BisonFi drain' was GoonFi-side mispricing with BisonFi as fair-priced exit venue; code-level upgrade history; single-EOA upgrade key (P)",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 9575674, "S": 0},
+  "latest_block": 457433682,
+  "block_numbers": {"solana": 457433682},
+  "targets_checked": 29,
+  "live_targets": 7,
+  "closed_reasons": [
+    "Swap pricing is oracle-bounded: output deviation >3% from the publisher oracle returns 0 (no trade); measured executions: $105.32-105.41/SOL vs oracle $105.4159",
+    "Tight freshness gate: pool state must be updated within ~2 slots of the current clock; stale states (incl. the old $4.94M pool) refuse all swaps",
+    "Pool-state mutation paths (disc 16/20/27) reject unauthorized signers with Custom(2)/Custom(0); the state stores the per-pool MM authority pubkey",
+    "Publisher feed program (dijkbk) requires the updater key FTp1BybZ... signature (MissingRequiredSignature otherwise) — feed not spoofable without the key",
+    "March 28 exploit re-priced: BisonFi leg paid $82.6926/WSOL vs market $82.7311 (fair); the mispricing was GoonFi's leg at $2.6610/WSOL — no BisonFi-side profit in the replay template"
+  ],
+  "poc": {
+    "tests_passed": 12,
+    "tests_total": 12,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38828487701"]
+  },
+  "key_facts": [
+    "Pool 8FnX3xo2 (SOL-USDC-Pool2) at slot 457,433,682: 21,259.57 WSOL + 2,395,920.92 USDC = $4,637,065 at SOL $105.4159 (publisher feed)",
+    "Old pool 51FQwjr (frozen 2026-04-23): 25,583.39 WSOL + 2,241,714.06 USDC = $4,938,609 — not swappable by the current program (zero-path, status 18)",
+    "29 POOLSTAT v3 accounts; fleet cached value ≈ $18.6M (snapshot slot ~457,421,830)",
+    "Program = hand-optimised Pinocchio 0.9.3 'dark-amm' (RFQ v3 pricing_v3.rs); current ELF sha256 9b36724da2fa354f8fd89924f657add1e1c0a547dc5dc3028e8c327f544b1d5e",
+    "March 28 tx 5A1YuYHf...MGV2 (slot 409,430,505): attacker +123,190.03 USDC; GoonFi -$123.2k value; BisonFi net +$59 (fair)",
+    "Upgrade authority = single on-curve EOA 6dDjBZdpafRKe7WuVHYTF1HphW1BWiKqioMD5eBGYipS (4.096 SOL; corpus' '4,095.96 SOL' was a lamports/SOL units error); sole authority since slot 423,831,228; last upgrade slot 456,982,351 (2026-10-13); operates a fleet of programs",
+    "Publisher feed key FTp1BybZ51NiZKbnZH6MsrV3tUZNauhpQMbBcqYUEr5f (17.96 SOL) signs 32-byte feed writes into dijkbk-owned accounts (24 CU write path)",
+    "Patch level: code-level evolution — 9-account March swap layout vs 10-account current (vote/restart-ack added); ≥10 authority-signed upgrades pre-incident in scanned window + ≥15 after the 2026-04-04 handover",
+    "LiteSVM harness requirement discovered: LastRestartSlot sysvar must equal mainnet's 246,464,040 (= value stored in active POOLSTAT states) or every swap zero-paths"
+  ],
+  "caveats": [
+    "The exact March-era ELF was not byte-diffed (buffer-chunk reconstruction documented as follow-up; upgrade timeline + interface change + in-code controls used as evidence instead)",
+    "Cached fleet balances are from snapshot slot ~457,421,830; headline pool numbers are fresh at slot 457,433,682",
+    "A single 'Custom(1)' size-cap failure appeared after cumulative in-process trades; it did not reproduce after opposite-direction flow and never yielded extraction — flagged as a state-consistency guard, not a finding",
+    "P-class value (9,575,674) = fresh-verified vaults under the program (8FnX3xo2 + 51FQwjr); the upgrade key also controls the remaining fleet vaults (~$18.6M cached total)",
+    "LiteSVM CU accounting differs from mainnet on the no-code feed path (4 vs 24 CU); verdicts use success/failure + state diffs"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from BisonFi's $4.64M pool: the swap path is oracle-bounded (±3%), freshness-gated (≤2 slots), and all state/feed writes are signature-gated; the March 28 replay template's profit was GoonFi-side (BisonFi paid fair value), and the $18.6M fleet is exposed only to the single-EOA upgrade key and the single-key publisher feed (P-class)."
+}
