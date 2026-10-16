@@ -1,0 +1,42 @@
+{
+  "finding": "Z3-H16",
+  "title": "FermiSwap (Ethereum) — prop-AMM desk with provider-posted pricing; corpus inventory-pricing hypothesis refuted; $0 unprivileged extraction",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 5314984.74, "S": 0},
+  "latest_block": 26202605,
+  "block_numbers": {"ethereum": 26202605},
+  "targets_checked": 10,
+  "live_targets": 8,
+  "closed_reasons": [
+    "swap pricing is provider-posted (engine4 acee8aab gated 'NP'; one dedicated provider per lane, all still authorized) with same-block freshness ('SP'); not balanceOf(this) spot pricing",
+    "inventory only caps the payout (balanceOf(vault) staticcalls in engine) plus a <=0.003% rebalancing term; donation unrecoverable, gain/cost ~1e-7",
+    "same-block price impact after a 10 WETH swap: 0.0025% — no sandwich surface",
+    "old swapper: stale registry lane (StaleUpdate 0x666a2814) AND vault allowance 0 (double-dead)",
+    "vault withdrawals manager-gated ('NM'), engines manager-gated, registry writes NotAuthorized, MAX_UPDATE_AGE=0 kills signature replay",
+    "arb executors with ~MAX vault allowances are trader-gated ('NT'); traders are team solver EOAs",
+    "permissionless swap path is live but executes at market +-3 bps (measured +0.03% gross), below gas/priority costs",
+    "swap-time price band 'PB' blocks single-step manipulated prices beyond ~+45%"
+  ],
+  "poc": {"tests_passed": 17, "tests_total": 17, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38848938942", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38849085925"]},
+  "key_facts": [
+    "vault 0x585d44727129B9C69791B10238Ca605932938B4F holds ~$5.31M at block 26202605: 874.926142761492545997 WETH + 2,731,601.402287 USDC + 147,922.912053 USDT + 3.73635507 cbBTC + 0.00086738 WBTC (live-traded, +-10%/hour)",
+    "new FermiSwapper 0x5979458912F80B96d30D4220af8E2e4925A33320 (v20260604, verified) has ~MAX vault allowances for 5 tokens; old FermiSwapper 0xb1076fE3AB5e28005C7c323Bac5AC06a680d452e allowance 0",
+    "engine4 0x0109AA912B58508886a2a707204B0F8C8b164CCc (v20260907): acee8aab(lane,price8dp) provider-gated 'NP'; unlocked() requires update in same block else 'SP'; swap-time band 'PB' ~+45%/epoch; 8 lanes / 8 provider EOAs (added Jul 21 2026, all still authorized)",
+    "engine3 0x90f73feA1Ee2dC514D4dbac0bFf7fF04B933767f (v20260720) reads PrioUpdateRegistry 0xDa7AfeeD01fe625CF15d187a19f94B45f00b8C5F getState(lane, ts, ts); registry writes NotAuthorized; MAX_UPDATE_AGE=0/LEAD_TIME=0; 8 updaters still authorized",
+    "live unprivileged swap executed on fork at block ~26202530: 1 WETH -> 2,436.503792 USDC (effective $2,436.50) vs market $2,435.72 (+0.03%); posted lane price $2,436.716; engine spread ~0.9 bps",
+    "donation test: +1,000,000 USDC to vault moved 1-WETH quote by 0.0024% (58,359 units) — price is not inventory-derived; donation unrecoverable",
+    "managers: vault manager 0x7117ca30af85706b964100dd8fbbe78f2fb6d3d8 (P, can sweep all); swapper/engine/arb manager 0xff67d7211d4837607d601e65f27b97622540c47f (both verified by gate simulation at block 26202614)",
+    "timeline: swaps Apr 26-Jun 11 (old swapper, 596), new swapper Jun 8, engine4 Sep 7-8, dormant Sep 16 -> Oct 15, re-armed Oct 15 12:46 UTC, actively trading now",
+    "conditional: provider-key compromise -> ratchet within 'PB' band (~+45%) -> ~31% of drained quote inventory per epoch (~$0.78M net per epoch on the 2.73M USDC lane, ~708 WETH capital)"
+  ],
+  "caveats": [
+    "engine4/vault/arb-executor bytecode is unverified; pricing internals reconstructed empirically (band/ratchet bounds empirical, not source-derived)",
+    "vault balances fluctuate with live trading; $5.31M is the CI snapshot at block 26202605",
+    "provider authorization set can change; PoC tries all 8 known providers for unlock",
+    "the 'PB' reference-update rule (what resets the band) was not fully reverse-engineered; walk tests bound per-epoch inflation at ~+45%",
+    "E-U categories: no unprivileged extraction exists; the ~$5.31M P number is the vault manager's by-design authority"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live; the corpus 'inventory-priced quote' hypothesis is refuted (prices are provider-posted with same-block freshness; inventory only caps payouts) and every inventory-moving path is gated (NM/NP/NT/NotAuthorized) — residual risk is a provider-key compromise (band-limited drain ~$0.78M/epoch) or the vault manager key (sweeps all, by design)."
+}
