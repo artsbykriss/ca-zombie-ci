@@ -1,0 +1,43 @@
+{
+  "finding": "Z3-H2",
+  "title": "GoonFi v2 (Solana prop-AMM) — March-28 caller-supplied oracle mispricing; current build closes the class",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 5176428, "S": 0},
+  "latest_block": 457439272,
+  "block_numbers": {"solana": 457439272},
+  "targets_checked": 36,
+  "live_targets": 36,
+  "closed_reasons": [
+    "oracle-relay account is bound to the pool (Custom(32) for any other oracle, incl. byte-identical copies at other addresses)",
+    "oracle freshness enforced vs clock (Custom(21))",
+    "price bounds enforced (Custom(36) upward deviation, Custom(9) zero price)",
+    "size/capacity clamp (Custom(36))",
+    "oracle account writes are gated to the keeper signer (MissingRequiredSignature for attacker/fresh signers; verified in LiteSVM with the real 512-byte oracle program)",
+    "GoonFi v1 (pre-incident build) is dead: 0 accounts, 0 activity",
+    "incident replay (4,096 USDC -> WSOL) now pays 38.799742877 WSOL at $105.57, not 1,539.27 WSOL at $2.661"
+  ],
+  "poc": {
+    "tests_passed": 35,
+    "tests_total": 35,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38831975942"]
+  },
+  "key_facts": [
+    "Program goonuddtQRrWqqn5nFyczVKaie28f3kDkHWkHtURSLE (GoonFi v2); ProgramData 124gUYwjVnJQ4sJsFug9gHPzPLEtwCbAQC5LkbaDgx9s; upgrade authority PDA BBvfpKqYovhzEjS4Ch1xZXFdxkaoUiXsujR9kgN1t8iR (same fleet key owns the oracle program dijkbkCAKfFTCxQg3u1pg82gVU1jJGHBBRcteD11mBu)",
+    "Current build: last upgrade slot 453,915,006 (2026-10-06); ELF sha256 a24aa13a0a9a4d7d1c8752cc9d9a566a5fae3bc20ba0ca3ba11368abd613e43c (292,384 B); 41 upgrade/deploy txs since 2025-12-11; pre-incident build 2026-03-25 (slot 408,715,553), first post-incident upgrade 2026-03-31 (slot 410,071,314)",
+    "March-28 incident (slot 409,430,505, tx 5A1YuYHf...MGV2): GoonFi WSOL/USDC pool paid 1,539.265798532 WSOL for 4,096 USDC (effective $2.661007/SOL, 31.1x below the $82.6694 market SOL); attacker dumped the WSOL into BisonFi for 127,286.03 USDC ($82.69) -> net +123,190.03 USDC",
+    "Swap price comes from a caller-supplied 32-byte oracle-relay account [u64 P1][u64 P2][u32 slot][u32 denom][u64 ts_ms] owned by the dijkbk program; price = P/denom; formula verified in LiteSVM (baseline 1 WSOL -> 105.097386 USDC vs mid 105.282717)",
+    "Oracle accounts are updated many times per second by keeper EOAs (FTp1BybZ51NiZKbnZH6MsrV3tUZNauhpQMbBcqYUEr5f confirmed) via 32-byte instruction payloads; writes gated to keeper signer(s)",
+    "36 live markets, total TVL $5,176,428 (Jupiter prices, 2026-10-16; DefiLlama lists $5.88M); every market above $1k TVL has a fresh bound oracle (age <= ~600 slots); stale oracles belong to empty markets plus one $717 dust market (SOL/USDT) whose swaps the freshness check freezes",
+    "GoonFi v1 goonERTdGsjnkZqWuVjs73BZ3Pb9qoCUdBUL17BnS5j (last upgrade 2025-12-26): 0 accounts, 0 recent activity",
+    "Best-fit March oracle identity: TRUMP/USDC oracle (TRUMP = $2.9768 on 2026-03-28; only GoonFi-market token near the implied $2.661) — class = cross-pool oracle confusion; alternative = keeper misquote on the pool's own oracle"
+  ],
+  "caveats": [
+    "March build ELF not retrievable (no public historical program-bytecode service): patch verdict rests on behavioural rejection of the exact March conditions + upgrade timeline",
+    "March oracle identity is by elimination (medium confidence on the token, high on the class)",
+    "Keeper key set may include more than the one key positively confirmed; keeper misquote remains a privileged (P) risk that is instantly consumable within bounds",
+    "LiteSVM uses a point-in-time snapshot (slot ~457,439,272) and sigverify=false; re-verify before acting"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from GoonFi v2: the Mar-28 mispricing (swap priced from an unbound caller-supplied oracle-relay account; $2.661/SOL vs $82.67 market) is closed on the current build by oracle-pool binding, freshness, price bounds and a keeper-gated oracle-write path — all verified by executing the real ELF against cloned live state in LiteSVM ($5.18M of TVL behind the checks)."
+}
