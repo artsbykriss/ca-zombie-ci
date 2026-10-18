@@ -1,0 +1,84 @@
+{
+  "finding": "ZH4-07",
+  "title": "RealT RMM v3 + RealTokenWrapper (Gnosis) \u2014 E-U closed at $0 by the RU03 RealToken recipient whitelist; no cash exit above the 0.909x break-even; conditional whitelist+IBP case only",
+  "chains": [
+    "gnosis"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "conditional": {
+    "name": "RealT-whitelisted/KYC'd user + re-enabled Issuer Buyback Program (IBP) + issuer approval",
+    "deployable_usd": 591809.9,
+    "net_usd_range": [
+      7101.72,
+      39651.26
+    ],
+    "pct_range": [
+      1.2,
+      6.7
+    ],
+    "confidence": "medium",
+    "status": "BLOCKED: sell_tokens_settings.allow_sell_orders = FALSE ('temporarily suspended') on 2026-10-18; RealT in voluntary liquidation"
+  },
+  "notional_bonus_pool_usd_marks": 418691.34,
+  "liquidatable_accounts": 204,
+  "liquidatable_debt_usd": 5504423.92,
+  "latest_block": 48812046,
+  "block_numbers": {
+    "gnosis": 48812046,
+    "census": 48811425,
+    "fork_pin": 48811720,
+    "gate_all": 48812046,
+    "yam_book": 48811528,
+    "latest_liquidation": 48749836,
+    "gate_probe": 48811720,
+    "live_state": 48811977,
+    "incumbent": 48811846,
+    "ibp": 48811858
+  },
+  "targets_checked": 623,
+  "live_targets": 1,
+  "closed_reasons": [
+    "RealToken recipient whitelist (Processor/ruleEngine, RU03): 623/623 basket tokens deny fresh EOAs (rule id 11); 620/623 allow the incumbent Safe. liquidationCall(receiveMethod=1) reverts at the final transfer, so an outsider cannot receive seized collateral.",
+    "receiveMethod=0 executes but yields a non-transferable aRTW claim (transfer reverts CallerNotPoolOrWrapper 0xa3a2cfb6) whose only redemption (wrapper.withdraw) is RU03-gated on the recipient -> -100% of deployed capital.",
+    "No exit at the 0.909x break-even: exhaustive 250,283-offer Yam book re-check found 0 live cash bids >=0.4x (best 0.2446x with 1 wei available); 30-day fills median 0.137x, p90 0.222x, max 0.748x in cash. The 99 nominal parity fills were all paid in impaired aWXDAI/aUSDC.",
+    "Borrowing is disabled on all reserves and the stable reserves are ~100% utilised (supply < debt), so aWXDAI/aUSDC are not redeemable at par; they are impaired claims, not cash.",
+    "The one >=0.909x channel is the off-chain Issuer Buyback Program, currently switched OFF (allow_sell_orders=FALSE) and requiring a whitelisted/KYC'd account plus issuer approval."
+  ],
+  "poc": {
+    "tests_passed": 4,
+    "tests_total": 4,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39084872190"
+    ]
+  },
+  "key_facts": [
+    "Pool 0xFb9b496519fCa8473fba1af0850B6B8F476BFdB3; wrapper 0x10497611Ee6524D75FC45E3739F472F83e282AD5; aRTW 0xF3220Cd8F66AEB86fC2A82502977EAb4BFd2f647; RTW 0xd3DFf217818b4F33eB38a243158FBeD2BBB029D3; oracle RTW = 1e8.",
+    "aRTW total supply 29,222,995.91; RTW held by aRTW 29,287,838.33; wrapper basket 623 tokens valued $29,287,838.33 at frozen marks (last RealTokenPriceUpdated 2025-12-30T11:53:45Z, block 43,908,528).",
+    "204 borrowers with HF<1; $5,504,423.92 debt; $7,458,840.35 collateral at marks; one-shot 10% liquidation-bonus pool $418,691.34 (top-20 $319,898.74); RTW reserve bonus 11,000 bps, liquidation protocol fee 0, borrowing disabled.",
+    "Gate: Processor 0x3221a28eD2b2e955DA64d1d299956f277562C95c / ruleEngine 0x8F2f90aC35EDf2dA147DD745f5f6c64Bc54F2299; 623/623 tokens deny fresh EOA 0x1111...1111 and 0x...bEEF (rule 11); 620/623 allow the incumbent Safe.",
+    "Direct transfer probe from the wrapper: 24/24 fresh-EOA transfers revert RU03; 40/40 transfers to Safe/victim/Dc0604 succeed. Same Safe withdraw: to=Safe OK, to=fresh RU03.",
+    "Full Yam book (250,283 offers, offerCount unchanged since the v4b enumeration; 0 created / 0 deleted / 0 accepted / 1 unrelated update): 2,671 bids, 270 live, 6 live cash bids, best live cash 0.2446x with 1 wei available, 0 live cash >=0.4x, 0 live cash >=0.909x.",
+    "30-day fills: 891 RealToken fills; cash median 0.1369x, p75 0.1677x, p90 0.2221x, max 0.7476x; 0 cash fills >=0.909x; all 99 face-parity fills paid in aWXDAI (53) or aUSDC (46).",
+    "Incumbent Safe 0x4F7765c9feBc51cD63F68f573920c0B7bF803151: owners 0xCa543f90... and 0x134d928B... (the Yam parity seller), threshold 1, nonce 1990; cluster holdings $286,358 at marks.",
+    "Incumbent last 30 days: 722 liquidations, $130,607 debt repaid, $143,598 seized at marks, all receiveMethod=1; last 2026-10-14 block 48,749,836. Other liquidators: 51 events ($2,110) and 10 method-0 dust events.",
+    "IBP: 118/623 tokens eligible; $663,182.59 eligible collateral across 149 underwater accounts; deployable $591,809.90; net +1.2%/+3.95%/+6.7% at IBP 0.92/0.945/0.97 = +$7,101.72 / +$23,376.49 / +$39,651.26.",
+    "IBP live status 2026-10-18: allow_sell_orders=FALSE, disabled_notice 'temporarily suspended due to ongoing procedures'; fees 1.5% processor + 1.5% RealT + up to 5% vacancy.",
+    "Fork PoC 4/4 PASS at block 48,811,720: method=1 from fresh EOA reverts RU03; identical call from the whitelisted Safe succeeds with 1.0803 token seized = $55.00 at mark (1.10x of 50 WXDAI); method=0 yields a dead non-transferable aRTW claim.",
+    "Public infrastructure probe: Yam, OmniBridge, Gnosis bridge, RMM pool, aRTW, Multicall3, Safe singleton, CoW settlement, Honeyswap/Sushi routers and USDC are all denied (rule 11) as RealToken recipients; only the wrapper itself is allowed. No public-contract mule."
+  ],
+  "caveats": [
+    "The $418,691 bonus pool is notional at wrapper marks frozen on 2025-12-30, not cash.",
+    "The RU03 whitelist is enforced on-chain by RealT's Processor/rule engine but administered off-chain; a future whitelist or rule change could reopen the seizure path (though the cash exit would still be deeply negative at ~0.137x).",
+    "Book liveness uses the 2026-10-17 full enumeration plus fresh showOffer calls today; the book is provably unchanged (offerCount 250,283, 0 created/deleted/accepted since block 48,794,906).",
+    "IBP approval at ~$600k scale, weekly limits and the paused status are off-chain and cannot be proven from the chain; conditional confidence is medium.",
+    "aWXDAI/aUSDC are valued as impaired (last observable market $0.188-0.195); they cannot be redeemed at par because the stable reserves are ~100% utilised."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live (high confidence): the permissionless RealTokenWrapper.liquidationCall and the $418,691 notional bonus pool are neutralised by the RU03 recipient whitelist (623/623 tokens deny fresh EOAs) and by an exit market with zero cash bids above 0.4x (break-even 0.909x); only a whitelisted RealT user with a re-enabled Issuer Buyback Program could net +1.2-6.7% of deployed capital ($7.1k-$39.7k on $591.8k), medium confidence."
+}
