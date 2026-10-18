@@ -1,0 +1,65 @@
+{
+  "finding": "ZH4-B2-T3-G3-SOPHON-FARM",
+  "title": "Sophon Farm (L2 + L1) — reward-math audit; no reward token, E-U $0, owner-custodial $2.80M",
+  "chains": ["sophon", "ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 2801340.07,
+    "P": 2801393.22,
+    "S": 86.50
+  },
+  "latest_block": 29675405,
+  "block_numbers": {
+    "sophon": 29675399,
+    "ethereum": 26217691
+  },
+  "targets_checked": 29,
+  "live_targets": 2,
+  "closed_reasons": [
+    "No reward token exists in the farm ABI; the contract holds only users' LP tokens (plus zero ETH and zero stray tokens). Reward math produces non-transferable points only.",
+    "withdraw() is hard-bounded by user.depositAmount; user.depositAmount is created only by deposit() (token transfer, disabled) or updateUserInfo() (msg.sender == immutable MERKLE).",
+    "Farming ended: endBlock 14,476,600 < block 29,675,399, so deposit/add/set/setPointsPerBlock/setEndBlock revert; isWithdrawPeriodEnded is false, so withdrawals remain open.",
+    "MerkleAirdrop._claim verifies keccak256(abi.encodePacked(user,pid,amount,boost,deposit,rewardSettled,rewardDebt)) against merkleRoot and sets hasClaimed[user][pid] before the external call; permissionless claimMultiple forces the receiver to the leaf user.",
+    "No share math: pool.amount is an internal 1:1 counter, not balanceOf-derived; donations cannot inflate points or withdrawals; first-depositor/rounding attacks do not apply.",
+    "Same-block deposit+withdraw earns zero points: deposit calls massUpdatePools before increasing pool.amount; the second same-block massUpdatePools skips accrual.",
+    "submitLP is dead: all heldProceeds[0..24] are 0 and all LP-token allowances from the farm to the SyncSwap router 0x2da1…0295 are 0.",
+    "All sensitive setters are owner/role-gated: farm owner 0xa3b1…08dB is a 2-of-6 Safe v1.4.1; Merkle admin/PriceFeeds owner 0x902767…de53 is a 3-of-7 Safe; L1 owner is a 3-of-5 Safe.",
+    "All L1 pools are bridged (isBridged=true except empty ZENT), L1 LP balances are 0, and the L1 withdrawal window is closed except for PENDLE_EXCEPTION."
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": [],
+    "notes": "Local Foundry logic model (poc-src) of the exact reward math; not a zkEVM fork. Foundry/revm cannot execute Sophon zkEVM bytecode. Live probes were eth_call/eth_estimateGas only."
+  },
+  "key_facts": [
+    "L2 farm proxy 0x5753fBeC29De6E2b56F73f7d7786e9f0d34897bb, implementation 0xbd0AAfC995dAB4DC868323BEc81B189De2556012 = contracts/farm/SophonFarmingL2.sol:SophonFarmingL2 (zkSolc v1.5.7, verified on api-explorer.sophon.xyz).",
+    "Farm owner 0xa3b1f968b608642dD16d7Fd31bEc0B2c915908dB = Safe v1.4.1 threshold 2/6; pendingOwner=0; implementation slot3=0xbd0a…6012; pendingImplementation=0.",
+    "L2 has 25 pools; pointsPerBlock=1e19, endBlock=14,476,600, endBlockForWithdrawals=46,012,600, totalValue=13,440,291,919,490,392,418,772,600 (= sum of poolValue.lastValue).",
+    "Priced L2 assets = $2,801,393.22; priced deposit liabilities = $2,801,479.43; the $86.21 gap is exactly the PEPE pool (farm balance 2,711,901,637.743620170306992171 vs depositAmount 2,734,206,348.092541326236759895 = 22,304,710.348921155929767724 PEPE missing).",
+    "PEPE shortfall USD = $86.21 at $3.865016498e-6/PEPE; L1 dust = 372.32 PEPE ($0.0014) + 100 BEAM ($0.29); S total $86.50.",
+    "L1 Pendle exception 0x065347C1Dd7A23Aa043e3844B4D0746ff7715246 is the Sourcify-verified PendleSophonFarmingSY contract; its _redeem calls ISophonFarming.withdraw, it has 8,554,323.492929778385368410 PEPE in the L1 farm, and withdraw(9,amount) simulates successfully ($33.06 H-O).",
+    "The current implementation added _emergencyRescue(address[],address) at upgrade block 29,115,213; eth_call from the owner Safe with three LP tokens returns 0x, proving the owner can sweep all L2 LP balances to any receiver.",
+    "The owner can also replaceImplementation(newImpl) (eth_call from the Safe returns 0x) and complete the two-step upgrade via becomeImplementation/acceptImplementation.",
+    "MerkleAirdrop proxy 0xa24F69fAA295426Bca2Cf610bf992CDc992CeEa0 (impl 0xe710a2d4a89b98b7a910f99cec85aea02ed96949) admin/price-feed Safe 0x902767c9e11188C985eB3494ee469E53f1b6de53 is 3/7; setMerkleRoot and grantRole simulate successfully from it; unclaim(user,pid) is ADMIN_ROLE and enables replay of an existing leaf.",
+    "claimMultiple from 0x…dEaD with a bogus proof reverts InvalidMerkleProof; updateUserInfo from 0x…dEaD reverts OnlyMerkle; transferPoints reverts TransferNotAllowed; _emergencyRescue/replaceImplementation/setPointsPerBlock revert OwnableUnauthorizedAccount; submitLP reverts unauthorized.",
+    "A real sDAI depositor 0xc09e64cc126be6ed023ea144e379dc32802d1a68 has depositAmount 1.1e16; withdraw(0,1) and withdraw(0,max) simulate successfully; withdraw(0,1.1e16+1) reverts WithdrawTooHigh(1.1e16).",
+    "All priceFeeds.getPrice(lpToken) return 0 at block 29,675,399 (Stork quotes stale); massUpdatePools still succeeds (eth_call from 0x…dEaD returns 0x) and withdrawals work. Last live PoolUpdated events at block 14,479,884 had non-zero prices; emissions ended at 14,476,600, so staleness did not distort the live points period.",
+    "massUpdatePools gas estimate 1,590,780; withdraw(0,1) estimate 1,724,157 (includes massUpdatePools). No revenue to net against gas.",
+    "L1 farm proxy 0xeff8e65ac06d7fe70842a4d54959e8692d6ae064, impl 0x61916427307520bE86F7cB53306a443b30E35F31 = SophonFarming (Sourcify); owner Safe 0x3b181838Ae9DB831C17237FAbD7c10801Dd49fcD 3/5; endBlock 21,440,000; endBlockForWithdrawals 21,489,990; poolLength 15; all LP balances 0 except 8.5547M PEPE and 100 BEAM dust.",
+    "Latent reward-math bug: _updatePool sets values[1]=pv.lastValue before the amount==0 / price==0 early returns, so a pool emptied during active emissions keeps its stale weight in totalNewValue and dilutes active pools (model test shows 33% dilution). Not triggered now; no zero-amount pool with non-zero lastValue.",
+    "Informational: pool.totalRewards is 1e18-scaled while user points are unscaled; no security impact."
+  ],
+  "caveats": [
+    "P and H-O overlap: the same ~$2.80M L2 assets are either withdrawn by their credited owners or swept by the owner; categories are not additive.",
+    "The Foundry tests are a source-level logic model, not a fork of the deployed zkEVM bytecode. Foundry/revm cannot execute Sophon zkEVM contracts; live conclusions rely on eth_call against the deployed contract plus the verified source.",
+    "The exact provenance of the PEPE shortfall (which migration credit was unbacked) was not reconstructed; the asset-vs-liability gap is direct on-chain evidence.",
+    "The L1 PENDLE_EXCEPTION is the Sourcify-verified PendleSophonFarmingSY contract; its _redeem calls ISophonFarming.withdraw, so the $33.06 is H-O for Pendle SY users, subject to Pendle's own redemption liquidity.",
+    "USD values use DefiLlama-implied prices; DefiLlama's own TVL is $2,769,518.37 on Sophon + $33.34 on Ethereum (it excludes USDC/USDT and unpriced LP dust).",
+    "Etherscan V2 does not support chain 50104 and the local ETHERSCANV2_API_KEY was invalid for chain 1; Ethereum sources were pulled from Sourcify v2. No key is present in any file in this folder.",
+    "The owner/merkle-admin authorities were simulated with eth_call from the Safe addresses; this proves contract-level authority, not that the signers will act."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: Sophon Farm has no reward token, deposits are disabled, withdrawals are bounded by each user's credited depositAmount, and the only permissionless calls move no tokens; ~$2.80M is user-owned but owner-custodial (2-of-6 Safe can sweep via the newly added _emergencyRescue, 3-of-7 merkle admin can mint claims), and the PEPE pool is $86.21 short."
+}
