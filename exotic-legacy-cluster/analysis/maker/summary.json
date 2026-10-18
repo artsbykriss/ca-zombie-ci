@@ -1,0 +1,43 @@
+{
+ "target": "0x9c05a05893Ada984FC20D0DA0c046De5Cc0e8273",
+ "chain": "ethereum",
+ "chain_id": 1,
+ "block": 26217462,
+ "timestamp": 1792302587,
+ "timestamp_utc": "2026-10-18 05:49:47 UTC",
+ "flipper_count": 43,
+ "active_flippers": 27,
+ "bids_scanned": 6737,
+ "flagged_bids": 8,
+ "sibling_keepers": 5,
+ "sibling_keepers_with_value": 0,
+ "other_keeper_contracts": 1,
+ "eu_usd": 0,
+ "eu_conditional_usd": 0,
+ "ho_usd": 35300.75,
+ "ho_at_risk_usd": 0,
+ "owner_side_vat_usd": 892.04,
+ "total_observed_usd": 36192.79,
+ "p_usd": 0,
+ "s_usd": 0,
+ "realized_loss_usd": 538000,
+ "confidence": 0.9,
+ "evidence_files": [
+  "flippers.json",
+  "keepers.json",
+  "report.md",
+  "bids_scan.json",
+  "vat_state.json",
+  "guys_vat_state.json",
+  "owner_vat_state.json",
+  "attack_receipt.json"
+ ],
+ "notes": [
+  "E-U $0: no unprivileged extraction from any of the 6 family contracts; all hold $0.",
+  "E-U-conditional $0: the victim proxy's drain remains ungated and the attacker module still has vat.can over it, so any future Vat credit to the victim is drainable by anyone; none now.",
+  "H-O $35,300.75 observed third-party Vat collateral/claims (4 bidders); $0 of it is exposed to the 0x8804d1de drain (owners are EOAs or a non-family keeper with no family hope grants). A further ~$892 is held by the operator/dealer and is not H-O.",
+  "P $0 current privileged extraction; dealer EOA owns the ProxyAdmin and could upgrade the victim, but the victim is $0.",
+  "S $0 stranded in the family contracts/attacker module.",
+  "Realized Oct-6 loss 200 ETH (~$538k); not a current balance."
+ ]
+}

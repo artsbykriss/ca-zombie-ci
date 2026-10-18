@@ -1,0 +1,484 @@
+{
+ "target": "USDD 2.0 (TRON), PSM-USDT-A + DSS/CDP",
+ "chain": "tron",
+ "block": 87211072,
+ "block_id": "000000000532bc40e836b95ef7588b3e79d30b0be5e6403c6381f37d58585d79",
+ "timestamp_utc": "2026-10-18T06:50:18Z",
+ "addresses": {
+  "usdd": {
+   "address": "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz",
+   "code_bytes": 4089,
+   "abi_entries": 0,
+   "origin": "THuAY3Dqaf5EMdUPcQtmFew85ZSTEENAYk",
+   "verification": "bytecode-only",
+   "role": "USDD 2.0 TRC20 stablecoin (18 dec); mint/burn auth = wards"
+  },
+  "psm": {
+   "address": "TBXW4hS5KYjjbJXDpnrPf4zhkLwrpUjbyz",
+   "code_bytes": 4555,
+   "abi_entries": 24,
+   "origin": "TXHDjs83UhE2MeSfy3TGMobdzR1KEFPySR",
+   "verification": "abi",
+   "role": "UsddPsm, ilk PSM-USDT-A; permissionless buyGem/sellGem, tin=tout=0"
+  },
+  "gemJoin": {
+   "address": "TSUYvQ5tdd3DijCD1uGunGLpftHuSZ12sQ",
+   "code_bytes": 2853,
+   "abi_entries": 17,
+   "origin": "TXHDjs83UhE2MeSfy3TGMobdzR1KEFPySR",
+   "verification": "abi",
+   "role": "AuthGemJoin5 for USDT (6 dec), custodies PSM USDT"
+  },
+  "vat": {
+   "address": "TH5dhX7o39afSbfDT2e3c9k4itWjNKD4D9",
+   "code_bytes": 8247,
+   "abi_entries": 0,
+   "origin": "TVtZdz2zC51e8PUsdxnkFm9JCFHAq7cgnA",
+   "verification": "bytecode-only",
+   "role": "DSS Vat (core CDP accounting)"
+  },
+  "usddJoin": {
+   "address": "TUajR7CbXU6hX8n3XtNkitFAD25JvP99K6",
+   "code_bytes": 1804,
+   "abi_entries": 0,
+   "origin": "TE19XD8DPc9D3z3SMWeS14xWC6Mt3wSJKu",
+   "verification": "bytecode-only",
+   "role": "DaiJoin analogue; only ward/minter on USDD token"
+  },
+  "vow": {
+   "address": "TXLfZmQtLtLxWYNL2fxhw34JNGHB2EKeSU",
+   "code_bytes": 5768,
+   "abi_entries": 0,
+   "origin": "TLmm1SbAs9WFqKyaLpqTiRVFj6kTN7WeBp",
+   "verification": "bytecode-only",
+   "role": "system surplus/debt sink"
+  },
+  "spotter": {
+   "address": "TU8Z8CeUd7pnXSMHTNqRgK6Qxxxyzsba1n",
+   "code_bytes": 2592,
+   "abi_entries": 0,
+   "origin": "TBQLNFv8cfxdw8ruukDRKR3b3DRMr8RHBt",
+   "verification": "bytecode-only",
+   "role": "price feed / liquidation ratio"
+  },
+  "jug": {
+   "address": "TWttvCqVmiLip7PL8Aut2Hi37swqv7EmYd",
+   "code_bytes": 2846,
+   "abi_entries": 0,
+   "origin": "TTdDA16hnGXvVmiek7goij5a8B4QDxTT3v",
+   "verification": "bytecode-only",
+   "role": "stability fee accumulator"
+  },
+  "dog": {
+   "address": "TCwYKcDj8c5Te9hjj3UokcxhpY6skFoXnG",
+   "code_bytes": 4812,
+   "abi_entries": 0,
+   "origin": "TVnDFKq13XGTmdNcQnvRouaqG5dPpb48Yp",
+   "verification": "bytecode-only",
+   "role": "liquidation engine"
+  },
+  "usdt": {
+   "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+   "code_bytes": 14945,
+   "abi_entries": 46,
+   "origin": "THPvaUhoh2Qn2y9THCZML3H815hhFhn5YC",
+   "verification": "abi",
+   "role": "USDT collateral + PSM gem"
+  },
+  "oldUsdd": {
+   "address": "TPYmHEhy5n8TCEfYGqW2rPxsghSfzghPDn",
+   "code_bytes": 3166,
+   "abi_entries": 19,
+   "origin": "TJGm3ZtdCk85rbkXWBvLYs3D2ai4uMhavb",
+   "verification": "abi",
+   "role": "USDD 1.0 token (legacy), supply 7.136M"
+  },
+  "usddExchange": {
+   "address": "TQrq2p1aoAkNK94q3Q69ubJcv5nQ9y675R",
+   "code_bytes": 4729,
+   "abi_entries": 31,
+   "origin": "TXHDjs83UhE2MeSfy3TGMobdzR1KEFPySR",
+   "verification": "abi",
+   "role": "old->new USDD migration; EXCHANGE_RATE=1, paused=false, unfunded"
+  },
+  "pause": {
+   "address": "TNq6E9XsQfrzqVwam67LApZQx1omsj8dyW",
+   "code_bytes": 4073,
+   "abi_entries": 0,
+   "origin": "TVDxsCLXr9zakfMP439UcjAi639HwFkYDF",
+   "verification": "bytecode-only",
+   "role": "DSPause, delay=0, authority=GovActionsProxy"
+  },
+  "pauseProxy": {
+   "address": "TE6RxGgQuD6J1faw9mZxtbHGDqcKh8DvKU",
+   "code_bytes": 842,
+   "abi_entries": 0,
+   "origin": "TNq6E9XsQfrzqVwam67LApZQx1omsj8dyW",
+   "verification": "bytecode-only",
+   "role": "pause proxy; ward on Vat/Jug/Spotter/Dog/Vow/PSM"
+  },
+  "govActionsProxy": {
+   "address": "TXzhj9Xh8xfzerjinRyM5TfoBL7Cw5hk5d",
+   "code_bytes": 10432,
+   "abi_entries": 30,
+   "origin": "TXHDjs83UhE2MeSfy3TGMobdzR1KEFPySR",
+   "verification": "abi",
+   "role": "authority of Pause; owner EOA TSF2rq..."
+  },
+  "governorBravo": {
+   "address": "TB6QhZHcrYz3sYh3NCxk2sbzfsdhC5rjAU",
+   "code_bytes": 1189,
+   "abi_entries": 59,
+   "origin": "TKZiaFeu5Ff86vCLPhmBA758xvBazpLqML",
+   "verification": "abi",
+   "role": "GovernorBravoDelegator; admin=Timelock"
+  },
+  "timelock": {
+   "address": "TLqrqsPcmiUk6HJc6kxY7q56PH1TWCxDhh",
+   "code_bytes": 6262,
+   "abi_entries": 21,
+   "origin": "TKZiaFeu5Ff86vCLPhmBA758xvBazpLqML",
+   "verification": "abi",
+   "role": "Timelock, delay=172800s (2 days)"
+  },
+  "jusdd": {
+   "address": "TKFRELGGoRgiayhwJTNNLqCNjFoLBh3Mnf",
+   "code_bytes": 5665,
+   "abi_entries": 74,
+   "origin": "TMrhWqAk47hKFKrxnaVk6phF8JqspdUgTT",
+   "verification": "abi",
+   "role": "JustLend jUSDD market; holds 425.6M USDD"
+  },
+  "v3Pool": {
+   "address": "TD3C3hcmRgTP42Sxv7XsT6fHbeX5eAryq6",
+   "code_bytes": 34246,
+   "abi_entries": 0,
+   "origin": "TThJt8zaJzJMhCEScH7zWKnp5buVZqys9x",
+   "verification": "bytecode-only",
+   "role": "SunSwap V3 USDD/USDT fee=100 pool"
+  },
+  "v2Pair": {
+   "address": "TDEoc9JmeTbcnKuCqZrQuykb3k6CwvDW6P",
+   "code_bytes": 8865,
+   "abi_entries": 0,
+   "origin": "TKWJdrQkqHisa1X8HUdHEfREvTzw4pMAaY",
+   "verification": "bytecode-only",
+   "role": "SunSwap V2 USDD/USDT pair (dust, $16 TVL)"
+  },
+  "sunCurve": {
+   "address": "THJCvwFmu6uDqKY59JbULHDgfddy2Zojty",
+   "code_bytes": 18130,
+   "abi_entries": 55,
+   "origin": "TCXrf8SwGjcmQYY1FcFnV3LUXSQpqod3bi",
+   "verification": "abi",
+   "role": "SunCurve StableSwap2Pool USDD/USDT, fee=4bp, A=1000"
+  },
+  "esm": {
+   "address": "TVKZKa1LDadTPm2AoAW7hp9BtdScK4gSk8",
+   "code_bytes": 3791,
+   "abi_entries": 0,
+   "origin": "TVg52CxgE67F1DJHSQnqDrVgW8TF3gUHDv",
+   "verification": "bytecode-only",
+   "role": "Emergency Shutdown Module, min=8.91B USDD"
+  },
+  "end": {
+   "address": "TXhepqfva4WvcK6HapedmzwDjdZv8KoY6p",
+   "code_bytes": 8319,
+   "abi_entries": 0,
+   "origin": "TAdMMCxAtNR6425AbnbktyBvZazQkp8aAZ",
+   "verification": "bytecode-only",
+   "role": "emergency shutdown"
+  },
+  "flap": {
+   "address": "TP2eYpkrgk7sLAts5tvzsFxHiDH8PmQcuH",
+   "code_bytes": 2205,
+   "abi_entries": 0,
+   "origin": "TFSFz8GYowZwqAfnCnURBiUeLrHm6agYXz",
+   "verification": "bytecode-only",
+   "role": "surplus auction"
+  },
+  "flop": {
+   "address": "TX6CM8K1FgS2nnTEjLsKW6TAVSipFXHh5C",
+   "code_bytes": 6367,
+   "abi_entries": 0,
+   "origin": "TMUPT9tb5MknynKDVWwy6LWdABCjyGD3A8",
+   "verification": "bytecode-only",
+   "role": "debt auction"
+  },
+  "dssDeploy": {
+   "address": "TNqH7NFMDrHj5FSTGeGkepcEG5Fav9e6F6",
+   "code_bytes": 14674,
+   "abi_entries": 52,
+   "origin": "TXHDjs83UhE2MeSfy3TGMobdzR1KEFPySR",
+   "verification": "abi",
+   "role": "DSS deploy script; owner/authority renounced"
+  },
+  "usddFab": {
+   "address": "THuAY3Dqaf5EMdUPcQtmFew85ZSTEENAYk",
+   "code_bytes": 4887,
+   "abi_entries": 1,
+   "origin": "TXHDjs83UhE2MeSfy3TGMobdzR1KEFPySR",
+   "verification": "abi",
+   "role": "USDD token factory"
+  }
+ },
+ "live_state": {
+  "block": 87211072,
+  "timestamp_utc": "2026-10-18T06:50:18Z",
+  "block_after": 87211086,
+  "usdd": {
+   "total_supply": 1317294810.7072296,
+   "decimals": 18,
+   "mint_wards": {
+    "UsddJoin": 1,
+    "PSM": 0,
+    "USDDExchange": 0,
+    "PauseProxy": 0,
+    "Pause": 0,
+    "Governor": 0,
+    "DssDeploy": 0,
+    "UsddFab": 0,
+    "Vat": 0,
+    "deployer": 0
+   },
+   "blacklist_or_freeze": "none found in method map (push/pull/move/rely/deny/mint/burn/permit only)"
+  },
+  "psm": {
+   "ilk": "PSM-USDT-A",
+   "tin": 0,
+   "tout": 0,
+   "sellEnabled": 1,
+   "buyEnabled": 1,
+   "art_usdd": 41230957.497215,
+   "ink_usdd": 41230957.497215,
+   "line_usdd": 600000000.0,
+   "mint_headroom_usdd": 558769042.502785,
+   "gemjoin_usdt": 41232487.378037,
+   "psm_direct_usdt": 10.0,
+   "redeem_capacity_usdt": 41232487.378037,
+   "psm_coverage_pct_supply": 3.1300880442928407
+  },
+  "vat": {
+   "debt_usd": 1319118172.3841863,
+   "sum_enumerated_ilks_art_rate": 499297497.2393174,
+   "unattributed_debt": 819820675.1448689,
+   "sum_enumerated_lines": 1920000000.0,
+   "vice_usd": 2000.6579826586599,
+   "ilks": {
+    "USDT-A": {
+     "art": 542407.4910828912,
+     "rate": 1.0174872729521722,
+     "spot": 0.9511714285714286,
+     "line": 200000000.0,
+     "dust": 2000.0000000000002,
+     "duty": 1.000000000315523,
+     "mat": 1.05,
+     "chop": 1.13
+    },
+    "TRX-A": {
+     "art": 167918968.47803876,
+     "rate": 1.018879914407213,
+     "spot": 0.27806333333333333,
+     "line": 400000000.0,
+     "dust": 1000.0000000000001,
+     "duty": 1.000000000158154,
+     "mat": 1.2,
+     "chop": 1.13
+    },
+    "TRX-B": {
+     "art": 93598631.98701228,
+     "rate": 1.023265858072925,
+     "spot": 0.2851931623931624,
+     "line": 300000000.0,
+     "dust": 2000.0000000000002,
+     "duty": 1.000000000158154,
+     "mat": 1.17,
+     "chop": 1.13
+    },
+    "TRX-C": {
+     "art": 187936287.51235732,
+     "rate": 1.014434736589879,
+     "spot": 0.25667384615384614,
+     "line": 400000000.0,
+     "dust": 500.00000000000006,
+     "duty": 1.000000000158154,
+     "mat": 1.3,
+     "chop": 1.13
+    },
+    "WBTC-A": {
+     "art": 0.0,
+     "rate": 1.0133903425826338,
+     "spot": 54272.68484266666,
+     "line": 10000000.0,
+     "dust": 1000.0000000000001
+    },
+    "WBTC-B": {
+     "art": 0.0,
+     "rate": 1.0186992139121647,
+     "spot": 62622.32866461538,
+     "line": 10000000.0,
+     "dust": 2500.0
+    },
+    "PSM-USDT-A": {
+     "art": 41230957.497215,
+     "rate": 1.0,
+     "spot": 1.0,
+     "line": 600000000.0,
+     "dust": 0.0
+    }
+   }
+  },
+  "dex": {
+   "v3": {
+    "pool": "TD3C3hcmRgTP42Sxv7XsT6fHbeX5eAryq6",
+    "fee_bps": 1,
+    "sqrtPriceX96": 79228153772302657163861598152485112,
+    "tick": 276324,
+    "price_usdt_per_usdd": 0.9999997793218742,
+    "deviation_bps": -0.002206781257729773,
+    "liquidity": 6341732851783686609478,
+    "usdt_balance": 2107674.473241,
+    "usdd_balance": 1302045.374622398
+   },
+   "v2": {
+    "pair": "TDEoc9JmeTbcnKuCqZrQuykb3k6CwvDW6P",
+    "usdt": 7.97297,
+    "usdd": 8.023979209605383,
+    "spot": 0.9936429035678058,
+    "best_buy_profit_usd": 2.2782386257044415e-05,
+    "best_buy_size_usdt": 0.0135
+   },
+   "suncurve": {
+    "pool": "THJCvwFmu6uDqKY59JbULHDgfddy2Zojty",
+    "fee_bps": 4,
+    "A": 1000,
+    "quotes": {
+     "sell_10k_USDD_usdt": 9993.556784,
+     "sell_100k_USDD_usdt": 99923.40854,
+     "sell_1M_USDD_usdt": 758814.596694,
+     "buy_10k_USDT_usdd": 9998.192363601634,
+     "buy_100k_USDT_usdd": 99971.0788054408,
+     "buy_1M_USDT_usdd": 947255.6106729399
+    }
+   }
+  },
+  "oracle": {
+   "USDT_OSM": "TMhsJiXUrT5eueuH1cq6SdvQEBt4YjKLfx",
+   "USDT_median_src": "TNuBMH3A628d9UAhgkBFpgqb3gHy2sbnF5",
+   "USDT_USD_peek": 0.99873,
+   "TRX_OSM": "TVsQxikpttN15u7vcjXKeVrtYRWbrqgPbH",
+   "TRX_median_src": "TSB7M6eBpBD4RUrqdgPrTLkfzzYV39QTBo",
+   "TRX_USD_peek": 0.333676,
+   "WBTC_pip": "TRkw65bzGiVqE3vaUH8ndvrNRmLbCgU2wa",
+   "WBTC_USD_peek": 81409.027264,
+   "spotter_mat": {
+    "USDT-A": 1.05,
+    "TRX-A": 1.2,
+    "TRX-B": 1.17,
+    "TRX-C": 1.3,
+    "WBTC-A": 1.5,
+    "WBTC-B": 1.3
+   }
+  },
+  "jusdd": {
+   "address": "TKFRELGGoRgiayhwJTNNLqCNjFoLBh3Mnf",
+   "usdd_balance": 425616498.01844215,
+   "pct_supply": 32.3098895219922
+  },
+  "legacy": {
+   "old_usdd_supply": 7136259.979606,
+   "exchange_paused": 0,
+   "exchange_rate": 1,
+   "exchange_new_usdd_balance": 1.508923899832e-05
+  },
+  "admin": {
+   "pause_delay_seconds": 0,
+   "pause_authority": "TXzhj9Xh8xfzerjinRyM5TfoBL7Cw5hk5d",
+   "pause_proxy": "TE6RxGgQuD6J1faw9mZxtbHGDqcKh8DvKU",
+   "gov_actions_proxy_owner": "TSF2rqLdrrZG7PZkDxtvu6B2PTpofidMAX (EOA, 119,959,129 TRX \u2248 $40M); same EOA owns USDDExchange",
+   "governor_admin": "TLqrqsPcmiUk6HJc6kxY7q56PH1TWCxDhh (Timelock, 2 days)",
+   "gov_actions": "TDLgCe2SatVew6PxSwYmqsc3zfahqXwuqX",
+   "esm_min_usdd": 8910000000.0,
+   "psm_wards": {
+    "PauseProxy": 1,
+    "GovActionsProxy": 0,
+    "Governor": 0,
+    "deployer": 0
+   }
+  }
+ },
+ "eu_usd": 0,
+ "eu_note": "Best on-chain round trip at block 87211072: -$99.79 per $1M (buy V3, redeem PSM) and -$100.22 per $1M (mint PSM, sell V3); V3 fee 1bp vs spot deviation -0.0022bp.",
+ "eu_conditional_usd": 0,
+ "eu_conditional_note": "Current precondition not met. Hypothetical dislocations with current V3 depth (1.302M USDD): 10bp -> ~$1,172; 100bp -> ~$12,890. PSM redemption capacity 41.23M would allow up to ~$412k at a 1% dislocation if depth existed.",
+ "eu_conditional_scenarios": [
+  {
+   "precondition": "on-chain USDD/USDT <= 0.999 (10bp discount), V3 depth <= 1.302M USDD",
+   "max_profit_usd": 1171.84
+  },
+  {
+   "precondition": "on-chain USDD/USDT <= 0.990 (100bp discount), V3 depth <= 1.302M USDD",
+   "max_profit_usd": 12890.25
+  },
+  {
+   "precondition": "CEX USDD at 0.9973-0.9978, $25k-$50k clip, withdraw to TRON, PSM redeem",
+   "max_profit_usd": 45.0,
+   "note": "not permissionless; CEX KYC/withdrawal; taker fees ~10bp; CEX daily volume $23k-$55k"
+  }
+ ],
+ "p_usd": 1230000000,
+ "p_immediate_usd": 41232487.38,
+ "p_note": "PauseProxy is a ward on Vat/Jug/Spotter/Dog/Vow/PSM; Vat.suck simulated success (unlimited USDD), PSM.file simulated success. Immediate liquid value = PSM USDT 41.23M; theoretical = ~$1.23B CDP TVL / collateral.",
+ "s_usd": 0,
+ "s_note": "No proven insolvency. PSM covers 3.13% of supply; jUSDD holds 32.31%; 819.8M Vat debt unattributed to enumerated ilks; old USDD exchange unfunded.",
+ "h_o_usd": 0,
+ "h_o_note": "No leaked/compromised key evidence. Single EOA TSF2rq... owns GovActionsProxy and USDDExchange (119.96M TRX); potential centralization path noted under P.",
+ "confidence": 0.82,
+ "paths": [
+  "USDT -> SunSwap V3 USDD/USDT fee=100 -> USDD -> PSM.buyGem(usr,gemAmt) -> USDT; current spot 0.99999978, V3 fee 1bp => -$99.79 per $1M",
+  "USDT -> PSM.sellGem(usr,gemAmt) -> USDD -> SunSwap V3 sell -> USDT; current spot 0.99999978, V3 fee 1bp => -$100.22 per $1M",
+  "CEX USDD discount -> withdraw TRON -> PSM.buyGem -> USDT; ~8-17bp gross but ~10bp CEX taker fee, capped by $23k-$55k/day volume",
+  "PauseProxy -> Vat.suck(pauseproxy,pauseproxy,rad) -> UsddJoin.exit -> USDD mint; privileged, simulated suck success",
+  "PauseProxy -> PSM.file('tin'/'tout',fee) -> PSM fee change; privileged, simulated success"
+ ],
+ "blockers": [
+  "V3 spot 0.99999978 USDT/USDD (deviation -0.0022bp), below the 1bp V3 fee; no positive round trip",
+  "PSM buyGem redeem capacity 41,232,487.38 USDT = 3.13% of 1.317B supply; larger redemptions revert",
+  "PSM sellGem mint capacity 558,769,042.50 USDD (line 600M - Art 41.23M), but DEX depth ~1.30M USDD / 2.11M USDT caps size",
+  "SunSwap V2 USDD/USDT pair is dust: 7.97 USDT / 8.02 USDD, best profit $0.00002",
+  "SunCurve 2pool fee 4bp; 10k USDD -> 9,993.56 USDT (0.99936), 10k USDT -> 9,998.19 USDD (1.00018), no edge",
+  "Global discount is CEX-only: Gate 0.9973 ($23k/day), BingX 0.9978 ($55k/day), MEXC 0.9988 ($3.4k/day); taker fees erase it",
+  "821M of Vat debt is not attributed to the enumerated ilks (USDT-A, TRX-A/B/C, PSM-USDT-A, WBTC-A/B); vice is only $2k",
+  "USDD 1.0 -> 2.0 exchange is unfunded (0.000015 new USDD), so legacy migration is blocked"
+ ],
+ "evidence_files": [
+  "raw/final_snapshot.json",
+  "raw/arb_math.json",
+  "raw/psm_state.json",
+  "raw/vat_psm_state2.json",
+  "raw/vat_sin2.json",
+  "raw/cdp_ilks_state.json",
+  "raw/sunswap_v3_state.json",
+  "raw/sunswap_v2_reserves.json",
+  "raw/suncurve_state.json",
+  "raw/suncurve_curve.json",
+  "raw/psm_events.json",
+  "raw/psm_sim_buygem2.json",
+  "raw/privileged_sim.json",
+  "raw/govactions_probe.json",
+  "raw/oracle_state.json",
+  "raw/usdt_osm.json",
+  "raw/oracle_peek.json",
+  "raw/usdd_key_balances.json",
+  "raw/usdd_exchange_state.json",
+  "raw/usdd_wards_extra.json",
+  "raw/usdd_wards_scan.json",
+  "raw/usdd_wards_admin.json",
+  "raw/dssdeploy_getters.json",
+  "raw/contract_names_tron.json",
+  "raw/code_sizes.json",
+  "raw/llama_prices.json",
+  "raw/coingecko_simple.json",
+  "raw/coingecko_tickers.json"
+ ]
+}

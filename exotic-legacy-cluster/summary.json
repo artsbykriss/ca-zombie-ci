@@ -1,0 +1,35 @@
+{
+  "campaign": "ZOMBIE-HUNT IV · Wave B2 · exotic/legacy cluster (Tier-3 group 6)",
+  "date": "2026-10-18",
+  "mode": "read-only; no transactions signed/sent",
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 1800, "P": 252337431, "S": 240000},
+  "targets": [
+    {"name": "USDD (TRON V2 PSM/CDP)", "folder": "usdd", "eu": 0, "eu_cond": 0, "p": 41232487, "s": 0, "confidence": "high", "verdict": "PSM at par (0.99999978), 0-fee; round trip -$99.79/$1M; no public mint; P-side PauseProxy and single-EOA GovActionsProxy owner"},
+    {"name": "Aragon-legacy DAO class", "folder": "aragon-legacy", "eu": 0, "eu_cond": 0, "p": 286000, "s": 240000, "confidence": "high", "verdict": "2,306 Voting apps; 0 voteTime=0; 318 open-vote but no liquid+funded combination; 100 ETH DAP vault stuck (supply 0)"},
+    {"name": "MakerDAO legacy keeper family", "folder": "maker-keepers", "eu": 0, "eu_cond": 0, "p": 0, "s": 0, "confidence": "high", "verdict": "43 Flippers / 6,737 bids; 8 expired lots $4.97k payable to guys; 5 sibling impls all $0"},
+    {"name": "Mezo Swap Voter/gauges", "folder": "mezo-voter", "eu": 0, "eu_cond": 0, "p": 5680000, "s": 0, "confidence": "high", "verdict": "58 selectors; every value path veNFT/governance gated; Voter holds 13,431 MEZO (~$37)"},
+    {"name": "Euler v2 / EVK vault web", "folder": "euler-v2", "eu": null, "eu_cond": null, "p": null, "s": null, "confidence": "pending", "verdict": "see folder; enumeration + anomaly flags produced by child"},
+    {"name": "THEO / Autheo", "folder": "theo-autheo", "eu": 0, "eu_cond": 1800, "p": 1800, "s": 0, "confidence": "high/medium", "verdict": "single unrotated relayer EOA mint root; no unprivileged path; pool realizable USDC ~$1.8k (GT $40.5k overstated)"},
+    {"name": "3F (desk lead)", "folder": "3f", "eu": 0, "eu_cond": 0, "p": 39744441.90, "s": 0, "confidence": "medium", "verdict": "9 WrappedAsset proxies, $39.74M 1:1-backed; role-gated transfers; 2-of-3 Safe; Morpho layer parked"},
+    {"name": "Zama (desk lead)", "folder": "zama", "eu": 0, "eu_cond": 0, "p": 131010324.66, "s": 0, "confidence": "low", "verdict": "26 confidential wrappers, $131.01M public reserves; FHE ACL/KMS gated; verifier layer parked"},
+    {"name": "TxFlow Bridge (desk lead)", "folder": "txflow", "eu": 0, "eu_cond": 0, "p": 31513855.53, "s": 0, "confidence": "high", "verdict": "Bridge2 31.51M USDC; >2/3 validator signatures + finalizer + dispute window"},
+    {"name": "Kamui (desk lead)", "folder": "kamui", "eu": 0, "eu_cond": 0, "p": 2868521.42, "s": 0, "confidence": "medium", "verdict": "3 curated Lagoon vaults $2.87M; user queues/curator"}
+  ],
+  "blocks": {"ethereum": 26217925, "base": 52756147, "mezo": 12589198, "arbitrum": 515884685, "tron": 87211072},
+  "closed_reasons": [
+    "no target has an unprivileged live value path",
+    "USDD at par, 1bp fee; Aragon no liquid+funded open-vote DAO; Maker family empty; Mezo Voter all gated; THEO ISM single-EOA allowlist; desk leads are custody/curator/validator gated"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": [], "ci_verifier": "exotic-legacy-cluster/ci/verify.py (25 read-only checks)"},
+  "caveats": [
+    "all reads point-in-time 2026-10-18; blocks per target",
+    "USDD core / Mezo Voter / THEO token impl are unverified bytecode; behavior probes used",
+    "Aragon enumeration covers Kernel-installed NewAppProxy apps only",
+    "THEO sibling-route scan limited by RPC log range",
+    "desk leads are address/balance resolution + mechanism read, not full audits",
+    "P and H-O are not additive across protocols"
+  ],
+  "one_liner": "external unprivileged attacker can extract $0 live across the exotic/legacy cluster; the named targets are key-gated, at par, empty, stuck, or locked behind validator/curator/token gates"
+}
