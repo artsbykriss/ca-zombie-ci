@@ -1,0 +1,58 @@
+{
+  "finding": "WaveB1-AlchemixV3",
+  "title": "Alchemix V3 (MYT / Morpho VaultV2): share math, strategy adapters, Alchemist liquidation and Transmuter redemption surface",
+  "chains": ["ethereum", "optimism", "arbitrum", "base"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 0,
+    "H-O": 0,
+    "P": 39861279.24,
+    "S": 0
+  },
+  "latest_block": 26217525,
+  "block_numbers": {
+    "ethereum": 26217525,
+    "optimism": 158352287,
+    "arbitrum": 515890385,
+    "base": 52757007
+  },
+  "targets_checked": 35,
+  "live_targets": 14,
+  "closed_reasons": [
+    "Morpho VaultV2 caps all unrecognised gains (donations, penalty assets, strategy revaluation) at maxRate=10%/yr and realises losses instantly; a 5M USDC donation to live mixUSDC was recognised as 64,771 USDC after 30 days (1.30%), not 5M",
+    "All 7 live MYT vaults are seeded (share price 1.002987-1.023848); virtualShares=1e12 for USDC and 1 for 18-dec assets; a fresh permissionless vault has maxRate=0 and a 1M USDC donation is recognised as 0 (victim loses 0)",
+    "forceDeallocate on another holder's shares requires that holder's share allowance (fork revert); forceDeallocatePenalty=2% on every funded adapter, so self-force-deallocation is loss-making",
+    "0 of 2,104 Ethereum positions and 0 of 68 Base positions have CR below the 1.0526 liquidation lower bound; worst ETH CR 1.1111, worst Base CR 1.11147; liquidate(1202) reverts",
+    "Liquidator fee is 1.5% of the equity surplus (about 0.079% of debt at the threshold) and fee vaults report totalDeposits()=0, so there is no pool-paid fee to steal",
+    "badDebtRatio is 0.90 on all 7 Transmuters (no haircut branch active); claimRedemption is NFT-owner only and pro-rata; the alUSD 4.2% discount is a market term trade, not protocol extraction",
+    "The deployed adapter deallocate() computes change from totalValueBefore/After minus the pulled assets, fixing the Nov-2025 Immunefi #58435 'returns requested, not received' accounting bug; SafeCast cannot underflow because require(totalValueAfter >= assets)",
+    "Every adapter state-changing function is onlyVault or onlyOwner; owners are the chain admin Safes; no permissionless sweep"
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39104618340"
+    ]
+  },
+  "key_facts": [
+    "7 live MYT vaults: ETH mixWETH 10,865.01 WETH, ETH mixUSDC 7,857,019.63 USDC, OP mixWETH 1,010.88 WETH, OP mixUSDC 697,998.54 USDC, Arb mixWETH 112.24 WETH, Arb mixUSDC 36,265.16 USDC, Base mixUSDC 2,387,031.90 USDC; total 39,861,279 USD at 18-Oct-2026 prices",
+    "All 7 vaults reconcile exactly: sum(adapter.realAssets)+idle == totalAssets (diff 0)",
+    "All vaults have maxRate=3,170,979,198 (10%/yr), timelock(addAdapter)=0, adapterRegistry=0, all gates=0; owner/curator/allocator are the v3 admin Safe + AlchemistCurator + AlchemistAllocator",
+    "Alchemist markets: ETH alUSD 4,554,266 debt vs 7,657,566 USDC collateral (CR 1.682); ETH alETH 6,426 alETH vs 10,740 ETH (1.672); OP alUSD 534,441 (1.264); OP alETH 678 (1.479); Arb alUSD 26,152 (1.268); Arb alETH 62.6 (1.787); Base alUSDb 2,120,143 (1.125)",
+    "Liquidation params on all markets: minimumCollateralization=1.1111e18, collateralizationLowerBound=1.0526e18, liquidationTarget=1.1111e18, liquidatorFee=150 bps, protocolFee=25 bps, repaymentFee=0",
+    "badDebtRatio per Transmuter: ETH alUSD 0.899529, ETH alETH 0.899754, OP alUSD 0.899977, OP alETH 0.900745, Arb alUSD 0.908611, Arb alETH 0.900095, Base alUSDb 0.900010 - no haircut active",
+    "PoC: Fork block 26,217,600. 5M USDC donation -> 64,771 USDC recognised after 30 days. Fresh vault with maxRate=0: attacker 1 USDC deposit + 1M donation + 1M victim deposit -> attacker 1 USDC, victim 1,000,000 USDC. 100,000 USDC round trip -> 99,999 USDC. forceDeallocate without allowance reverts. liquidate(1202) reverts.",
+    "Governance: owner/curator/allocator are privileged (P); all timelocks are 0 and adapterRegistry=0, so a compromised curator+allocator can add a malicious adapter and allocate the vault into it"
+  ],
+  "caveats": [
+    "The documented maxRate/forceDeallocate delayed-yield dilution (0xSimao M-5, Kai forceDeallocate bypass) is real but yield-only and capped; no live event was found that makes it material (conditional, not counted in E-U)",
+    "A >5.3% MYT NAV drawdown would create keeper liquidations; the liquidator fee is 1.5% of the equity surplus, at most about 19k USD across all markets if every position simultaneously reached the threshold - an external-event condition, not an unprivileged bug",
+    "OP/Arb position-level scans are point-in-time and RPC rate-limited; aggregate CRs are 1.264-1.787 and records are in analysis/health_*.json",
+    "The Alchemist earmark/redemption (survival accumulator) system was not exhaustively re-audited; the specific deployed code paths relied on here were source-read and fork-tested",
+    "USD values use DefiLlama prices at 2026-10-18 (WETH 2,409.54; USDC 0.99974)"
+  ],
+  "one_liner": "External unprivileged attacker can extract about $0 live from Alchemix V3: the 39.86M USD of MYT TVL is protected by the Morpho VaultV2 maxRate gain cap (10%/yr), seeded vaults, instant loss realisation, 2% force-deallocation penalties and healthy Alchemist positions; the only value at risk is the 39.86M USD under privileged curator/allocator/admin control (P)."
+}
