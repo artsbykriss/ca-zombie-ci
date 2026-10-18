@@ -1,0 +1,1286 @@
+[
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_olas",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "_treasury",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "_positionManagerV3",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "_neighborhoodScanner",
+    "type": "address"
+   },
+   {
+    "internalType": "uint16",
+    "name": "_observationCardinality",
+    "type": "uint16"
+   },
+   {
+    "internalType": "address",
+    "name": "_oracleV2",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "_routerV2",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+ },
+ {
+  "inputs": [],
+  "name": "AlreadyInitialized",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   }
+  ],
+  "name": "ObservationFailed",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "provided",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "max",
+    "type": "uint256"
+   }
+  ],
+  "name": "Overflow",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "sender",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnerOnly",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "x",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "y",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "denominator",
+    "type": "uint256"
+   }
+  ],
+  "name": "PRBMath_MulDiv_Overflow",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "R",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "int24",
+    "name": "low",
+    "type": "int24"
+   },
+   {
+    "internalType": "int24",
+    "name": "center",
+    "type": "int24"
+   },
+   {
+    "internalType": "int24",
+    "name": "high",
+    "type": "int24"
+   }
+  ],
+  "name": "RangeBounds",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ReentrancyGuard",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "T",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "value",
+    "type": "uint256"
+   }
+  ],
+  "name": "TokenTransferFailed",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "int256",
+    "name": "provided",
+    "type": "int256"
+   },
+   {
+    "internalType": "int256",
+    "name": "min",
+    "type": "int256"
+   }
+  ],
+  "name": "Underflow",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "provided",
+    "type": "address[]"
+   },
+   {
+    "internalType": "address",
+    "name": "expected",
+    "type": "address"
+   }
+  ],
+  "name": "WrongTokenAddress",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "provided",
+    "type": "address[]"
+   },
+   {
+    "internalType": "address[]",
+    "name": "expected",
+    "type": "address[]"
+   }
+  ],
+  "name": "WrongTokenAddresses",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ZeroAddress",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ZeroValue",
+  "type": "error"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "liquidiy",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "scan",
+    "type": "bool"
+   }
+  ],
+  "name": "ConvertedToV3",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "sender",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   }
+  ],
+  "name": "FeesCollected",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "implementation",
+    "type": "address"
+   }
+  ],
+  "name": "ImplementationUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "liquidity",
+    "type": "uint256"
+   }
+  ],
+  "name": "LiquidityDecreased",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "liquidity",
+    "type": "uint256"
+   }
+  ],
+  "name": "LiquidityIncreased",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "maxSlippage",
+    "type": "uint256"
+   }
+  ],
+  "name": "MaxSlippageUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnerUpdated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   }
+  ],
+  "name": "PositionFeesCollected",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "liquidiy",
+    "type": "uint256"
+   }
+  ],
+  "name": "PositionLiquidityDecreased",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "liquidiy",
+    "type": "uint256"
+   }
+  ],
+  "name": "PositionLiquidityIncreased",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "liquidiy",
+    "type": "uint256"
+   }
+  ],
+  "name": "PositionMinted",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   }
+  ],
+  "name": "PositionTransferred",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "liquidiy",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "scan",
+    "type": "bool"
+   }
+  ],
+  "name": "RangesChanged",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "int24",
+    "name": "feeTierOrTickSpacing",
+    "type": "int24"
+   },
+   {
+    "indexed": false,
+    "internalType": "int24[]",
+    "name": "initTicks",
+    "type": "int24[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "int24[]",
+    "name": "optimizedTicks",
+    "type": "int24[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "scan",
+    "type": "bool"
+   }
+  ],
+  "name": "TicksSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "TokenTransferred",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "olas",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "olasAmount",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "tokenAmount",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "olasBurnOrTransfer",
+    "type": "bool"
+   }
+  ],
+  "name": "UtilityAmountsManaged",
+  "type": "event"
+ },
+ {
+  "inputs": [],
+  "name": "MAX_ALLOWED_DEVIATION",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "MAX_BPS",
+  "outputs": [
+   {
+    "internalType": "uint16",
+    "name": "",
+    "type": "uint16"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "PROXY_LIQUIDITY_MANAGER",
+  "outputs": [
+   {
+    "internalType": "bytes32",
+    "name": "",
+    "type": "bytes32"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "SECONDS_AGO",
+  "outputs": [
+   {
+    "internalType": "uint32",
+    "name": "",
+    "type": "uint32"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "VERSION",
+  "outputs": [
+   {
+    "internalType": "string",
+    "name": "",
+    "type": "string"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "implementation",
+    "type": "address"
+   }
+  ],
+  "name": "changeImplementation",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint16",
+    "name": "newMaxSlippage",
+    "type": "uint16"
+   }
+  ],
+  "name": "changeMaxSlippage",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "changeOwner",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "internalType": "int24",
+    "name": "feeTierOrTickSpacing",
+    "type": "int24"
+   },
+   {
+    "internalType": "int24[]",
+    "name": "tickShifts",
+    "type": "int24[]"
+   },
+   {
+    "internalType": "bool",
+    "name": "scan",
+    "type": "bool"
+   }
+  ],
+  "name": "changeRanges",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint128",
+    "name": "liquidity",
+    "type": "uint128"
+   },
+   {
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   }
+  ],
+  "name": "checkPoolAndGetCenterPrice",
+  "outputs": [
+   {
+    "internalType": "uint160",
+    "name": "centerSqrtPriceX96",
+    "type": "uint160"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "internalType": "int24",
+    "name": "feeTierOrTickSpacing",
+    "type": "int24"
+   }
+  ],
+  "name": "collectFees",
+  "outputs": [
+   {
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "internalType": "bytes32",
+    "name": "v2Pool",
+    "type": "bytes32"
+   },
+   {
+    "internalType": "int24",
+    "name": "feeTierOrTickSpacing",
+    "type": "int24"
+   },
+   {
+    "internalType": "int24[]",
+    "name": "tickShifts",
+    "type": "int24[]"
+   },
+   {
+    "internalType": "uint16",
+    "name": "olasBurnRate",
+    "type": "uint16"
+   },
+   {
+    "internalType": "bool",
+    "name": "scan",
+    "type": "bool"
+   }
+  ],
+  "name": "convertToV3",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "liquidity",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "internalType": "int24",
+    "name": "feeTierOrTickSpacing",
+    "type": "int24"
+   },
+   {
+    "internalType": "uint16",
+    "name": "decreaseRate",
+    "type": "uint16"
+   },
+   {
+    "internalType": "uint16",
+    "name": "olasBurnRate",
+    "type": "uint16"
+   }
+  ],
+  "name": "decreaseLiquidity",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint128",
+    "name": "liquidity",
+    "type": "uint128"
+   },
+   {
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "factoryV3",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "pool",
+    "type": "address"
+   }
+  ],
+  "name": "getTwapFromOracle",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "price",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint160",
+    "name": "centerSqrtPriceX96",
+    "type": "uint160"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "internalType": "int24",
+    "name": "feeTierOrTickSpacing",
+    "type": "int24"
+   },
+   {
+    "internalType": "uint16",
+    "name": "olasBurnRate",
+    "type": "uint16"
+   }
+  ],
+  "name": "increaseLiquidity",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "liquidity",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256[]",
+    "name": "amounts",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint16",
+    "name": "_maxSlippage",
+    "type": "uint16"
+   }
+  ],
+  "name": "initialize",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "mapPoolAddressPositionIds",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "maxSlippage",
+  "outputs": [
+   {
+    "internalType": "uint16",
+    "name": "",
+    "type": "uint16"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "neighborhoodScanner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "observationCardinality",
+  "outputs": [
+   {
+    "internalType": "uint16",
+    "name": "",
+    "type": "uint16"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "olas",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   },
+   {
+    "internalType": "bytes",
+    "name": "",
+    "type": "bytes"
+   }
+  ],
+  "name": "onERC721Received",
+  "outputs": [
+   {
+    "internalType": "bytes4",
+    "name": "",
+    "type": "bytes4"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "oracleV2",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "owner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "positionManagerV3",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "routerV2",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address[]",
+    "name": "tokens",
+    "type": "address[]"
+   },
+   {
+    "internalType": "int24",
+    "name": "feeTierOrTickSpacing",
+    "type": "int24"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   }
+  ],
+  "name": "transferPositionId",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "positionId",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "transferToken",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "treasury",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ }
+]

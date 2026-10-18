@@ -1,0 +1,46 @@
+{
+ "deployed_build": {
+  "contract": "LiquidityManagerCore (via LiquidityManagerETH / LiquidityManagerOptimism)",
+  "core_git_blob_sha1": "dd559b988fe1d13107432b20daa2f53bd87b3867",
+  "matches_commit": "d1d682e57085 (2026-05-12, deploy(pol): re-anchor cardinality to mid-volume V3 precedent)",
+  "eth_impl": "0x0171D7178fbf3B48E75675DEE2EA3EfecEf775C1",
+  "eth_impl_creation_block": 25121756,
+  "eth_proxy": "0x83Adc54B2828E99a6DA3A11263C75E38E0A1a215",
+  "eth_proxy_creation_block": 25121761,
+  "base_impl": "0x1D64516E7654F23dB7cE2ddaD00FFb3E765cf5ce",
+  "base_impl_creation_block": 46157584,
+  "base_proxy": "0x2ACD313B892C9922E470e4950e907d5EAa70fC2a",
+  "base_proxy_creation_block": 46157692,
+  "op_impl": "0xCf9B4710fe450Dca52374f28e4917FDCd44F9487",
+  "op_impl_creation_block": 151753124,
+  "op_proxy": "0x1f84F8F70dE0651C2d51Bf8850FE9D0289Ba3B3A",
+  "op_proxy_creation_block": 151753148,
+  "op_core_git_blob_sha1": "dd559b988fe1d13107432b20daa2f53bd87b3867"
+ },
+ "partial_fixes_present": {
+  "c8ca1d80a459 (2026-04-13)": "Root Cause B fixed: instant slot0 sqrt preserved; deviation compares true instant vs TWAP (not TWAP vs itself)",
+  "b1542dae41fc (2026-04-21)": "observe() failure reverts ObservationFailed",
+  "d1d682e57085 (2026-05-12)": "DEPLOYED: adds cardinality<=1 exception that re-opens fail-open for fresh pools; keeps stale/inactive-pool fail-open"
+ },
+ "fixes_absent": {
+  "ec4a90ce36e8 (2026-07-03)": "fail-closed guard: revert NotEnoughHistory on BOTH inactive pool and cardinality<=1/observe failure; removes _getObservationCardinality; soft-priced decreaseLiquidity exit floor; scoped collectFees burn; increaseLiquidity anchored to TWAP",
+  "c79186a2 (2026-07-03)": "exit amountMin derived from gated slot0, not TWAP",
+  "f562a454 (2026-07-14)": "always-on exit gate; _getPoolPriceFacts extracted; de-dup amount helpers",
+  "ef24d24b (2026-08-14)": "replace source-side TWAP oracle with V2-removed-ratio vs V3-slot0 cross-check (_checkRemovedRatioAgainstV3 / RatioDeviation)",
+  "02b3aa9a (2026-08-14)": "MAX_ALLOWED_DEVIATION 10% -> 2%"
+ },
+ "runtime_selector_fingerprint": {
+  "ethereum_impl": "ObservationFailed(address)=present; NotEnoughHistory()=absent; _getPoolPriceFacts(address)=absent; RatioDeviation(uint256,uint256)=absent; MAX_ALLOWED_DEVIATION()=present (1e17); SECONDS_AGO()=present (1800)",
+  "base_impl": "same fingerprint as OP/ETH (ObservationFailed present; three fix selectors absent)",
+  "op_impl": "same fingerprint (verified source core blob == d1d682e5)"
+ },
+ "c4_report": {
+  "url": "https://code4rena.com/reports/2026-01-olas",
+  "published": "2026-05-18",
+  "findings": [
+   "H-02 variable overwrite + two early-return fail-opens in checkPoolAndGetCenterPrice",
+   "H-08 logic inversion / fail-open in the same guard",
+   "H-01 is a separate Uniswap V2 oracle (validatePrice) issue, not the V3 LM guard"
+  ]
+ }
+}

@@ -1,0 +1,73 @@
+{
+  "finding": "ZH4-04",
+  "title": "Olas POL LiquidityManagerCore \u2014 deployed 2026-05-12 build (d1d682e5) has fail-open price guard; $0 today, re-arms on first funding + first convert",
+  "chains": [
+    "ethereum",
+    "base",
+    "optimism"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 26215810,
+  "block_numbers": {
+    "ethereum": 26215810,
+    "base": 52746673,
+    "optimism": 158341970
+  },
+  "targets_checked": 6,
+  "live_targets": 6,
+  "closed_reasons": [
+    "all three LM proxies hold 0 native, 0 OLAS, 0 UniV3 NFT positions; zero asset transfers ever; proxy nonce 1 (creation only)",
+    "all value-moving LiquidityManager functions (convertToV3, changeRanges, increaseLiquidity, decreaseLiquidity, collectFees, transferPositionId, transferToken) are onlyOwner; owner is EOA 0xeb2a22b27c7ad5eee424fd90b376c745e60f914e",
+    "all three BuyBackBurners are unconfigured (mapV3Pools=0, mapV2Oracles=0, mapTokenMaxSlippages=0) and hold only dust/spam (ETH 0; Base 1575 wei WETH; OP 8888 spam tokens)",
+    "no outstanding OLAS allowance to the position manager, no position mapping entries, no pause function, no EIP-1967 impl slot"
+  ],
+  "poc": {
+    "tests_passed": 2,
+    "tests_total": 2,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39082702325",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39082539663"
+    ]
+  },
+  "key_facts": [
+    "Deployed LiquidityManagerCore source git blob SHA-1 dd559b988fe1d13107432b20daa2f53bd87b3867 exactly matches GitHub commit d1d682e57085 (2026-05-12), deployed 2026-05-18; OP verified source is the same blob",
+    "Deployed build includes the 2026-04-13 variable-overwrite fix (c8ca1d80) and the 2026-04-21 ObservationFailed change (b1542dae), then re-added the cardinality<=1 fail-open in d1d682e5",
+    "Fix commits ec4a90ce (2026-07-03), c79186a2 (2026-07-03), f562a454 (2026-07-14), ef24d24bd4bb (2026-08-14), 02b3aa9a (2026-08-14) are absent: runtime has ObservationFailed(address) but no NotEnoughHistory(), _getPoolPriceFacts(address), or RatioDeviation(uint256,uint256)",
+    "Live eth_call at ETH block 26215810: checkPoolAndGetCenterPrice(OLAS/USDC 0.3% 0x795a8C98...4Dfc) returns exactly slot0 (18355655791563235596007); pool cardinality/next = 1/1",
+    "Fork PoC: 5 USDC buys 68.889 OLAS, moving price 8174 bps; guard returns manipulated sqrt 24745898842834866333157; owner first convertToV3 mints 133007100228679892 liquidity in range [-300840,-298380] centred on manipulated tick -299610 (fair -305574); attacker sells back for +1.699210 USDC",
+    "LM mark-to-fair loss in the PoC: $1,036.38 on a $5,183.80 first deposit (20.0%) using 50,000 OLAS + 2,500 USDC and a 5 USDC manipulation; loss scales with first deposit",
+    "Same-block path closes after the first mint raises observationCardinalityNext to 120/300; a subsequent swap grows cardinality and checkPoolAndGetCenterPrice reverts (test 2)",
+    "Stale-price path remains for later ops: if latest observation + 1800 < block.timestamp, the guard returns raw slot0; the Jul-3 fix converts this to NotEnoughHistory",
+    "BuyBackBurner.buyBack(address,uint256,uint256) is permissionless and swaps the contract's own second-token balance through the LM guard; if funded and V3-configured (mapV3Pools != 0, mapTokenMaxSlippages > 0), an attacker can self-trigger the manipulation; today all burners are unconfigured",
+    "LM owner on all three chains is EOA 0xeb2a22b27c7ad5eee424fd90b376c745e60f914e (code length 0), not the Olas timelock; ETH BuyBackBurner owner is timelock 0x3c1ff68f5aa342d296d4dee4bb1cacca912d95fe"
+  ],
+  "caveats": [
+    "PoC uses a synthetic first deposit (50,000 OLAS + 2,500 USDC) because the real first deposit size is unknown; 20% is a scale model, not a live dollar loss",
+    "The 5 USDC manipulation is sized for the live OLAS/USDC pool's ~$28 active depth; a larger deposit or deeper pool changes the required manipulation size, not the mechanism",
+    "Base/OP pool-level guard was not exercised because their factoryV3 does not expose the canonical Uniswap V3 getPool ABI used in the PoC; code fingerprint and exact OP source match are the evidence there",
+    "OP internal native transfers could not be enumerated via Alchemy (internal unsupported); Blockscout shows only the creation tx and zero token transfers, current native balance 0",
+    "No mainnet transactions; all state changes are fork-only. No secrets or keyed RPC URLs are stored in this folder"
+  ],
+  "latent_risk": {
+    "trigger": "first funding of any LM proxy plus the owner's first convertToV3/increaseLiquidity on a pool with observationCardinalityNext == 1",
+    "same_block": true,
+    "demonstrated_attacker_profit_usd": 1.69921,
+    "demonstrated_lm_mark_to_fair_loss_usd": 1036.38,
+    "demonstrated_first_deposit_usd": 5183.8,
+    "loss_pct_of_first_deposit": 20.0,
+    "secondary_trigger": "later owner op on a pool with no swap for >30 min (stale slot0 fail-open)",
+    "burner_trigger": "real second-token inflow + setV3Pools(nonzero) + setMaxSlippages(nonzero); buyBack is permissionless",
+    "closure": "changeImplementation to a build containing NotEnoughHistory()/_getPoolPriceFacts/RatioDeviation, or new deploy with MAX_ALLOWED_DEVIATION=2e16"
+  },
+  "recommendation": "KEEP as re-arm monitor; do not remove. Live code is the unfixed 2026-05-12 build; the only missing ingredient is funding plus the owner's first convert.",
+  "one_liner": "external unprivileged attacker can extract ~$0.00 live (all three LM proxies empty, no transfers ever, all value-moving functions onlyOwner; all BuyBackBurners unfunded/unconfigured); the deployed 2026-05-12 core (d1d682e5) still fail-opens to manipulated slot0 on cardinality=1 or >30-min-quiet pools, so the first funding plus first convertToV3 re-arms a same-block sandwich worth ~20% of the first deposit (fork: +$1.70 on $5, LM mark-to-fair loss $1,036 on $5,184)",
+  "funded_targets": 0,
+  "live_value_usd": 0
+}
