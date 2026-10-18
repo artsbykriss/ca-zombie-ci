@@ -1,0 +1,59 @@
+{
+  "finding": "ZH4-06",
+  "title": "BeraFarm (Berachain) \u2014 RewardVault delegated-stake NAV inflation; patched with unverified impls",
+  "chains": [
+    "berachain"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 257900,
+    "S": 0
+  },
+  "latest_block": 27634505,
+  "block_numbers": {
+    "berachain": 27634505,
+    "pre_patch_snapshot": 27270000,
+    "mid_patch_snapshot": 27320000,
+    "poc_current_fork": 27633715
+  },
+  "targets_checked": 12,
+  "live_targets": 4,
+  "closed_reasons": [
+    "Current Kodiak strategy impl 0xc6865dc8 computes getTokenBalance()/getUnderlyingBalance() as RewardVault.balanceOf(strategy) - getTotalDelegateStaked(strategy); a permissionless delegateStake is therefore NAV-neutral (fork-proven with a real 1.2m island-LP delegation).",
+    "The two HubBend strategies (impl 0xee965e0a) use the same subtraction; storage-level fork test shows +1,000 delegated stake leaves NAV unchanged.",
+    "Full Oct-9 recipe on the current bytecode: NAV unchanged, net P&L -264.20 HONEY (fees); same recipe on the pre-patch bytecode: +77,558.25 HONEY.",
+    "BeraFarm protocol was paused Oct 10 07:50 - Oct 11 10:10 during the upgrades; Kodiak island mint/burn was paused Oct 9 20:29 - Oct 10 08:58, blocking the island-LP acquisition leg.",
+    "The new KodiakSwapController 0x2be0125f is pull-only (safeTransferFrom(msg.sender)) and holds no funds; added balance-delta accounting; no unprivileged path found in old or new.",
+    "Live gauge delegated totals for all three strategies are 0; no DelegateStaked event has ever been emitted on the Kodiak gauge.",
+    "Vault is solvent, deposits/withdrawals unpaused; no trapped user funds (H-O = 0)."
+  ],
+  "poc": {
+    "tests_passed": 2,
+    "tests_total": 2,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Live TVL block 27634505: 257,798.70 HONEY (vault0) + 1,607.81 WBERA (vault1) + 0.297 HONEY (vault3) = ~$253.7k at HONEY $0.9831 / BERA $0.1799; campaign headline $257.9k at par HONEY.",
+    "Pre-patch (block 27,270,000) gauge-staked exposure: Kodiak 76,542.18 + HubBend-1 76,818.81 + HubBend-2 90,067.14 = 243,428.13 HONEY (~95% of the 256,187.30 HONEY vault NAV) - reconciles Kodiak/Hypernative 'at least $250K'.",
+    "Root cause: RewardVault.delegateStake(account, amount) is permissionless and credits account balanceOf; old strategies used balanceOf() as NAV without subtracting getTotalDelegateStaked(account).",
+    "Old verified Kodiak impl 0x36bfa55a5cbe2c382f02f551db1e8acbcc929137 (HubStrategyKodiakIsland) and old verified Bend impl 0x6481216093a69f5701e42b7a8b4d1a5765489322 (HubStrategyBend) both return IBGTGauge(hubVault).balanceOf(address(this)) from getTokenBalance().",
+    "New unverified impls: Kodiak strategy 0xc6865dc8549a986ef02b1b72e2507ec9b5f8180e, swap controller 0x2be0125f8bf3f6e55ea30a9fa3d336030c68b5f5, Bend 0xee965e0a41ad4fd1b18c54529dfcacd5565bf163.",
+    "Patch mechanism: new impls call getTotalDelegateStaked(strategy) (0xa4dbda3c) and subtract it; bytecode encodes the selector as PUSH4 0x2936f68f + SHL 226, which is why earlier naive selector scans missed it.",
+    "Fork NAV deltas for +10,000 delegated stake: old Kodiak 76,542.18 -> 77,927.19; old Bend-1 76,818.81 -> 86,903.33; old Bend-2 90,067.14 -> 100,204.26; current impls unchanged (Kodiak 77,010.17).",
+    "Full attack on old bytecode: 220,000 HONEY transient LP + 15,000 HONEY junior deposit -> P&L +77,558.25 HONEY, gas 11.1M; current bytecode: P&L -264.20 HONEY, gas 11.18M.",
+    "Kodiak island route is open (island paused=false, tick 4, 649,109 USDe + 1,253,491 HONEY); the pause was the only Kodiak-side lever and it has been lifted since Oct 10 08:58.",
+    "Owner Safe 0x0E222512c4CCb7FB7773017b82981be14baFeEeA controls upgradeable proxies; P = full ~$257.9k TVL (not E-U)."
+  ],
+  "caveats": [
+    "Post-incident implementations are unverified on Etherscan/Sourcify; verdict is behavioural (fork + storage probes), not a source audit.",
+    "The attacker's Oct-9 transaction never landed; the reconstruction is code-derived and fork-proven, not an on-chain replay.",
+    "The full Bend drain leg was not built (receipt-token sourcing); pre-patch Bend NAV inflation is measured on-chain instead.",
+    "PoC abstracts transient flash liquidity with deal; net at-risk capital in the real attack is the junior deposit + fees, with the LP recoverable.",
+    "Kodiak spot is still used for deposit split / LP min amounts; a sandwich/exit-value variant was not proven profitable (bounded by the ~$77k Kodiak position) and is a generic MEV surface, not the incident vector.",
+    "USD uses 2026-10-18 DefiLlama prices (HONEY $0.9831, BERA $0.1799); the campaign uses par HONEY for $257.9k."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: the Oct-9 RewardVault delegate-stake NAV-inflation exploit (~$243k pre-patch exposure) is closed in the current Kodiak 0xc6865dc8 and Bend 0xee965e0a impls, which subtract getTotalDelegateStaked from balanceOf; the full fork replay now loses 264 HONEY."
+}
