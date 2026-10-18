@@ -1,0 +1,54 @@
+{
+  "finding": "Wave-B1 zkSwap V2",
+  "title": "zkSwap V2 (legacy zkSync Era AMM) \u2014 48 unverified UniV2-style pairs",
+  "chains": [
+    "zksync-era"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 27171.08,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 72543103,
+  "block_numbers": {
+    "zksync-era": 72543103,
+    "ethereum": 26217720
+  },
+  "targets_checked": 48,
+  "live_targets": 48,
+  "closed_reasons": [
+    "48/48 pairs have balanceOf(pair) == getReserves() for both tokens: skim surplus is exactly 0",
+    "96/96 eth_call drain probes (swap with ~the whole reserve as output and zero input) revert with Zks: INSUFFICIENT_INPUT_AMOUNT / INSUFFICIENT_OUTPUT_AMOUNT",
+    "factory setFeeTo/setFeeToSetter and pair initialize revert Zks: FORBIDDEN for an unprivileged caller",
+    "every pair has live LP supply; no pair has totalSupply==0 with non-zero reserves",
+    "live Reserves cover only ~$27.2k known-side / ~$39.4k gross, not the $533k DefiLlama figure"
+  ],
+  "poc": {
+    "tests_passed": 96,
+    "tests_total": 96,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39105575777"
+    ]
+  },
+  "key_facts": [
+    "factory 0xeeE1Af1CE68D280e9cAfD861B7d4af776798F18d; allPairsLength=48; feeTo=0; feeToSetter=0x8Db2A6cb236Ba76f5435414E02d35828bf431BD5 (EOA)",
+    "pair0 0xa55E595aAeDA7F8F8e74b0F765B1c9f7EAa0540d: USDC.e/WETH, reserves 8970.503649 USDC.e + 3.720086306644588420 WETH, LP totalSupply 99514.642933458",
+    "48/48 pairs: balance0==reserve0, balance1==reserve1 (skim surplus 0)",
+    "96/96 drain probes revert; pair 45 reverts INSUFFICIENT_OUTPUT_AMOUNT because its reserve is 1 wei",
+    "setFeeTo / setFeeToSetter / pair.initialize revert Zks: FORBIDDEN from 0x\u2026dEaD",
+    "gross pair value at DefiLlama/pool-implied prices $39,389.65; known-side-only $27,171.08",
+    "top pairs: pair0 $17,953.52; pair19 $10,420.14 (ZPET pool-implied); pair40 $6,085.93 (ZKB pool-implied); pair33 $955.22",
+    "no pair has totalSupply==0 with reserves; no DeepSwap-style orphan"
+  ],
+  "caveats": [
+    "zkSwap code is unverified; only the tested selectors/behaviour are covered",
+    "ZPET/ZKB/ZKS/MUTE prices are pool-implied and have no external market; the $39.4k gross is not all realizable",
+    "pair0 blockTimestampLast was 72,542,491 before a recent sync and its price cumulatives are anomalous; no TWAP consumer was found",
+    "DefiLlama $533k cannot be reconciled with live reserves; likely stale/nominal valuation",
+    "reads are point-in-time at zkSync Era block 72,543,020; public RPC reads were a few blocks apart"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from zkSwap V2: all 48 pairs have zero skim surplus and enforce the invariant (96/96 drain probes revert), with only ~$27k of LP-owned reserves."
+}
