@@ -1,0 +1,56 @@
+{
+  "finding": "Wave-B1 Motoswap / VampChef",
+  "title": "Motoswap / VampChef \u2014 proxied MasterChef + locked MOTO staking + UniV2 AMM",
+  "chains": [
+    "ethereum"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 4296.0,
+    "P": 1396.37,
+    "S": 0
+  },
+  "latest_block": 26217759,
+  "block_numbers": {
+    "ethereum": 26217759
+  },
+  "targets_checked": 4,
+  "live_targets": 4,
+  "closed_reasons": [
+    "VampChef deposit/append/harvest/withdraw/emergencyWithdraw accounting is correct; a new stake or append gets rewardDebt = amount*acc/PREC, so no retroactive rewards",
+    "VampChef depositFor cannot top up another user's existing position; recoverUndistributedRewards is owner-only",
+    "MotoStaking stake/append set userRewardDebt correctly; pendingReward is 0 immediately after a fresh stake and after append",
+    "MotoStaking claimReward reverts OwnableUnauthorizedAccount for a random caller; claimTokenSelf reverts OnlySelf; available() = 0 immediately after stake (principal vests)",
+    "20/20 Motoswap AMM pairs have balanceOf(pair) == getReserves(); skim surplus is 0",
+    "MOTO balance is ~99.8% accounted: 998.839M raw stake + 1.140M unstake tickets + 1.076M rewards + ~2.1M dust/unenumerated"
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39106223350"
+    ]
+  },
+  "key_facts": [
+    "VampChef proxy 0x51e648f08a9a08A724591938d9cbc483C809aCA4 impl 0xb85ddf555bf933adfd6d6b3c3500197d9523c214 (verified); owner 0x94386Bf0482106AA08b121a5828904023dE9EFbC (EOA); upgradesRenounced=false",
+    "MotoStaking proxy 0xCE88F2C6B49EfBb92555eE5475311f0e250C2528 impl 0xb2b1a53d5dc5b5f655d4f4ede4f4517c2a5521f6 (unverified); upgradeAuthority 0x8a76eD44F01AdcC304e22012693Be86FAC6C2Fa3; getMinDelay()=0",
+    "VampChef: 60 pools; MOTO pool pid 1 allocPoint 0 lpSupply 569,620,424.511779337789789732; rewardBudget 300M; emission ended 1,790,624,687; totalCredited 289,013,640.381895332390360189; totalHarvested 285,476,610.056944695923774867; availableReward 14,523,389.943055304076225133; recoverableReward 10,986,359.618104667609639811 (owner-only after 2026-10-29)",
+    "MotoStaking: balance 1,003,203,174.336639930648793637 MOTO; sum positions 998,838,638.718479062948062917; sum claimableUnstaked 1,139,518.118012228794210262; totalEffectiveStake 5,458,651,233.697609719841011135",
+    "MotoStaking rewardOwed: WETH 1.522828068366930908, USDC 30.528902, USDT 1.067049, MOTO 1,075,731.363397715353857153; pendingClaims WETH 0.028918748277410263, USDC 0.589871, USDT 403 wei, MOTO 14,191.899111285326303251",
+    "Motoswap factory 0x81c9cbc47d700da1777abd831d8da3f526dfae24: 20 pairs, swapFeeBps 30, feeTo 0, swapAllowed(router/FeeRouter)=true; no pair has skim surplus",
+    "MOTO/WETH pair 0x302C53B6176F750e5547D775645dc8778524fCc1: 66,766,283.085505059040549890 MOTO + 3.571853435171942189 WETH, LP supply 15,328.012876963247082065",
+    "MOTO price $0.0001271 on Dexscreener; user principal 1,568.459M MOTO is ~$199k nominal but exit liquidity is thin (main pair 3.57 WETH)",
+    "Foundry fork tests 6/6 pass: no retroactive stake/append rewards; claimReward/claimTokenSelf self/owner-only; available()=0 immediately after stake; VampChef public paths pay 0 to non-stakers",
+    "Enumerated 537 stakers: sum positions + claimableUnstaked = 999.978M MOTO; balance 1,003.203M; difference 1.076M rewardOwed + ~2.15M dust/unenumerated (0.2%)"
+  ],
+  "caveats": [
+    "MOTO price is thin/illiquid; the H-O USD excludes user principal (1.568B MOTO) and LP tokens, which are nominal at market price",
+    "VampChef owner is a single EOA and both proxies are upgradeable; MotoStaking's upgrade authority has getMinDelay()=0 (no observed timelock)",
+    "MotoStaking implementation is unverified; behaviour is covered by the tested selectors, not source review",
+    "The MOTO pool has allocPoint 0 (no new MOTO emissions) and claimAsMoto is not live; design choices, not leaks",
+    "Point-in-time reads at Ethereum block 26,217,720; fork tests pinned at 26,217,377"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Motoswap/VampChef: stake/append accounting is correct, claim paths are self/owner-only, principal vests, and all 20 AMM pairs have zero skim surplus."
+}
