@@ -1,0 +1,396 @@
+# pragma version 0.4.3
+# pragma nonreentrancy on
+"""
+@title LlamaLend V2 Lend Factory
+@author Curve.Finance
+@license Copyright (c) Curve.Finance, 2020-2026 - all rights reserved
+@notice Factory for LlamaLend V2 lending markets powered by LLAMMA
+@custom:security security@curve.finance
+@custom:kill Pause factory to halt deployments.
+"""
+
+from curve_std.interfaces import IERC20
+
+from curve_stablecoin.interfaces import IVault
+from curve_stablecoin.interfaces import IController
+from curve_stablecoin.interfaces import IAMM
+from curve_stablecoin.interfaces import IPriceOracle
+from curve_stablecoin.interfaces import ILendFactory
+from curve_stablecoin.interfaces import IMonetaryPolicy
+from curve_stablecoin.interfaces import IConfigurator
+
+implements: ILendFactory
+
+from snekmate.utils import math
+from snekmate.utils import pausable
+from snekmate.auth import ownable
+
+initializes: ownable
+initializes: pausable
+
+from curve_stablecoin.lending import blueprint_registry
+
+initializes: blueprint_registry
+
+from curve_stablecoin import constants as c
+
+
+exports: (
+    # `owner` is not exported as we refer to it as `admin` for backwards compatibility
+    # `renounce_ownership` is intentionally not exported
+    ownable.transfer_ownership,
+    pausable.paused,
+)
+
+
+MIN_A: public(constant(uint256)) = 2
+MAX_A: public(constant(uint256)) = 10000
+WAD: constant(uint256) = c.WAD
+AMM_BLUEPRINT_ID: constant(String[4]) = "AMM"
+CONTROLLER_BLUEPRINT_ID: constant(String[4]) = "CTR"
+VAULT_BLUEPRINT_ID: constant(String[4]) = "VLT"
+CONTROLLER_VIEW_BLUEPRINT_ID: constant(String[4]) = "CTRV"
+
+default_fee_receiver: public(address)
+fee_receivers: HashMap[address, address]
+
+_vaults: DynArray[IVault, 10**18]
+_vaults_index: HashMap[IVault, uint256]
+
+# Maps contract addresses to market index and type for reverse lookup
+check_contract: public(HashMap[address, ILendFactory.ContractInfo])
+CONFIGURATOR: immutable(IConfigurator)
+
+
+@deploy
+def __init__(
+    _amm_blueprint: address,
+    _controller_blueprint: address,
+    _vault_blueprint: address,
+    _controller_view_blueprint: address,
+    _configurator: IConfigurator,
+    _admin: address,
+    _fee_receiver: address,
+):
+    """
+    @notice Factory which creates one-way lending vaults (e.g. collateral is non-borrowable)
+    @param _amm_blueprint Address of AMM blueprint
+    @param _controller_blueprint Address of Controller blueprint
+    @param _vault_blueprint Address of Vault blueprint
+    @param _controller_view_blueprint Address of ControllerView blueprint
+    @param _configurator Address of the configurator contract
+    @param _admin Admin address (DAO)
+    @param _fee_receiver Receiver of interest and admin fees
+    """
+    blueprint_registry.__init__([
+        AMM_BLUEPRINT_ID,              # AMM Blueprint
+        CONTROLLER_BLUEPRINT_ID,       # Controller Blueprint
+        VAULT_BLUEPRINT_ID,            # Vault Blueprint
+        CONTROLLER_VIEW_BLUEPRINT_ID,  # Controller View Blueprint
+    ])
+    assert _amm_blueprint != empty(address)
+    assert _controller_blueprint != empty(address)
+    assert _vault_blueprint != empty(address)
+    assert _controller_view_blueprint != empty(address)
+    assert _configurator.address != empty(address)
+    CONFIGURATOR = _configurator
+    # This is the only place where we set these blueprints
+    blueprint_registry.set(AMM_BLUEPRINT_ID, _amm_blueprint)
+    blueprint_registry.set(CONTROLLER_BLUEPRINT_ID, _controller_blueprint)
+    blueprint_registry.set(VAULT_BLUEPRINT_ID, _vault_blueprint)
+    blueprint_registry.set(CONTROLLER_VIEW_BLUEPRINT_ID, _controller_view_blueprint)
+
+    ownable.__init__()
+    pausable.__init__()
+    assert _admin != empty(address)
+    ownable._transfer_ownership(_admin)
+
+    # Checks zero _fee_receiver
+    self._set_default_fee_receiver(_fee_receiver)
+
+
+@external
+@view
+def version() -> String[5]:
+    return c.__version__
+
+
+@external
+def create(
+    _borrowed_token: IERC20,
+    _collateral_token: IERC20,
+    _A: uint256,
+    _fee: uint256,
+    _loan_discount: uint256,
+    _liquidation_discount: uint256,
+    _price_oracle: IPriceOracle,
+    _monetary_policy: IMonetaryPolicy,
+    _supply_limit: uint256,
+) -> address[3]:
+    """
+    @notice Creation of the vault using user-supplied price oracle contract
+    @param _borrowed_token Token which is being borrowed
+    @param _collateral_token Token used for collateral
+    @param _A Amplification coefficient: band size is ~1//A
+    @param _fee Fee for swaps in AMM (for ETH markets found to be 0.6%).
+                Bounds are enforced by the AMM: MIN_FEE <= _fee <= min(WAD * MIN_TICKS / _A, 10%)
+    @param _loan_discount Maximum discount. LTV = sqrt(((A - 1) // A) ** 4) - loan_discount
+    @param _liquidation_discount Liquidation discount. LT = sqrt(((A - 1) // A) ** 4) - liquidation_discount
+    @param _price_oracle Custom price oracle contract
+    @param _monetary_policy Monetary policy contract to set the borrow rate
+    @param _supply_limit Supply cap
+    @return Addresses of the deployed [vault, AMM, controller] contracts
+    """
+    pausable._require_not_paused()
+    assert _borrowed_token != _collateral_token, "Same token"
+    assert _A >= MIN_A and _A <= MAX_A, "Wrong A"
+    assert _liquidation_discount > 0, "liquidation discount = 0"
+    assert _loan_discount < WAD, "loan discount >= 100%"
+    assert _loan_discount > _liquidation_discount, "loan discount <= liquidation discount"
+
+    A_ratio: uint256 = 10**18 * _A // (_A - 1)
+
+    # Validate price oracle
+    p: uint256 = (staticcall _price_oracle.price())
+    assert p > 0  # dev: price oracle returned zero
+    assert extcall _price_oracle.price_w() == p  # dev: price oracle price() and price_w() mismatch
+
+    vault: IVault = IVault(create_from_blueprint(blueprint_registry.get(VAULT_BLUEPRINT_ID)))
+    amm: IAMM = IAMM(
+        create_from_blueprint(
+            blueprint_registry.get(AMM_BLUEPRINT_ID),
+            _borrowed_token,
+            10**convert(18 - staticcall _borrowed_token.decimals(), uint256),
+            _collateral_token,
+            10**convert(18 - staticcall _collateral_token.decimals(), uint256),
+            _A,
+            isqrt(A_ratio * 10**18),
+            math._wad_ln(convert(A_ratio, int256)),
+            p,
+            _fee,
+            convert(0, uint256),
+            _price_oracle,
+        )
+    )
+    controller: IController = IController(
+        create_from_blueprint(
+            blueprint_registry.get(CONTROLLER_BLUEPRINT_ID),
+            vault,
+            amm,
+            _borrowed_token,
+            _collateral_token,
+            _monetary_policy,
+            _loan_discount,
+            _liquidation_discount,
+            blueprint_registry.get(CONTROLLER_VIEW_BLUEPRINT_ID),
+            CONFIGURATOR,
+        )
+    )
+    market_id: uint256 = len(self._vaults)
+    self.check_contract[vault.address] = ILendFactory.ContractInfo(
+        market_index=market_id,
+        contract_type=ILendFactory.ContractType.VAULT,
+    )
+    self.check_contract[controller.address] = ILendFactory.ContractInfo(
+        market_index=market_id,
+        contract_type=ILendFactory.ContractType.CONTROLLER,
+    )
+    self.check_contract[amm.address] = ILendFactory.ContractInfo(
+        market_index=market_id,
+        contract_type=ILendFactory.ContractType.AMM,
+    )
+
+    extcall amm.set_admin(controller.address)
+
+    extcall vault.initialize(amm, controller, _borrowed_token, _collateral_token)
+
+    # Validate monetary policy using controller
+    extcall controller.save_rate()
+    log ILendFactory.NewVault(
+        id=market_id,
+        collateral_token=_collateral_token,
+        borrowed_token=_borrowed_token,
+        vault=vault,
+        controller=controller,
+        amm=amm,
+        price_oracle=_price_oracle,
+        monetary_policy=_monetary_policy,
+    )
+    self._vaults.append(vault)
+    # Store index with 2**128 offset so missing vault lookups revert (e.g. nonexistent vault would otherwise read index 0)
+    self._vaults_index[vault] = market_id + 2**128
+
+    if _supply_limit < max_value(uint256):
+        extcall vault.set_max_supply(_supply_limit)
+
+    return [vault.address, controller.address, amm.address]
+
+
+@external
+@view
+@reentrant
+def markets(_n: uint256) -> ILendFactory.Market:
+    """
+    @notice Get market data for market at index `_n`
+    @param _n Index of the market
+    @return Market struct containing vault, controller, amm, tokens, price oracle and monetary policy addresses
+    """
+    vault: IVault = self._vaults[_n]
+    controller: IController = staticcall vault.controller()
+    amm: IAMM = staticcall vault.amm()
+
+    return ILendFactory.Market(
+        vault=vault,
+        controller=controller,
+        amm=amm,
+        collateral_token=staticcall vault.collateral_token(),
+        borrowed_token=staticcall vault.borrowed_token(),
+        price_oracle=staticcall amm.price_oracle_contract(),
+        monetary_policy=staticcall controller.monetary_policy(),
+    )
+
+
+@external
+@view
+@reentrant
+def vaults_index(_vault: IVault) -> uint256:
+    """
+    @notice Get the index of a vault in the markets array
+    @param _vault Address of the vault
+    @return Index of the vault
+    """
+    return self._vaults_index[_vault] - 2**128
+
+
+@external
+@view
+def amm_blueprint() -> address:
+    """
+    @notice Get the address of the AMM blueprint
+    @return Address of the AMM blueprint
+    """
+    return blueprint_registry.get(AMM_BLUEPRINT_ID)
+
+
+@external
+@view
+def controller_blueprint() -> address:
+    """
+    @notice Get the address of the controller blueprint
+    @return Address of the controller blueprint
+    """
+    return blueprint_registry.get(CONTROLLER_BLUEPRINT_ID)
+
+
+@external
+@view
+def vault_blueprint() -> address:
+    """
+    @notice Get the address of the vault blueprint
+    @return Address of the vault blueprint
+    """
+    return blueprint_registry.get(VAULT_BLUEPRINT_ID)
+
+
+@external
+@view
+def controller_view_blueprint() -> address:
+    """
+    @notice Get the address of the controller view blueprint
+    @return Address of the controller view blueprint
+    """
+    return blueprint_registry.get(CONTROLLER_VIEW_BLUEPRINT_ID)
+
+
+
+@external
+@view
+@reentrant
+def admin() -> address:
+    """
+    @notice Get the admin of the factory
+    @dev Called `admin` for backwards compatibility
+    @return Address of the factory admin
+    """
+    return ownable.owner
+
+
+@external
+def pause():
+    """
+    @notice Pause new market creation
+    """
+    ownable._check_owner()
+    pausable._pause()
+
+
+@external
+def unpause():
+    """
+    @notice Unpause the factory to allow new market creation
+    """
+    ownable._check_owner()
+    pausable._unpause()
+
+
+@external
+@view
+def fee_receiver(_controller: address = msg.sender) -> address:
+    """
+    @notice Get fee receiver who earns interest from admin fees
+    @dev This function is called by controllers without specifying the
+    first argument to get their fee receiver.
+    @param _controller Address of the controller
+    @return Address of the fee receiver
+    """
+    custom_fee_receiver: address = self.fee_receivers[_controller]
+    return custom_fee_receiver if custom_fee_receiver != empty(address) else self.default_fee_receiver
+
+
+@external
+@reentrant
+def set_custom_fee_receiver(_controller: address, _fee_receiver: address):
+    """
+    @notice Set fee receiver who earns admin fees for a specific controller
+    @dev Setting to zero address resets to default fee receiver
+    @param _controller Address of the controller
+    @param _fee_receiver Address of the receiver
+    """
+    ownable._check_owner()
+    contract_info: ILendFactory.ContractInfo = self.check_contract[_controller]
+    assert contract_info.contract_type == ILendFactory.ContractType.CONTROLLER, "not a controller"
+    self.fee_receivers[_controller] = _fee_receiver
+    log ILendFactory.SetCustomFeeReceiver(controller=_controller, fee_receiver=_fee_receiver)
+
+
+@internal
+def _set_default_fee_receiver(_fee_receiver: address):
+    assert _fee_receiver != empty(address), "invalid receiver"
+    self.default_fee_receiver = _fee_receiver
+    log ILendFactory.SetFeeReceiver(fee_receiver=_fee_receiver)
+
+
+@external
+@reentrant
+def set_default_fee_receiver(_fee_receiver: address):
+    """
+    @notice Set default fee receiver who earns admin fees on
+    all controllers without a custom fee receiver
+    @param _fee_receiver Address of the receiver
+    """
+    ownable._check_owner()
+    self._set_default_fee_receiver(_fee_receiver)
+
+
+@external
+@view
+@reentrant
+def coins(_vault_id: uint256) -> IERC20[2]:
+    vault: IVault = self._vaults[_vault_id]
+    return [staticcall vault.borrowed_token(), staticcall vault.collateral_token()]
+
+
+@external
+@view
+def market_count() -> uint256:
+    return len(self._vaults)

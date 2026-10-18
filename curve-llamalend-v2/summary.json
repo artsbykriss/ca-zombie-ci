@@ -1,0 +1,43 @@
+{
+  "finding": "WaveB1-CurveLlamaLendV2",
+  "title": "Curve LlamaLend V2 fresh markets (Ethereum + Optimism): vault donation, soft-liquidation/partial-repay, oracle and permissionless-path review",
+  "chains": ["ethereum", "optimism"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 39111295, "P": 0, "S": 0},
+  "latest_block": 26217798,
+  "block_numbers": {"ethereum": 26217798, "optimism": 158353940},
+  "targets_checked": 8,
+  "live_targets": 8,
+  "closed_reasons": [
+    "All 8 markets enumerated from NewVault events (5 ETH, 3 OP) and cross-checked with market_count(); all vaults/controllers/AMMs have code.",
+    "Vault uses OZ virtual shares (DEAD_SHARES=1000) and totalAssets uses a stored available_balance that ignores direct token transfers; fork test: 1,000,000 crvUSD donation leaves totalAssets unchanged; first-depositor+donation PoC nets -1 wei.",
+    "All 8 users_to_liquidate(0,1000) sets are empty; every individually read position has health > 0 (min observed 0.314% on ETH sDOLA, ~3.5% on OP wstETH/USDC).",
+    "liquidate() is permissionless only when health < 0; PoC reverts at the exact gate 'Not enough rekt' on ETH and OP loan 0.",
+    "Oracles are non-spot: ERC4626EMAWrapper (upside EMA, min(spot,ema)) over OracleFromCurvePools reading Curve moving-average price_oracle for ETH E0-E3; ChainOracle (StableSwapNG LP EMA + capped reUSD + crvUSD aggregator) for E4; ChainlinkEMA (20x30s) over Chainlink WSTETH/ETH, BTC/USD, WSTETH/USD for OP O0-O2.",
+    "Permissionless collect_fees() pays only factory.fee_receiver(); save_rate() is controller-gated at the monetary policy and capped at 300% APY; configure()/configure_lend()/set_parameters() are privileged.",
+    "Factory create() is permissionless but deploys an isolated empty vault/controller/AMM and cannot touch existing markets; it is a listing/social-engineering surface, not an E-U path."
+  ],
+  "poc": {
+    "tests_passed": 4,
+    "tests_total": 4,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "ETH factory 0x8f6B56ec5DdF1f2691a1059f1D3cd97AC9EAB0Bd market_count=5; OP factory 0x5F94073E3f51c1FFf92ffc6b4B06b7Af193B3640 market_count=3.",
+    "Live vault assets $39,111,295: ETH crvUSD vaults 38,939,282 crvUSD = $38,898,292 at $0.998947; OP 15.7223 WETH ($37,882) + 76,330.667 USDC ($76,315.83) + 98,823.635 USDC ($98,804.43).",
+    "ETH markets: sDOLA, sfrxUSD, syrupUSDC, svZCHF, reusdsfrx (all borrowed crvUSD). OP markets: wstETH/WETH, WBTC/USDC.e, wstETH/USDC.e.",
+    "Vault/dead-share math: shares=(totalSupply+1000)*assets*precision/(totalAssets*precision+1); MIN_ASSETS=10000; direct transfers are not in available_balance.",
+    "Liquidation discounts (max bonus cap): E0/E1 1.0%, E2 0.6%, E3 2.8%, E4 2.5%, O0 1.5%, O1 5.0%, O2 11.0%.",
+    "Closest liquidation margins: ETH E0 loan 0x82eebbf1cc7fde025506aafa7898b8b66e11a003 health 0.0031408e18; OP O2 loan 0x823be23f5a90bb629d30bb0ecc8777b4c15b6f17 health 0.045877e18 (latest read ~0.0459).",
+    "OP ChainlinkEMA has no L2 sequencer-uptime check and no explicit staleness bound; feeds were fresh at read (WSTETH/USD 3010.68, BTC/USD 81622, WSTETH/ETH 1.2463)."
+  ],
+  "caveats": [
+    "Read-only, point-in-time: health drifts down with interest; re-check before acting.",
+    "OP historical health at the pinned fork block (158,352,276) can differ from latest; the margin figures are from the latest reads at OP 158,353,940.",
+    "No stateful/invariant fuzzing of the full LLAMMA was run; the review is source-level plus targeted fork negatives.",
+    "E-U-conditional paths (normal liquidation keepers after a health<0 event, or a Chainlink/sequencer outage) are not counted in E-U; they require a market move/outage.",
+    "The $39.11M is lender-owned H-O, not attacker-extractable; H-O is reported separately."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Curve LlamaLend V2: all 8 fresh markets are healthy, vault donations are not counted (virtual shares), and all oracles are EMA/Chainlink based; only normal liquidation-keeper bonuses reopen conditionally after a health<0 move."
+}
