@@ -1,0 +1,53 @@
+{
+  "finding": "JPYdf",
+  "title": "CollateralVault / dToken (USDC + wstETH) - receiveFromStrategy and backstop accounting are not unprivileged; live E-U $0",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 844153.9,
+    "S": 0
+  },
+  "latest_block": 26217683,
+  "block_numbers": {
+    "ethereum": 26217683
+  },
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "receiveFromStrategy reverts NotRegisteredStrategy() for any caller not in strategies[]; only the Aave and Morpho strategies are registered.",
+    "claim(requestId) pays request.owner and is idempotent; an unknown id reverts RequestNotFound().",
+    "dToken is minted/burned 1:1 against measured underlying receipts; there is no share price or first-depositor edge.",
+    "backstopDeposit is one-way and excluded from bufferBalance; only GOV_ROLE can release it.",
+    "A direct donation raises bufferBalance/totalUnderlying but not liabilities; a depositor only receives their 1:1 claim, and the donation remains in the buffer.",
+    "Strategies value only their own scaled shares / shares (donations ignored) and the live Aave aToken + Morpho share values cover liabilities (backingRatio = 1e18).",
+    "forceDeallocateMorphoV2 and writeoffStrategyPrincipal are WRITEOFF_ROLE; pause/unpause are GUARDIAN/GOV."
+  ],
+  "poc": {
+    "tests_passed": 8,
+    "tests_total": 8,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39105855691"
+    ]
+  },
+  "key_facts": [
+    "USDC vault 0x087Ebaf3F1b094b2046912a5E5F0BaD78dF3eAa7 (impl 0x878da559d17458d84fd7a42804ccaea53c2f10b5) at 26,217,683: buffer 120,958.892449 USDC, backstop 1.000000, totalUnderlying 604,795.462241, liabilities 604,794.462241, backingRatio 1e18, pendingWithdrawals 0, nextRequestId 1, no pauses.",
+    "wstETH vault 0x6042755eCCa71A1Be9C7091441ca5bEaA6b520e4: buffer 79.728909592771306519 wstETH, no strategies, totalUnderlying == liabilities, backingRatio 1e18.",
+    "USDC strategies: Aave 0xf91acaa3dd75044fa2abd4e9226e8d7631fe7c63 (principal 241,917.784896; estimated 241,966.747711; aToken balance 241,966.667997) and Morpho 0x7be8e8e316827bc2dcaf0862ee234985f80c1946 (principal 241,917.784896; estimated 241,971.942665; 232,816.857146e18 shares in Morpho vault 0x8c106eedad96553e64287a5a6839c3cc78afa3d0, pps 1.039322).",
+    "TVL: USDC branch $604,794.46 + 79.7289 wstETH x $3,002.16 = $239,359.4; total $844,153.9.",
+    "Roles: GOV_ROLE 0xa3d046f3c3bdf081f190f6196c94755497891722 (plain EOA) and 0xf27de84f11e089b838769edfcff9872bc45c84fe (contract); GUARDIAN/WRITEOFF/ALLOCATOR/WITHDRAWER/HARVESTER/TREASURY are EIP-7702 smart EOAs 0xc89592b3..., 0xa8331cfa..., 0x34b8edd6...; strategy owner 0xc89592b3..., upgrader 0xf27de84f....",
+    "UUPS GOV_ROLE can upgrade both vaults to a drainer -> P risk over the full $844,153.9; not E-U.",
+    "Fork PoCs: 1,000 USDC deposit->redeem returns 1,000 USDC (no queue/fee); donation stays in the buffer; backstop deposit does not enter bufferBalance; receiveFromStrategy/claim gates revert.",
+    "No pending withdrawals and no stranded funds; all dToken supply is 1:1 redeemable while backingRatio = 1e18."
+  ],
+  "caveats": [
+    "Point-in-time snapshot; the vault is UUPS-upgradeable and one GOV holder is a plain EOA.",
+    "Strategy valuations are venue-reported (Aave normalized income, Morpho convertToAssets); a venue accounting failure that does not move those views would not be detected until a writeoff.",
+    "A material venue loss drives backingRatio < 1 and freezes deposit/redeem/claim (S), it is not an E-U bank run; the 1 USDC backstop is not a repair fund.",
+    "Aave/Morpho liquidity shortages can turn immediate redemptions into 3-day queued claims.",
+    "USD marks: USDC $1.00, wstETH $3,002.16 (DefiLlama, 2026-10-18)."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from JPYdf: receiveFromStrategy is registered-strategy-only, claim pays the request owner, dToken is 1:1, and the backstop is excluded from redeemable liquidity. The only material exposure is $844k of UUPS GOV upgrade authority (P)."
+}
