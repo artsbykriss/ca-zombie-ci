@@ -1,0 +1,68 @@
+{
+  "finding": "ZH4-B1 / Katana Vault Bridge (OPEN #1 residual)",
+  "title": "Katana Vault Bridge / vbASSET LZ minter: verified endpoint-only + peer-bound; $0 E-U against $27.76M L1 backing; WBTC 154.17 reconciled",
+  "chains": ["ethereum", "katana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 27757272.69,
+    "S": 0
+  },
+  "latest_block": 26217817,
+  "block_numbers": {
+    "ethereum": 26217817,
+    "katana": 45564084,
+    "ethereum_poc_fork": 26217817,
+    "katana_poc_fork": 45564084
+  },
+  "targets_checked": 10,
+  "live_targets": 10,
+  "closed_reasons": [
+    "L2 vbUSDC minter 0x807275727dd3e640c5f2b5de7d1ec72b4dd293c0 is verified source (NonDefaultMintBurnOftAdapter, impl 0x8f45f7acd4b9fc0b446902790f304d444dff949b), not unverified as B0 assumed.",
+    "lzReceive is endpoint-only (OnlyEndpoint) and peer-bound (_getPeerOrRevert(srcEid)); peers(30101) = 0xb5bADA33542a05395d504a25885e02503A957Bb3, and the PeerSet history contains no other EID.",
+    "L1 adapter 0xb5bADA33542a05395d504a25885e02503A957Bb3 peers(30375) = 0x807275727dd3e640c5f2b5de7d1ec72b4dd293c0; both endpoints are canonical LayerZero EndpointV2 (0x6F475642a6e85809B1c36Fa62763669b1b48DD5B on Katana, 0x1a44076050125825900e736c501f859c50fe728c on Ethereum).",
+    "globalInitializationCounter = 1 on all four minters and all four L1 adapters; reinitialize() reverts AlreadyReinitialized and reinitialize1() reverts ReinitializersLocked (fork-tested).",
+    "L2 custom token GenericCustomToken v0.5.1 has Initializable slot 2 (already reinitialized); its mint/burn are gated by mintController/burnController (lxlyBridge, nativeConverter, or MINTER_BURNER_ROLE). The only MINTER_BURNER_ROLE holder is the matching LZ adapter; the admin is the 3/5 Safe 0xd0673F989bc3BA9314d0AAF28BfC84e99B7898CC.",
+    "All four minters and all four L1 adapters are owned by the 5/9 Safe 0x619D553686958A873A62B336b2DD97C3b25134EA; all eight proxy admins are owned by the same Safe. Upgrade/setPeer authority is P-class, not E-U.",
+    "L2 supply is over-collateralized: vbUSDC +47,689.00, vbUSDT +17,633.15, vbWBTC +0.03280603, WETH +5.04 (LxLy escrow + LZ adapter + NativeConverter backing vs L2 supply).",
+    "WBTC reconciliation: vbWBTC totalAssets = 154.17237646 WBTC ($12.560M), backed by 154.1045 shares of the MetaMorpho WBTC vault 0x812B2C6Ab3f4471c0E43D4BB61098a9211017427 (totalAssets 154.18491727 WBTC). The old 33.68 WBTC figure was a single-strategy snapshot; the 154.2 figure is real.",
+    "Forged lzReceive, wrong-EID peer, direct mint/burn, reinitialize, reinitialize1, and zero-share redeem all revert on forks (20/20 tests)."
+  ],
+  "open_reasons": [
+    "P: 5/9 Safe 0x619D553686958A873A62B336b2DD97C3b25134EA controls all LZ minters/adapters and their proxy admins; a compromise can mint arbitrary L2 supply and release the L1 escrow.",
+    "P: Katana GER updater 0x3138BBdAeAd339d34F084445192B2be9dd4B9f27 is an EOA and can insert arbitrary L2 global exit roots, enabling unbacked L2 custom-token mints via the LxLy bridge (DEX exit ~$2.18M main pool; cannot release L1 escrow).",
+    "P/H-O: 90.85% of L2 vbUSDC (6,052,618.38) is concentrated in the yvvbUSDC Yearn V3 clone 0x80c34BD3A3569E126e7055831036aa7b212cB159 (role_manager 0x2297d2486070655c3a162b02c64248A2f9dBC9a4; 7 strategies).",
+    "P: L1 backing sits in MetaMorpho/Morpho markets (owners 5-of-N/4-of-N Safes, curators 3/3 Safes); market/curator risk, not an unprivileged bridge path.",
+    "Coverage gap: no full audit of the Yearn V3 strategies or the Agglayer LxLy bridge; the prior r6 lane closed the L1 forged-GER path and this pass confirmed the L1 GER update gate and the Katana GER-updater role."
+  ],
+  "poc": {
+    "tests_passed": 20,
+    "tests_total": 20,
+    "ci_run_urls": [],
+    "method": "Foundry 1.8.5 forks: Ethereum via FORK_RPC_URL (fallback https://eth.drpc.org) and Katana via KATANA_RPC_URL (fallback https://rpc.katana.network); latest state, no block pin; no transactions sent. Tests cover direct lzReceive, forged peer, wrong EID, direct mint/burn, reinitialize/reinitialize1, zero-share redeem, peer/owner/endpoint/init-counter state, and per-asset solvency invariants."
+  },
+  "key_facts": [
+    "L1 vbUSDC 7,135,842.517824 totalAssets ($7,134,427.30); vbUSDT 3,066,794.473442 ($3,064,219.81); vbWBTC 154.17237646 ($12,560,442.53); vbETH 2,074.582954529 ($4,998,007.28); vbUSDS 175.798501756 ($175.76); L1 total $27,757,272.69.",
+    "L2 supply: vbUSDC 6,662,564.078427; vbUSDT 3,018,610.295336; vbWBTC 158.25298049; WETH 2,750.480779615. Backing components: LxLy escrow 6,592,142.164509 USDC / 2,732,213.324770 USDT / 152.56042180 WBTC / 1,767.187879592 ETH; LZ adapters 64,709.272092 / 204,365.547033 / 0.20097100 / 270.092388; converters 53,401.641723 / 99,664.575481 / 5.52439372 / 0.",
+    "L2 vbUSDC minter 0x807275727dd3e640c5f2b5de7d1ec72b4dd293c0: owner 0x619D553686958A873A62B336b2DD97C3b25134EA (Safe 5/9), endpoint 0x6F475642a6e85809B1c36Fa62763669b1b48DD5B, peers(30101)=0xb5bADA33542a05395d504a25885e02503A957Bb3, init 1, secondaryChainBalance 64,709.272092.",
+    "L1 vbUSDC adapter 0xb5bADA33542a05395d504a25885e02503A957Bb3: owner 5/9 Safe, endpoint 0x1a44076050125825900e736c501f859c50fe728c, peers(30375)=0x807275727dd3e640c5f2b5de7d1ec72b4dd293c0, init 1, vbUSDC balance 64,709.272092.",
+    "Only MINTER_BURNER_ROLE holder on each L2 token is its LZ adapter (granted at block 21,668,941 on Katana); L2 token admin 0xd0673F989bc3BA9314d0AAF28BfC84e99B7898CC is a 3/5 Safe; OZ Initializable slot = 2 on all three custom tokens.",
+    "L1 vbToken admins: vbUSDC 0xf4F2f5F6bAdBE05433C4604320ecC56BbECBC04E (Safe 2/3), vbUSDT/vbWBTC/vbETH 0x2De242e27386e224E5fbF110EA8406d5B70740ec (Safe 2/N), vbUSDS 0xA8C31B2edd84c654d06d626383f4154D1E40C5Ff (Safe 2/N).",
+    "Katana GER updater 0x3138BBdAeAd339d34F084445192B2be9dd4B9f27 is an EOA; Katana GER remover/bridge manager 0x4e981bAe8E3cd06Ca911ffFE5504B2653ac1C38a is a 2/5 Safe. L1 GER update is gated to the L1 bridge or rollupManager (contracts).",
+    "yvvbUSDC 0x80c34BD3A3569E126e7055831036aa7b212cB159: totalAssets 6,052,618.379712 vbUSDC (90.85% of L2 vbUSDC supply), totalDebt 6,052,618.379712, totalIdle 0, pricePerShare 1.028681, role_manager 0x2297d2486070655c3a162b02c64248A2f9dBC9a4.",
+    "Main Sushi vbUSDC/vbUSDT exit pool 0x5f88eeb3a5662489eb2d5da9f0c73f03355f3009: reserve $2,177,045.85 (24h volume $19,275.76); other vbUSDC pools $275.8k/$840.2k/$239.3k/$26.1k/$8.5k/$7.7k/$16.8k/$11.4k.",
+    "Prices used (DefiLlama 2026-10-18): ETH $2,409.16, WBTC $81,470.12, USDC $0.99980, USDT $0.99916, USDS $0.99980."
+  ],
+  "caveats": [
+    "Point-in-time reads at Ethereum block 26,217,817 and Katana block 45,564,084; totalAssets and supplies move with deposits/withdrawals and yield accrual. Re-check before acting.",
+    "P is the privileged surface, not attacker-extractable value: the 5/9 Safe and 3/5 token admin can upgrade/mint; the Katana GER updater EOA can insert L2 roots (exit bounded by DEX liquidity, not the L1 escrow).",
+    "No full audit of the Yearn V3 yvvbUSDC strategies, MetaMorpho/Morpho markets, or the Agglayer LxLy bridge; prior r6 closed the L1 forged-GER path and this pass confirmed the L1 GER gate and Katana updater role.",
+    "The L2 WETH supply includes native WETH deposits (718.244866 ETH held by the WETH contract), not only bridged vbETH.",
+    "The 33.68 WBTC figure in r6 was a single-strategy snapshot; 154.17 WBTC is the vault total (MetaMorpho shares 154.1045 of a 154.1849 WBTC vault).",
+    "No mainnet transactions were signed or sent; all exploit attempts are fork-only. No secrets or keyed RPC URLs are present in this folder (CI secret scan).",
+    "The 5/9 Safe owner set and signer hygiene are out of scope; the verdict assumes the Safe is honest."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live: the Katana vbASSET LZ minter is verified source, endpoint-only and peer-bound in both directions, has no live re-initializer, and a 5/9 Safe upgrade authority; the $27.76M L1 backing is real (WBTC 154.17, not 33.68), with residual risk only in the Safe/token admin, the Katana GER-updater EOA, and the 90.85% L2 vbUSDC concentration in yvvbUSDC."
+}
