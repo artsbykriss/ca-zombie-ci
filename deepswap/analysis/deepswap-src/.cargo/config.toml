@@ -1,0 +1,28 @@
+# DEEP mainnet release: the build-time keys of deep-amm (DeepSwap), and of deep-curve through
+# its deep-amm dependency. PUBLIC keys only, never a secret.
+#
+# This file is a TEMPLATE. The mainnet release step copies it to `.cargo/config.toml` on the
+# release branch (docs/MAINNET.md, step 2), because `solana-verify build` passes no environment
+# into its build container: an exported DEEP_AMM_ADMIN never reaches rustc, but Cargo applies
+# `[env]` from `.cargo/config.toml` to every rustc it runs. `force = true` makes these values win
+# over any variable already set in the shell.
+#
+# Never commit `.cargo/config.toml` on a dev branch: it would override the devnet keys of every
+# local and devnet build. `node scripts/check-release-config.mjs` (CI) fails if one exists outside
+# a release branch, and on a release branch fails unless it equals this file byte for byte.
+#
+# Values (docs/MAINNET.md, "Fixed addresses"; checked by packages/sdk/test/release-config.test.ts):
+#   Squads multisig   yYb55Wc4wE6jvjBMmWANKoFHMGs49seZ71GFetcXzWr (2-of-3, autonomous)
+#   vault #0          4vEQmhpGxVJNiLaYz16NVaYQqcp7GbZMwd5TR3cZtQqu  admin and (shared creator-fee) fee owner
+#   DEEP fee vault    8a2XakVBzdMRJ6gMY6u8mvebzJGgbmG6nVBVPB8uwBVZ  deep-curve PDA ["fee_vault"] (DEEP V1):
+#                     the only AmmConfig protocol owner; all DEEP revenue is split from it
+#   fee vault WSOL    EcnANJ5kYr7a8LpiH4ETkSGD3r7SDdicUn9ttf5MWCir  create-pool fee receiver (DEEP V1)
+#   DEEP Builder      7S9b5c2vEYhiVzqijW2SehGzJ5DAio1X2KdN2fEXgykX  builder wallet (a separate Squads v4
+#                     vault, owner decision 2026-10-06): 10% of ALL DEEP revenue, paid by the deep-curve
+#                     splitter's `distribute`; compiled into deep-curve and deep-amm (DEEP_BUILDER_WALLET)
+[env]
+DEEP_AMM_ADMIN = { value = "4vEQmhpGxVJNiLaYz16NVaYQqcp7GbZMwd5TR3cZtQqu", force = true }
+DEEP_AMM_FEE_OWNER = { value = "4vEQmhpGxVJNiLaYz16NVaYQqcp7GbZMwd5TR3cZtQqu", force = true }
+DEEP_AMM_CREATE_POOL_FEE_RECEIVER = { value = "EcnANJ5kYr7a8LpiH4ETkSGD3r7SDdicUn9ttf5MWCir", force = true }
+DEEP_FEE_VAULT = { value = "8a2XakVBzdMRJ6gMY6u8mvebzJGgbmG6nVBVPB8uwBVZ", force = true }
+DEEP_BUILDER_WALLET = { value = "7S9b5c2vEYhiVzqijW2SehGzJ5DAio1X2KdN2fEXgykX", force = true }

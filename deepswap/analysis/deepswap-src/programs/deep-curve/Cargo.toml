@@ -1,0 +1,59 @@
+[package]
+name = "deep-curve"
+version = "0.1.0"
+description = "DEEP bonding-curve launch program"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "deep_curve"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+# cfgs referenced by Anchor/Solana macro expansions.
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+litesvm-tests = []
+# DEVNET release builds only (scripts/deploy-deepswap-devnet.mjs): Pyth SOL/USD prices may be
+# up to 600 s old instead of 120 s (src/pyth.rs MAX_PRICE_AGE_SECONDS). Never enable it in a
+# mainnet build; mainnet-preflight FAILs on a binary built with it.
+devnet = []
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
+
+[dependencies]
+anchor-lang = { version = "=1.2.0", features = ["init-if-needed"] }
+anchor-spl = { version = "=1.2.0", features = ["token", "token_2022", "associated_token", "metadata"] }
+solana-security-txt = "1.1.1"
+# Graduation CPI target; used for its program id + create-pool fee receiver constants.
+deep-amm = { path = "../deep-amm", features = ["no-entrypoint"] }
+
+[dev-dependencies]
+# Tests only: the Holder Rewards distributor a permissionless Holder pool requires (its
+# account/instruction types and seeds, for programs/deep-curve/tests/litesvm.rs).
+deep-rewards = { path = "../deep-rewards", features = ["no-entrypoint"] }
+serde_json = "1"
+proptest = "1"
+litesvm = "0.17"
+solana-keypair = "3.1"
+solana-signer = "3"
+solana-transaction = "4.1"
+solana-message = "4.2"
+solana-transaction-error = "3.4"
+solana-instruction-error = "2.5"
+solana-account = "4"
+base64 = "0.22"
+
+# LiteSVM integration tests need the compiled SBF artifact; run via
+# `node scripts/programs-test.mjs --sbf` (builds the .so first).
+[[test]]
+name = "litesvm"
+required-features = ["litesvm-tests"]

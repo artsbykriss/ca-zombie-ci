@@ -1,0 +1,53 @@
+{
+  "finding": "Wave-B1 DeepSwap",
+  "title": "DeepSwap (Solana) \u2014 Raydium cp-swap fork with burned graduation LP",
+  "chains": [
+    "solana"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 4.76,
+    "P": 37085.89,
+    "S": 0
+  },
+  "latest_block": 458340992,
+  "block_numbers": {
+    "solana": 458340992
+  },
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "LP mint 8biCLkwhPXfs2Wkw1NFAKjaVMGbFU1fdivdUeqEH5DyA has supply 0 and zero token accounts; the graduation tx minted then burned and closed the LP",
+    "Withdraw requires owner signer + owner_lp_token.amount >= lp_token_amount; no LP exists to pass the check",
+    "pool_state.lp_supply is a stale phantom 5,312.897; exact deposit->withdraw round trips return <= the deposit (no positive delta)",
+    "Creator/protocol/fund fee paths pay fixed recipients; the only permissionless fee collector pays the pool creator",
+    "The only way to move the 358.47 SOL is the program upgrade authority (P), a Squads multisig vault (threshold 2, 48 h timelock)"
+  ],
+  "poc": {
+    "tests_passed": 1,
+    "tests_total": 1,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39106723208"
+    ]
+  },
+  "key_facts": [
+    "program HCrCy6bzHhZ1b6bXwQAucEFkKXyzYMh3hgAR8UPrYSEP; programdata CiWMKfJDcZhGtaYx9kM1bZ3byrxDZVRZXKN5hd5oBuj8; ELF sha256 2c8251b92925ec7d5e3bf3d5bddcbd4aa297a6434537aeaf4bb3ecd77497359e",
+    "upgrade authority 4vEQmhpGxVJNiLaYz16NVaYQqcp7GbZMwd5TR3cZtQqu is a system-owned Squads vault PDA controlled by multisig yYb55Wc4wE6jvjBMmWANKoFHMGs49seZ71GFetcXzWr (owner SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf, threshold 2, time_lock 172,800 s = 48 h; repo comment describes 2-of-3)",
+    "one live pool F3fSrURu58o7n5iNqGRyPgzZPo5VfMtVrWggMD2TeFdp: 358.467893506 SOL + 78,884,379.116951 DEEP",
+    "LP mint supply 0, 0 LP token accounts; pool_state.lp_supply 5,312,897,514,527 raw (phantom)",
+    "graduation tx 5joCMBhcAsEE3UM9kuPZCvVBCe2axKASdPwPT8XVhUjfMKrfKPRjWUZgiWvCS8hYByBWVPzgd9kHoj1yphjHVge4 by deep-curve 7czURwVLkQpcF1HVhhZU5GGzvPA8YniogZY1BhZHCDtA minted then burned the LP",
+    "creator_fees_token_0 = 46,019,147 lamports (0.046019147 SOL) owed to the holder vault; fee_model=1 V1; reward_model=2 Holder; reward_rate=10,000 (1%)",
+    "DEEP mint DpyVL7crxmDAgKuCZ6heGVkPzGAWyx7fkRDRrASadeep has no Jupiter route (TOKEN_NOT_TRADABLE); the DEEP side of the $78.7k DL figure is not a real exit",
+    "exact deposit->withdraw simulation for LP sizes 1..10S has delta <= 0 in both tokens"
+  ],
+  "caveats": [
+    "The program upgrade authority can replace the program and move the vaults (P). If that key is lost, the 358.47 SOL is S.",
+    "The upgrade authority is a Squads multisig (threshold 2) with a 48 h timelock; upgrades can recover/move the vaults (P), and if the multisig is lost the 358.47 SOL is S",
+    "DEEP has no external market/Jupiter route; the $78.7k DefiLlama two-sided valuation is not realizable",
+    "No local Solana validator fork; verification is source review + live account proof + exact math simulation",
+    "Point-in-time read at slot 458,338,772"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from DeepSwap: the only pool has 358.47 SOL but its graduation LP was burned to supply 0, and every fee/withdraw path pays a fixed recipient; the SOL is recoverable only through the Squads upgrade authority with a 48 h timelock (P)."
+}

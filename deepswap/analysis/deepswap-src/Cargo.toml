@@ -1,0 +1,26 @@
+[workspace]
+members = ["programs/*"]
+resolver = "2"
+
+# Read by solana-verify (Ellipsis-Labs/solana-verifiable-build, src/main.rs
+# get_solana_version_from_workspace_metadata) to pick its build image. Without it, solana-verify
+# falls back to the FIRST solana-program in Cargo.lock (2.3.0 here) and builds with the wrong
+# toolchain. 3.1.10 is the Agave CLI in solanafoundation/anchor:v1.0.2, which builds devnet.
+# Cargo ignores workspace metadata, so this changes no build.
+[workspace.metadata.cli]
+solana = "3.1.10"
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1
+
+[profile.release.build-override]
+opt-level = 3
+incremental = false
+codegen-units = 1
+
+# deep-rewards only: optimise for size (its hot paths are a few hashes and CPIs; CU stays far
+# below budget). Other programs keep the default opt-level 3.
+[profile.release.package.deep-rewards]
+opt-level = "z"

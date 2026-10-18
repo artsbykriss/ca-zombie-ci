@@ -1,0 +1,140 @@
+deep-amm (DeepSwap constant-product AMM)
+
+This program is derived from raydium-cp-swap
+  https://github.com/raydium-io/raydium-cp-swap
+  commit b3187ae53a1b95a201f855a59024a12ca8f5b51a (2026-10-02, "Feat/creator fee share (#80)")
+  directory programs/cp-swap
+Copyright Raydium contributors, licensed under the Apache License, Version 2.0
+(see LICENSE in this directory, copied unmodified from upstream).
+
+Modifications by the DEEP project (Apache-2.0 section 4(b)):
+
+1. Cargo.toml: package renamed to `deep-amm` (lib `deep_amm`); anchor-lang and
+   anchor-spl moved from =1.0.2 to =1.2.0 to match this workspace. No source changes
+   were needed for the Anchor port.
+2. src/lib.rs:
+   - `declare_id!` replaced by a single DEEP program id
+     (HCrCy6bzHhZ1b6bXwQAucEFkKXyzYMh3hgAR8UPrYSEP) for every cluster;
+   - the `#[program]` module renamed `raydium_cp_swap` -> `deep_amm` (instruction and
+     account discriminators are unchanged);
+   - `security_txt!` points at the DEEP project and its security contact;
+   - the Raydium-controlled keys (`admin`, `create_pool_fee_reveiver`,
+     `collect_lamports`, `fund_fee_owner`, `protocol_fee_owner`,
+     `shared_creator_fee_owner`) now resolve to build-time values in the new
+     `deep_keys` module (env DEEP_AMM_ADMIN / DEEP_AMM_FEE_OWNER /
+     DEEP_AMM_CREATE_POOL_FEE_RECEIVER; unset = system program id, i.e. no admin).
+3. src/instructions/admin/{create_creator_fee_share,create_permission_pda,
+   create_support_mint_associated}.rs: the per-instruction owner constants now resolve
+   to the DEEP admin key.
+4. Cargo.toml: clippy lints allowed for this crate (`[lints.clippy]`) so the workspace's
+   strict clippy CI does not require restyling upstream code. No source changes.
+5. src/instructions/swap_base_output.rs: rejects an `amount_out` that is >= the whole
+   output reserve with `InsufficientVault` before calling the curve math (upstream
+   reached an `unwrap()` panic there). src/curve/* is still unmodified.
+
+6. DEEP builder share (owner decision 2026-10-06), the fund fee made the builder's
+   (superseded by 7: the rate is now 0; the owner and collect lock remain for legacy fund fees):
+   - src/lib.rs `deep_keys`: new build-time `BUILDER` (env DEEP_BUILDER_WALLET; unset =
+     system program id) and `BUILDER_FUND_FEE_RATE` (166_667, or 0 when unset);
+     `fund_fee_owner::ID` now resolves to `BUILDER` instead of the fee owner;
+   - src/instructions/admin/create_config.rs: requires `fund_fee_rate == BUILDER_FUND_FEE_RATE`;
+   - src/instructions/admin/update_config.rs: param 2 (fund_fee_rate) accepts only
+     `BUILDER_FUND_FEE_RATE`, param 4 (fund_owner) only `BUILDER` (idempotent, so an existing
+     AmmConfig can be set once); every other param is unchanged;
+   - src/instructions/admin/collect_fund_fee.rs: the signer must be `BUILDER` (upstream also
+     allowed `amm_config.fund_owner` or the admin);
+   - src/error.rs: `BuilderFeeLocked` appended (6016); existing codes unchanged.
+
+7. DEEP V1 Phase 1 (owner decisions 2026-10-06, docs/V1_FEES.md): all DEEP revenue goes to the
+   deep-curve fee vault, whose splitter pays the builder 10%; the builder fund fee is retired:
+   - src/lib.rs `deep_keys`: new build-time `FEE_VAULT` (env DEEP_FEE_VAULT, the deep-curve PDA
+     ["fee_vault"]; unset = system program id) and `MAX_TOTAL_FEE_RATE` (100_000, a 10% hard
+     cap per side); `BUILDER_FUND_FEE_RATE` is now 0; `protocol_fee_owner::ID` resolves to
+     `FEE_VAULT` (was the fee owner); DEEP_AMM_CREATE_POOL_FEE_RECEIVER is set to the vault's
+     WSOL ATA in the release configs (no code change);
+   - src/instructions/admin/update_config.rs: param 3 (protocol_owner) accepts only `FEE_VAULT`
+     (upstream: any key, instantly), and a missing remaining account is an error instead of a
+     panic; after every update `trade_fee_rate + creator_fee_rate <= MAX_TOTAL_FEE_RATE`;
+   - src/instructions/admin/create_config.rs: the same 10% cap;
+   - src/instructions/admin/collect_protocol_fee.rs: only `amm_config.protocol_owner` may sign
+     (upstream also allowed the admin);
+   - new file src/instructions/admin/collect_protocol_fee_to_vault.rs and the
+     `collect_protocol_fee_to_vault` instruction in src/lib.rs: permissionless; moves all
+     accrued protocol fees to the protocol owner's (= the fee vault's) associated token accounts;
+   - src/error.rs: `ProtocolOwnerLocked` (6017), `InvalidProtocolFeeRecipient` (6018) and
+     `FeeRateAboveCap` (6019) appended; existing codes unchanged.
+
+8. DEEP V1 Phase 3 (owner decisions 2026-10-06 and 2026-10-07, docs/V1_FEES.md):
+   side-dependent fees taken in the pool's quote token, and a reward rate per pool chosen by
+   its creator (Standard / Creator / Holder):
+   - new file src/curve/v1.rs (and its `pub mod v1` line in src/curve/mod.rs): the V1 swap
+     math (`swap_base_input_v1`, `swap_base_output_v1` and helpers). The upstream files
+     src/curve/{calculator,fees,constant_product}.rs are NOT modified;
+   - src/states/config.rs: `AmmConfig` gains `fee_model`, `buy_lp_fee_rate`,
+     `buy_protocol_fee_rate`, `sell_lp_fee_rate`, `sell_protocol_fee_rate`,
+     `max_reward_rate`, carved out of `padding` ([u64; 14] -> u8 + [u8; 7] + 5 x u64 +
+     [u64; 8]; the account size, 236, is unchanged), with `validate_v1_rates` (LP + DEEP at
+     most 5% per side, the current maximum reward rate at most 5%) and `sync_legacy_mirror`;
+   - src/states/pool.rs: `PoolState` gains `fee_model`, `reward_model`,
+     `reward_rate_snapshot`, carved out of `padding` ([u64; 28] -> u8 + u8 + [u8; 6] + u64 +
+     [u64; 26]; the account size, 637, is unchanged); new `set_v1`, `v1_rates`,
+     `update_fees_v1`; `settle_creator_fee` uses share rate 0 for a V1 pool (its reward is
+     never shared with the protocol, whatever AmmConfig or CreatorFeeShare say);
+   - src/states/events.rs: new event `SwapFeesV1` (emitted after the unchanged `SwapEvent`);
+   - src/instructions/swap_base_input.rs, swap_base_output.rs: a pool and its AmmConfig must
+     have the same `fee_model` (`FeeModelMismatch`); V1 pools are priced by src/curve/v1.rs
+     and book DEEP's part and the reward part on the quote side (`update_fees_v1`); legacy
+     pools take exactly upstream's path (same calls, same arguments);
+   - src/instructions/initialize_with_permission.rs: upstream's handler body is now the
+     private `initialize_pool_with_permission` (unchanged except for one optional last
+     step); `initialize_with_permission` requires a legacy AmmConfig; new
+     `initialize_with_permission_v1` (reward model and reward rate arguments; the quote side
+     in `creator_fee_on`, WSOL when the pair has it);
+   - src/instructions/initialize.rs: upstream's handler body is now the private
+     `initialize_pool` (unchanged except for the last step); under a V1 AmmConfig `initialize`
+     opens a V1 Standard pool (`default_quote_side`: WSOL when the pair has it, otherwise
+     token 1); new permissionless `initialize_v1` (quote side, reward model and reward rate
+     chosen by the pool's creator; the reward recipient is derived: the creator, or the
+     deep-rewards holder vault of the non-quote token, the latter on SOL-quoted pairs only;
+     the rate at most the AmmConfig's `max_reward_rate`);
+   - src/instructions/admin/create_config.rs: new `create_amm_config_v1`;
+   - src/instructions/admin/update_config.rs: params 10..=13 (the four V1 rates) and 14
+     (`max_reward_rate`) for V1 configs only; params 0, 1, 7, 8 are rejected on a V1 config; the V1 cap and the legacy
+     mirror are applied after every change. There is no parameter for `fee_model`;
+   - src/lib.rs: the three new instructions (`create_amm_config_v1`,
+     `initialize_with_permission_v1`, `initialize_v1`), doc comments, and in `deep_keys`
+     `MAX_REWARD_RATE` (5%, the ceiling of a pool's reward rate; `MAX_TOTAL_FEE_RATE`, 10%,
+     stays the cap on a side's total), `DEEP_REWARDS_PROGRAM_ID`, `HOLDER_VAULT_SEED` and
+     `holder_vault_address`;
+   - src/error.rs: `FeeModelMismatch` (6020), `InvalidRewardModel` (6021),
+     `InvalidQuoteSide` (6022), `InvalidRewardRate` (6023), `HolderRewardsNeedSolQuote`
+     (6024), `RewardRateAboveMax` (6025) appended; existing codes unchanged;
+   - Cargo.toml: dev-dependency serde_json; new test tests/deepswap_v1_vectors.rs.
+
+9. Security review before mainnet (2026-10-07): no funds stuck, fewer admin powers.
+   - src/lib.rs `deep_keys`: `GRADUATION_PAYER` (deep-curve's pool-payer PDA),
+     `MAX_CREATE_POOL_FEE` (0.15 SOL) and `create_pool_fee_to_charge`, `DISTRIBUTOR_SEED`,
+     `distributor_address`, `has_distributor`;
+   - src/instructions/initialize_with_permission.rs: the `permission` account is unchecked
+     and verified in the handler (`check_permission`: owner, discriminator, layout), except
+     for the graduation payer, which needs none; `disable_create_pool` does not apply to the
+     graduation payer; the create-pool fee charged is capped; a Holder pool with a non-SOL
+     quote needs its deep-rewards distributor (remaining account);
+   - src/instructions/initialize.rs: the create-pool fee charged is capped; `initialize_v1`
+     with the Holder model needs the (token, SOL) deep-rewards distributor (remaining account);
+   - src/instructions/admin/close_permission_pda.rs: refuses the graduation payer's permission;
+   - src/instructions/admin/{create_config,update_config}.rs: `create_pool_fee` at most
+     `MAX_CREATE_POOL_FEE`;
+   - src/instructions/admin/update_pool_status.rs: only the deposit and swap bits can be set;
+   - src/instructions/withdraw.rs: the pool-status check is removed (withdrawals cannot be
+     disabled);
+   - src/instructions/admin/collect_protocol_fee_to_vault.rs: each token side is collected
+     independently; a side whose recipient cannot receive is skipped, not failed;
+   - src/error.rs: `CreatePoolFeeAboveCap` (6026), `GraduationPermissionLocked` (6027),
+     `InvalidPoolStatus` (6028), `HolderRewardsNeedDistributor` (6029) appended.
+
+Not modified: src/curve/{calculator,fees,constant_product}.rs (swap math of legacy pools,
+byte-identical to upstream), src/utils/*, src/states/{oracle,permission,
+support_mint_associated,creator_fee_share}.rs, and every other instruction handler's logic
+and account constraints (deposit, the other collect instructions; withdraw except for the
+removed status check of modification 9).

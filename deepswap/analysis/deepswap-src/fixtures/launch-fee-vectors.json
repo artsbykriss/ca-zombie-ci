@@ -1,0 +1,141 @@
+{
+  "generatedBy": "hand-computed with BigInt from the documented formula ceil(usd_cents*1e7*10^-expo/price)",
+  "cases": [
+    {
+      "usdCents": 200,
+      "price": "12030243981",
+      "exponent": -8,
+      "expect": {
+        "lamports": "16624767"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "12030231882",
+      "exponent": -8,
+      "expect": {
+        "lamports": "16624784"
+      }
+    },
+    {
+      "usdCents": 0,
+      "price": "12030243981",
+      "exponent": -8,
+      "expect": {
+        "lamports": "0"
+      }
+    },
+    {
+      "usdCents": 1,
+      "price": "12030243981",
+      "exponent": -8,
+      "expect": {
+        "lamports": "83124"
+      }
+    },
+    {
+      "usdCents": 2000,
+      "price": "10000000000",
+      "exponent": -8,
+      "expect": {
+        "lamports": "200000000"
+      }
+    },
+    {
+      "usdCents": 2000,
+      "price": "1",
+      "exponent": 2,
+      "expect": {
+        "lamports": "200000000"
+      }
+    },
+    {
+      "usdCents": 2000,
+      "price": "1",
+      "exponent": -18,
+      "expect": {
+        "error": "Unsupported"
+      }
+    },
+    {
+      "usdCents": 65535,
+      "price": "1",
+      "exponent": -18,
+      "expect": {
+        "error": "Unsupported"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "1",
+      "exponent": 0,
+      "expect": {
+        "lamports": "2000000000"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "150",
+      "exponent": 0,
+      "expect": {
+        "lamports": "13333334"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "15000000",
+      "exponent": -5,
+      "expect": {
+        "lamports": "13333334"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "0",
+      "exponent": -8,
+      "expect": {
+        "error": "NonPositive"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "-5",
+      "exponent": -8,
+      "expect": {
+        "error": "NonPositive"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "1",
+      "exponent": 19,
+      "expect": {
+        "error": "Unsupported"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "1",
+      "exponent": -19,
+      "expect": {
+        "error": "Unsupported"
+      }
+    },
+    {
+      "usdCents": 1999,
+      "price": "9999999999",
+      "exponent": -8,
+      "expect": {
+        "lamports": "199900001"
+      }
+    },
+    {
+      "usdCents": 200,
+      "price": "1",
+      "exponent": 18,
+      "expect": {
+        "lamports": "1"
+      }
+    }
+  ]
+}
