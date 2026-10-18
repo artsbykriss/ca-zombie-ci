@@ -1,0 +1,52 @@
+No files changed, compilation skipped
+
+Ran 7 tests for test/ShibariumWbone.t.sol:ShibariumWbone
+[PASS] test_chained_wbone_weth_dai_nominal() (gas: 542842)
+Logs:
+  Shibarium fork block 19476130
+  boneIn (wei) 15718000000000000000000
+  wethMid (wei) 581638080430685481
+  daiOut (wei) 1808824552286110099346
+  nominal profit USD e18 937069541771332440704
+  DAI burned on L2 (L1 exit frozen) 1808824552286110099346
+
+[PASS] test_l1_erc20_exit_reverts() (gas: 46814)
+[PASS] test_l1_ether_exit_payout() (gas: 107585)
+Logs:
+  Ethereum fork block 26215850
+  ETH paid to withdrawer 1193132635970670183
+  EtherPredicate ETH left 747425963325554251
+
+[PASS] test_l1_exit_gates() (gas: 208537)
+Logs:
+  Ethereum fork block 26215850
+  ERC20Predicate DAI escrow 37837235190071607300
+  ERC20Predicate USDT escrow 904373
+  EtherPredicate ETH buffer 1940558599296224434
+
+[PASS] test_wbone_deposit_withdraw_1to1() (gas: 121852)
+Logs:
+  Shibarium fork block 19476132
+  deposit 1 BONE -> WBONE delta 1000000000000000000
+
+[PASS] test_wbone_usdt_nominal() (gas: 396085)
+Logs:
+  Shibarium fork block 19476130
+  boneIn (wei) 1196754658000000000000
+  usdtOut (raw 6d) 126483977
+  nominal profit USD e18 59970020040374577537
+  USDT burned on L2 (L1 exit frozen) 126483977
+
+[PASS] test_wbone_weth_arb_and_weth_burn() (gas: 424632)
+Logs:
+  Shibarium fork block 19476131
+  boneIn (wei) 38084090645000000000000
+  wethOut (wei) 1193132635970670183
+  cost USD e18 2113098855384517435222
+  value USD e18 2860044884557418696907
+  gross profit USD e18 746946029172901261685
+  WETH burned on L2 (withdrawal initiated) 1193132635970670183
+
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 19.08s (59.87s CPU time)
+
+Ran 1 test suite in 19.08s (19.08s CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)

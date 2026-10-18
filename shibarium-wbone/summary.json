@@ -1,0 +1,64 @@
+{
+  "finding": "ZH4-03",
+  "title": "Shibarium stale-WBONE cluster \u2014 exit-adjusted $746.95 gross / $739.07 net one-shot; DAI/USDT legs stranded",
+  "chains": [
+    "shibarium",
+    "ethereum"
+  ],
+  "headline_extractable_usd": 739.07,
+  "headline_confidence": "medium",
+  "categories": {
+    "E-U": 739.07,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 19476148,
+  "block_numbers": {
+    "shibarium": 19476148,
+    "ethereum": 26215857
+  },
+  "targets_checked": 12,
+  "live_targets": 1,
+  "closed_reasons": [
+    "DAI L1 exit frozen: ERC20Predicate 0x6Aca26bF... MANAGER_ROLE held only by team EOA 0x80Cc222E...; RootChainManager role revoked 2025-09-12 (block 23,349,223); zero DAI transfers from the predicate since",
+    "USDT L1 exit frozen: same predicate/role gate; zero USDT transfers from the predicate since 2025-09-12",
+    "DAI/USDT escrow insolvent: 37.837 DAI and 0.904373 USDT in the L1 predicate vs 6,535.279 DAI and 12,779.518 USDT L2 supply (0.579% / 0.0071% backing)",
+    "Chained +$937 and USDT +$59.97 are nominal only; executing them converts BONE into an L2-only token (true net negative)",
+    "EtherPredicate exit buffer is 1.940558599 ETH vs 186.180882 WETH supply (1.04% backing); first-come-first-served, caps the WETH leg",
+    "Pool LP 99.96% staked in gauge 0x0bC0b801...; factory pauser/feeManager is EOA 0x9FC924a7... (isPaused=false today, volatileFee=20 bps)",
+    "Fake-WBONE 0xC76F4c81... deposit() reverts 'Invalid sender address' (no mint route); DAMN/WBONE 0x615b17bd... is a circular-price trap (DAMN zero volume, no source); emergency bridge 0xda9CE761... abandoned/empty"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39082788804"
+    ]
+  },
+  "key_facts": [
+    "WBONE 0x839FdB6cc98342B428E074C1573ADF6D48CA3bFd is a 1:1 wrapper of native BONE: deposit()/withdraw() fork-proven 1:1 (test_wbone_deposit_withdraw_1to1)",
+    "WBONE/WETH pool 0xe4dbeE5Fa46fB8A4D00FB719deDCAEDc91AE5F13 is a Solidly volatile vAMM (factory 0xB9fbdFA..., volatileFee=20 bps, isPaused=false); reserves 107,523.829458 WBONE / 4.568486556 WETH; implied WBONE $0.10196 vs market $0.055485 = 1.8376x",
+    "The WBONE/WETH pool has 0 swaps since block 18M; last swap 2026-07-04 17:01:06 UTC block 17,967,045; 1,000 swaps existed in 2023-2025, but it has been dead ~105 days",
+    "Optimal standalone trade: 38,084.090645 BONE -> 38,084.090645 WBONE -> 1.193132635970670183 WETH; cost $2,113.0989; value $2,860.0449; gross profit $746.9460 at 2026-10-18 prices (WETH $2,397.09, BONE $0.055485081)",
+    "Net after 0.3% BONE acquisition fee ($6.34), L1 deposit gas ($0.34), L1 exit gas ($1.20 at 1 gwei/500k), L2 gas (~$0): $739.07; range $734.27-$745.41 depending on gas/source",
+    "WETH exits are live: EtherPredicate 0xc3897302... still has RCM 0x08C4b60f... as MANAGER_ROLE; real batch tx 0xd8d66ca65e... (block 26,103,909, 2026-10-02) paid 0.03435660242474078 + 0.03 ETH via 2 RCM.exit(bytes) WETH payloads",
+    "EtherPredicate ETH buffer 1.940558599 ETH at block 26,215,857; after the PoC's 1.193132636 ETH payout, 0.747425963 ETH remains; WETH supply 186.180882 WETH -> only 1.04% backed",
+    "BONE plasma exits are live: Withdraw events for token 0x9813037e... at block 26,162,022 (1,260 + 144.9 + 1,850.85 BONE), 26,119,619 (5,240 BONE), 26,108,411 (85.57 BONE); HALF_EXIT_PERIOD=302,400 s (7-day full exit)",
+    "BONE deposits are live: Deposit events 2026-10-17 blocks 26,213,745 (2 BONE) and 26,214,197 (16.65 BONE); depositors' L2 balances 18.66 / 196.4 BONE confirm the mint",
+    "DAI/USDT legs are nominal only: DAI/WETH pool 0xD7115c43... has 4,040.83 DAI / 0.71556 WETH (507 tiny router swaps since block 18M, last 2026-10-15); WBONE/USDT pool 0x4fC0DB98... has 1,322.46 WBONE / 266.53 USDT (385 tiny swaps, last 2026-10-13)",
+    "ERC20Predicate 0x6Aca26bF... has exactly 1 MANAGER_ROLE member: 0x80Cc222EA02F4334F67e9E55E7412fed62599004 (EOA, no code); RCM hasRole=false; 0 DAI/USDT transfers from the predicate since 2025-09-12",
+    "LP of the WBONE/WETH pool is 698,856.9 / 699,127.16 (99.96%) staked in gauge 0x0bC0b80141859F35F1913873354d9Db3f4D3C105"
+  ],
+  "caveats": [
+    "The headline is one-shot: after selling 38,084 WBONE the pool's marginal price equals the market; no second cycle",
+    "Size is capped by the EtherPredicate's 1.94056 ETH buffer (61.5% consumed by the 1.19313 ETH output); another exiter can drain it first",
+    "The WBONE contract is unverified; 1:1 behavior is fork-proven, not source-proven",
+    "The L1 EtherPredicate payout test uses a crafted RLP log pranked as the RCM; the end-to-end path is evidenced by the real 2026-10-02 batch exit tx",
+    "The chained $937 and USDT $59.97 are nominal and value-destructive if executed (DAI/USDT cannot leave Shibarium)",
+    "The factory pauser/feeManager EOA can pause the DEX or change the fee (currently isPaused=false, volatileFee=20 bps)",
+    "Prices move: the 2026-10-18 snapshot used BONE $0.055485081, WETH $2,397.09 in the PoC and $2,399.73 in the live state script; the live optimum was $750.10 gross",
+    "The wave-2 finding's +$877/+$936 and $0.95k ceiling are corrected here to $746.95 gross / $739.07 net because DAI/USDT exits are frozen"
+  ],
+  "one_liner": "An external unprivileged attacker can still extract ~$746.95 gross (~$739 net) once by minting WBONE 1:1 from BONE and selling it into the dead WBONE/WETH pool, then exiting WETH to ETH through the live pos-portal EtherPredicate; the +$877 chained and +$59.97 USDT legs are nominal only because DAI/USDT exits are manager-frozen and 99.4%+ unbacked."
+}
