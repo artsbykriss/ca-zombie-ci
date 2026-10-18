@@ -1,0 +1,145 @@
+{
+ "finding": "ZH4-WaveB1-zksync-vault",
+ "target": "0x621425a1Ef6abE91058E9712575dcc4258F8d091",
+ "identity": "SyncSwap Vault (V1), zkSync Era",
+ "block": 72543148,
+ "eth_balance": "1116878522377497625509",
+ "eth_usd": 2690440.37,
+ "erc20_usd": 2900256.65,
+ "total_custody_usd": 5590697.02,
+ "pool_attributed_usd": 5588218.25,
+ "non_pool_usd": 2478.77,
+ "categories": {
+  "E-U": 0.0,
+  "H-O": 5590697.02,
+  "P": 0.0,
+  "S": 0.0
+ },
+ "headline_extractable_usd": 0.0,
+ "headline_confidence": "high",
+ "standing_excess_usd": 0.0001,
+ "checks": [
+  {
+   "check": "code_sha256_matches_source_artifact",
+   "pass": true,
+   "detail": "92c3ce7b1e7f9b9259536dfb273c86ef1208a0dfaa893c928d07f5d92fb730a5"
+  },
+  {
+   "check": "code_size_30944",
+   "pass": true,
+   "detail": "30944"
+  },
+  {
+   "check": "native_balance_equals_reserves",
+   "pass": true,
+   "detail": "1116878522377497625509 vs 1116878522377497625509"
+  },
+  {
+   "check": "weth_balance_zero",
+   "pass": true,
+   "detail": "0"
+  },
+  {
+   "check": "not_paused",
+   "pass": true,
+   "detail": "0"
+  },
+  {
+   "check": "no_eip1967_implementation",
+   "pass": true,
+   "detail": "0x0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  {
+   "check": "owner_is_syncswap_deployer_eoa",
+   "pass": true,
+   "detail": "0x000002c34bae6dd7bec72acba6aaac1e01a359de"
+  },
+  {
+   "check": "zksync_bytecode_hash_format",
+   "pass": true,
+   "detail": "010003c71e7f9b9259536dfb273c86ef1208a0dfaa893c928d07f5d92fb730a5"
+  },
+  {
+   "check": "recompiled_byte_identical",
+   "pass": true,
+   "detail": "92c3ce7b1e7f9b9259536dfb273c86ef1208a0dfaa893c928d07f5d92fb730a5"
+  },
+  {
+   "check": "withdraw_usdc_fresh_panics",
+   "pass": true,
+   "detail": "Panic 0x11"
+  },
+  {
+   "check": "withdraw_eth_fresh_panics",
+   "pass": true,
+   "detail": "Panic 0x11"
+  },
+  {
+   "check": "transfer_usdc_fresh_panics",
+   "pass": true,
+   "detail": "Panic 0x11"
+  },
+  {
+   "check": "transfer_and_deposit_unfunded_reverts",
+   "pass": true,
+   "detail": "7939f424"
+  },
+  {
+   "check": "set_paused_non_owner_reverts",
+   "pass": true,
+   "detail": "Ownable: caller is not the owner"
+  },
+  {
+   "check": "set_fee_non_owner_reverts",
+   "pass": true,
+   "detail": "Ownable: caller is not the owner"
+  },
+  {
+   "check": "transfer_ownership_non_owner_reverts",
+   "pass": true,
+   "detail": "Ownable: caller is not the owner"
+  },
+  {
+   "check": "deposit_usdc_credit_zero",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "check": "flashloan_nonrepay_reverts",
+   "pass": true,
+   "detail": "INVALID_POST_LOAN_BALANCE"
+  },
+  {
+   "check": "flashloan_wrong_callback_reverts",
+   "pass": true,
+   "detail": "IERC3156_CALLBACK_FAILED"
+  },
+  {
+   "check": "vault_has_no_token_approvals",
+   "pass": true,
+   "detail": "{'USDC->router': 0, 'USDC->master': 0, 'USDC->feeRecipient': 0, 'USDT->router': 0, 'USDT->master': 0, 'USDT->feeRecipient': 0, 'WETH->router': 0, 'WETH->master': 0, 'WETH->feeRecipient': 0}"
+  },
+  {
+   "check": "no_real_token_excess",
+   "pass": true,
+   "detail": "$0.000000 over 40 dust tokens"
+  },
+  {
+   "check": "erc20_total_matches_order_of_magnitude",
+   "pass": true,
+   "detail": "$2,900,256.65"
+  },
+  {
+   "check": "no_material_per_pool_excess",
+   "pass": true,
+   "detail": "$0.000100 over 1 pools"
+  }
+ ],
+ "all_checks_pass": true,
+ "notes": [
+  "Custody is 99.96% SyncSwap V1 pool reserves; LPs can burn via the router.",
+  "All withdraw/transfer entrypoints debit msg.sender; fresh caller -> Panic 0x11.",
+  "Only permissionless capture is unattributed-balance attribution via deposit(); standing value = dust.",
+  "Owner has no sweep; no proxy; no delegatecall; code byte-identical to published source."
+ ]
+}

@@ -1,0 +1,35 @@
+PASS code_sha256_matches_source_artifact :: 92c3ce7b1e7f9b9259536dfb273c86ef1208a0dfaa893c928d07f5d92fb730a5
+PASS code_size_30944 :: 30944
+PASS native_balance_equals_reserves :: 1116878522377497625509 vs 1116878522377497625509
+PASS weth_balance_zero
+PASS not_paused
+PASS no_eip1967_implementation :: 0x0000000000000000000000000000000000000000000000000000000000000000
+PASS owner_is_syncswap_deployer_eoa :: 0x000002c34bae6dd7bec72acba6aaac1e01a359de
+PASS zksync_bytecode_hash_format :: 010003c71e7f9b9259536dfb273c86ef1208a0dfaa893c928d07f5d92fb730a5
+PASS recompiled_byte_identical :: 92c3ce7b1e7f9b9259536dfb273c86ef1208a0dfaa893c928d07f5d92fb730a5
+PASS withdraw_usdc_fresh_panics :: Panic 0x11
+PASS withdraw_eth_fresh_panics :: Panic 0x11
+PASS transfer_usdc_fresh_panics :: Panic 0x11
+PASS transfer_and_deposit_unfunded_reverts :: 7939f424
+PASS set_paused_non_owner_reverts :: Ownable: caller is not the owner
+PASS set_fee_non_owner_reverts :: Ownable: caller is not the owner
+PASS transfer_ownership_non_owner_reverts :: Ownable: caller is not the owner
+PASS deposit_usdc_credit_zero
+PASS flashloan_nonrepay_reverts :: INVALID_POST_LOAN_BALANCE
+PASS flashloan_wrong_callback_reverts :: IERC3156_CALLBACK_FAILED
+PASS vault_has_no_token_approvals :: {'USDC->router': 0, 'USDC->master': 0, 'USDC->feeRecipient': 0, 'USDT->router': 0, 'USDT->master': 0, 'USDT->feeRecipient': 0, 'WETH->router': 0, 'WETH->master': 0, 'WETH->feeRecipient': 0}
+PASS no_real_token_excess :: $0.000000 over 40 dust tokens
+PASS erc20_total_matches_order_of_magnitude :: $2,900,256.65
+PASS no_material_per_pool_excess :: $0.000100 over 1 pools
+{
+ "block": 72543148,
+ "total_custody_usd": 5590697.02,
+ "categories": {
+  "E-U": 0.0,
+  "H-O": 5590697.02,
+  "P": 0.0,
+  "S": 0.0
+ },
+ "standing_excess_usd": 0.0001,
+ "all_checks_pass": true
+}
