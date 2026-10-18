@@ -1,0 +1,65 @@
+--- canon
+
++++ enosys
+
+@@ -1,3 +1,4 @@
+
+ // SPDX-License-Identifier: BUSL-1.1
+-pragma solidity >=0.5.0;
++pragma solidity >=0.5.0 <0.8.0;
++pragma abicoder v2;
+ 
+@@ -34,3 +35,3 @@
+
+         uint128 liquidity
+-    ) private pure returns (Observation memory) {
++    ) public pure returns (Observation memory) {
+         uint32 delta = blockTimestamp - last.blockTimestamp;
+@@ -52,3 +53,3 @@
+
+     function initialize(Observation[65535] storage self, uint32 time)
+-        internal
++        public
+         returns (uint16 cardinality, uint16 cardinalityNext)
+@@ -85,3 +86,3 @@
+
+         uint16 cardinalityNext
+-    ) internal returns (uint16 indexUpdated, uint16 cardinalityUpdated) {
++    ) public returns (uint16 indexUpdated, uint16 cardinalityUpdated) {
+         Observation memory last = self[index];
+@@ -111,3 +112,3 @@
+
+         uint16 next
+-    ) internal returns (uint16) {
++    ) public returns (uint16) {
+         require(current > 0, 'I');
+@@ -131,3 +132,3 @@
+
+         uint32 b
+-    ) private pure returns (bool) {
++    ) public pure returns (bool) {
+         // if there hasn't been overflow, no need to adjust
+@@ -158,3 +159,3 @@
+
+         uint16 cardinality
+-    ) private view returns (Observation memory beforeOrAt, Observation memory atOrAfter) {
++    ) public view returns (Observation memory beforeOrAt, Observation memory atOrAfter) {
+         uint256 l = (index + 1) % cardinality; // oldest observation
+@@ -205,3 +206,3 @@
+
+         uint16 cardinality
+-    ) private view returns (Observation memory beforeOrAt, Observation memory atOrAfter) {
++    ) public view returns (Observation memory beforeOrAt, Observation memory atOrAfter) {
+         // optimistically set before to the newest observation
+@@ -252,3 +253,3 @@
+
+         uint16 cardinality
+-    ) internal view returns (int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128) {
++    ) public view returns (int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128) {
+         if (secondsAgo == 0) {
+@@ -307,3 +308,3 @@
+
+         uint16 cardinality
+-    ) internal view returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s) {
++    ) public view returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s) {
+         require(cardinality > 0, 'I');

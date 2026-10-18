@@ -1,0 +1,116 @@
+{
+ "canonical": {
+  "pool": "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640 (Uniswap V3 USDC/WETH 0.05%, Ethereum mainnet)",
+  "npm": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88 (Uniswap V3 NonfungiblePositionManager, Ethereum mainnet)",
+  "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984 (Uniswap V3 Factory, Ethereum mainnet)",
+  "pool_runtime_bytes": 22142,
+  "npm_runtime_bytes": 24384,
+  "factory_runtime_bytes": 24535,
+  "pool_selectors": 26,
+  "npm_selectors": 38,
+  "factory_selectors_abi": 8
+ },
+ "enosys": {
+  "pool_impl_flare": {"address": "0x23f02a41dea4fe6180b8e4aa56a745ea1ba4a88e", "runtime_bytes": 24204, "sha256": "882d9bc1d327db7f4997f122a6d8e9dc695f221d5e897dba37c92bee450864fd"},
+  "pool_impl_songbird": {"address": "0xfcba59d9f160bb8f26c0f1918d2aeaa74ca3e3a6", "runtime_bytes": 24204, "sha256": "86e6a55884e58d07a9b4563c20108b59c3879731264f9b86442f0729b8ff089e"},
+  "npm_impl_flare": {"address": "0x0714c223cee8b138cced16e10fbf452b9178b416", "runtime_bytes": 24552, "sha256": "bc06497cb74d847b0f45fe6b99985e4fa0009ab7c39a4e184a089e8cefabd961"},
+  "npm_impl_songbird_verified": {"address": "0xb126c5cd58d01896e6aa6025fd9e2b4c62e78a6d", "runtime_bytes": 24552, "sha256": "83373c2e19e6c009a377cee26acfa564ea99f66fbaffb5b8c376e65049c11152", "source": "Blockscout verified NonfungiblePositionManager, solc 0.7.6, optimizer runs 1"},
+  "factory_impl_flare": {"address": "0xd835919c035ccd8ae295c43be4277aa3002d5e2c", "runtime_bytes": 16767, "sha256": "355d4d00424a1f31329be24b66ee9518ed8537ffd71eb5d47679ad399546b72c"},
+  "factory_impl_songbird": {"address": "0xf0de831540c7210376f6f7e798c694ded99851fc", "runtime_bytes": 16767, "sha256": "9d054afeb41f115eaba76a93c60bc466945abe4c5577003656d69574265fecbd"},
+  "proxy_runtime_bytes": {"factory_npm": 2227, "pool": 2066},
+  "pool_selectors": 35,
+  "npm_selectors": 49,
+  "factory_selectors": 39
+ },
+ "pool": {
+  "verdict": "custom/patched UniV3 pool: core math identical, upgradeable proxy + history tracking + WNat delegation added",
+  "core_math_source_identical": [
+   "SqrtPriceMath.sol", "SwapMath.sol", "LiquidityMath.sol", "TickBitmap.sol",
+   "FullMath.sol", "LowGasSafeMath.sol", "SafeCast.sol", "UnsafeMath.sol",
+   "FixedPoint128.sol", "FixedPoint96.sol", "BitMath.sol"
+  ],
+  "small_source_diffs": [
+   "Tick.sol: pragma <0.8.0 + NatSpec only",
+   "Position.sol: appends int24 tickLower/tickUpper to Position.Info and update()",
+   "Oracle.sol/TickMath.sol: internal->public for external library linking; math unchanged",
+   "TransferHelper.sol: selector/visibility only"
+  ],
+  "added_selectors": [
+   "0x2071fff8 historyStateTrackerByBlock()",
+   "0x28aa8434 isToken0Trackable()",
+   "0x678aa9de wnat()",
+   "0x8490ec18 isToken1Trackable()",
+   "0xc89e4361 delegate()",
+   "0xdbb9a17f resetupDelegations()",
+   "0xe850484b initialize(address,address,address,uint24,int24,bool,bool)",
+   "0xef9b86f8 flareContractRegistry()",
+   "0xfe2a4acc historyStateTrackerByEpoch()"
+  ],
+  "removed_selectors": [],
+  "preserved_fund_gates": [
+   "mint: post-callback balance0/balance1 checks (M0/M1)",
+   "swap: post-callback balance check (IIA)",
+   "flash: post-callback F0/F1 repayment checks",
+   "collect/burn: Position.Info keyed by msg.sender; tokensOwed caps",
+   "collectProtocol/setFeeProtocol: onlyFactoryOrFactoryOwner (NA)",
+   "lock modifier on mint/swap/flash/collect/burn/collectProtocol/setFeeProtocol"
+  ],
+  "live_impl_note": "Flare 0x23f02a and Songbird 0xfcba are opcode-identical (16861 ops) and differ only in push constants. Verified predecessor Flare 0xC07b (24,204 bytes, solc 0.7.6, runs=1) differs in one internal code region starting at op 10855; current code calls a new snapshot library selector 0x4d235ae3 and PoolSnapshotHelper.snapshotPoolState. No external ABI change; all fund-moving paths were live-tested."
+ },
+ "npm": {
+  "verdict": "custom/patched UniV3 NPM; canonical position auth retained; snapshot/descriptor/upgradeability added",
+  "source": "verified current source on Songbird impl 0xb126 (Blockscout); Flare impl 0x0714 is opcode-identical",
+  "added_selectors": [
+   "0x2071fff8 historyStateTrackerByBlock()",
+   "0x430c2081 isApprovedOrOwner(address,uint256)",
+   "0x4e5f467c poolByTokenId(uint256)",
+   "0x5a9d7a68 tokenDescriptor()",
+   "0x678aa9de wnat()",
+   "0x972720ab tokenBalanceOfAt(uint256,address,uint256)",
+   "0x97f12a83 updateTokenDescriptor(address)",
+   "0x9f14aac2 tokenTotalSupplyAt(address,address,uint256)",
+   "0xb4c33ddf getNftUnderlyingTokenOwner(uint256)",
+   "0xce78edfc unwrapWNat(uint256,address)",
+   "0xd26b3e6e initialize(address,bytes32,address)",
+   "0xf172a4ce nameHash()",
+   "0xf2b560a6 enosysdexV3MintCallback(uint256,uint256,bytes)",
+   "0xfe2a4acc historyStateTrackerByEpoch()"
+  ],
+  "renamed_from_canonical": [
+   "unwrapWETH9(uint256,address) -> unwrapWNat(uint256,address)",
+   "WETH9() -> wnat()",
+   "uniswapV3MintCallback(uint256,uint256,bytes) -> enosysdexV3MintCallback(uint256,uint256,bytes)"
+  ],
+  "preserved_fund_gates": [
+   "decreaseLiquidity/collect/burn: isAuthorizedForToken(_isApprovedOrOwner)",
+   "increaseLiquidity: permissionless (canonical), only adds liquidity to the owner's position",
+   "mint: recipient-chosen, position owned by recipient",
+   "multicall: delegatecall to self, canonical",
+   "sweepToken/unwrapWNat: public but NPM holds 0 of all pool tokens/native"
+  ]
+ },
+ "factory": {
+  "verdict": "custom proxy-based factory; verified Coston1 predecessor 0x43d7 (16,265 bytes) differs, live source unverified",
+  "added_capabilities": [
+   "createPool(address,address,uint24) permissionless; deploys a TransparentUpgradeableProxy via CREATE2 and initializes it",
+   "pools array/getPools/poolsCount; isPoolDeployedByFactory",
+   "collectProtocolFees(start,count) and collectProtocolFeesAll(): permissionless, fixed protocolFeeReceiver",
+   "protocolFee/updateProtocolFee; protocolFeeReceiver/updateProtocolFeeReceiver (onlyGovernor)",
+   "pool implementation/proxy-admin upgrades (onlyOwner)",
+   "history trackers, FTSO/monthly redistributors, WNat registry, trackable assets"
+  ],
+  "preserved_or_verified_gates": [
+   "owner/governor = 2/6 Safe on both chains",
+   "setPoolImplementation/updatePoolsImplementation/transferOwnership: onlyOwner (caller-not-owner live-tested)",
+   "setGovernor/enableFeeAmount/updateProtocolFee/updateProtocolFeeReceiver: onlyGovernor (Forbidden live-tested)",
+   "pool.collectProtocol/setFeeProtocol: onlyFactoryOrFactoryOwner (NA live-tested)"
+  ]
+ },
+ "current_impl_provenance": {
+  "flare_pool_impl_creator": "0xfc75F3c7DBA8DeCd0F5C923fE577Bf2FF111bcE4",
+  "flare_pool_impl_creation_tx": "not fetched (explorer API returned null tx hash for impl)",
+  "verified_predecessor": "0xC07b7A5A44a037C8F7163e1C7B926D0c3906086d (EnosysDexV3Pool, solc 0.7.6, optimizer runs 1)",
+  "old_vs_current_opcode_sequence": "identical for ops 0..10854 and the tail; one internal region differs (new snapshot library call)",
+  "cross_chain": "Flare and Songbird pool/NPM/factory implementations are opcode-identical; only push constants differ"
+ }
+}

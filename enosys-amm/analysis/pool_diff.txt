@@ -1,0 +1,665 @@
+--- canonical
+
++++ enosys
+
+@@ -1,8 +1,7 @@
+
+ // SPDX-License-Identifier: BUSL-1.1
+ pragma solidity =0.7.6;
+-
+-import './interfaces/IUniswapV3Pool.sol';
+-
+-import './NoDelegateCall.sol';
++pragma abicoder v2;
++
++import './interfaces/IEnosysDexV3Pool.sol';
+ 
+ import './libraries/LowGasSafeMath.sol';
+@@ -12,4 +11,7 @@
+
+ import './libraries/Position.sol';
+ import './libraries/Oracle.sol';
++import './libraries/LiquidityBalanceHelper.sol';
++import './libraries/PoolSnapshotHelper.sol';
++import './libraries/DelegationHelper.sol';
+ 
+ import './libraries/FullMath.sol';
+@@ -21,12 +23,12 @@
+
+ import './libraries/SwapMath.sol';
+ 
+-import './interfaces/IUniswapV3PoolDeployer.sol';
+-import './interfaces/IUniswapV3Factory.sol';
++import './interfaces/external/IFlareContractRegistry.sol';
++import './interfaces/IEnosysDexV3Factory.sol';
+ import './interfaces/IERC20Minimal.sol';
+-import './interfaces/callback/IUniswapV3MintCallback.sol';
+-import './interfaces/callback/IUniswapV3SwapCallback.sol';
+-import './interfaces/callback/IUniswapV3FlashCallback.sol';
+-
+-contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
++import './interfaces/callback/IEnosysDexV3MintCallback.sol';
++import './interfaces/callback/IEnosysDexV3SwapCallback.sol';
++import './interfaces/callback/IEnosysDexV3FlashCallback.sol';
++
++contract EnosysDexV3Pool is IEnosysDexV3Pool {
+     using LowGasSafeMath for uint256;
+     using LowGasSafeMath for int256;
+@@ -37,20 +39,16 @@
+
+     using Position for mapping(bytes32 => Position.Info);
+     using Position for Position.Info;
+-    using Oracle for Oracle.Observation[65535];
+-
+-    /// @inheritdoc IUniswapV3PoolImmutables
+-    address public immutable override factory;
+-    /// @inheritdoc IUniswapV3PoolImmutables
+-    address public immutable override token0;
+-    /// @inheritdoc IUniswapV3PoolImmutables
+-    address public immutable override token1;
+-    /// @inheritdoc IUniswapV3PoolImmutables
+-    uint24 public immutable override fee;
+-
+-    /// @inheritdoc IUniswapV3PoolImmutables
+-    int24 public immutable override tickSpacing;
+-
+-    /// @inheritdoc IUniswapV3PoolImmutables
+-    uint128 public immutable override maxLiquidityPerTick;
++
++    /// @dev Flare's contract registry addresss
++    /// @notice Flare's contract registry is always the same for all Flare's networks
++    IFlareContractRegistry public constant flareContractRegistry =
++        IFlareContractRegistry(0xaD67FE66660Fb8dFE9d6b1b4240d8650e30F6019);
++
++    /// @dev WNat token address.
++    address public immutable wnat;
++
++    /// @dev Whether the pool is initialized
++    /// We use custom minimal implementation instead of Initializable to save bytecode size
++    bool private _initialized;
+ 
+     struct Slot0 {
+@@ -71,10 +69,25 @@
+
+         bool unlocked;
+     }
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
+     Slot0 public override slot0;
+ 
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
++    address public override factory;
++    /// @inheritdoc IEnosysDexV3PoolState
++    address public override token0;
++    /// @inheritdoc IEnosysDexV3PoolState
++    address public override token1;
++    /// @inheritdoc IEnosysDexV3PoolState
++    uint24 public override fee;
++
++    /// @inheritdoc IEnosysDexV3PoolState
++    int24 public override tickSpacing;
++
++    /// @inheritdoc IEnosysDexV3PoolState
++    uint128 public override maxLiquidityPerTick;
++
++    /// @inheritdoc IEnosysDexV3PoolState
+     uint256 public override feeGrowthGlobal0X128;
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
+     uint256 public override feeGrowthGlobal1X128;
+ 
+@@ -84,18 +97,28 @@
+
+         uint128 token1;
+     }
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
+     ProtocolFees public override protocolFees;
+ 
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
+     uint128 public override liquidity;
+ 
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
+     mapping(int24 => Tick.Info) public override ticks;
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
+     mapping(int16 => uint256) public override tickBitmap;
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
+     mapping(bytes32 => Position.Info) public override positions;
+-    /// @inheritdoc IUniswapV3PoolState
++    /// @inheritdoc IEnosysDexV3PoolState
+     Oracle.Observation[65535] public override observations;
++
++    /// @inheritdoc IEnosysDexV3PoolState
++    address public override historyStateTrackerByEpoch;
++    /// @inheritdoc IEnosysDexV3PoolState
++    address public override historyStateTrackerByBlock;
++
++    /// @inheritdoc IEnosysDexV3PoolState
++    bool public override isToken0Trackable;
++    /// @inheritdoc IEnosysDexV3PoolState
++    bool public override isToken1Trackable;
+ 
+     /// @dev Mutually exclusive reentrancy protection into the pool to/from a method. This method also prevents entrance
+@@ -109,16 +132,46 @@
+
+     }
+ 
+-    /// @dev Prevents calling a function from anyone except the address returned by IUniswapV3Factory#owner()
+-    modifier onlyFactoryOwner() {
+-        require(msg.sender == IUniswapV3Factory(factory).owner());
++    /// @dev Prevents calling a function from anyone except the factory
++    /// or address returned by IEnosysDexV3Factory#owner()
++    modifier onlyFactoryOrFactoryOwner() {
++        require(msg.sender == factory || msg.sender == IEnosysDexV3Factory(factory).owner(), 'NA');
+         _;
+     }
+ 
+     constructor() {
+-        int24 _tickSpacing;
+-        (factory, token0, token1, fee, _tickSpacing) = IUniswapV3PoolDeployer(msg.sender).parameters();
++        address wnatAddress = flareContractRegistry.getContractAddressByName('WNat');
++        wnat = wnatAddress;
++    }
++
++    function initialize(
++        address _factory,
++        address _token0,
++        address _token1,
++        uint24 _fee,
++        int24 _tickSpacing,
++        bool _isToken0Trackable,
++        bool _isToken1Trackable
++    ) external {
++        require(!_initialized, 'I');
++        factory = _factory;
++        token0 = _token0;
++        token1 = _token1;
++        fee = _fee;
+         tickSpacing = _tickSpacing;
+ 
+         maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(_tickSpacing);
++
++        if (_isToken0Trackable || _isToken1Trackable) {
++            isToken0Trackable = _isToken0Trackable;
++            isToken1Trackable = _isToken1Trackable;
++            historyStateTrackerByBlock = IEnosysDexV3Factory(_factory).historyStateTrackerByBlock();
++            if (token0 == wnat || token1 == wnat) {
++                _setup();
++            }
++        }
++
++        historyStateTrackerByEpoch = IEnosysDexV3Factory(_factory).historyStateTrackerByEpoch();
++
++        _initialized = true;
+     }
+ 
+@@ -155,10 +208,9 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolDerivedState
++    /// @inheritdoc IEnosysDexV3PoolDerivedState
+     function snapshotCumulativesInside(int24 tickLower, int24 tickUpper)
+         external
+         view
+         override
+-        noDelegateCall
+         returns (
+             int56 tickCumulativeInside,
+@@ -209,5 +261,6 @@
+
+             uint32 time = _blockTimestamp();
+             (int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128) =
+-                observations.observeSingle(
++                Oracle.observeSingle(
++                    observations,
+                     time,
+                     0,
+@@ -233,14 +286,14 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolDerivedState
++    /// @inheritdoc IEnosysDexV3PoolDerivedState
+     function observe(uint32[] calldata secondsAgos)
+         external
+         view
+         override
+-        noDelegateCall
+         returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s)
+     {
+         return
+-            observations.observe(
++            Oracle.observe(
++                observations,
+                 _blockTimestamp(),
+                 secondsAgos,
+@@ -252,14 +305,9 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolActions
+-    function increaseObservationCardinalityNext(uint16 observationCardinalityNext)
+-        external
+-        override
+-        lock
+-        noDelegateCall
+-    {
++    /// @inheritdoc IEnosysDexV3PoolActions
++    function increaseObservationCardinalityNext(uint16 observationCardinalityNext) external override lock {
+         uint16 observationCardinalityNextOld = slot0.observationCardinalityNext; // for the event
+         uint16 observationCardinalityNextNew =
+-            observations.grow(observationCardinalityNextOld, observationCardinalityNext);
++            Oracle.grow(observations, observationCardinalityNextOld, observationCardinalityNext);
+         slot0.observationCardinalityNext = observationCardinalityNextNew;
+         if (observationCardinalityNextOld != observationCardinalityNextNew)
+@@ -267,5 +315,5 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolActions
++    /// @inheritdoc IEnosysDexV3PoolActions
+     /// @dev not locked because it initializes unlocked
+     function initialize(uint160 sqrtPriceX96) external override {
+@@ -274,6 +322,7 @@
+
+         int24 tick = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
+ 
+-        (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(_blockTimestamp());
+-
++        (uint16 cardinality, uint16 cardinalityNext) = Oracle.initialize(observations, _blockTimestamp());
++
++        uint8 defaultFeeProtocol = IEnosysDexV3Factory(factory).protocolFee();
+         slot0 = Slot0({
+             sqrtPriceX96: sqrtPriceX96,
+@@ -282,8 +331,16 @@
+
+             observationCardinality: cardinality,
+             observationCardinalityNext: cardinalityNext,
+-            feeProtocol: 0,
++            feeProtocol: defaultFeeProtocol + (defaultFeeProtocol << 4),
+             unlocked: true
+         });
+-
++        if (isToken0Trackable || isToken1Trackable) {
++            LiquidityBalanceHelper.updateSqrtPriceX96AndTickSnapshot(
++                historyStateTrackerByBlock,
++                address(this),
++                sqrtPriceX96,
++                tick
++            );
++        }
++        emit SetFeeProtocol(0, 0, defaultFeeProtocol, defaultFeeProtocol);
+         emit Initialize(sqrtPriceX96, tick);
+     }
+@@ -306,5 +363,4 @@
+
+     function _modifyPosition(ModifyPositionParams memory params)
+         private
+-        noDelegateCall
+         returns (
+             Position.Info storage position,
+@@ -339,5 +395,6 @@
+
+ 
+                 // write an oracle entry
+-                (slot0.observationIndex, slot0.observationCardinality) = observations.write(
++                (slot0.observationIndex, slot0.observationCardinality) = Oracle.write(
++                    observations,
+                     _slot0.observationIndex,
+                     _blockTimestamp(),
+@@ -370,4 +427,32 @@
+
+             }
+         }
++
++        if (isToken0Trackable) {
++            _processTokenLiquidityChangeOnModifyPosition(amount0, token0);
++        }
++        if (isToken1Trackable) {
++            _processTokenLiquidityChangeOnModifyPosition(amount1, token1);
++        }
++    }
++
++    /// @dev The token amount change represent the token amount that corresponds to the liquidity in the pools
++    // and doesn't include the token that is going to be paid as collected fees
++    function _processTokenLiquidityChangeOnModifyPosition(int amount, address token) internal {
++        uint256 amountToUpdate;
++        bool isIncrease; //false by default
++        if (amount > 0) {
++            amountToUpdate = uint256(amount);
++            isIncrease = true;
++        } else {
++            amountToUpdate = uint256(-amount);
++        }
++
++        LiquidityBalanceHelper.updateTokenTotalSupply(
++            historyStateTrackerByBlock,
++            address(this),
++            token,
++            amountToUpdate,
++            isIncrease
++        );
+     }
+ 
+@@ -385,5 +470,4 @@
+
+     ) private returns (Position.Info storage position) {
+         position = positions.get(owner, tickLower, tickUpper);
+-
+         uint256 _feeGrowthGlobal0X128 = feeGrowthGlobal0X128; // SLOAD for gas optimization
+         uint256 _feeGrowthGlobal1X128 = feeGrowthGlobal1X128; // SLOAD for gas optimization
+@@ -395,5 +479,6 @@
+
+             uint32 time = _blockTimestamp();
+             (int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128) =
+-                observations.observeSingle(
++                Oracle.observeSingle(
++                    observations,
+                     time,
+                     0,
+@@ -416,4 +501,5 @@
+
+                 maxLiquidityPerTick
+             );
++
+             flippedUpper = ticks.update(
+                 tickUpper,
+@@ -440,5 +526,5 @@
+
+             ticks.getFeeGrowthInside(tickLower, tickUpper, tick, _feeGrowthGlobal0X128, _feeGrowthGlobal1X128);
+ 
+-        position.update(liquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128);
++        position.update(liquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128, tickLower, tickUpper);
+ 
+         // clear any tick data that is no longer needed
+@@ -451,8 +537,11 @@
+
+             }
+         }
+-    }
+-
+-    /// @inheritdoc IUniswapV3PoolActions
+-    /// @dev noDelegateCall is applied indirectly via _modifyPosition
++
++        PoolSnapshotHelper.snapshotTickState(historyStateTrackerByEpoch, address(this), tickLower);
++        PoolSnapshotHelper.snapshotTickState(historyStateTrackerByEpoch, address(this), tickUpper);
++        PoolSnapshotHelper.snapshotPoolState(historyStateTrackerByEpoch, address(this));
++    }
++
++    /// @inheritdoc IEnosysDexV3PoolActions
+     function mint(
+         address recipient,
+@@ -480,5 +569,5 @@
+
+         if (amount0 > 0) balance0Before = balance0();
+         if (amount1 > 0) balance1Before = balance1();
+-        IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1, data);
++        IEnosysDexV3MintCallback(msg.sender).enosysdexV3MintCallback(amount0, amount1, data);
+         if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');
+         if (amount1 > 0) require(balance1Before.add(amount1) <= balance1(), 'M1');
+@@ -487,5 +576,5 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolActions
++    /// @inheritdoc IEnosysDexV3PoolActions
+     function collect(
+         address recipient,
+@@ -513,6 +602,5 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolActions
+-    /// @dev noDelegateCall is applied indirectly via _modifyPosition
++    /// @inheritdoc IEnosysDexV3PoolActions
+     function burn(
+         int24 tickLower,
+@@ -574,4 +662,6 @@
+
+         // the current liquidity in range
+         uint128 liquidity;
++        // fee amount from each swap
++        uint256 feeAmount;
+     }
+ 
+@@ -593,5 +683,5 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolActions
++    /// @inheritdoc IEnosysDexV3PoolActions
+     function swap(
+         address recipient,
+@@ -600,5 +690,5 @@
+
+         uint160 sqrtPriceLimitX96,
+         bytes calldata data
+-    ) external override noDelegateCall returns (int256 amount0, int256 amount1) {
++    ) external override returns (int256 amount0, int256 amount1) {
+         require(amountSpecified != 0, 'AS');
+ 
+@@ -635,5 +725,6 @@
+
+                 feeGrowthGlobalX128: zeroForOne ? feeGrowthGlobal0X128 : feeGrowthGlobal1X128,
+                 protocolFee: 0,
+-                liquidity: cache.liquidityStart
++                liquidity: cache.liquidityStart,
++                feeAmount: 0
+             });
+ 
+@@ -687,6 +778,8 @@
+
+ 
+             // update global fee tracker
+-            if (state.liquidity > 0)
++            if (state.liquidity > 0) {
+                 state.feeGrowthGlobalX128 += FullMath.mulDiv(step.feeAmount, FixedPoint128.Q128, state.liquidity);
++                state.feeAmount += step.feeAmount;
++            }
+ 
+             // shift tick if we reached the next price
+@@ -697,5 +790,6 @@
+
+                     // crosses an initialized tick
+                     if (!cache.computedLatestObservation) {
+-                        (cache.tickCumulative, cache.secondsPerLiquidityCumulativeX128) = observations.observeSingle(
++                        (cache.tickCumulative, cache.secondsPerLiquidityCumulativeX128) = Oracle.observeSingle(
++                            observations,
+                             cache.blockTimestamp,
+                             0,
+@@ -707,4 +801,5 @@
+
+                         cache.computedLatestObservation = true;
+                     }
++
+                     int128 liquidityNet =
+                         ticks.cross(
+@@ -716,4 +811,6 @@
+
+                             cache.blockTimestamp
+                         );
++
++                    PoolSnapshotHelper.snapshotTickState(historyStateTrackerByEpoch, address(this), step.tickNext);
+                     // if we're moving leftward, we interpret liquidityNet as the opposite sign
+                     // safe because liquidityNet cannot be type(int128).min
+@@ -724,8 +821,11 @@
+
+ 
+                 state.tick = zeroForOne ? step.tickNext - 1 : step.tickNext;
++                // update fees snapshot for the tick
+             } else if (state.sqrtPriceX96 != step.sqrtPriceStartX96) {
+                 // recompute unless we're on a lower tick boundary (i.e. already transitioned ticks), and haven't moved
+                 state.tick = TickMath.getTickAtSqrtRatio(state.sqrtPriceX96);
+             }
++
++            PoolSnapshotHelper.snapshotTickState(historyStateTrackerByEpoch, address(this), state.tick);
+         }
+ 
+@@ -733,5 +833,6 @@
+
+         if (state.tick != slot0Start.tick) {
+             (uint16 observationIndex, uint16 observationCardinality) =
+-                observations.write(
++                Oracle.write(
++                    observations,
+                     slot0Start.observationIndex,
+                     cache.blockTimestamp,
+@@ -759,7 +860,9 @@
+
+         if (zeroForOne) {
+             feeGrowthGlobal0X128 = state.feeGrowthGlobalX128;
++            PoolSnapshotHelper.snapshotPoolFees(historyStateTrackerByEpoch, address(this), state.feeAmount, 0);
+             if (state.protocolFee > 0) protocolFees.token0 += state.protocolFee;
+         } else {
+             feeGrowthGlobal1X128 = state.feeGrowthGlobalX128;
++            PoolSnapshotHelper.snapshotPoolFees(historyStateTrackerByEpoch, address(this), 0, state.feeAmount);
+             if (state.protocolFee > 0) protocolFees.token1 += state.protocolFee;
+         }
+@@ -774,5 +877,5 @@
+
+ 
+             uint256 balance0Before = balance0();
+-            IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, data);
++            IEnosysDexV3SwapCallback(msg.sender).enosysdexV3SwapCallback(amount0, amount1, data);
+             require(balance0Before.add(uint256(amount0)) <= balance0(), 'IIA');
+         } else {
+@@ -780,7 +883,16 @@
+
+ 
+             uint256 balance1Before = balance1();
+-            IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, data);
++            IEnosysDexV3SwapCallback(msg.sender).enosysdexV3SwapCallback(amount0, amount1, data);
+             require(balance1Before.add(uint256(amount1)) <= balance1(), 'IIA');
+         }
++
++        if (isToken0Trackable) {
++            _processTokenLiquidityChangeOnSwap(amount0, token0, state.sqrtPriceX96, state.tick, zeroForOne);
++        }
++        if (isToken1Trackable) {
++            _processTokenLiquidityChangeOnSwap(amount1, token1, state.sqrtPriceX96, state.tick, zeroForOne);
++        }
++
++        PoolSnapshotHelper.snapshotPoolState(historyStateTrackerByEpoch, address(this));
+ 
+         emit Swap(msg.sender, recipient, amount0, amount1, state.sqrtPriceX96, state.liquidity, state.tick);
+@@ -788,5 +900,47 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolActions
++    /// @dev The token amount change  represent the token amount that corresponds to the liquidity in the pools
++    // and doesn't include the token that is going to be paid as collected fees
++    function _processTokenLiquidityChangeOnSwap(int amount, address token, uint160 sqrtPriceX96, int24 tick, bool zeroForOne) internal {
++        LiquidityBalanceHelper.updateSqrtPriceX96AndTickSnapshot(
++            historyStateTrackerByBlock,
++            address(this),
++            sqrtPriceX96,
++            tick
++        );
++
++        bool isTokenIncrease;
++        uint256 tokenAmountDelta;
++        if (zeroForOne) {
++            if (token0 == token) {
++                isTokenIncrease = true;
++                tokenAmountDelta = uint256(amount);
++            } else {
++                tokenAmountDelta = uint256(-amount);
++            }
++        } else {
++            if (token0 == token) {
++                tokenAmountDelta = uint256(-amount);
++            } else {
++                isTokenIncrease = true;
++                tokenAmountDelta = uint256(amount);
++            }
++        }
++
++        if (isTokenIncrease) {
++            //token was income token and fee should be substracted from liquidity part
++            tokenAmountDelta = (tokenAmountDelta * (1e6 - fee)) / 1e6;
++        }
++
++        LiquidityBalanceHelper.updateTokenTotalSupply(
++            historyStateTrackerByBlock,
++            address(this),
++            token,
++            tokenAmountDelta,
++            isTokenIncrease
++        );
++    }
++
++    /// @inheritdoc IEnosysDexV3PoolActions
+     function flash(
+         address recipient,
+@@ -794,5 +948,5 @@
+
+         uint256 amount1,
+         bytes calldata data
+-    ) external override lock noDelegateCall {
++    ) external override lock {
+         uint128 _liquidity = liquidity;
+         require(_liquidity > 0, 'L');
+@@ -806,5 +960,5 @@
+
+         if (amount1 > 0) TransferHelper.safeTransfer(token1, recipient, amount1);
+ 
+-        IUniswapV3FlashCallback(msg.sender).uniswapV3FlashCallback(fee0, fee1, data);
++        IEnosysDexV3FlashCallback(msg.sender).enosysdexV3FlashCallback(fee0, fee1, data);
+ 
+         uint256 balance0After = balance0();
+@@ -834,6 +988,6 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolOwnerActions
+-    function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external override lock onlyFactoryOwner {
++    /// @inheritdoc IEnosysDexV3PoolOwnerActions
++    function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external override lock onlyFactoryOrFactoryOwner {
+         require(
+             (feeProtocol0 == 0 || (feeProtocol0 >= 4 && feeProtocol0 <= 10)) &&
+@@ -845,10 +999,10 @@
+
+     }
+ 
+-    /// @inheritdoc IUniswapV3PoolOwnerActions
++    /// @inheritdoc IEnosysDexV3PoolOwnerActions
+     function collectProtocol(
+         address recipient,
+         uint128 amount0Requested,
+         uint128 amount1Requested
+-    ) external override lock onlyFactoryOwner returns (uint128 amount0, uint128 amount1) {
++    ) external override lock onlyFactoryOrFactoryOwner returns (uint128 amount0, uint128 amount1) {
+         amount0 = amount0Requested > protocolFees.token0 ? protocolFees.token0 : amount0Requested;
+         amount1 = amount1Requested > protocolFees.token1 ? protocolFees.token1 : amount1Requested;
+@@ -867,3 +1021,23 @@
+
+         emit CollectProtocol(msg.sender, recipient, amount0, amount1);
+     }
++
++    /* WNat delegation */
++
++    /// @inheritdoc IEnosysDexV3PoolActions
++    function delegate() public override {
++        //use library to reduce bytecode size
++        DelegationHelper.delegate(factory, wnat);
++    }
++
++    /// @inheritdoc IEnosysDexV3PoolOwnerActions
++    function resetupDelegations() external override onlyFactoryOrFactoryOwner {
++        _setup();
++    }
++
++    /// @dev Internal function for setuping WNatOwner: make delegation to FTSO providers, set
++    /// FtsoRewardRedistributor and MontlyAirdropDistributor as allowed executors and recipients.
++    function _setup() internal {
++        delegate();
++        DelegationHelper.setClaimExecutorAndRecipient(factory);
++    }
+ }

@@ -1,0 +1,80 @@
+{
+  "finding": "ZH4-18",
+  "title": "Enosys AMM V3 (Flare + Songbird): $6.79M UniV3-fork TVL, $0 external-unprivileged extraction",
+  "chains": ["flare", "songbird"],
+  "headline_extractable_usd": 0,
+  "headline_kind": "external_unprivileged_extractable_today",
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 6793213,
+    "P": 0,
+    "S": 0
+  },
+  "categories_note": "E-U $0: no external unprivileged path. H-O $6,793,213 is the DL nominal LP-owned TVL (on-chain Flare $6,728,825 + Songbird $62,238-$144,051), not attacker-extractable. P $0: no privileged-only bug; the 2/6 Safe can upgrade/drain the full TVL and a single EOA owns the Flare FTSO/monthly redistributors (~$8k WFLR), but these are centralization risks. S $0: no stuck principal (the unpriced dust pool holds 1 wei WFLR + 1,000 wei USDX; protocol fees $490 are collectible to ProfitDistribution).",
+  "latest_block": 72386707,
+  "block_numbers": {
+    "flare_tvl": 72386299,
+    "flare_security_tests": 72386500,
+    "flare_final_state": 72386707,
+    "songbird_tvl": 135684340,
+    "songbird_final_state": 135684743,
+    "flare_pool_enum_first": 72382727,
+    "songbird_pool_enum_first": 135680576
+  },
+  "targets_checked": 199,
+  "live_targets": 199,
+  "live_targets_note": "168 pools (106 Flare + 62 Songbird) + 31 protocol/impl/admin contracts (2 factory proxies, 2 factory impls, 2 NPM proxies, 2 NPM impls, 2 pool impls, 4 history trackers, 2 reward managers, 2 epoch managers, 3 FTSO/monthly redistributors, 2 WNat registries, 2 Safes, 4 proxy admins, 2 ProfitDistribution receivers).",
+  "closed_reasons": [
+    "Pool mint/swap/flash enforce post-callback balance checks; live eth_call from a non-paying caller reverts (M0/M1, IIA, F0/F1) at Flare block 72,386,500.",
+    "NPM decreaseLiquidity/collect/burn are isAuthorizedForToken; live collect and burn from a non-owner revert 'Not approved'; owner control succeeds.",
+    "Pool collectProtocol/setFeeProtocol/resetupDelegations are onlyFactoryOrFactoryOwner; live calls from an EOA revert 'NA'.",
+    "Factory owner/governor functions revert with the canonical owner/governor errors; owner and governor are the 2/6 Safe on both chains; no modules or guard.",
+    "History tracker writes require UPDATER/CLEANER roles; live updateLiquiditySnapshots from an EOA reverts 'HistoryStateTrackerBase: missing role'. UPDATER is held only by the NPM + every pool.",
+    "FTSO/Monthly claims are owner-gated; live non-owner claim reverts NotNftOwner(uint256) (0xb832bf93) and the owner control succeeds.",
+    "NPM, factory and ProfitDistribution hold 0 of all 16 pool tokens and 0 native; public sweepToken/unwrapWNat have nothing to take.",
+    "All 168 pools are consistent: factory() = factory, getPool = pool, feeAmountTickSpacing = tickSpacing, isPoolDeployedByFactory = true; no fake or unregistered pools.",
+    "Core Uniswap V3 math libraries are source-identical; the pool's custom code adds upgradeability, history snapshots and WNat delegation but preserves the canonical payment, position-key, lock and protocol-fee auth gates.",
+    "Top pool implied prices match DefiLlama/CoinGecko within rounding (stXRP/FXRP 0.9993 vs 0.996; CDP/USDT0 0.994 vs 0.993; WFLR/FXRP 0.00503 vs 0.00502; FXRP/USDT0 1.293 vs 1.292; sFLR/WFLR 1.882 vs 1.894); no stale-price/arb gap in material pools."
+  ],
+  "open_reasons": [],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 9,
+    "ci_run_urls": [],
+    "status": "written_not_run",
+    "file": "poc/test/EnosysNegativePoC.t.sol",
+    "run_script": "poc/run.sh",
+    "note": "Nine negative-control Foundry tests (mint/swap/flash no-pay, NPM collect/burn non-owner, pool collectProtocol/setFeeProtocol, factory admin, fixed-recipient collectProtocolFees, live pool state) were written and forge build succeeds. They were not run locally per the campaign instruction; the parent CI should run poc/run.sh and fill tests_passed/ci_run_urls."
+  },
+  "key_facts": [
+    "Flare factory proxy 0x17AA157AC8C54034381b840Cb8f6bf7Fc355f0de, impl 0xD835919c035ccD8AE295c43be4277aa3002d5E2c (16,767 B, sha256 355d4d00...); NPM proxy 0xD9770b1C7A6ccd33C75b5bcB1c0078f46bE46657, impl 0x0714C223Cee8B138CCEd16E10FbF452b9178b416 (24,552 B, sha256 bc06497c...); pool impl 0x23f02a41DEa4fE6180b8E4aA56a745Ea1bA4A88e (24,204 B, sha256 882d9bc1...).",
+    "Songbird factory proxy 0x416F1CcBc55033Ae0133DA96F9096Fe8c2c17E7d, impl 0xf0DE831540c7210376F6F7E798c694dEd99851fc (16,767 B); NPM proxy 0xFC02eB1Ab5079627103357BfbB8167d3BBAc6f1e, impl 0xb126C5Cd58D01896e6aa6025Fd9e2b4c62E78a6d (24,552 B, verified current source); pool impl 0xfcba59D9F160BB8F26c0F1918d2AEaa74Ca3e3A6 (24,204 B).",
+    "Factories, NPMs and pools are EIP-1967 TransparentUpgradeableProxy contracts (2,227 B factory/NPM proxy, 2,066 B pool proxy). Pool/NPM/factory impls are opcode-identical across Flare and Songbird (only push constants differ).",
+    "Owner and governor on both chains are Safe 1.3.0 proxies with threshold 2 of 6, no modules, no guard: Flare 0xdedda08961216adb9ca09b88986d110127b24270, Songbird 0x68d0818bb30b340ad99994592a88a3095e47522f. Enosys docs claim 4/6; on-chain is 2/6.",
+    "Flare pools 106, Songbird 62 = 168 total; every pool's factory/token0/token1/fee/tickSpacing/getPool/isPoolDeployedByFactory is consistent.",
+    "Live TVL at Flare block 72,386,299: $6,728,825.23 vs DefiLlama Flare $6,730,974.70 (-$2,149.47, -0.03%). Top pools: stXRP/FXRP $2,335,223; CDP/USDT0 $1,296,618; WFLR/FXRP $1,000,678; FXRP/USDT0 $969,098; WFLR/USDT0 $493,157; sFLR/WFLR $187,772.",
+    "Songbird at block 135,684,340: token quantities WSGB 20,563,617.60, EXFI 1,754,484.59, exXDC 160,841.96, USDX 54,061.53, FXRP 16,916.81, exUSDT 2,051.03, SFIN 200.24, exETH 0.492; local DEX mark $144,050.65 vs DL $62,238.40 (price-source divergence). Flare is 98% of value.",
+    "Total on-chain mark $6,872,875.89 vs DL $6,793,213.10 (+$79,663, +1.17%); the entire gap is Songbird price marks, Flare matches within 0.03%.",
+    "Protocol fees $490.21 across 100 pools (top: FXRP/USDT0 $242.81, WFLR/USDT0 $109.65, WFLR/FXRP $86.24); collectible permissionlessly to the fixed ProfitDistribution receiver (Flare 0x36794833ae009368fdFb9736216F1160B9d1cBbE, Songbird 0x16bfB7Db0b4208dc72B918849108e56714430D58).",
+    "Bytecode diff: pool 24,204 B vs canonical 22,142 B (+9.3%), 35 vs 26 selectors; NPM 24,552 B vs 24,384 B (+0.7%), 49 vs 38; factory 16,767 B vs 24,535 B (-31.7%), 39 vs 8. Core math libraries SqrtPriceMath/SwapMath/LiquidityMath/TickBitmap/FullMath/LowGasSafeMath/SafeCast/UnsafeMath/BitMath/FixedPoint* are source-identical to Uniswap v3-core v1.0.0.",
+    "Current pool impl differs from verified predecessor 0xC07B7A5A44a037C8F7163e1C7B926D0c3906086d in one internal snapshot region (reads isToken0/1Trackable, calls linked library 0x2c868fe8... selector 0x4d235ae3 and PoolSnapshotHelper.snapshotPoolState); the rest of the runtime is opcode-identical and the external ABI is unchanged.",
+    "Current NPM source is verified on Songbird 0xb126...; canonical isAuthorizedForToken on decreaseLiquidity/collect/burn is retained; increaseLiquidity is permissionless as in canonical Uniswap and only adds liquidity to the owner's position.",
+    "History trackers: UPDATER role count 107 (Flare epoch, NPM + 106 pools), 41 (Flare block), 63 (Songbird epoch), 22 (Songbird block); DEFAULT_ADMIN includes the Safe, factory and WNatRegistry. Live tracker writes from an EOA revert 'missing role'.",
+    "RewardManager Flare 0x38B542B05198aE2c8A16520B9f8A208b6552B77a: APS, epochs 1031-1211, 1.955 APS left. Songbird 0xa997E5FDd464b982d1Fbe51D8734A410744F3B7E: SFIN, epochs 2069-2470, 13.763 SFIN left. Claims are owner-gated (NotNftOwner).",
+    "FTSO/monthly redistributors: Flare FTSO 517,379.66 WFLR + monthly 690,313.87 WFLR; Songbird FTSO 490,920.09 WSGB. Their owner is the single EOA 0x51578d176168e1203f9a996f42db3bbf23db9acc; setters are onlyOwner, claims are NotNftOwner, withdraw is owner/insufficient-balance gated.",
+    "One Flare pool 0xf15f6790031d2916a6a00ff59fcaeba012a06c0d (WFLR/USDX 500) is created but never priced: sqrtPriceX96=0, unlocked=false, 1 wei WFLR + 1,000 wei USDX; initialize(uint160) is callable by anyone but has no value.",
+    "NPM/factory/ProfitDistribution hold 0 of all 16 pool tokens and 0 native; public sweepToken/unwrapWNat have nothing to take."
+  ],
+  "caveats": [
+    "The current Flare pool implementation 0x23f02a... and factory implementation 0xd835... are unverified. The verified predecessor 0xC07b... is the same family (24,204 B) but differs in one internal snapshot region; the current pool is opcode-identical to Songbird 0xfcba... and the current NPM source is verified on Songbird 0xb126... . The negative verdict rests on live behavior plus the verified family; a hidden fund-moving path in the unverified current bytecode cannot be excluded without its source.",
+    "Songbird TVL is price-source sensitive: DefiLlama $62,238 vs local DEX mark $144,051 (USDX at $1, SFIN ~$98, FXRP $1.30). Songbird is 0.9-2.1% of total; the verdict is unchanged.",
+    "The FTSO/monthly redistributors and one history tracker implementation are unverified; only their public claim/setter auth and balances were tested.",
+    "The 2/6 Safe is below the documented 4/6. Any two signers can upgrade every pool and move the full ~$6.79M. This is a privileged centralization risk, not an E-U path.",
+    "The Flare FTSO/monthly redistributors are owned by a single EOA (0x51578d...); ~$8k of WFLR plus delegation/claim setup is exposed to that key.",
+    "createPool is permissionless and can bloat the pools array; the unpriced dust pool can be initialized to make collectProtocolFeesAll() revert. Ranged collectProtocolFees(start,count) still works. Griefing only, no value extraction.",
+    "No Foundry tests were run locally per the campaign instruction; the parent CI should run poc/run.sh and update tests_passed/ci_run_urls.",
+    "No keyed RPC URLs or secrets were written; all RPCs in the evidence are public keyless endpoints."
+  ],
+  "one_liner": "Enosys AMM V3 holds ~$6.79M across 168 UniV3-fork pools on Flare/Songbird; the fork keeps canonical payment, position-auth, protocol-fee and role gates (all live-tested), and no external unprivileged value-extraction path was found ($0 E-U, high confidence); residual risk is the 2/6 upgrade Safe, a single-EOA FTSO owner, and unverified current pool/factory implementations."
+}

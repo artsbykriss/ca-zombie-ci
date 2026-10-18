@@ -1,0 +1,367 @@
+--- canonNPM
+
++++ enosysNPM
+
+@@ -3,7 +3,10 @@
+
+ pragma abicoder v2;
+ 
+-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
+-import '@uniswap/v3-core/contracts/libraries/FixedPoint128.sol';
+-import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
++import './interfaces/IEnosysDexV3Pool.sol';
++import './libraries/FixedPoint128.sol';
++import './libraries/FullMath.sol';
++import './libraries/LiquidityBalanceHelper.sol';
++import './libraries/PoolSnapshotHelper.sol';
++import './libraries/NonfungiblePositionManagerHelper.sol';
+ 
+ import './interfaces/INonfungiblePositionManager.sol';
+@@ -12,5 +15,5 @@
+
+ import './libraries/PoolAddress.sol';
+ import './base/LiquidityManagement.sol';
+-import './base/PeripheryImmutableState.sol';
++import './base/PeripheryStateMix.sol';
+ import './base/Multicall.sol';
+ import './base/ERC721Permit.sol';
+@@ -20,10 +23,10 @@
+
+ 
+ /// @title NFT positions
+-/// @notice Wraps Uniswap V3 positions in the ERC721 non-fungible token interface
++/// @notice Wraps EnosysDex V3 positions in the ERC721 non-fungible token interface
+ contract NonfungiblePositionManager is
+     INonfungiblePositionManager,
+     Multicall,
+     ERC721Permit,
+-    PeripheryImmutableState,
++    PeripheryStateMix,
+     PoolInitializer,
+     LiquidityManagement,
+@@ -31,5 +34,5 @@
+
+     SelfPermit
+ {
+-    // details about the uniswap position
++    // details about the enosysdex position
+     struct Position {
+         // the nonce for permits
+@@ -62,17 +65,38 @@
+
+ 
+     /// @dev The ID of the next token that will be minted. Skips 0
+-    uint176 private _nextId = 1;
++    uint176 private _nextId;
+     /// @dev The ID of the next pool that is used for the first time. Skips 0
+-    uint80 private _nextPoolId = 1;
++    uint80 private _nextPoolId;
+ 
+     /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
+-    address private immutable _tokenDescriptor;
+-
+-    constructor(
++    address public tokenDescriptor;
++
++    /// @dev Whether the contract is initialized
++    // We use custom minimal implementation instead of Initializable to save bytecode size
++    bool private _isInitialized;
++
++    /// @dev address of the history state tracker
++    address public historyStateTrackerByEpoch;
++
++    /// @inheritdoc INonfungiblePositionManager
++    mapping(uint256 => address) public override poolByTokenId;
++
++    address public historyStateTrackerByBlock;
++
++    function initialize(
+         address _factory,
+-        address _WETH9,
+-        address _tokenDescriptor_
+-    ) ERC721Permit('Uniswap V3 Positions NFT-V1', 'UNI-V3-POS', '1') PeripheryImmutableState(_factory, _WETH9) {
+-        _tokenDescriptor = _tokenDescriptor_;
++        bytes32 _poolInitCodeHash,
++        address _tokenDescriptor
++    ) external {
++        require(!_isInitialized, 'AI');
++        _initializeERC721Permit();
++        _initializePeripheryStateMix(_factory, _poolInitCodeHash);
++        historyStateTrackerByEpoch = IEnosysDexV3Factory(_factory).historyStateTrackerByEpoch();
++        historyStateTrackerByBlock = IEnosysDexV3Factory(_factory).historyStateTrackerByBlock();
++
++        tokenDescriptor = _tokenDescriptor;
++        _nextId = 1;
++        _nextPoolId = 1;
++        _isInitialized = true;
+     }
+ 
+@@ -138,5 +162,5 @@
+
+         )
+     {
+-        IUniswapV3Pool pool;
++        IEnosysDexV3Pool pool;
+         (liquidity, amount0, amount1, pool) = addLiquidity(
+             AddLiquidityParams({
+@@ -155,7 +179,8 @@
+
+ 
+         _mint(params.recipient, (tokenId = _nextId++));
++        poolByTokenId[tokenId] = address(pool);
+ 
+         bytes32 positionKey = PositionKey.compute(address(this), params.tickLower, params.tickUpper);
+-        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
++        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , , , ) = pool.positions(positionKey);
+ 
+         // idempotent set
+@@ -179,4 +204,10 @@
+
+         });
+ 
++        LiquidityBalanceHelper.updateLiquiditySnapshot(historyStateTrackerByBlock, address(this), tokenId, liquidity);
++        // Usually snapshot required before updateing liquidity and fees data for position,
++        // but since before that operation position doesn't exists,
++        // we will update it after for consistency. For new position collected fees will be 0.
++        PoolSnapshotHelper.snapshotPositionMint(historyStateTrackerByEpoch, address(this), tokenId, address(pool));
++
+         emit IncreaseLiquidity(tokenId, liquidity, amount0, amount1);
+     }
+@@ -187,7 +218,16 @@
+
+     }
+ 
+-    function tokenURI(uint256 tokenId) public view override(ERC721, IERC721Metadata) returns (string memory) {
++    function isApprovedOrOwner(address spender, uint256 tokenId) external view override returns (bool) {
++        return _isApprovedOrOwner(spender, tokenId);
++    }
++
++    function tokenURI(uint256 tokenId)
++        public
++        view
++        override(ERC721Upgradeable, IERC721MetadataUpgradeable)
++        returns (string memory)
++    {
+         require(_exists(tokenId));
+-        return INonfungibleTokenPositionDescriptor(_tokenDescriptor).tokenURI(this, tokenId);
++        return INonfungibleTokenPositionDescriptor(tokenDescriptor).tokenURI(this, tokenId);
+     }
+ 
+@@ -208,8 +248,12 @@
+
+     {
+         Position storage position = _positions[params.tokenId];
+-
+         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+-
+-        IUniswapV3Pool pool;
++        PoolSnapshotHelper.snapshotPositionState(
++            historyStateTrackerByEpoch,
++            params.tokenId,
++            poolByTokenId[params.tokenId]
++        );
++
++        IEnosysDexV3Pool pool;
+         (liquidity, amount0, amount1, pool) = addLiquidity(
+             AddLiquidityParams({
+@@ -227,27 +271,19 @@
+
+         );
+ 
+-        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
+-
+-        // this is now updated to the current transaction
+-        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
+-
+-        position.tokensOwed0 += uint128(
+-            FullMath.mulDiv(
+-                feeGrowthInside0LastX128 - position.feeGrowthInside0LastX128,
+-                position.liquidity,
+-                FixedPoint128.Q128
+-            )
+-        );
+-        position.tokensOwed1 += uint128(
+-            FullMath.mulDiv(
+-                feeGrowthInside1LastX128 - position.feeGrowthInside1LastX128,
+-                position.liquidity,
+-                FixedPoint128.Q128
+-            )
+-        );
+-
+-        position.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
+-        position.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
+-        position.liquidity += liquidity;
++        NonfungiblePositionManagerHelper.updatePositionOnLiquidityIncrease(position, pool, liquidity);
++
++        LiquidityBalanceHelper.updateLiquiditySnapshot(
++            historyStateTrackerByBlock,
++            address(this),
++            params.tokenId,
++            position.liquidity
++        );
++
++        PoolSnapshotHelper.snapshotPositionFees(
++            historyStateTrackerByEpoch,
++            address(this),
++            params.tokenId,
++            address(pool)
++        );
+ 
+         emit IncreaseLiquidity(params.tokenId, liquidity, amount0, amount1);
+@@ -270,36 +306,31 @@
+
+ 
+         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
++        IEnosysDexV3Pool pool = IEnosysDexV3Pool(PoolAddress.computeAddress(factory, poolInitCodeHash, poolKey));
++        PoolSnapshotHelper.snapshotPositionState(historyStateTrackerByEpoch, params.tokenId, address(pool));
+         (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
+ 
+         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, 'Price slippage check');
+ 
+-        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
+-        // this is now updated to the current transaction
+-        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = pool.positions(positionKey);
+-
+-        position.tokensOwed0 +=
+-            uint128(amount0) +
+-            uint128(
+-                FullMath.mulDiv(
+-                    feeGrowthInside0LastX128 - position.feeGrowthInside0LastX128,
+-                    positionLiquidity,
+-                    FixedPoint128.Q128
+-                )
+-            );
+-        position.tokensOwed1 +=
+-            uint128(amount1) +
+-            uint128(
+-                FullMath.mulDiv(
+-                    feeGrowthInside1LastX128 - position.feeGrowthInside1LastX128,
+-                    positionLiquidity,
+-                    FixedPoint128.Q128
+-                )
+-            );
+-
+-        position.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
+-        position.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
+-        // subtraction is safe because we checked positionLiquidity is gte params.liquidity
+-        position.liquidity = positionLiquidity - params.liquidity;
++        NonfungiblePositionManagerHelper.updatePositionOnLiquidityDecrease(
++            position,
++            pool,
++            params.liquidity,
++            amount0,
++            amount1
++        );
++
++        LiquidityBalanceHelper.updateLiquiditySnapshot(
++            historyStateTrackerByBlock,
++            address(this),
++            params.tokenId,
++            position.liquidity
++        );
++
++        PoolSnapshotHelper.snapshotPositionFees(
++            historyStateTrackerByEpoch,
++            address(this),
++            params.tokenId,
++            address(pool)
++        );
+ 
+         emit DecreaseLiquidity(params.tokenId, params.liquidity, amount0, amount1);
+@@ -322,5 +353,6 @@
+
+         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
+ 
+-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
++        IEnosysDexV3Pool pool = IEnosysDexV3Pool(PoolAddress.computeAddress(factory, poolInitCodeHash, poolKey));
++        PoolSnapshotHelper.snapshotPositionState(historyStateTrackerByEpoch, params.tokenId, address(pool));
+ 
+         (uint128 tokensOwed0, uint128 tokensOwed1) = (position.tokensOwed0, position.tokensOwed1);
+@@ -329,5 +361,5 @@
+
+         if (position.liquidity > 0) {
+             pool.burn(position.tickLower, position.tickUpper, 0);
+-            (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) =
++            (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , , , ) =
+                 pool.positions(PositionKey.compute(address(this), position.tickLower, position.tickUpper));
+ 
+@@ -370,5 +402,10 @@
+
+         // instead of the actual amount so we can burn the token
+         (position.tokensOwed0, position.tokensOwed1) = (tokensOwed0 - amount0Collect, tokensOwed1 - amount1Collect);
+-
++        PoolSnapshotHelper.snapshotPositionFees(
++            historyStateTrackerByEpoch,
++            address(this),
++            params.tokenId,
++            address(pool)
++        );
+         emit Collect(params.tokenId, recipient, amount0Collect, amount1Collect);
+     }
+@@ -382,10 +419,54 @@
+
+     }
+ 
++    /// @inheritdoc INonfungiblePositionManager
++    function updateTokenDescriptor(address _newDescriptor) external override {
++        NonfungiblePositionManagerHelper.validateNewTokenDescriptor(factory, tokenDescriptor, _newDescriptor);
++        tokenDescriptor = _newDescriptor;
++    }
++
++    /// @inheritdoc INftBalanceTracker
++    function getNftUnderlyingTokenOwner(uint256 tokenId) external view override returns (address) {
++        return poolByTokenId[tokenId];
++    }
++
++    /// @inheritdoc INftBalanceTracker
++    function tokenBalanceOfAt(
++        uint256 nftId,
++        address token,
++        uint256 blockNumber
++    ) external view override returns (uint256) {
++        return
++            LiquidityBalanceHelper.getTokenBalanceOfAt(
++                historyStateTrackerByBlock,
++                token,
++                address(this),
++                nftId,
++                poolByTokenId[nftId],
++                _positions[nftId].tickLower,
++                _positions[nftId].tickUpper,
++                blockNumber
++            );
++    }
++
++    /// @inheritdoc INftBalanceTracker
++    function tokenTotalSupplyAt(
++        address tokenOwner,
++        address token,
++        uint256 blockNumber
++    ) external view override returns (uint256) {
++        return LiquidityBalanceHelper.getTokenTotalSupplyAt(historyStateTrackerByBlock, tokenOwner, token, blockNumber);
++    }
++
+     function _getAndIncrementNonce(uint256 tokenId) internal override returns (uint256) {
+         return uint256(_positions[tokenId].nonce++);
+     }
+ 
+-    /// @inheritdoc IERC721
+-    function getApproved(uint256 tokenId) public view override(ERC721, IERC721) returns (address) {
++    /// @inheritdoc IERC721Upgradeable
++    function getApproved(uint256 tokenId)
++        public
++        view
++        override(ERC721Upgradeable, IERC721Upgradeable)
++        returns (address)
++    {
+         require(_exists(tokenId), 'ERC721: approved query for nonexistent token');
+ 
+@@ -394,5 +475,5 @@
+
+ 
+     /// @dev Overrides _approve to use the operator in the position, which is packed with the position permit nonce
+-    function _approve(address to, uint256 tokenId) internal override(ERC721) {
++    function _approve(address to, uint256 tokenId) internal override(ERC721Upgradeable) {
+         _positions[tokenId].operator = to;
+         emit Approval(ownerOf(tokenId), to, tokenId);
