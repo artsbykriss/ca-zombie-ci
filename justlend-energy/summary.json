@@ -1,0 +1,61 @@
+{
+  "finding": "ZH4-WaveB1-JustLend-Energy-Rental",
+  "title": "JustLend Energy Rental (MarketG1) — badDebt / return-after-liquidate deep-dive",
+  "chains": ["tron"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 336861.10,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 87210571,
+  "block_numbers": {
+    "tron": 87210571
+  },
+  "targets_checked": 713,
+  "live_targets": 713,
+  "closed_reasons": [
+    "return-after-liquidate: rentals.amount=0 and both returnResource and liquidate revert (2/2 real liquidated pairs, TronGrid dry-run)",
+    "badDebt branch is not profitable to manufacture: minimum deposit = fee + oneDayRent + 1 sun; net = fee - deposit = -oneDayRent (~-3.73 bp of amount)",
+    "0 of 713 live rentals are liquidatable (getRentInfo scan); 0 BadDebtAdded events in the 7-day window; badDebt == badDebtCovered == 481.46 TRX (gap 0)",
+    "dirty-resource charge works: live full return charged 157.36 TRX usageRental on a 1,042,980 TRX rental (sendBack 1,027.83 < effective deposit 1,185.19)",
+    "all 106 liquidations in the 7-day window had sendBack > 0 (renter-funded fee, no market badDebt)",
+    "no other payout path: sendBack <= securityDeposit; securityDeposit only grows by msg.value; rent/claim paths are internal-accounting only"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "MarketProxy TU2MJ5Veik1LRAgjeSzEdvmDYx7mefJZvd -> impl TNoHbPuBQrVanVf9qxUsSvHdB2eDkeDAKD; STRX TU3kjFuhtEo42tsCBtfYUAZxoqQ4yuSLQ5; admin single EOA TLntW9Z59LYY5KEi9cmwk3PKjQga828ird",
+    "Contract balance at block 87,210,571: 1,378,328.878039 TRX = $459,177.09 at TRX $0.33314044",
+    "Live effective security deposits (713 pairs, getRentInfo): 1,011,168.44 TRX = $336,861.10; stored deposits 1,147,953.48 TRX = $382,429.73; accrued rent 136,785.04 TRX",
+    "B0 '3.46M TRX nominal deposits' is a gross overstatement: it sums the latest RentResource event per pair and ignores later ReturnResource events; current stored deposits are 1,147,953 TRX and effective deposits 1,011,168 TRX",
+    "Balance minus measured stored deposits = 230,375.40 TRX ($76,747) = older-than-7-day deposits or surplus; market is solvent (balance >= stored deposits)",
+    "badDebt = badDebtCovered = 481,464,141 sun (481.46 TRX), badDebtGap = 0; BadDebtAdded events in 7 days = 0",
+    "7-day events: 9,782 RentResource, 5,253 ReturnResource, 106 Liquidate (fees 3,776.74 TRX, sendBack 11,889.18 TRX, dirtyRent 2,958.62 TRX), 352 RentClaimed (4,203,461.82 TRX), 0 BadDebtAdded",
+    "0/713 pairs liquidatable; 4 zero-deposit pairs had amount=0 (returned) and liquidate reverts 'no resource to liquidate'",
+    "Fresh self-liquidation shadow ledger: 1-block net ~-0.000012 TRX (rounding); 1.2-day net = -oneDayRent (-0.371954 TRX per 1,000 TRX; -371.95 TRX per 1M TRX); market badDebt 74.39 TRX per 1M order, not a profit to the attacker",
+    "Rate-manipulation to force liquidations is uneconomic: _liquidateRate = min(stable, current); 6h at 100% util costs ~7.7M TRX vs a ~9,221 TRX total fee pool",
+    "Total liquidation fee pool at current 115.26M TRX delegated = ~9,221 TRX (~$3,072), renter-funded; two keeper bots took 98/106 of the 7-day liquidations"
+  ],
+  "caveats": [
+    "TRON is not EVM-forkable with Foundry; PoC = live triggerconstantcontract dry-runs + exact arithmetic replay, not a state-changing fork",
+    "Point-in-time: the market churns every ~25 minutes; the 713-pair scan ran at blocks ~87,210,2xx-87,210,6xx on 2026-10-18",
+    "Verified source exposes 57/58 ABI selectors in the deployed bytecode; the initialRentRate(uint256) getter is absent (minor source/bytecode mismatch); all used functions are present and behavior-matched",
+    "The 7-day window may miss a >7-day-old deposit; the 230,375 TRX balance-minus-stored surplus bounds that exposure",
+    "P-class overhang: the single admin EOA can upgrade the proxy and move the whole 1,378,329 TRX balance (not counted as E-U or P in categories because the same funds are holder-recoverable in normal operation)",
+    "Nothing here is an instruction to transact"
+  ],
+  "conditional": {
+    "E-U-conditional-today_usd": 0,
+    "E-U-conditional-formula": "keeper fee max(20 TRX, 0.008% * amount) on an already-abandoned order with effectiveDeposit < fee; market badDebt += fee - effectiveDeposit",
+    "rearm_trigger": "any getRentInfo with liquidatable=true and securityDeposit < fee, any Liquidate with sendBack=0, or badDebtGap>0",
+    "current_fee_pool_usd": 3071.89,
+    "note": "cannot be manufactured profitably: the creator's net is -oneDayRent (-3.73 bp); only a third-party keeper on someone else's abandoned order profits, and 0 such orders exist today"
+  },
+  "one_liner": "External unprivileged attacker can extract ~$0 from JustLend Energy Rental: the badDebt branch is unprofitable to create and has 0 live triggers (0/713 liquidatable, 0 BadDebtAdded, gap 0), and return-after-liquidate reverts; the $459k balance is user deposits ($337k effective) + accrued rent, admin-upgradeable only via the single admin EOA."
+}
