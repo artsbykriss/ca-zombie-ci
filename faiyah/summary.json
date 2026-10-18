@@ -1,0 +1,61 @@
+{
+  "finding": "ZH4-05",
+  "title": "Faiyah Staking (Xphere) \u2014 commingled principal pays unfunded rewards; H-O first-mover race",
+  "chains": [
+    "xphere"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 476956.54,
+    "P": 0,
+    "S": 13638.03
+  },
+  "latest_block": 51464337,
+  "block_numbers": {
+    "xphere": 51464337
+  },
+  "targets_checked": 46,
+  "live_targets": 30,
+  "closed_reasons": [
+    "Reward math is exact floor-linear accrual: 13/13 recent settlements and 25/25 live views wei-exact (verify_math.json)",
+    "No over-credit, no rounding gain, no double-claim (second claim pays 0), no on-behalf claim (NotAuthorized)",
+    "No free stake: stake() requires a real transferFrom (TransferFromFailed with zero balance)",
+    "Stake after endTime reverts InvalidTimeRange; pool admin functions revert OwnableUnauthorizedAccount; factory admin functions revert NotAuthorized",
+    "Claim/unstake payouts are capped at the caller's own entitlement; claimable > balance reverts NotEnoughReward (live #9, #32 stake 2)",
+    "Fresh stake in the only material open pool (#42) pays only the advertised 5%/yr, locks principal 180 days, and is negative-EV/principal-at-risk; max 180-day gain 2.47%",
+    "No native-token reentrancy value: the only native pool with balance and no stake is #10 (5 ETH, 0 stakes, owner/governance only)"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Factory proxy 0x95c8853e6bD1DBCE2428Aa6953eb7680261F22fe -> impl 0xb4f7dea2fc421f0e0088ce1e99aa0a802c5628f3; 46 pools; XEF 0x80252c2d06bbd85699c555fc3633d5b8ee67c9ad @ $0.00452386 (DefiLlama ts 1792281184)",
+    "Commingled balance identity: balance = totalStaked + totalReward - rewardDebtTotal + directDonation; the only payout guard is NotEnoughReward (0xc9d2c178) vs the current balance, never vs totalStaked or the funded bucket",
+    "Pool #41 (XEF 2%, ended 2026-10-03): totalStaked 12,800,038.839 XEF, balance 12,771,774.190, rewardDebtTotal 28,264.649, funded bucket 0 -> deficit 28,264.65 XEF ($127.87); claimable now 73,447.01 XEF ($332.26) across 12,424 stakes",
+    "Pool #42 (XEF 5%, ends 2027-01-03): totalStaked 454,981.427 XEF, balance 454,865.381, debt 766.046, 650 XEF donation -> effective deficit 116.05 XEF; claimable now 4,818.45 XEF ($21.80) across 17,100 stakes",
+    "Total entitled first-mover extraction available today: 78,265.46 XEF = $354.06 (#41 $332.26 + #42 $21.80)",
+    "Locked 2027 pools #33/#37/#44/#45: today's accrued 32,996,530.82 XEF ($149,271.68 gross / $148,366.91 net); claims are locked (claim/unstake revert InvalidTimeRange until stime+365d, verified by eth_call)",
+    "interestTime=31,536,000 caps accrual at exactly 1 year and apr=1000 => at each stake's 2027 unlock accrued = 10% of principal; at-unlock liability = 105,553,057.59 XEF ($477,507.25 gross / $476,602.48 net of the 200k #33 buffer). Cap proven on #12/#14 (interestTime=86400) where settled claims are wei-exact to the capped formula",
+    "At-unlock projected pot grew 3.2x vs today's snapshot: +72,556,526.77 XEF (+$328,235.56) is still to accrue on existing stakes",
+    "Accrual on the same pools: 105,831,807 XEF one-time to the 2027 unlocks = $478,768.27; ~105.55M XEF of it is on the four locked pools and is already committed to existing stakes (pools ended, no new stakes), not a perpetual rate",
+    "RWA4 pool #21: 42,000,000 RWA4 principal, 1,000,000 buffer, 1,942,997.18 RWA4 accrued today -> 4,200,000 RWA4 at the 2027-05-02 unlock (10% 1-year), unfunded 3,200,000 RWA4 (unpriced, excluded from USD)",
+    "Realized third-party deficit already paid out of principal: #41 $127.87 + #42 $0.52 = $128.39; #9/#32 deficits are the deployer's own test stakes",
+    "Stuck/owner-only (S): #10 5 ETH ($11,986.52) + #9 1,299.58 USDT ($1,298.47) + #32 residual 353.10 USDC ($353.04) = $13,638.03; ownerPool EOAs cannot call emergencyWithdraw*; only a governance UUPS upgrade can recover",
+    "Governance (P) context: factory AccessManager 0x09f716B0d2d3AD90Ad47b04481508573b6cd847c; a state-override eth_call from the factory address shows emergencyWithdrawStakingToken can move a pool's full balance; generic admin custody over ~$4.84M XEF principal, not an unprivileged path"
+  ],
+  "caveats": [
+    "The pool implementation is not verified on Tamsa; behavior was reconstructed from bytecode/ABI and fork execution. NotEnoughReward selector 0xc9d2c178 observed in revert data.",
+    "The public Xphere RPC (en-bkk, rpc.x-phere.com) is a full non-archive node: pinning an old fork block fails with missing trie node; the PoC forks latest and logs the block.",
+    "XEF USD value is DefiLlama-implied; no deep CEX market. A 2x price move doubles USD amounts, not token amounts.",
+    "RWA4/EL/XXX/AAA/UU/DD/EE have no observable USD price and are excluded from the USD totals.",
+    "The 2027 at-unlock projection assumes each stake remains until stime+365d (enforced by unstakeDelay=365d, verified) and that interestTime caps at 1 year (proven on #12/#14). If a stake is somehow settled early, the pot is smaller.",
+    "The 2027 pot is an accrued liability, not a balance; the race outcome is ordering-dependent. The deterministic quantity is the shortfall = accrued_at_unlock + rewardDebtTotal - totalReward.",
+    "#9/#32/#10 balances belong to deployer EOAs; they are S for the deployed code, not third-party user losses.",
+    "The #41/#42 ownerPool EOAs cannot call emergency functions; governance upgrade power is generic and not counted in E-U/H-O."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 (reward math wei-exact 13/13 + 25/25); the live flaw is a holder-only first-mover race worth $354.06 claimable now plus a $476,602.48 unfunded pot at the 2027 unlock (today's accrued snapshot $148,366.91; $478,768.27 one-time accrual on existing stakes), with ~$13,638 stuck by the deployed code."
+}
