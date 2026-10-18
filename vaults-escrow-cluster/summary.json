@@ -1,0 +1,59 @@
+{
+  "finding": "ZH4-T3-g5",
+  "title": "Vaults/escrow/order cluster (cVault, OTSea, Jupiter Offerbook, PiggyBank, TONCO V2, Extended)",
+  "chains": [
+    "ethereum",
+    "base",
+    "blast",
+    "solana",
+    "ton",
+    "starknet"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 3296854.0,
+    "P": 123996441.0,
+    "S": 3118188.0
+  },
+  "latest_block": 26218121,
+  "block_numbers": {
+    "ethereum": 26218121,
+    "base": 52760597,
+    "solana_slot": 458343675,
+    "ton_masterchain_seqno": 99765186,
+    "starknet": 16553213
+  },
+  "targets_checked": 6,
+  "live_targets": 6,
+  "closed_reasons": [
+    "cVault: rLP holds 99.974% of SLP but exposes no unwrap; rebase hard-reverts; ERC95 wrappers 1:1 backed and skim-empty",
+    "OTSea: cancel/claim/fill paths party-bound; DL $582k is the sum of open sell-order ETH asks, not escrow",
+    "Jupiter Offerbook: 9/9 third-party simulations blocked (InvalidOwner/NotAuthorized/InvalidProgramId/ConstraintSeeds)",
+    "PiggyBank: deposit and redeem share total_shares f72; same-epoch round trip loses 1 raw unit; claim bound to redemption.user",
+    "TONCO V2: PAY_TO exit 111; live-pool POOLV3_INIT exit 82; fake notify forwards to a sender-derived pool",
+    "Extended: withdraw/transfer need operator nonce + user-signed approval; treasury Core-only; vault Core-only"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 10,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39109321420"
+    ]
+  },
+  "key_facts": [
+    "cVault real notional $6.33M ($6.12M SLP + $213.6k holder-owned); only $213.6k is H-O",
+    "OTSea real escrow ~$7k; DL $582k = 187.60 ETH + 49.75 ETH of open sell-order asks",
+    "Offerbook escrow $1,340,591 (205,117 USDC hard floor); PiggyBank managed $1,735,629 (96-99% off-vault)",
+    "TONCO two-pool TVL $2,405,239; Extended treasury $115,455,104 (DL Spot is an overlap of Perps)",
+    "All six targets are negative for E-U; the sizeable residual risks are privileged (admin upgrade, operator, off-vault custody)"
+  ],
+  "caveats": [
+    "P total overlaps H-O custody and is not additive",
+    "Offerbook binary upgraded 7 days before review and includes unaudited yield code; PiggyBank source is private",
+    "Extended: exact source commit for live class 0x2009d not proven; Arc migration scheduled 2026-10-22",
+    "Memecoin escrow/collateral marked at spot, not realizable"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 across all six deployments; the headline numbers are a locked SLP (cVault), a DefiLlama ask-side artifact (OTSea), and correctly-closed order/NAV/pool/operator state machines."
+}
