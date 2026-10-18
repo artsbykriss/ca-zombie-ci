@@ -1,0 +1,550 @@
+[
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "name": "kick_amount",
+    "type": "uint256"
+   },
+   {
+    "indexed": true,
+    "name": "is_re_kick",
+    "type": "bool"
+   }
+  ],
+  "name": "AuctionKick",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "name": "take_amount",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "name": "remaining_amount",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "name": "needed_amount",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "name": "taker",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "name": "receiver",
+    "type": "address"
+   }
+  ],
+  "name": "AuctionTake",
+  "type": "event"
+ },
+ {
+  "inputs": [
+   {
+    "components": [
+     {
+      "name": "papi",
+      "type": "address"
+     },
+     {
+      "name": "buy_token",
+      "type": "address"
+     },
+     {
+      "name": "sell_token",
+      "type": "address"
+     },
+     {
+      "name": "step_duration",
+      "type": "uint256"
+     },
+     {
+      "name": "step_decay_rate",
+      "type": "uint256"
+     },
+     {
+      "name": "auction_length",
+      "type": "uint256"
+     }
+    ],
+    "name": "params",
+    "type": "tuple"
+   }
+  ],
+  "name": "initialize",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   }
+  ],
+  "name": "get_available_amount",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   }
+  ],
+  "name": "get_kickable_amount",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   }
+  ],
+  "name": "get_needed_amount",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "name": "max_take_amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "get_needed_amount",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "name": "max_take_amount",
+    "type": "uint256"
+   },
+   {
+    "name": "at_timestamp",
+    "type": "uint256"
+   }
+  ],
+  "name": "get_needed_amount",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   }
+  ],
+  "name": "get_price",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "name": "at_timestamp",
+    "type": "uint256"
+   }
+  ],
+  "name": "get_price",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   }
+  ],
+  "name": "is_active",
+  "outputs": [
+   {
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "name": "kick_amount",
+    "type": "uint256"
+   },
+   {
+    "name": "maximum_amount",
+    "type": "uint256"
+   },
+   {
+    "name": "starting_price",
+    "type": "uint256"
+   },
+   {
+    "name": "minimum_price",
+    "type": "uint256"
+   },
+   {
+    "name": "receiver",
+    "type": "address"
+   },
+   {
+    "name": "surplus_receiver",
+    "type": "address"
+   }
+  ],
+  "name": "kick",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "name": "starting_price",
+    "type": "uint256"
+   },
+   {
+    "name": "minimum_price",
+    "type": "uint256"
+   }
+  ],
+  "name": "re_kick",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   }
+  ],
+  "name": "take",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "name": "max_take_amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "take",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "name": "max_take_amount",
+    "type": "uint256"
+   },
+   {
+    "name": "receiver",
+    "type": "address"
+   }
+  ],
+  "name": "take",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "auction_id",
+    "type": "uint256"
+   },
+   {
+    "name": "max_take_amount",
+    "type": "uint256"
+   },
+   {
+    "name": "receiver",
+    "type": "address"
+   },
+   {
+    "name": "data",
+    "type": "bytes"
+   }
+  ],
+  "name": "take",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "papi",
+  "outputs": [
+   {
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "buy_token",
+  "outputs": [
+   {
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "buy_token_scaler",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "sell_token",
+  "outputs": [
+   {
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "sell_token_scaler",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "step_duration",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "step_decay_rate",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "auction_length",
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "name": "arg0",
+    "type": "uint256"
+   }
+  ],
+  "name": "auctions",
+  "outputs": [
+   {
+    "components": [
+     {
+      "name": "kick_timestamp",
+      "type": "uint256"
+     },
+     {
+      "name": "initial_amount",
+      "type": "uint256"
+     },
+     {
+      "name": "current_amount",
+      "type": "uint256"
+     },
+     {
+      "name": "maximum_amount",
+      "type": "uint256"
+     },
+     {
+      "name": "amount_received",
+      "type": "uint256"
+     },
+     {
+      "name": "starting_price",
+      "type": "uint256"
+     },
+     {
+      "name": "minimum_price",
+      "type": "uint256"
+     },
+     {
+      "name": "receiver",
+      "type": "address"
+     },
+     {
+      "name": "surplus_receiver",
+      "type": "address"
+     }
+    ],
+    "name": "",
+    "type": "tuple"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ }
+]

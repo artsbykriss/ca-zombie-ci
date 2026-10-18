@@ -1,0 +1,90 @@
+# @version 0.4.3
+
+
+# ============================================================================================
+# View functions
+# ============================================================================================
+
+
+@external
+@view
+def empty() -> bool:
+    ...
+
+
+@external
+@view
+def size() -> uint256:
+    ...
+
+
+@external
+@view
+def first() -> uint256:
+    ...
+
+
+@external
+@view
+def last() -> uint256:
+    ...
+
+
+@external
+@view
+def next(trove_id: uint256) -> uint256:
+    ...
+
+
+@external
+@view
+def prev(trove_id: uint256) -> uint256:
+    ...
+
+
+@external
+@view
+def contains(trove_id: uint256) -> bool:
+    ...
+
+
+@external
+@view
+def valid_insert_position(annual_interest_rate: uint256, prev_id: uint256, next_id: uint256) -> bool:
+    ...
+
+
+@external
+@view
+def find_insert_position(annual_interest_rate: uint256, prev_id: uint256, next_id: uint256) -> (uint256, uint256):
+    ...
+
+
+# ============================================================================================
+# Initialize
+# ============================================================================================
+
+
+@external
+def initialize(trove_manager: address):
+    ...
+
+
+# ============================================================================================
+# Mutative functions
+# ============================================================================================
+
+
+@external
+def insert(trove_id: uint256, annual_interest_rate: uint256, prev_id: uint256, next_id: uint256):
+    ...
+
+
+@external
+def remove(trove_id: uint256):
+    ...
+
+
+@external
+def re_insert(trove_id: uint256, new_annual_interest_rate: uint256, prev_id: uint256, next_id: uint256):
+    ...

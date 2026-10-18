@@ -1,0 +1,60 @@
+{
+  "finding": "Flex",
+  "title": "Liquity-v1 fork with custom share-price oracles - live E-U $0; conditional liquidation bonus only",
+  "chains": [
+    "ethereum"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 10287.34,
+    "P": 0,
+    "S": 0
+  },
+  "e_u_conditional_usd": 1737.04,
+  "e_u_conditional_note": "Fork PoC: after a 2% oracle decline, liquidating the closest yvcrvUSD trove repaid 38,962.20 USDC and returned collateral worth 40,699.24 USDC at the real price = +1,737.04 USDC. The trigger is a market/oracle move, not attacker-controlled; interest accrual alone is expected to cross 1.10 in ~9 days (m4), ~11 days (m2), ~34 days (m3), with a first-trigger bonus of ~$290-$560.",
+  "latest_block": 26217683,
+  "block_numbers": {
+    "ethereum": 26217683
+  },
+  "targets_checked": 6,
+  "live_targets": 5,
+  "closed_reasons": [
+    "No trove is below the 1.10 MCR; min CR = 1.10127 at block 26,217,683, so liquidate_trove reverts.",
+    "close_zombie_trove requires trove.owner or an approved operator; a random caller reverts (4 remaining zombies, $10,287.34 H-O).",
+    "TroveManager.redeem is onlyLender; external users cannot redeem.",
+    "Oracles are Yearn/ERC-4626 price-per-share or Curve-EMA feeds, not spot pools; donation raises pps by D/S and the borrow gain is 0.909*f*D < D, so inflation is unprofitable.",
+    "Market 1 (siUSD) is empty: 0 debt, 0 Lender assets; the iUSD=$1 assumption has no live pot.",
+    "No idle Lender liquidity at scale: m0 $2,002, m3 $22,775.92, m2/m4 $0, m5 0.009731 WETH.",
+    "All recent Dutch auctions are fully taken (current_amount = 0) and Auction collateral balances are 0."
+  ],
+  "poc": {
+    "tests_passed": 4,
+    "tests_total": 4,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39105673861"
+    ]
+  },
+  "key_facts": [
+    "Registry 0x9117440a7d03238905d1c8908157bd7a547c77c8 has 6 markets; DADDY 0x4e8341C77c94cCE982AB96d92BB28D69f4638290.",
+    "Lender assets at 26,217,683: $2,001.18 (m0) + $604,459.44 (m2) + $211,035.47 (m3) + $100,552.48 (m4) + 310.055350 WETH (m5) = $1,665,480.5 at WETH $2,410.45.",
+    "Zombie collateral still in TroveManagers: 1,521.88 + 488.67 + 486.02 yvUSD + 7,036.18 ysyBOLD = $10,287.34 at oracle prices; six other zombies (~$25,161) were claimed by owners between blocks 26,217,430 and 26,217,683.",
+    "Active troves: m2 9 / $604,965.79 debt; m3 6 / $188,437.42; m4 6 / $100,628.61; m5 6 / 310.15 WETH. TCRs 1.1498 / 1.2638 / 1.1205 / 1.1444.",
+    "Closest troves: m4 9952961746... CR 1.10127; m2 2405732447... CR 1.10175; m3 7965717729... CR 1.10257.",
+    "Oracle marks: yvUSD $1.035049, siUSD $1.095252, ysyBOLD $1.094808 (depeg_mode=true), yvcrvUSD $1.160030, yvWETH 1.090920 WETH.",
+    "Market contracts are EIP-1167 minimal proxies with zero EIP-1967 impl/admin slots; the implementation cannot be swapped. Registry endorse/unendorse is only DADDY.",
+    "PoC at a 2% lower oracle: m4 liquidation repaid 38,962.199322 USDC, seized 35,085.025667 yvcrvUSD worth 40,699.237536 USDC at the real price, profit +1,737.038214 USDC (gas 1.9M).",
+    "PoC at the live price: liquidate_trove reverts; close_zombie_trove reverts for a random caller and succeeds for each owner; redeem reverts externally.",
+    "Auction.take has no nonReentrant modifier despite its comment; current_amount is updated before the callback but amount_received after it, so a receiver can reenter. All 31/36/12/8 auctions are fully taken and Auction collateral balances are 0, so live value is $0; only a price rise between kick and take could leak surplus."
+  ],
+  "caveats": [
+    "Point-in-time snapshot; the zombie set is shrinking as owners claim collateral.",
+    "The 2% oracle-drop PoC is a mechanics proof, not a price forecast; the trigger (pps loss or crvUSD/BOLD depeg) is not attacker-controllable.",
+    "total_debt is not sync_total_debt()-refreshed; CRs use get_trove_debt_after_interest at the same block.",
+    "DefiLlama's $1.9M TVL counts gross collateral / a different WETH mark; Lender receivables are $1.665M.",
+    "The ysyBOLD depeg floor can be re-enabled by DADDY; if BOLD < 0.99 the floor would overvalue ysyBOLD (P-triggered, not live).",
+    "Auction.take reentrancy is a latent code-quality issue, not counted in E-U; no active auction at the snapshot."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Flex; the oracle/redemption code is closed because the oracles are NAV/pps or Curve-EMA feeds and no trove is below 1.10. Residual: $10,287.34 of owner-only zombie collateral and a $1,737 conditional liquidation bonus after a 2% oracle drop."
+}

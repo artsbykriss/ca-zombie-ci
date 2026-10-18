@@ -1,0 +1,102 @@
+# @version 0.4.3
+
+
+# ============================================================================================
+# Structs
+# ============================================================================================
+
+
+struct AuctionInfo:
+    kick_timestamp: uint256
+    initial_amount: uint256
+    current_amount: uint256
+    maximum_amount: uint256
+    amount_received: uint256
+    starting_price: uint256
+    minimum_price: uint256
+    receiver: address
+    surplus_receiver: address
+
+
+struct InitializeParams:
+    papi: address
+    buy_token: address
+    sell_token: address
+    step_duration: uint256
+    step_decay_rate: uint256
+    auction_length: uint256
+
+
+# ============================================================================================
+# Storage
+# ============================================================================================
+
+
+@external
+@view
+def buy_token() -> address:
+    ...
+
+
+@external
+@view
+def sell_token() -> address:
+    ...
+
+
+@external
+@view
+def auctions(auction_id: uint256) -> AuctionInfo:
+    ...
+
+
+# ============================================================================================
+# Initialize
+# ============================================================================================
+
+
+@external
+def initialize(params: InitializeParams):
+    ...
+
+
+# ============================================================================================
+# Kick
+# ============================================================================================
+
+
+@external
+def kick(
+    auction_id: uint256,
+    kick_amount: uint256,
+    maximum_amount: uint256,
+    starting_price: uint256,
+    minimum_price: uint256,
+    receiver: address,
+    surplus_receiver: address,
+):
+    ...
+
+
+@external
+def re_kick(
+    auction_id: uint256,
+    starting_price: uint256,
+    minimum_price: uint256,
+):
+    ...
+
+
+# ============================================================================================
+# Take
+# ============================================================================================
+
+
+@external
+def take(
+    auction_id: uint256,
+    max_take_amount: uint256 = max_value(uint256),
+    receiver: address = msg.sender,
+    data: Bytes[10 ** 5] = empty(Bytes[10 ** 5]),
+) -> uint256:
+    ...

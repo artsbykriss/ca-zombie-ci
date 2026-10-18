@@ -1,0 +1,167 @@
+# @version 0.4.3
+
+
+# ============================================================================================
+# Flags
+# ============================================================================================
+
+
+flag Status:
+    ACTIVE
+    ZOMBIE
+    CLOSED
+    LIQUIDATED
+
+
+# ============================================================================================
+# Structs
+# ============================================================================================
+
+
+struct Trove:
+    debt: uint256
+    collateral: uint256
+    annual_interest_rate: uint256
+    last_debt_update_time: uint64
+    last_interest_rate_adj_time: uint64
+    owner: address
+    pending_owner: address
+    status: Status
+
+
+struct InitializeParams:
+    lender: address
+    dutch_desk: address
+    price_oracle: address
+    sorted_troves: address
+    borrow_token: address
+    collateral_token: address
+    minimum_debt: uint256
+    safe_collateral_ratio: uint256
+    minimum_collateral_ratio: uint256
+    max_penalty_collateral_ratio: uint256
+    min_liquidation_fee: uint256
+    max_liquidation_fee: uint256
+    upfront_interest_period: uint256
+    interest_rate_adj_cooldown: uint256
+
+
+# ============================================================================================
+# Storage
+# ============================================================================================
+
+
+@external
+@view
+def borrow_token() -> address:
+    ...
+
+
+@external
+@view
+def collateral_token() -> address:
+    ...
+
+
+@external
+@view
+def sorted_troves() -> address:
+    ...
+
+
+@external
+@view
+def troves(trove_id: uint256) -> Trove:
+    ...
+
+
+@external
+@view
+def get_trove_debt_after_interest(trove_id: uint256) -> uint256:
+    ...
+
+
+# ============================================================================================
+# Initialize
+# ============================================================================================
+
+
+@external
+def initialize(params: InitializeParams):
+    ...
+
+
+# ============================================================================================
+# Ownership
+# ============================================================================================
+
+
+@external
+def transfer_ownership(trove_id: uint256, new_owner: address):
+    ...
+
+
+@external
+def accept_ownership(trove_id: uint256):
+    ...
+
+
+# ============================================================================================
+# Open trove
+# ============================================================================================
+
+
+@external
+def open_trove(
+    owner_index: uint256,
+    collateral_amount: uint256,
+    debt_amount: uint256,
+    prev_id: uint256,
+    next_id: uint256,
+    annual_interest_rate: uint256,
+    max_upfront_fee: uint256,
+    min_borrow_out: uint256,
+    min_collateral_out: uint256,
+) -> uint256:
+    ...
+
+
+# ============================================================================================
+# Adjust trove
+# ============================================================================================
+
+
+@external
+def add_collateral(trove_id: uint256, collateral_amount: uint256):
+    ...
+
+
+@external
+def remove_collateral(trove_id: uint256, collateral_amount: uint256):
+    ...
+
+
+@external
+def borrow(
+    trove_id: uint256,
+    debt_amount: uint256,
+    max_upfront_fee: uint256,
+    min_borrow_out: uint256,
+    min_collateral_out: uint256,
+):
+    ...
+
+
+@external
+def repay(trove_id: uint256, debt_amount: uint256):
+    ...
+
+
+# ============================================================================================
+# Close trove
+# ============================================================================================
+
+
+@external
+def close_trove(trove_id: uint256):
+    ...
