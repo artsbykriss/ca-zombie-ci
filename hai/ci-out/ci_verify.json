@@ -1,0 +1,149 @@
+{
+  "finding": "ZH4-01",
+  "generated_at": "2026-10-18T00:06:28Z",
+  "block": 158341606,
+  "timestamp": 1792281989,
+  "iso": "2026-10-18T00:06:29Z",
+  "governor": {
+    "votingDelay": 43200,
+    "votingPeriod": 129600,
+    "proposalThreshold": 5000000000000000000000,
+    "quorumNumerator": 1,
+    "quorum_now": 9739670000000000000000,
+    "timelock": "0xd68e7d20008a223dd48a6076aaf5edd4fe80a899",
+    "token": "0xf467c7d5a4a9c4687ffc7986ac6ad5a4c81e1404",
+    "hardening_state": 5,
+    "hardening_eta": 1792209197,
+    "hardening_votes": [
+      0,
+      53448872671896758252477,
+      0
+    ],
+    "defender_votes": [
+      41155023163658253462783,
+      12113358768349716705194,
+      18183533402805423336204,
+      2484140888312268198191
+    ]
+  },
+  "timelock": {
+    "minDelay": 86400,
+    "op_eta": 1792209197,
+    "op_ready": 1,
+    "op_done": 0
+  },
+  "safe": {
+    "owners": [
+      "0xd68e7d20008a223dd48a6076aaf5edd4fe80a899"
+    ],
+    "threshold": 1,
+    "nonce": 79,
+    "kite": 328143981253588267391953,
+    "op": 462947729816000000000,
+    "weth": 10000000000000000,
+    "velo": 636038938070600000,
+    "kite_delegatee_before": "0x0000000000000000000000000000000000000000"
+  },
+  "tokens": {
+    "kite_totalSupply": 973967000000000000000000,
+    "kite_timelock_authorized": 1,
+    "hai_totalSupply": 303745538315653129364711,
+    "hai_timelock_authorized": 1,
+    "staking_kite": 309960707234679354734965,
+    "staking_timelock_authorized": 1,
+    "staking_authorized": [
+      "0xd68e7d20008a223dd48a6076aaf5edd4fe80a899"
+    ]
+  },
+  "hardening_execution_sim": {
+    "ok": 1,
+    "quorumNumerator": 5,
+    "proposalThreshold": 20000000000000000000000,
+    "votingPeriod": 432000,
+    "totalSupply": 973967000000000000000000
+  },
+  "safe_payload_sim": {
+    "ok": 1,
+    "delegatee": "0x1472934131f7af94f3cf2542b6121a44d236cf39",
+    "safe_kite": 327643981253588267391953,
+    "fed2_kite": 13911758607694791536271,
+    "op_468c": 100000000000000000000,
+    "allowance_staking": 50000000000000000000000,
+    "safe_nonce_after": 80
+  },
+  "direct_timelock_execution_blocked": true,
+  "recent_activity": {
+    "ProposalCreated": 0,
+    "VoteCast": 0,
+    "ProposalExecuted": 0,
+    "CallExecuted": 0
+  },
+  "checks": [
+    {
+      "check": "hardening_executable_permissionlessly",
+      "ok": true,
+      "detail": "{'ok': 1, 'quorumNumerator': 5, 'proposalThreshold': 20000000000000000000000, 'votingPeriod': 432000, 'totalSupply': 973967000000000000000000}"
+    },
+    {
+      "check": "payload_executes_from_timelock",
+      "ok": true,
+      "detail": "{'ok': 1, 'delegatee': '0x1472934131f7af94f3cf2542b6121a44d236cf39', 'safe_kite': 327643981253588267391953, 'fed2_kite': 13911758607694791536271, 'op_468c': 100000000000000000000, 'allowance_staking': 50000000000000000000000, 'safe_nonce_after': 80}"
+    },
+    {
+      "check": "direct_timelock_execution_blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "hardening_operation_ready",
+      "ok": true,
+      "detail": "{'minDelay': 86400, 'op_eta': 1792209197, 'op_ready': 1, 'op_done': 0}"
+    },
+    {
+      "check": "safe_owned_by_timelock",
+      "ok": true,
+      "detail": "['0xd68e7d20008a223dd48a6076aaf5edd4fe80a899']"
+    },
+    {
+      "check": "treasury_kite_intact",
+      "ok": true,
+      "detail": "328143981253588267391953"
+    },
+    {
+      "check": "treasury_not_delegated",
+      "ok": true,
+      "detail": "0x0000000000000000000000000000000000000000"
+    },
+    {
+      "check": "kite_mint_authority_timelock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "hai_mint_authority_timelock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "staking_manager_authorized_timelock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "quorum_still_1pct",
+      "ok": true,
+      "detail": "9739670000000000000000"
+    },
+    {
+      "check": "threshold_still_5k",
+      "ok": true,
+      "detail": "5000000000000000000000"
+    },
+    {
+      "check": "defense_bloc_present",
+      "ok": true,
+      "detail": "73936056223125661702372"
+    }
+  ],
+  "ok": true
+}

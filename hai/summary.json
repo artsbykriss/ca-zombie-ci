@@ -1,0 +1,72 @@
+{
+  "finding": "ZH4-01",
+  "title": "HAI governance capture: hardening approved but unexecuted; attacker abandoned Oct 14; $0 live, $195.6k conditional",
+  "chains": [
+    "optimism"
+  ],
+  "headline_extractable_usd": 195568.43,
+  "headline_confidence": "medium",
+  "categories": {
+    "E-U": 195568.43,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "conditional_eu_usd": 195568.43,
+  "value_at_risk_usd": 195568.43,
+  "protocol_tvl_usd": 916806.0,
+  "latest_block": 158341534,
+  "block_numbers": {
+    "optimism": 158341534
+  },
+  "targets_checked": 9,
+  "live_targets": 9,
+  "race_status": "dormant_not_closed",
+  "closed_reasons": [
+    "The permissionless live path is $0: the specific attacker (0xDC6A914c...a6ec0c + 0x1472934131...cf39) stopped proposing on 2026-10-14 12:52 UTC and liquidated all 9,768.504465722472 KITE by 14:40 UTC; no governance activity since 2026-10-16 03:53 UTC.",
+    "Passing a proposal now requires >73,936.06 KITE of FOR votes (the four-delegate defence bloc), while the two KITE DEX pools hold only 23,737.01 KITE in total; the votes cannot be bought on-chain.",
+    "Every one of the 858 attacker proposals was defeated; the 8 proposals that received FOR votes got exactly 9,768.50 KITE against 46,155-71,768 AGAINST.",
+    "The hardening proposal 0xe58085b0... is still Queued (not executed), so the structural vulnerability remains and the conditional E-U path is open."
+  ],
+  "poc": {
+    "tests_passed": 13,
+    "tests_total": 13,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39081525897"
+    ],
+    "method": "eth_call state-override simulation at live block (Foundry op-revm blocked by Isthmus panic)",
+    "ci_block": 158341606,
+    "ci_conclusion": "success"
+  },
+  "key_facts": [
+    "Governor 0xe807f3282f3391d237BA8B9bECb0d8Ea3ba23777: quorumNumerator=1, quorum=9,739.67 KITE, proposalThreshold=5,000 KITE, votingPeriod=129,600s, votingDelay=43,200s, timelock minDelay=86,400s at block 158,341,534.",
+    "Hardening proposal 0xe58085b0c24b45029d65620b87dfe1ea98a411b1ecd127721433d6805ae65229: state=Queued, ETA 2026-10-17 03:53:17Z, timelock op 0x52aa3307... isOperationReady=1, isOperationDone=0; Governor.execute() succeeds from any EOA and sets 5% / 20,000 KITE / 432,000s (fork-proven).",
+    "Treasury Safe 0xDCb421Cc4Cbb7267F3b2cAcAb44Ec18AEbEd6724: owner=Timelock, threshold=1, nonce=79; holds 328,143.981253588267391953 KITE + 462.947729816 OP + 0.01 WETH + 0.6360389380706 VELO = $101,480.77; KITE.delegates(Safe)=0.",
+    "Exact attacker payload (851 identical copies) makes the Safe delegatecall MultiSend 0xA238CBeb..., which calls KITE.delegate(0x1472934131f7af94f3cf2542b6121a44d236cf39) from the Safe; state-override simulation moves 327,643.981253588267391953 KITE of voting power (33.64% of supply) to the attacker, plus 500 KITE and 100 OP camouflage and 50k/50k/10k approvals.",
+    "StakingManager 0x1250f2326F04ac61Ee5aEd92fEf74BcAC6E6BC90 holds 304,489.089383841731990571 KITE ($94,087.66) and its only authorized account is the Timelock; emergencyWithdraw can send it anywhere after capture.",
+    "Timelock is an authorized minter of KITE (total supply 973,967; FDV $300,957) and HAI (total supply 303,745.53831565316; FDV $367,355); capture therefore also grants unbounded mint authority.",
+    "Live defence bloc: 0xCAFd...=41,155.02 + 0xE02e...=12,113.36 + 0xBad58e...=18,183.53 + 0x35d0...=2,484.14 = 73,936.05622312566 KITE (7.591% of supply).",
+    "Attack: 858 proposals 2026-10-08 17:34 -> 2026-10-14 12:52; 851 identical delegate payloads from 2026-10-12 02:26:29; 8 proposals received 9,768.504465722472 FOR; all defeated by 46,155.02-71,768.10 AGAINST; attacker exited 4,000 KITE to 0x0a2854... and 5,768.50 KITE to the KITE/HAI pool on 2026-10-14 14:29-14:40.",
+    "Attacker EOAs 0xDC6A... and 0x1472... both carry EIP-7702 delegation code 0xef0100 + 0x63c0c19a282a1b52b07dd5a65b58948a07dae32b; nonces 882 and 31.",
+    "Liquidity/cost: KITE DEX liquidity $14,702.99 (23,737.01 KITE float); buying the 9,739.67 KITE quorum costs ~$5,099.07 (1.69x spot). Buying 48,698.35 KITE (post-hardening quorum) or 73,936.06 KITE (defence bloc) is impossible from the two pools.",
+    "If hardening executes: quorum 48,698.35 KITE ($15,047.87 spot), threshold 20,000 KITE ($6,180.03), voting period 432,000s; defence margin falls from 64,196.39 to 25,237.71 KITE but quorum becomes 2.05x the entire DEX float, closing the permissionless path.",
+    "Gas asymmetry: attacker 866 governor txs / 106,911,971 gas / ~$0.03 L2 fee; defender 0xCAFd 1,300 txs / 254,402,711 gas / ~$58.34.",
+    "Cost to outvote the current defence bloc is 73,936.06 KITE \u2248 $22,846.37 spot, but that exceeds the entire DEX KITE float (23,737.01 KITE); it requires OTC or a delegation shift, not a permissionless DEX purchase."
+  ],
+  "caveats": [
+    "KITE mark-to-market values are not realizable into $14.7k of DEX liquidity; the $195,568 direct figure is an upper bound on spot value, not a liquidation value.",
+    "An OTC whale could still supply 74k KITE or move delegation; the on-chain float constraint only blocks the permissionless path.",
+    "The defence bloc is delegated, not owned; a single 25k-50k holder changing delegation can erase the post-hardening margin.",
+    "The attacker's OTC cost basis is unknown (KITE came from two EOAs, not a DEX), so its P&L cannot be computed exactly.",
+    "Blockscout's fee field may exclude part of the OP L1 data fee; the gas comparison is directional.",
+    "Foundry 1.8.5 op-revm panics on OP Mainnet post-Isthmus blocks; the proof uses eth_call state override (equivalent for these two calls, non-persistent).",
+    "The $916,806 protocol TVL is DefiLlama TVL, not a proven drain path; only the $195,568 Treasury + StakingManager KITE is directly proven drainable."
+  ],
+  "one_liner": "Race is live but dormant: the Oct 8-14 attacker exited, yet quorum is still 1% and the hardening is queued/unexecuted. Permissionless extraction is $0 because the 73,936 KITE defence bloc exceeds the 23,737 KITE DEX float; conditional E-U is $195,568 direct (+$916,806 TVL + KITE/HAI mint authority) if 73,936 KITE is acquired OTC or the defence lapses (~$5.1k quorum).",
+  "headline_basis": "conditional E-U: requires 73,936.06 KITE of FOR votes (current defence bloc) acquired OTC; live permissionless path is $0 because the two DEX pools hold only 23,737.01 KITE. Assets are illiquid KITE, so mark-to-market > liquidation value.",
+  "live_permissionless_eu_usd": 0,
+  "defence_cost_spot_usd": 22846.37,
+  "conditional_confidence": "medium",
+  "categories_note": "E-U=195568.43 is conditional, not permissionless: the attacker must outvote a 73,936.06 KITE defence bloc that exceeds the entire 23,737.01 KITE DEX float. If the defence lapses, quorum-only capture costs ~$5,099. If hardening executes, quorum becomes 48,698.35 KITE (above the DEX float).",
+  "mechanics_confidence": "high"
+}

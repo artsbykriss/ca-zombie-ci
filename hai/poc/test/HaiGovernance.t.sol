@@ -131,11 +131,11 @@ contract HaiGovernanceTest is Test {
         vm.warp(t + 1);
 
         assertEq(kite.delegates(SAFE), TARGET, "treasury delegated to attacker");
-        assertEq(kite.getVotes(TARGET, t), 296_143.981253588267391953e18, "attacker voting power");
-        assertEq(kite.balanceOf(SAFE), kiteBefore - 32_000e18, "32k camouflage transfer");
+        assertEq(kite.getVotes(TARGET, t), 327_643.981253588267391953e18, "attacker voting power");
+        assertEq(kite.balanceOf(SAFE), kiteBefore - 500e18, "500 KITE camouflage transfer");
         assertEq(
             kite.balanceOf(0xfEd2eB6325432F0bF7110DcE2CCC5fF811ac3D4D),
-            fed2Before + 32_000e18,
+            fed2Before + 500e18,
             "reward distributor transfer"
         );
         assertEq(kite.allowance(SAFE, STAKING), 50_000e18, "staking approval");
