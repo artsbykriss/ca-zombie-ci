@@ -1,0 +1,37 @@
+Compiling 20 files with Solc 0.8.24
+Solc 0.8.24 finished in 30.95s
+Compiler run successful!
+
+Ran 7 tests for test/StartaleFlashloan.t.sol:StartaleFlashloanTest
+[PASS] test_P5_atomic_flashloan_cycle_reverts_at_keeper_gate() (gas: 280666)
+Logs:
+  atomic flashloan JIT cycle reverts at snapshotVaultTVLs (keeper gate)
+
+[PASS] test_P5_same_block_snapshot_then_distribute_reverts() (gas: 305044)
+Logs:
+  same-block snapshot+distribute reverts; next-block distribute succeeds
+
+[PASS] test_P5a_snapshot_is_keeper_gated() (gas: 36030)
+Logs:
+  snapshotVaultTVLs: OPERATOR_ROLE required
+
+[PASS] test_P5b_distribute_is_keeper_gated() (gas: 38291)
+Logs:
+  distribute: OPERATOR_ROLE required
+
+[PASS] test_P5c_onYield_is_rr_only() (gas: 40931)
+Logs:
+  onYield: NotYieldRedistributor for non-RR caller
+
+[PASS] test_P6_v4_flashloan_1M_works() (gas: 121545)
+Logs:
+  v4 flashloan 1M USDSC OK; PM depth 2252926676821
+  flashloan round-trip gas 87965
+
+[PASS] test_P6_v4_flashloan_2M_works() (gas: 118123)
+Logs:
+  v4 flashloan 2M USDSC OK; PM depth 2252926676821
+
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 6.29s (375.66ms CPU time)
+
+Ran 1 test suite in 7.56s (6.29s CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)

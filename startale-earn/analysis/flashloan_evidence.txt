@@ -1,0 +1,79 @@
+# ZH4-02 flashloan evidence — Soneium mainnet reads + fork PoC
+
+## Role gate: eth_call from random 0x...dEaD (block latest, 2026-10-18T14:26:33Z)
+$ cast call 0xda79... "snapshotVaultTVLs()" --from 0x...dEaD
+Error: execution reverted: AccessControlUnauthorizedAccount(0x000000000000000000000000000000000000dEaD, 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929)
+
+Context:
+- server returned an error response: error code 3: execution reverted, data: "0xe2517d3f000000000000000000000000000000000000000000000000000000000000dead97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929"
+
+$ cast call 0xda79... "distribute()" --from 0x...dEaD
+Error: execution reverted: AccessControlUnauthorizedAccount(0x000000000000000000000000000000000000dEaD, 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929)
+
+Context:
+- server returned an error response: error code 3: execution reverted, data: "0xe2517d3f000000000000000000000000000000000000000000000000000000000000dead97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929"
+
+$ cast call 0xFdeB... "onYield(uint256)" 1000000 --from 0x...dEaD
+Error: execution reverted: NotYieldRedistributor
+
+Context:
+- server returned an error response: error code 3: execution reverted, data: "0xdea199ff"
+
+## OPERATOR_ROLE membership
+count: 1
+members: [0x86bE13a26d548FA5407Ee3E5a8321B4E1019333C]
+
+## Uniswap v4 PoolManager USDSC depth
+balanceOf(PM): 2252349523925 [2.252e12]
+
+## Uniswap v3 USDSC/USDC.e pool depths
+0.01% pool 0x680bf... USDSC: 134894809624 [1.348e11]
+0.30% pool 0x6Dad... USDSC: 125101 [1.251e5]
+
+## Fork PoC (local run, pinned block 29,573,086)
+
+## Current live recheck @ block 29,599,442 (2026-10-18 ~14:26Z)
+impl slot: 0x7dca02767dfd57888ce087900f9cfdf3d9a2af6f
+vault paused: false ; RR paused: false ; feeBps: 30 ; snapshotMaxAge: 300
+lastSnapshotBlock: 29595027 ; lastSnapshotTimestamp: 1792324805 (12:00:05Z)
+totalPrincipal: 848683292142 ($848,683.29) ; vault balance: 853081600702 ($853,081.60)
+OPERATOR_ROLE count: 1 ; member: 0x86bE13a26d548FA5407Ee3E5a8321B4E1019333C
+
+## Fork PoC — flashloan suite (7/7 PASS)
+Compiling 20 files with Solc 0.8.24
+Solc 0.8.24 finished in 30.95s
+Compiler run successful!
+
+Ran 7 tests for test/StartaleFlashloan.t.sol:StartaleFlashloanTest
+[PASS] test_P5_atomic_flashloan_cycle_reverts_at_keeper_gate() (gas: 280666)
+Logs:
+  atomic flashloan JIT cycle reverts at snapshotVaultTVLs (keeper gate)
+
+[PASS] test_P5_same_block_snapshot_then_distribute_reverts() (gas: 305044)
+Logs:
+  same-block snapshot+distribute reverts; next-block distribute succeeds
+
+[PASS] test_P5a_snapshot_is_keeper_gated() (gas: 36030)
+Logs:
+  snapshotVaultTVLs: OPERATOR_ROLE required
+
+[PASS] test_P5b_distribute_is_keeper_gated() (gas: 38291)
+Logs:
+  distribute: OPERATOR_ROLE required
+
+[PASS] test_P5c_onYield_is_rr_only() (gas: 40931)
+Logs:
+  onYield: NotYieldRedistributor for non-RR caller
+
+[PASS] test_P6_v4_flashloan_1M_works() (gas: 121545)
+Logs:
+  v4 flashloan 1M USDSC OK; PM depth 2252926676821
+  flashloan round-trip gas 87965
+
+[PASS] test_P6_v4_flashloan_2M_works() (gas: 118123)
+Logs:
+  v4 flashloan 2M USDSC OK; PM depth 2252926676821
+
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 6.29s (375.66ms CPU time)
+
+Ran 1 test suite in 7.56s (6.29s CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)
