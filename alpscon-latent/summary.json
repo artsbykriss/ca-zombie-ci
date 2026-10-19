@@ -1,0 +1,50 @@
+{
+  "finding": "ZH4-PASS2-T3-2 (AlpsCon V7-V9 latent)",
+  "title": "AlpsCon V7-V9 recursive reward import — gate closed; Oct-19 $464k V9 refill did not reopen it",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 34763.78,
+    "P": 5933391.32,
+    "S": 331087.78
+  },
+  "latest_block": 128639449,
+  "block_numbers": {
+    "bsc": 128633400
+  },
+  "targets_checked": 8,
+  "live_targets": 0,
+  "closed_reasons": [
+    "Hardhat f39f de-whitelisted on swap 0x7227 at 2026-10-18 11:10:59 UTC (block 128351990)",
+    "16 standard Hardhat/Anvil/Ganache/Truffle/public-key addresses all isInWhiteList=false",
+    "V7 and V8 hold 0 USDC; V9 holds only the residual of a fee-charging distribution",
+    "V6 disabled: storage slot 3 (swapContract) = 0x0",
+    "V4/V5 old swap 0x5e4f has 0 USDC/0 TRAI and 0 allowance; old TRAI has no Pancake pair",
+    "claimServiceResults/withdrawFunds from f39f revert AITradeHubNotVerifyError; performAutomation reverts AITradeHubPermissionDeniedError (onlyOwner)"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Gate at BSC block 128633400: isInWhiteList(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266) on 0x7227d229be754fa49f416d48e8eaa121184b1721 = false; project EOAs 0x3e38 and 0xa2f5 remain true.",
+    "V9 0x9b210da482217afc24074e57f6f8337fe07f0124: 34,763.782329 USDC at block 128633400; 30,190.64 at CI block 128639449; pps 0.0370312721; 514,208,288.21 ALPS locked.",
+    "V8 f39f user_earnings = 151,557.336199 USDC, V7 f39f user_earnings = 173,192.796852 USDC, V9 f39f user_earnings = 0; V8 and V7 each hold 0 USDC, so the $324,750.14 is unbacked accounting (S).",
+    "V9 f39f paidAmount = 464,472.892777 = 312,915.556578 (Oct-18 attack net V9 claim) + 151,557.336199 (V8 earnings consumed via the copycat recompound); V8 storage still shows the same 151,557.34, a double-counted liability.",
+    "Oct-19 refill: 464,360.873076 USDC entered V9 at block 128595562 (2026-10-19 17:38:27 UTC) from the Vault via FundV2; 429,617.153873 left (408,132.006263 to FundV2 in 14,902 fee transfers; 21,485.147610 to 396 users); residual 34,763.78 at 22:22 UTC.",
+    "Correction: V9 held 227,663.46 USDC at 18:20:20 UTC (block 128598922), not $110k; it crossed ~$110k around 18:35.",
+    "V4+V5 = 5,931.937486 USDC; V6 = 405.714346 USDC; Vault = 5,912,217.003146 USDC; Fund EOA 0x3e38 = 21,042.722164 USDC; Swap = 131.597184 USDC; New V6/New swap = 0.",
+    "All value-moving calls from f39f revert on live eth_call at the latest block; no fork transaction was needed."
+  ],
+  "caveats": [
+    "Point-in-time: V9 balance is falling ($34.76k at 22:22, $30.19k at 23:0x); re-read before acting.",
+    "The swap whitelist is not enumerable (no AddAddressToWhiteList event); 16 standard public keys plus the two project EOAs were tested. An unknown/leaked whitelisted key cannot be excluded.",
+    "The V8/V7 earnings are accounting values, not cash; V8/V7 hold 0 USDC. They become H-O/E-U-conditional only if the gate reopens and the contracts are refilled or the recompound path has ALPS liquidity.",
+    "Vault 2-of-2 multisig/module gating is from pass-2 and was not fully re-audited; module count (8) and balances were re-read.",
+    "USD = USDC $1.00; ALPS has no independent market (only the Vault swap)."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live: the only public whitelisted key is removed, V7/V8 are empty, V6 is disabled, V4/V5 are capital-blocked, and every claim/withdraw/automation call reverts; the $324.7k Hardhat accounting claims are unbacked S, and the Oct-19 $464k V9 distribution was 92.5% consumed by fees/claims, leaving $34.8k H-O."
+}
