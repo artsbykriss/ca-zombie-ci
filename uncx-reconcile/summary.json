@@ -1,0 +1,58 @@
+{
+  "finding": "ZH4-PASS2-P2-03 (UNCX reconciliation; excluded/prior-corpus protocol)",
+  "title": "UNCX VestingManager release()/cancel() reconciliation — pass2 'permissionless double-debit' correction REJECTED; live E-U remains $0",
+  "chains": ["ethereum", "bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 131014.29,
+    "P": 0,
+    "S": 36500
+  },
+  "categories_note": "E-U $0: release() requires msg.sender == beneficiary/NFT owner and cancel()/topUp() require msg.sender == creator; the only way to obtain those roles is createVesting, which costs flatFee = uint256.max wei on ETH (0 exemptions) and 35,000 BNB on BSC (0 exemptions). Full scans: ETH 5,100 schedules, 1 live soft+topable (id 5063, claim 0, PEPE pool 288.9 tokens); BSC 995 schedules, 66 live soft+topable (all Oct-14 helper, claim 0, BTCLE pool 4.21e-8). H-O 131,014.29 = upper end of hard-realizable holder value in this ETH+BSC scope (ETH $46,593.93-$93,187.85: AXGT bounded by $154,294.82 pool, TCT by $32,080.89, VEK/old-AXGT/OXN have no DEX pair = $0 hard; BSC $18,913.22-$37,826.44: DROPS $29,767.83 pool, LOOPRA $45,885.04 pool, CDT no pair). S 36,500 = RH RKST share-corrupted residual carried from ZH3 (outside this reconciliation's ETH/BSC scope).",
+  "latest_block": 26229646,
+  "block_numbers": {
+    "ethereum": 26229646,
+    "bsc": 128639266
+  },
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "release(id) is gated by msg.sender == ownerOf(id) (NFTized) or msg.sender == schedule.beneficiary; cancel(id) and topUpVesting(id) are gated by msg.sender == schedule.creator (verified source lines 597-601, 670-677, 787)",
+    "createVesting/createDailySoftVesting/createAirdropVesting all require msg.value >= flatFee; ETH flatFee = uint256.max wei with 0/92 creator exemptions and 0/76 token exemptions; BSC flatFee = 35,000 BNB with 0 exemptions",
+    "full ETH scan: 5,100 schedules, 39 cancelled, 5,061 live; the ONLY live soft+topable schedule is id 5063 (Oct-14 helper) with claim 0 and a 288.9-PEPE dust pool; 0 live soft+topable schedules have a positive claim",
+    "full BSC scan: 995 schedules, 297 cancelled, 698 live; 66 live soft+topable schedules, all created by 0x8174eee3, all claim 0; BTCLE pool is 4.21e-8",
+    "an NFT purchase changes only the beneficiary (release rights, pro-rata) and never the creator, so it cannot unlock the double-debit; fork-proven by transferring soft NFT id 4972",
+    "the exact public DeFiHackLabs PoC, run at latest state, reverts InvalidFlatFee at its first createVesting{value: 0.05 ether}",
+    "the two recent release txs (Oct 17 block 26,209,802; block 26,228,470) were sent by exactly the schedule beneficiaries, i.e. normal claims, not third-party calls",
+    "no FlatFeeUpdated / CreatorFeeExemptionUpdated / TokenFeeExemptionUpdated after block 26,197,490; no VestingCreated or VestingCancelled since containment"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "ETH manager 0xA98F06312b7614523d0f5e725e15fd20fB1b99F5 at block 26,229,646: 18,010-byte non-proxy code (EIP-1967 slot 0), flatFee=uint256.max, feePercentage=500, nextVestingId=5100, owner 0x31c44A17... (2-of-N Safe).",
+    "BSC manager 0x7f3f9f4ED8987B78adC448a840169A0FD5AFFAAB at block 128,639,266: 18,010-byte non-proxy code, flatFee=35,000 BNB (3.5e22 wei), feePercentage=500, nextVestingId=995, zero exemptions.",
+    "The double-debit is real in code: cancel() computes sharesToRemove = D - V*D/T without subtracting schedule.released, so a soft schedule that released then cancels debits those shares twice from _totalTokenShares. It requires the attacker to be the creator of the soft schedule and to own a receiver schedule in the same pool.",
+    "Pass2's 1:1 observation is confirmed for VEK (250M/250M), AXGT (125.7M/125.7M), old-AXGT (95M/95M) and OXN (807.5M/807.5M) at block 26,229,646. A 1:1 pool is healthy: release pays exactly relShares*balance/totalShares, no premium (fork test F).",
+    "Only 6 of 76 ETH pools are not 1:1: EDGEN, ZC, pepecoin, LO0P (the Oct-14-attacked pools) and two small pools. EDGEN has totalShares=17,572,899 vs balance=32,941,964,644 wei, so the 0xcc5d4c9d schedules' nominal claims (up to 2.56e26 wei) exceed the pool and release reverts.",
+    "The only live soft+topable ETH schedule (5063) is the Oct-14 attacker's, fully released (released == T == 127,340.97e18), claim 0, token pepecoin, pool 288.9 PEPE.",
+    "34 ETH schedules are NFTized and 10 are transferable. Fork test E transfers soft NFT 4972 to a fresh attacker: beneficiary becomes the attacker, creator stays 0x1137da98..., release pays the exact pro-rata claim, cancel/topUp revert NotAuthorized.",
+    "BSC: 66 live soft+topable schedules, all creator/beneficiary 0x8174eee3af07c9a695ca363a38dc3190f6dd0dec (the Oct-14 helper), all claim 0; the BTCLE pool is dust. They are a re-arm monitor only.",
+    "Nominal $4.18M ETH: VEK $2.50M (no DEX pair), AXGT $0.94M ($154k pool), old-AXGT $0.23M (no pair), OXN $0.34M (no pair), TCT $0.076M ($32k pool). Hard realizable if the bug were reachable: approx $46.6k-$93.2k ETH; BSC approx $18.9k-$37.8k; combined approx $65.5k-$131.0k.",
+    "Conditional re-arm: one owner tx setFlatFee(<payable>) or setCreatorFeeExempt/setTokenFeeExempt. Fork test H proves create/release/cancel work with flatFee=0 and feePercentage=0 on a mock token; the immutable bug is intact.",
+    "cancel() on a fully vested fee-paying schedule reverts with arithmetic underflow (T is net of the token fee, getVestedAmount is gross). This is an additional blocker for the residual attacker schedules: they need a top-up to a future tranche before cancel, and the pools are dust."
+  ],
+  "caveats": [
+    "Point-in-time reads at ETH block 26,229,646 and BSC block 128,639,266 (2026-10-20); re-verify before acting.",
+    "The 25%-50%-of-DEX-depth realizable bound is an estimate; the true impact of selling 125.7M AXGT into a $154k pool is likely at the low end.",
+    "Blockscout marks for VEK/old-AXGT/OXN are not backed by any DEX pair; they are reported only to reconcile pass2's nominal $4.18M and are marked $0 hard.",
+    "BSC nominal $1.48M is pass2/prior GoldRush marks; only DROPS and LOOPRA have observable pairs today. BscScan's own net-worth figure was ~$45.7k at the ZH3 read.",
+    "The owner Safe can re-arm the immutable bug with one parameter transaction; that is P-class and monitored, not E-U.",
+    "No mainnet transaction was signed or sent; all PoC work is a read-only Foundry fork."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live: release() is beneficiary-gated and cancel()/topUp() are creator-gated, so a fresh attacker cannot obtain the roles needed for the shared-pool double-debit; creation is blocked by flatFee=uint256.max on ETH and 35,000 BNB on BSC with zero exemptions, and no live soft+topable schedule has a positive claim in a funded pool — the pass2 'permissionless release' correction is rejected, and its $5.7M is nominal (hard realizable only ~$65k-$131k if the bug were re-armed)."
+}
