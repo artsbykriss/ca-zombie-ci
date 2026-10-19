@@ -1,0 +1,156 @@
+{
+  "note": "All entries are read-only eth_call simulations. No transaction was signed, broadcast or mined. RPC endpoints used: https://bsc-rpc.publicnode.com (latest / recent) and https://rpc.ankr.com/bsc/<redacted> (archive block 125467270).",
+  "factory_4_2": "0x37eE8AeE29C5efd3C1A7edA6dF3F510779928a37",
+  "factory_4_1": "0x78EAE9537C0ef90DFe9B7ae964682Fe8138afe31",
+  "owner_safe": "0xE7C7B7EE71db0f1B4F0Ff25D7cEc191268e7FD98",
+  "random_eoa": "0x1111111111111111111111111111111111111111",
+  "proofs": [
+    {
+      "id": "P1",
+      "block": 128633968,
+      "call": "forceSweptGraduation(address)",
+      "selector": "0x7aed273e",
+      "args": ["0x6e8ff50fa80c04bd4846a56d2d6b91c9dcff1e91"],
+      "from": "0x1111111111111111111111111111111111111111",
+      "result": "revert OwnableUnauthorizedAccount(0x1111111111111111111111111111111111111111)",
+      "interpretation": "unprivileged caller is rejected by onlyOwner before any token/phase check"
+    },
+    {
+      "id": "P2",
+      "block": 128633968,
+      "call": "rescueSweptGraduation(address,address)",
+      "selector": "0xdbcb9c76",
+      "args": ["0x6e8ff50fa80c04bd4846a56d2d6b91c9dcff1e91", "0x1111111111111111111111111111111111111111"],
+      "from": "0x1111111111111111111111111111111111111111",
+      "result": "revert OwnableUnauthorizedAccount(0x1111111111111111111111111111111111111111)",
+      "interpretation": "unprivileged caller cannot reach the rescue payout or choose a recipient"
+    },
+    {
+      "id": "P3",
+      "block": 128633968,
+      "call": "rescueSweptGraduation(address,address)",
+      "selector": "0xdbcb9c76",
+      "args": ["0x6e8ff50fa80c04bd4846a56d2d6b91c9dcff1e91", "0xE7C7B7EE71db0f1B4F0Ff25D7cEc191268e7FD98"],
+      "from": "0xE7C7B7EE71db0f1B4F0Ff25D7cEc191268e7FD98",
+      "result": "revert WrongGraduationPhase",
+      "interpretation": "even the owner cannot rescue a launch that has already been seeded (phase PoolCreated)"
+    },
+    {
+      "id": "P4",
+      "block": 125467270,
+      "block_time_utc": "2026-10-03T10:20:13Z",
+      "call": "getLaunchedToken(address)",
+      "selector": "0x3cf28b5a",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838"],
+      "result": {
+        "phase": 1,
+        "phase_name": "Swept",
+        "sweptQuote": "15000000000000000251",
+        "sweptTokens": "285714285714285714285714285",
+        "sweptAt": 1791022801
+      },
+      "interpretation": "at this archive block the last sweep was still unseeded: 15 BNB sat in the factory"
+    },
+    {
+      "id": "P5",
+      "block": 125467270,
+      "call": "factory native balance (eth_getBalance)",
+      "result": "15000000000000000251 wei = 15.000000000000000251 BNB",
+      "interpretation": "confirms the history state used by P6-P9"
+    },
+    {
+      "id": "P6",
+      "block": 125467270,
+      "call": "createGraduatedPool(address)",
+      "selector": "0x2f53ef2f",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838"],
+      "from": "0x1111111111111111111111111111111111111111",
+      "result": "SUCCESS, returns positionId 1479147",
+      "interpretation": "permissionless seeding works and pays the caller nothing; this is the path that permanently closes the owner's rescue route"
+    },
+    {
+      "id": "P7",
+      "block": 125467270,
+      "call": "createGraduatedPool(address)",
+      "selector": "0x2f53ef2f",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838"],
+      "from": "0xE7C7B7EE71db0f1B4F0Ff25D7cEc191268e7FD98",
+      "result": "SUCCESS, returns positionId 1479147",
+      "interpretation": "same result for the owner; no privileged shortcut"
+    },
+    {
+      "id": "P8",
+      "block": 125467270,
+      "call": "forceSweptGraduation(address)",
+      "selector": "0x7aed273e",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838"],
+      "from": "0x1111111111111111111111111111111111111111",
+      "result": "revert OwnableUnauthorizedAccount(0x1111111111111111111111111111111111111111)",
+      "interpretation": "even while 15 BNB is in the factory, an unprivileged caller cannot force-sweep"
+    },
+    {
+      "id": "P9",
+      "block": 125467270,
+      "call": "forceSweptGraduation(address)",
+      "selector": "0x7aed273e",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838"],
+      "from": "0xE7C7B7EE71db0f1B4F0Ff25D7cEc191268e7FD98",
+      "result": "revert WrongGraduationPhase",
+      "interpretation": "once swept, force is unavailable even to the owner; force is only for NotGraduated+ready+unseedable launches"
+    },
+    {
+      "id": "P10",
+      "block": 125467270,
+      "call": "rescueSweptGraduation(address,address)",
+      "selector": "0xdbcb9c76",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838", "0x1111111111111111111111111111111111111111"],
+      "from": "0xE7C7B7EE71db0f1B4F0Ff25D7cEc191268e7FD98",
+      "result": "revert GraduationRescueTooEarly(1791627601)",
+      "interpretation": "7-day timelock is enforced from sweptAt (1791022801 + 604800 = 1791627601); owner cannot rescue before 2026-10-10T10:20:01Z"
+    },
+    {
+      "id": "P11",
+      "block": 125467270,
+      "call": "rescueSweptGraduation(address,address)",
+      "selector": "0xdbcb9c76",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838", "0x1111111111111111111111111111111111111111"],
+      "from": "0x1111111111111111111111111111111111111111",
+      "result": "revert OwnableUnauthorizedAccount(0x1111111111111111111111111111111111111111)",
+      "interpretation": "unprivileged caller cannot rescue even after the delay"
+    },
+    {
+      "id": "P12",
+      "block": 125467270,
+      "call": "graduate(address)",
+      "selector": "0xff6d8d05",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838"],
+      "from": "0x1111111111111111111111111111111111111111",
+      "result": "revert WrongGraduationPhase",
+      "interpretation": "graduate cannot be replayed after the sweep"
+    },
+    {
+      "id": "P13",
+      "block": 125467257,
+      "call": "getLaunchedToken(address) + readyToGraduate()",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838", "0x4406584358aC300AFba0F58961B23378c40dEA1a"],
+      "result": {"phase": 0, "phase_name": "NotGraduated", "readyToGraduate": false},
+      "interpretation": "the block before the sweep is not ready; the crossing buy, sweep and phase change occur atomically in block 125467258, so there is no historical block where force could target this launch"
+    },
+    {
+      "id": "P14",
+      "block": 125467257,
+      "call": "forceSweptGraduation(address)",
+      "selector": "0x7aed273e",
+      "args": ["0x2670b2798ca7665afff8068cb6dbcae8070fc838"],
+      "from": "0xE7C7B7EE71db0f1B4F0Ff25D7cEc191268e7FD98",
+      "result": "revert NotReadyToGraduate",
+      "interpretation": "owner force is also blocked before readiness"
+    }
+  ],
+  "ready_scan": {
+    "method": "Multicall3 aggregate3 (0xcA11bde05977b3631167028862bE2a173976CA11) calling readyToGraduate() on every TokenLaunched curve",
+    "curves_scanned": 20742,
+    "ready_and_ungraduated": 0,
+    "note": "A curve that has already graduated returns false (graduated=true). Zero ready means there is no curve currently sitting at the threshold with unswept reserves."
+  }
+}
