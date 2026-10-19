@@ -1,0 +1,49 @@
+{
+  "finding": "ZH4-P2 Tier-3 row 7",
+  "title": "Plasma USD Vault (Veda BoringVault + LayerZeroTeller) — solver-gated exit and cross-chain NAV",
+  "chains": ["plasma", "ethereum"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0.00, "P": 699078.75, "S": 699078.75},
+  "e_u_conditional_usd": 2253.00,
+  "holder_claims_usd": 31880043.39,
+  "latest_block": 35511090,
+  "block_numbers": {"plasma": 35511090, "ethereum": 26229905},
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "bulkWithdraw is solver-only: authority.canCall(0x1111, teller, bulkWithdraw) = false and a fresh caller reverts UNAUTHORIZED",
+    "vault.exit/enter/manage are not public (canCall false); only the teller/router can call them",
+    "the batch-redeem router 0x111c... has canCall(0x1111, router, 0x5ff8a71f) = false",
+    "the accountant rate 1.048796 equals the GLOBAL NAV 1.048826 (2.9 bps = interest since the last update), so the pass-2 2.24% 'stale NAV' is a cross-chain aggregation artifact",
+    "the $699k is the Ethereum mirror shares' claim, exactly offset by the Plasma excess; it is not unprivileged yield",
+    "the only public markets are two DEX pools with $49.6k combined depth at 15-28% discounts; the market-implied conditional is ~$2.25k"
+  ],
+  "poc": {
+    "tests_passed": 2,
+    "tests_total": 2,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39342854222"]
+  },
+  "key_facts": [
+    "Plasma block 35,511,090: supply 29,704,020.248475; aPlaUSDT0 31,772,108.137257; USDT0 81,353.017792; assets $31,853,461.16; local NAV 1.072361",
+    "Ethereum block 26,229,905: supply 691,899.068960; USDT 26,581.695452 + USDC 0.01344 + USDS 0.248903 + DAI 0.272324; assets $26,582.23; local NAV 0.038419",
+    "global supply 30,395,919.317435 and global assets $31,880,043.39 -> global NAV 1.048826 vs accountant rate 1.048796 (2.9 bps = ~7h of Aave interest; last update 2026-10-19 16:40:47 UTC)",
+    "the 2.24% gap is exactly the Ethereum share of global supply: 691,899.07 / 30,395,919.32 = 2.276%; $699,078.75 is the Ethereum claim net of its $26.6k local assets, matched by the Plasma excess",
+    "deposit is public (auth passes, only TRANSFER_FROM_FAILED); bridge is public (auth passes, underflow on zero shares); bulkWithdraw reverts UNAUTHORIZED",
+    "LZ peers: Plasma eid 30101 <-> Ethereum eid 30383, both (allowFrom=true, allowTo=true, gas=200000); bridge is heavily used (5,232 MessageSent from Ethereum; 201 of the last 300 Ethereum teller txs are bridge calls)",
+    "solver exit is active: 122 Plasma BulkWithdraw events (4,221,663 shares); latest at block 35,494,152 redeemed 955,031.43424 shares (~$1.001M) via router 0x111c973C84b6f400A8B6b74675079A9ddA41F5dc",
+    "Ethereum mirror is locally undercollateralized: $26,582 assets for $725,661 of claims (3.7% coverage); top holder 0x3938A7D74f692A8A662Fb17d6081e3a494de22e6 holds 500,000 shares (72.3%)",
+    "secondary markets: Ethereum Uniswap V4 USDC/PlasmaUSD pool $45,506 reserve at $0.886224 (15.5% discount); Plasma Balancer V3 USDT0/PlasmaUSD $4,097 at $0.752438 (28.3% discount); both zero 24h volume",
+    "market-implied conditional if a public exit at 1.0488 opens: ~$1,674 (ETH V4) + ~$579 (Plasma Balancer) = ~$2,253 gross, not $699k",
+    "accountantState: exchangeRate 1,048,796; lastUpdateTimestamp 1,792,428,047; minimumUpdateDelay 21,600s; updateExchangeRate is requiresAuth (canCall false for a fresh address)"
+  ],
+  "caveats": [
+    "The aToken is rebasing; the global NAV drifts ~0.003% per 6-7h between rate updates. The rate is keeper-set, not computed on-chain",
+    "The 'global NAV' is an independent balance-sheet check; the accountant's own formula uses the stored exchangeRate",
+    "The DEX prices are spot prices with zero 24h volume; $2.25k is a depth/fee bound, not a guaranteed profit",
+    "The $699k P/S values overlap: P is a privileged rate-update/write-off value; S is the same gap if the LZ bridge is disabled. Neither is E-U",
+    "The Ethereum top-holder balance is from Blockscout and may change; the $725.7k claim uses the global rate 1.048796",
+    "No mainnet transaction was sent; all attacker calls are eth_call/fork simulations"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 from the Plasma USD Vault: both exits are solver-gated and the accountant rate (1.048796) is the correct global NAV (1.048826); the pass-2 $699k 'stale NAV' is the Ethereum mirror's 2.276% share of global supply, a privileged/cross-chain buffer, not unprivileged yield, with only ~$2.25k market-implied conditional value if a public exit opens."
+}
