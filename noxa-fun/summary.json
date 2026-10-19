@@ -1,0 +1,53 @@
+{
+  "finding": "ZH4-P2 Tier-3 row 5",
+  "title": "NOXA Fun LaunchLocker — fee-collector auth and permanently locked LP principal",
+  "chains": ["robinhood", "monad", "megaeth", "arc", "stable", "intuition", "merlin"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0.00, "P": 30400.00, "S": 0.00},
+  "locked_principal_usd": 3934697.71,
+  "latest_block": 93005273,
+  "block_numbers": {
+    "robinhood": 93005273,
+    "monad": 114878803,
+    "megaeth": 29653318,
+    "stable": 43686000,
+    "intuition": 9521384,
+    "merlin": 32480562
+  },
+  "targets_checked": 7,
+  "live_targets": 7,
+  "closed_reasons": [
+    "collectFees is gated to owner || launched.deployer || feeCollectors[msg.sender]; a fresh caller reverts NotAuthorized",
+    "setFeeRedirect is gated to launched.deployer; a fresh caller reverts NotDeployer",
+    "setFeeCollector is onlyOwner; the only registered collector is the protocol manager 0x9eFd...",
+    "lockPosition is NotFactory-gated; the factory record always uses the canonical Uniswap V3 NPM",
+    "no function can transfer the 60,142 position NFTs, decrease liquidity, or sweep principal; getApproved = 0",
+    "protocolFeeShare = 100 on Robinhood, so all fees go to protocolFeeRecipient, not the caller",
+    "verified source (Sourcify runtime match) and 6/6 fork tests"
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39342348361"]
+  },
+  "key_facts": [
+    "Robinhood locker 0x7F03effbd7ceB22A3f80Dd468f67eF27826acD85: owner 0x7E035Fb048a31e0481b88074557415b1C187242B (EOA, code size 0), factory 0xD9eC2db5f3D1b236843925949fe5bd8a3836FCcB, protocolFeeShare 100, protocolFeeRecipient 0x9eFdC1A8e6E94f16A228e44f3025E1f346EE0417",
+    "60,142 UniV3 position NFTs held at block 93,005,273; sample position 212 owned by the locker with zero approval",
+    "feeCollectors(0x9eFd...) = true; feeCollectors(0x1111...) = false; only one FeeCollectorUpdated event ever",
+    "fresh-caller probes: collectFees -> NotAuthorized; setFeeRedirect -> NotDeployer; lockPosition -> NotFactory; setFeeCollector -> OwnableUnauthorized; NFT transferFrom -> not owner/approved",
+    "90,429 FeesClaimed events (block 70,236..92,960,011), 46,198 unique tokens, 644 callers, 88,854 calls by the protocol manager 0x9eFd...",
+    "sample estimate of unclaimed WETH fees: 0.0251736548 WETH in 120 positions -> ~12.62 WETH (~$30.4k) scaled to 60,142; all payable to protocolFeeRecipient because pfs=100",
+    "all seven lockers share runtime code hash sha256:5124fdbb984a6eb3 (4,823 bytes); pfs=100 on Robinhood/Monad, 0 on MegaETH/Stable/Intuition/Merlin (TVL $2k-$2.6k each)",
+    "protocol manager 0x9eFd... holds 29.79 ETH (~$71.7k); its native sweep 0xab803a76 reverts OwnableUnauthorizedAccount for a fresh caller; routeFees 0x06ec16f8 reverts under pfs=100",
+    "principal is locked by design: no withdraw/decreaseLiquidity/transfer function; TVL $3,903,181 on Robinhood, $3,934,698 across seven chains"
+  ],
+  "caveats": [
+    "The 12.62 WETH fee estimate is a 120-position sample scaled to 60,142; the exact pot varies with the protocol keeper's harvest schedule",
+    "DefiLlama TVL is an adapter estimate (base-token side of single-sided UniV3 positions, doubled), not a realizable liquidation value",
+    "Arc RPC was unreachable; its $21,168 TVL is unverified; other chains' TVLs are small",
+    "The factory is unverified; its launch path was inferred from the verified locker interface and 526 decoded PositionLocked events, all using the canonical NPM",
+    "P value is the owner-key fee pot (~$30.4k), not the locked principal; the manager's 29.79 ETH is protocol treasury and is not counted in P"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 from NOXA: collectFees/setFeeRedirect/setFeeCollector are properly gated and paid to the protocol/deployer, and the $3.9M LP principal is permanently locked with no NFT-transfer or liquidity-decrease function; only an owner-key compromise could capture ~$30k of unclaimed fees."
+}
