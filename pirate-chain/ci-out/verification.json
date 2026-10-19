@@ -1,0 +1,212 @@
+{
+  "finding": "Pirate Chain (ARRR) \u2014 ZH4-PASS2 deep dive",
+  "generated_utc": "2026-10-19T23:07:47.796662Z",
+  "status": "PASS",
+  "checks": {
+    "v5.9.3_connectblock_uses_IsCoinBase": true,
+    "v6.0.9_connectblock_uses_IsMint_not_IsCoinBase": true,
+    "v6.0.10_connectblock_uses_IsCoinBase": true,
+    "two_ondisk_mint_events": true,
+    "first_mint_39_82m": true,
+    "second_mint_40_00m": true,
+    "total_supply_above_278m": true,
+    "supply_over_139pct_of_cap": true,
+    "patched_peers_10_of_57": true,
+    "vulnerable_peers_28_of_57": true,
+    "gate_deposit_and_withdraw_disabled": true,
+    "mexc_suspended": true,
+    "nonkyc_deposit_and_withdraw_disabled": true,
+    "no_verified_native_instant_swap": true,
+    "headline_live_zero": true
+  },
+  "numbers": {
+    "height": 4180718,
+    "explorer_updated": 1792419661,
+    "total_supply_arrr": 278807755.0,
+    "pre_mint_supply_arrr": 198984641.0,
+    "pct_of_max_supply": 139.4,
+    "mint_events": [
+      {
+        "day": "2026-10-14",
+        "total": 238806875.0,
+        "delta": 39822234.0
+      },
+      {
+        "day": "2026-10-16",
+        "total": 278807586.0,
+        "delta": 40000358.0
+      }
+    ],
+    "mint_total_arrr": 79822592.0,
+    "mint_total_usd": 19595408.64,
+    "price_usd": 0.245487,
+    "nethash_mhs": 1.921,
+    "avg_block_seconds": 60.318,
+    "block_reward_arrr": 0.25,
+    "expected_block_cost_usd_rented": 0.069,
+    "rent_cost_usd_per_day_51pct": 50.39,
+    "peer_summary": {
+      "sample_peers": 57,
+      "patched_6_0_10_plus": 10,
+      "vulnerable_6_0_0_to_6_0_9": 28,
+      "pre_6_0_0_stuck": 19,
+      "versions": [
+        {
+          "version": "6.0.10",
+          "peers": 10,
+          "onTip": 0,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "6.0.9",
+          "peers": 3,
+          "onTip": 2,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "6.0.8",
+          "peers": 9,
+          "onTip": 1,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "6.0.7",
+          "peers": 5,
+          "onTip": 1,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "6.0.6",
+          "peers": 1,
+          "onTip": 1,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "6.0.4",
+          "peers": 2,
+          "onTip": 0,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "6.0.3",
+          "peers": 5,
+          "onTip": 1,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "6.0.1",
+          "peers": 2,
+          "onTip": 0,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "6.0.0",
+          "peers": 1,
+          "onTip": 0,
+          "stuck": 0,
+          "ready": true
+        },
+        {
+          "version": "5.9.3",
+          "peers": 3,
+          "onTip": 0,
+          "stuck": 3,
+          "ready": false
+        },
+        {
+          "version": "5.9.2",
+          "peers": 5,
+          "onTip": 0,
+          "stuck": 5,
+          "ready": false
+        },
+        {
+          "version": "5.9.0",
+          "peers": 11,
+          "onTip": 0,
+          "stuck": 11,
+          "ready": false
+        }
+      ],
+      "patched_pct": 17.54,
+      "vulnerable_pct": 49.12,
+      "stuck_pct": 33.33
+    },
+    "liquidity": {
+      "notional_usd_total_two_mints": 19595408.64,
+      "notional_usd_first_mint_only": 9772610.0,
+      "tracked_24h_volume_usd": 509400.0,
+      "orderbook_two_sided_usd": {
+        "gate": 15841.52,
+        "mexc": 24579.25,
+        "nonkyc": null
+      },
+      "realizable_if_exit_reopens": {
+        "haircut_pct_range": [
+          85,
+          95
+        ],
+        "usd_range_total": [
+          979770.43,
+          2939311.3
+        ],
+        "usd_range_first_mint_only": [
+          488630.5,
+          1465891.5
+        ],
+        "confidence": "low",
+        "reasoning": "79.82M ARRR is ~38x tracked daily volume; order books are ~$16-25k deep. A forced sale collapses the price. 5-15% of notional is the realistic band, before exchange freezes/KYC/fork risk."
+      },
+      "race_risk": {
+        "level": "high",
+        "factors": [
+          "all three CEX deposit rails are closed",
+          "v6.0.10 reindex rejects the forged-import blocks",
+          "hard-fork plan targets the block before the mint (no height/date announced as of 2026-10-19)",
+          "chain split: only 6 of 57 sampled peers are on the explorer tip; 10 are on patched 6.0.10",
+          "attacker's NonKYC deposit was already frozen"
+        ]
+      }
+    }
+  },
+  "live_refresh": {
+    "attempted_utc": "2026-10-19T23:07:01.898362Z",
+    "gate": {
+      "deposit_disabled": true,
+      "withdraw_disabled": true,
+      "trade_disabled": false
+    },
+    "price_usd": 0.24557,
+    "nonkyc_depositActive_false": true,
+    "nonkyc_withdrawalActive_false": true
+  },
+  "verdict": {
+    "live_extractable_usd": 0,
+    "conditional_notional_usd": 19595408.64,
+    "conditional_realizable_usd_range": [
+      979770.43,
+      2939311.3
+    ],
+    "classification": "E-U-conditional (miner-only); $0 live because every CEX deposit rail is closed",
+    "confidence": "high on mechanics and closed exits; medium-low on the second mint's attribution; low on realizable value"
+  },
+  "sources": {
+    "explorer_stats": "https://explorer.piratechain.com/stats",
+    "explorer_stats_json": "https://explorer.piratechain.com/stats/stats.json",
+    "explorer_history_json": "https://explorer.piratechain.com/stats/history.json",
+    "fix_commit": "https://github.com/PirateNetwork/pirate/commit/da4e6252a3f9273ed757554fe3ffb154556f45b8",
+    "release_v6_0_10": "https://github.com/PirateNetwork/pirate/releases/tag/v6.0.10-a262cf4",
+    "official_update": "https://x.com/PirateChain/status/2110774266123767871",
+    "mexc_suspension": "https://www.mexc.com/announcements/article/suspension-of-arrr-deposits-and-withdrawals-17827791539150",
+    "nonkyc_market": "https://nonkyc.io/market/ARRR_USDT",
+    "gate_api": "https://api.gateio.ws/api/v4/spot/currencies/ARRR"
+  }
+}

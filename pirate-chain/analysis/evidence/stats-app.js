@@ -1,0 +1,1 @@
+{"data":null,"code":422,"name":"AssertionFailureError","status":42206,"message":"Failed to interpret http://explorer.piratechain.com: unexpected content type application/javascript","readableMessage":"AssertionFailureError: Failed to interpret http://explorer.piratechain.com: unexpected content type application/javascript"}

@@ -1,0 +1,27 @@
+{
+  "notional_usd_total_two_mints": 19595408.64,
+  "notional_usd_first_mint_only": 9772610.0,
+  "tracked_24h_volume_usd": 509400.0,
+  "orderbook_two_sided_usd": {
+    "gate": 15841.52,
+    "mexc": 24579.25,
+    "nonkyc": null
+  },
+  "realizable_if_exit_reopens": {
+    "haircut_pct_range": [85, 95],
+    "usd_range_total": [979770.43, 2939311.3],
+    "usd_range_first_mint_only": [488630.5, 1465891.5],
+    "confidence": "low",
+    "reasoning": "79.82M ARRR is ~38x tracked daily volume; order books are ~$16-25k deep. A forced sale collapses the price. 5-15% of notional is the realistic band, before exchange freezes/KYC/fork risk."
+  },
+  "race_risk": {
+    "level": "high",
+    "factors": [
+      "all three CEX deposit rails are closed",
+      "v6.0.10 reindex rejects the forged-import blocks",
+      "hard-fork plan targets the block before the mint (no height/date announced as of 2026-10-19)",
+      "chain split: only 6 of 57 sampled peers are on the explorer tip; 10 are on patched 6.0.10",
+      "attacker's NonKYC deposit was already frozen"
+    ]
+  }
+}

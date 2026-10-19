@@ -1,0 +1,141 @@
+{
+  "finding": "ZH4-PASS2 / P2-02",
+  "title": "Pirate Chain (ARRR) \u2014 forged coin-import mint; two on-chain mints ~79.8M ARRR; exits closed",
+  "chains": [
+    "pirate-chain"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "conditional_eu": {
+    "classification": "E-U-conditional (miner-only; exits must reopen)",
+    "notional_usd": 19595408.64,
+    "realizable_usd_range": [
+      979770.43,
+      2939311.3
+    ],
+    "realizable_confidence": "low",
+    "trigger": "any CEX or verified instant-swap/bridge deposit rail reopens on the legacy chain that contains the forged imports",
+    "race_risk": "high \u2014 hard fork/reindex, chain split, exchange freeze, thin liquidity"
+  },
+  "latest_block": 4180718,
+  "block_numbers": {
+    "pirate-chain": 4180718
+  },
+  "targets_checked": 12,
+  "live_targets": 0,
+  "closed_reasons": [
+    "Gate ARRR deposit_disabled=true / withdraw_disabled=true",
+    "MEXC ARRR deposits and withdrawals suspended 2026-10-15 at the project's request",
+    "NonKYC ARRR depositActive=false / withdrawalActive=false ('By request of the Pirate Chain devs')",
+    "ChangeNOW supports only BSC-wrapped ARRR; native ARRR unsupported and ARRR(BSC)->BTC returns PAIR_NOT_AVAILABLE",
+    "Godex does not list ARRR; other instant swappers are key-gated/unverified",
+    "vARRR/Verus bridge hacked 2026-05-18 ($11.58M); ARRR<->vARRR liquidity unverified",
+    "Base 'ARRR' token 0x6145...7bd2 is a 1B-supply impostor, not the real 200M-cap coin",
+    "No public ARRR OTC desk; private bilateral only",
+    "Chain is split/stalled: explorer follows the legacy chain; 10/57 patched peers are not on its tip"
+  ],
+  "poc": {
+    "tests_passed": 15,
+    "tests_total": 15,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39342090783",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39341887971"
+    ]
+  },
+  "key_facts": [
+    "Vulnerable code: v6.0.0-v6.0.9; ConnectBlock used if (tx.IsMint()) instead of if (tx.IsCoinBase()), so coin imports skipped ContextualCheckInputs -> VerifyCoinImport (no proof-of-burn).",
+    "Mempool rejects forged imports: AcceptToMemoryPool calls ContextualCheckInputs unconditionally; the tx must be placed directly in a block by a miner.",
+    "Fix commit da4e6252a3 (2026-10-14 23:50Z) changes the branch to IsCoinBase() and adds a regression test that expects invalid-coin-import; v6.0.10 released 2026-10-18 23:48Z (mandatory reindex); v6.0.11 (2026-10-19 21:19Z) is networking-only.",
+    "On-chain supply: pre-mint (2026-10-13) 198,984,641 ARRR; +39,822,234 on 2026-10-14; +40,000,358 on 2026-10-16; total 278,807,756 ARRR = 139.4% of the 200M cap.",
+    "The official 39.8M figure is only the first mint; the second +40.0M on 2026-10-16 is not in the official statement or public coverage found.",
+    "Total forged: 79,822,592 ARRR, ~$19.60M at $0.2455 (first mint alone ~$9.77M).",
+    "Patch adoption in a 57-peer sample: 10 on 6.0.10 (17.5%), 28 on vulnerable 6.0.0-6.0.9 (49.1%), 19 pre-6.0.0 stuck (33.3%); only 6/57 on the explorer tip.",
+    "Network: 1.921 MSol/s, 60.3s blocks, 0.25 ARRR reward (~$0.061), 358 ARRR/day (~$88/day).",
+    "Rented-hash cost: ~$0.069 per expected block; 51% of the network ~$50/day at NiceHash Equihash prices (~$51,429/GSol/day).",
+    "Exit liquidity: Gate 24h $14,743 / book $6.6k bid-$9.2k ask; MEXC $64,664 / $9.4k-$15.1k; NonKYC ~$430k/day; tracked total ~$509k/day, ~38x smaller than the $19.6M notional.",
+    "NonKYC froze the first attempted deposit; no confirmed attacker realization."
+  ],
+  "caveats": [
+    "The explorer's node data is 9 hours stale at read time (updated 2026-10-19 14:21Z) and the network is split; the total supply is the explorer node's pool sum, not an independent UTXO audit.",
+    "The second +40M is inferred from the explorer's daily pool jump; a full-node block scan/UTXO audit should confirm the exact txids. If it is an indexer correction rather than a second mint, the 278.8M supply remains but the 'two mints' attribution would change.",
+    "The 57-peer version sample is from one explorer node, not a network census; the 17.5% patched share has selection bias.",
+    "NiceHash rental prices are an external snapshot (2026-10-17/18) and liquidity varies; the <$1/block conclusion is robust to a 10x price range.",
+    "Realizable value ($1.0-2.9M) is a low-confidence judgment, not an on-chain quantity.",
+    "No transactions were signed or sent; no exchange accounts, KYC or OTC contact."
+  ],
+  "supply": {
+    "pre_mint_arrr": 198984641.0,
+    "total_arrr": 278807755.92,
+    "circulating_arrr": 277513420.6,
+    "max_arrr": 200000000.0,
+    "pct_of_max": 139.4,
+    "mints": [
+      {
+        "date": "2026-10-14",
+        "delta_arrr": 39822234.0,
+        "pool_split": {
+          "sapling": 20089844.0,
+          "ironwood": 19732390.0
+        }
+      },
+      {
+        "date": "2026-10-16",
+        "delta_arrr": 40000358.0,
+        "pool_split": {
+          "transparent": 20000356.0,
+          "sapling": 19999573.0,
+          "ironwood": 429.0
+        }
+      }
+    ],
+    "total_forged_arrr": 79822592.0
+  },
+  "patch": {
+    "fixed_version": "6.0.10",
+    "fix_commit": "da4e6252a3f9273ed757554fe3ffb154556f45b8",
+    "released_utc": "2026-10-18T23:48:59Z",
+    "mandatory_reindex": true,
+    "successor": {
+      "version": "6.0.11",
+      "released_utc": "2026-10-19T21:19:37Z",
+      "consensus_change": false
+    },
+    "peers_sampled": 57,
+    "patched_peers": 10,
+    "patched_pct": 17.54,
+    "vulnerable_peers": 28,
+    "vulnerable_pct": 49.12,
+    "pre_6_0_0_stuck": 19,
+    "pre_6_0_0_stuck_pct": 33.33
+  },
+  "network": {
+    "nethash_solps": 1921203,
+    "avg_block_seconds": 60.318,
+    "difficulty": 6216414.1,
+    "block_reward_arrr": 0.25,
+    "daily_emission_arrr": 358.1,
+    "daily_emission_usd": 87.9,
+    "nodes_seen_24h_7d_30d": [
+      104,
+      272,
+      621
+    ],
+    "last_notarized_height": 4177169,
+    "explorer_updated_utc": "2026-10-19T14:21:03Z",
+    "data_stale": true
+  },
+  "mining_cost": {
+    "nicehash_equihash_usd_per_gsol_day": 51429,
+    "rent_10pct_usd_per_day": 9.88,
+    "rent_51pct_usd_per_day": 50.39,
+    "expected_block_cost_usd": 0.069,
+    "note": "Cost per expected block is independent of share; 51% for a day is ~$50."
+  },
+  "one_liner": "External unprivileged attacker can extract $0 live: the Pirate Chain coin-import mint is still live on <=v6.0.9 miners and total supply is 278.8M ARRR (139.4% of the 200M cap; 79.8M forged across two mints, ~$19.6M notional), but every CEX deposit rail is closed and no verified instant-swap/bridge exists; if one reopens on the legacy chain, a realistic $1.0-2.9M is capturable before the hard fork/reindex, with high race and freeze risk."
+}

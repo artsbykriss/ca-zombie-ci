@@ -1,0 +1,113 @@
+{
+  "sha": "da4e6252a3f9273ed757554fe3ffb154556f45b8",
+  "node_id": "C_kwDODMkzE9oAKGRhNGU2MjUyYTNmOTI3M2VkNzU3NTU0ZmUzZmZiMTU0NTU2ZjQ1Yjg",
+  "commit": {
+    "author": {
+      "name": "Cryptoforge",
+      "email": "cryptoforge.cc@gmail.com",
+      "date": "2026-10-14T23:50:13Z"
+    },
+    "committer": {
+      "name": "Cryptoforge",
+      "email": "cryptoforge.cc@gmail.com",
+      "date": "2026-10-14T23:50:13Z"
+    },
+    "message": "Require proof of burn for coin imports in ConnectBlock\n\nConnectBlock skipped input and fee accounting for every IsMint()\ntransaction. IsMint() matches coin imports as well as the coinbase, so\nan import-shaped transaction (one input with prevout.n == 1000000000)\nin a block never reached ContextualCheckInputs, where VerifyCoinImport\nruns, and its outputs were accepted with no proof of a burn. Only the\ncoinbase now takes that branch; imports are validated as before\nv6.0.0.\n\nAdds two tests that connect a block carrying a forged import, one with\na malformed scriptSig and one with a well-formed import scriptSig and a\nbogus payload, and expect it to be rejected with invalid-coin-import.",
+    "tree": {
+      "sha": "075ca64fb13cbf3ce9ff7dab07e7d9c6f5f9f848",
+      "url": "https://api.github.com/repos/PirateNetwork/pirate/git/trees/075ca64fb13cbf3ce9ff7dab07e7d9c6f5f9f848"
+    },
+    "url": "https://api.github.com/repos/PirateNetwork/pirate/git/commits/da4e6252a3f9273ed757554fe3ffb154556f45b8",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "url": "https://api.github.com/repos/PirateNetwork/pirate/commits/da4e6252a3f9273ed757554fe3ffb154556f45b8",
+  "html_url": "https://github.com/PirateNetwork/pirate/commit/da4e6252a3f9273ed757554fe3ffb154556f45b8",
+  "comments_url": "https://api.github.com/repos/PirateNetwork/pirate/commits/da4e6252a3f9273ed757554fe3ffb154556f45b8/comments",
+  "author": {
+    "login": "CryptoForge",
+    "id": 36178381,
+    "node_id": "MDQ6VXNlcjM2MTc4Mzgx",
+    "avatar_url": "https://avatars.githubusercontent.com/u/36178381?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/CryptoForge",
+    "html_url": "https://github.com/CryptoForge",
+    "followers_url": "https://api.github.com/users/CryptoForge/followers",
+    "following_url": "https://api.github.com/users/CryptoForge/following{/other_user}",
+    "gists_url": "https://api.github.com/users/CryptoForge/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/CryptoForge/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/CryptoForge/subscriptions",
+    "organizations_url": "https://api.github.com/users/CryptoForge/orgs",
+    "repos_url": "https://api.github.com/users/CryptoForge/repos",
+    "events_url": "https://api.github.com/users/CryptoForge/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/CryptoForge/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "CryptoForge",
+    "id": 36178381,
+    "node_id": "MDQ6VXNlcjM2MTc4Mzgx",
+    "avatar_url": "https://avatars.githubusercontent.com/u/36178381?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/CryptoForge",
+    "html_url": "https://github.com/CryptoForge",
+    "followers_url": "https://api.github.com/users/CryptoForge/followers",
+    "following_url": "https://api.github.com/users/CryptoForge/following{/other_user}",
+    "gists_url": "https://api.github.com/users/CryptoForge/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/CryptoForge/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/CryptoForge/subscriptions",
+    "organizations_url": "https://api.github.com/users/CryptoForge/orgs",
+    "repos_url": "https://api.github.com/users/CryptoForge/repos",
+    "events_url": "https://api.github.com/users/CryptoForge/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/CryptoForge/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "53cfa711d1b809f4d898fa161178d705d9ac43ec",
+      "url": "https://api.github.com/repos/PirateNetwork/pirate/commits/53cfa711d1b809f4d898fa161178d705d9ac43ec",
+      "html_url": "https://github.com/PirateNetwork/pirate/commit/53cfa711d1b809f4d898fa161178d705d9ac43ec"
+    }
+  ],
+  "stats": {
+    "total": 73,
+    "additions": 72,
+    "deletions": 1
+  },
+  "files": [
+    {
+      "sha": "567243870ab4e88fbfbde7762cbf3b1fa0f73ccc",
+      "filename": "src/gtest/test_block_connect.cpp",
+      "status": "modified",
+      "additions": 67,
+      "deletions": 0,
+      "changes": 67,
+      "blob_url": "https://github.com/PirateNetwork/pirate/blob/da4e6252a3f9273ed757554fe3ffb154556f45b8/src%2Fgtest%2Ftest_block_connect.cpp",
+      "raw_url": "https://github.com/PirateNetwork/pirate/raw/da4e6252a3f9273ed757554fe3ffb154556f45b8/src%2Fgtest%2Ftest_block_connect.cpp",
+      "contents_url": "https://api.github.com/repos/PirateNetwork/pirate/contents/src%2Fgtest%2Ftest_block_connect.cpp?ref=da4e6252a3f9273ed757554fe3ffb154556f45b8",
+      "patch": "@@ -13,6 +13,8 @@\n #include \"pubkey.h\"\n #include \"transaction_builder.h\"\n #include \"zcash/Address.hpp\"\n+#include \"cc/eval.h\"\n+#include \"cc/utils.h\"\n \n #include <thread>\n #include <gtest/gtest.h>\n@@ -2036,3 +2038,68 @@ TEST(test_block, TestProcessBadBlock)\n     // Verify transaction is still in mempool\n     EXPECT_EQ(mempool.size(), 1);\n }\n+\n+// A coin import (one input whose prevout.n is 1,000,000,000) is IsMint() like a\n+// coinbase, but unlike a coinbase it must prove a burn: ConnectBlock has to send it\n+// through ContextualCheckInputs -> VerifyCoinImport. A block carrying an import-\n+// shaped transaction with no valid burn proof would otherwise mint its outputs from\n+// nothing; on a private chain they can pay the CRYPTO777 address, whose key is public.\n+static void ExpectForgedImportBlockRejected(const CScript& importScriptSig, bool withImportPayload)\n+{\n+    TestChain chain;\n+    // See TestStopAt's comment: KMD-default chainName at height 1 produces an\n+    // unconstructable coinbase under the current Rust digest FFI.\n+    chainName = assetchain(\"TST\");\n+    auto notary = std::make_shared<TestWallet>(chain.getNotaryKey(), \"notary\");\n+    chain.generateBlock(notary);\n+    ASSERT_GT(chain.GetIndex()->nHeight, 0);\n+\n+    int32_t newHeight = chain.GetIndex()->nHeight + 1;\n+    auto consensusParams = Params().GetConsensus();\n+\n+    CMutableTransaction coinbase = CreateNewContextualCMutableTransaction(consensusParams, newHeight);\n+    coinbase.vin.resize(1);\n+    coinbase.vin[0].prevout.SetNull();\n+    coinbase.vin[0].scriptSig = (CScript() << newHeight << CScriptNum(1)) + COINBASE_FLAGS;\n+    coinbase.vout.resize(1);\n+    coinbase.vout[0].nValue = GetBlockSubsidy(newHeight, consensusParams);\n+    coinbase.nExpiryHeight = 0;\n+\n+    CMutableTransaction forged = CreateNewContextualCMutableTransaction(consensusParams, newHeight);\n+    forged.vin.resize(1);\n+    forged.vin[0].prevout = COutPoint(uint256S(\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"), 1000000000);\n+    forged.vin[0].scriptSig = importScriptSig;\n+    forged.vout.push_back(CTxOut(1000 * COIN, CScript() << ParseHex(CRYPTO777_PUBSECPSTR) << OP_CHECKSIG));\n+    if (withImportPayload) {\n+        // Real imports carry the burn proof and burn tx in a trailing OP_RETURN;\n+        // this one is well-placed but meaningless.\n+        forged.vout.push_back(CTxOut(0, CScript() << OP_RETURN << ParseHex(\"e20102030405060708090a0b0c0d0e0f\")));\n+    }\n+    forged.nExpiryHeight = 0;\n+    CTransaction forgedTx(forged);\n+    ASSERT_TRUE(forgedTx.IsCoinImport());\n+    ASSERT_FALSE(forgedTx.IsCoinBase());\n+\n+    CBlock block;\n+    block.vtx.push_back(CTransaction(coinbase));\n+    block.vtx.push_back(forgedTx);\n+    CValidationState state;\n+    CBlockIndex newIndex;\n+    newIndex.pprev = chain.GetIndex();\n+    newIndex.nHeight = newHeight;\n+    EXPECT_FALSE(chain.ConnectBlock(block, state, &newIndex, true, false))\n+        << \"a block minting coins through a forged import must not connect\";\n+    EXPECT_EQ(state.GetRejectReason(), \"invalid-coin-import\");\n+}\n+\n+TEST(test_block, TestForgedCoinImportRejected)\n+{\n+    ExpectForgedImportBlockRejected(CScript() << OP_0 << OP_0, /* withImportPayload = */ false);\n+}\n+\n+// Same, but with the scriptSig a real import uses, so rejection has to come from\n+// evaluating the (bogus) import rather than from the scriptSig shape check.\n+TEST(test_block, TestForgedCoinImportWithImportScriptSigRejected)\n+{\n+    ExpectForgedImportBlockRejected(CScript() << E_MARSHAL(ss << EVAL_IMPORTCOIN), /* withImportPayload = */ true);\n+}"
+    },
+    {
+      "sha": "d708395655c5f36ea2ae0614f6df0e172bec8d29",
+      "filename": "src/main.cpp",
+      "status": "modified",
+      "additions": 5,
+      "deletions": 1,
+      "changes": 6,
+      "blob_url": "https://github.com/PirateNetwork/pirate/blob/da4e6252a3f9273ed757554fe3ffb154556f45b8/src%2Fmain.cpp",
+      "raw_url": "https://github.com/PirateNetwork/pirate/raw/da4e6252a3f9273ed757554fe3ffb154556f45b8/src%2Fmain.cpp",
+      "contents_url": "https://api.github.com/repos/PirateNetwork/pirate/contents/src%2Fmain.cpp?ref=da4e6252a3f9273ed757554fe3ffb154556f45b8",
+      "patch": "@@ -4075,7 +4075,11 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin\n             return state.DoS(100, error(\"ConnectBlock(): GetValueOut too big\"),REJECT_INVALID,\"tx valueout is too big\");\n         }\n \n-        if (tx.IsMint())\n+        // Only the coinbase may skip input validation here. A coin import is also\n+        // IsMint(), but it must take the else branch so ContextualCheckInputs runs\n+        // VerifyCoinImport; otherwise any import-shaped transaction would mint its\n+        // outputs with no proof of a burn.\n+        if (tx.IsCoinBase())\n         {\n             // Add the output value of the coinbase transaction to the chain supply\n             // delta. This includes fees, which are then canceled out by the fee"
+    }
+  ]
+}

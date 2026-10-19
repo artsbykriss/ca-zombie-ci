@@ -1,0 +1,4374 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin Core developers
+// Copyright (c) 2018-2026 The Pirate Chain developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+/******************************************************************************
+ * Copyright © 2014-2019 The SuperNET Developers.                             *
+ *                                                                            *
+ * See the AUTHORS, DEVELOPER-AGREEMENT and LICENSE files at                  *
+ * the top-level directory of this distribution for the individual copyright  *
+ * holder information and the developer policies on copyright and licensing.  *
+ *                                                                            *
+ * Unless otherwise agreed in a custom licensing agreement, no part of the    *
+ * SuperNET software, including this file may be copied, modified, propagated *
+ * or distributed except according to the terms contained in the LICENSE file *
+ *                                                                            *
+ * Removal or modification of this copyright notice is prohibited.            *
+ *                                                                            *
+ ******************************************************************************/
+
+#if defined(HAVE_CONFIG_H)
+#include "config/bitcoin-config.h"
+#endif
+
+#include "main.h"
+#include "net.h"
+#include "init.h"
+
+#include "addrman.h"
+#include "chainparams.h"
+#include "clientversion.h"
+#include "primitives/transaction.h"
+#include "scheduler.h"
+#include "ui_interface.h"
+#include "crypto/common.h"
+#include "tls/utiltls.h"
+#include "komodo_defs.h"
+#include "komodo_globals.h"
+#include "notaries_staked.h"
+
+#include <limits>
+
+#ifdef _WIN32
+#include <string.h>
+#else
+#include <fcntl.h>
+#endif
+
+#include <boost/filesystem.hpp>
+#include <boost/thread.hpp>
+
+#include <openssl/conf.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <tls/tlsmanager.cpp>
+using namespace tls;
+
+// Dump addresses to peers.dat every 15 minutes (900s)
+#define DUMP_ADDRESSES_INTERVAL 900
+// Purge terrible (stale/never-successful) addresses from addrman every hour.
+// ADDRMAN_HORIZON_DAYS (30 days) sets the timescale "terrible" operates on,
+// so this doesn't need to run often - it's background hygiene, not a race
+// against anything.
+#define SWEEP_TERRIBLE_ADDRESSES_INTERVAL 3600
+
+#if !defined(HAVE_MSG_NOSIGNAL) && !defined(MSG_NOSIGNAL)
+#define MSG_NOSIGNAL 0
+#endif
+
+// Fix for ancient MinGW versions, that don't have defined these in ws2tcpip.h.
+// Todo: Can be removed when our pull-tester is upgraded to a modern MinGW version.
+#ifdef _WIN32
+#ifndef PROTECTION_LEVEL_UNRESTRICTED
+#define PROTECTION_LEVEL_UNRESTRICTED 10
+#endif
+#ifndef IPV6_PROTECTION_LEVEL
+#define IPV6_PROTECTION_LEVEL 23
+#endif
+#endif
+
+// TLS is mandatory for every P2P connection (see ConnectNode/the inbound
+// accept path and StartNode below) - not an optional, conditionally-compiled
+// feature, so this is a hard build-time requirement rather than a toggle.
+#ifndef TLS1_3_VERSION
+    // minimum secure protocol is 1.3
+    // TLS1_3_VERSION is defined in openssl/tls1.h
+    #error "ERROR: Your OpenSSL version does not support TLS v1.3"
+#endif
+
+using namespace std;
+
+const int MAX_OUTBOUND_CONNECTIONS = 64;
+int MAX_ADDNODE_CONNECTIONS = 8;  // Reserve slots for addnode connections
+int MAX_REGULAR_OUTBOUND_CONNECTIONS = MAX_OUTBOUND_CONNECTIONS - MAX_ADDNODE_CONNECTIONS;
+
+namespace {
+    struct ListenSocket {
+        SOCKET socket;
+        bool whitelisted;
+        // Whether this socket is the dedicated Tor-forwarding listener (see
+        // BindOnionListenPort), as opposed to a regular clearnet listener.
+        bool onion;
+
+        ListenSocket(SOCKET _socket, bool _whitelisted, bool _onion = false) : socket(_socket), whitelisted(_whitelisted), onion(_onion) {}
+    };
+
+    unsigned short nOnionListenPort = 0;
+}
+
+bool fDiscover = true;
+bool fListen = true;
+uint64_t nLocalServices = NODE_NETWORK;
+CCriticalSection cs_mapLocalHost;
+map<CNetAddr, LocalServiceInfo> mapLocalHost;
+static bool vfLimited[NET_MAX] = {};
+static CNode* pnodeLocalHost = NULL;
+uint64_t nLocalHostNonce = 0;
+static std::vector<ListenSocket> vhListenSocket;
+CAddrMan addrman;
+int nMaxConnections = DEFAULT_MAX_PEER_CONNECTIONS;
+bool bOverrideMaxConnections=false;
+int nMaxInboundFromIP = DEFAULT_MAX_INBOUND_FROMIP;
+bool fPrivateTxRelay = DEFAULT_PRIVATE_TX_RELAY;
+bool fPrivateTxRelayFallback = DEFAULT_PRIVATE_TX_RELAY_FALLBACK;
+bool fI2PIdentityRotation = DEFAULT_I2P_IDENTITY_ROTATION;
+int nI2PPoolMinReserve = DEFAULT_I2P_POOL_MIN_RESERVE;
+int nI2PPoolMaxSize = DEFAULT_I2P_POOL_MAX_SIZE;
+int nTorOutbound = DEFAULT_TOR_OUTBOUND;
+bool fAddressesInitialized = false;
+TLSManager tlsmanager = TLSManager();
+std::atomic<bool> fNetworkActive = { true };
+bool setBannedIsDirty = false;
+bool GetNetworkActive() { return fNetworkActive; };
+
+std::string strSubVersion;
+
+/**
+ * I2P SAM session.
+ * Used to accept incoming and make outgoing I2P connections.
+ */
+std::unique_ptr<i2p::sam::Session> m_i2p_sam_session;
+
+/**
+ * Burn-after-use I2P relay-pool identities, used only for relaying our own
+ * (locally-originated) transactions - separate from m_i2p_sam_session
+ * (the node's normal, permanent I2P identity), which is never used for
+ * that purpose and never rotates.
+ */
+std::vector<I2PPoolIdentitySlot> g_i2p_relay_pool;
+CCriticalSection cs_i2p_relay_pool;
+
+vector<CNode*> vNodes;
+CCriticalSection cs_vNodes;
+map<CInv, CDataStream> mapRelay;
+deque<pair<int64_t, CInv> > vRelayExpiration;
+CCriticalSection cs_mapRelay;
+limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
+
+static deque<string> vOneShots;
+static CCriticalSection cs_vOneShots;
+
+void AddOneShot(const std::string& strDest)
+{
+    LOCK(cs_vOneShots);
+    vOneShots.push_back(strDest);
+}
+
+static set<CNetAddr> setservAddNodeAddresses;
+static CCriticalSection cs_setservAddNodeAddresses;
+
+vector<std::string> vAddedNodes;
+CCriticalSection cs_vAddedNodes;
+
+NodeId nLastNodeId = 0;
+CCriticalSection cs_nLastNodeId;
+
+static CSemaphore *semOutbound = NULL;
+static CSemaphore *semAddNodeOutbound = NULL;
+//! Dedicated outbound-connection budget for the I2P relay pool's top-up
+//! dialing (see ThreadI2PPoolTopUp), separate from the regular outbound
+//! semaphore (semOutbound). ThreadOpenConnections() holds a *blocking*
+//! wait on semOutbound and runs on a much tighter cadence than the pool's
+//! 30s tick with only a non-blocking (fTry) grant attempt, so on a
+//! healthy, well-peered node it can starve the pool's own dialing
+//! indefinitely by winning every freed slot first - reserving a separate
+//! budget guarantees the pool can always attempt to dial regardless of
+//! how saturated ordinary peer discovery is, mirroring the existing
+//! semAddNodeOutbound precedent for -addnode connections.
+static CSemaphore *semI2PPoolOutbound = NULL;
+//! Actual capacity semI2PPoolOutbound was constructed with, recorded so
+//! StopNode() posts back exactly that many rather than recomputing the
+//! sizing formula a second time and risking the two drifting apart.
+static int nI2PPoolOutboundReserved = 0;
+//! Dedicated outbound-connection budget for Tor peers (see ThreadOpenTorConnections), separate
+//! from the regular semOutbound for the same reason as semI2PPoolOutbound: ThreadOpenConnections()
+//! picks candidates from addrman in proportion to what it holds, so Tor - a small share of it - only
+//! ever got the diversity floor (MIN_OUTBOUND_PER_REACHABLE_NETWORK, 2) and never more, however many
+//! Tor peers were known. Tor peers are also the only peers locally-originated transactions are
+//! relayed to (-privatetxrelay), so their number is the size of that relay set. Reserving a
+//! budget of their own guarantees the node keeps trying to fill it regardless of how saturated
+//! ordinary peer discovery is.
+static CSemaphore *semTorOutbound = NULL;
+//! Capacity semTorOutbound was constructed with, so StopNode() posts back exactly that many.
+static int nTorOutboundReserved = 0;
+static boost::condition_variable messageHandlerCondition;
+
+// Denial-of-service detection/prevention
+// Key is IP address, value is banned-until-time
+banmap_t setBanned;
+CCriticalSection cs_setBanned;
+
+// Signals for message handling
+static CNodeSignals g_signals;
+CNodeSignals& GetNodeSignals() { return g_signals; }
+
+// OpenSSL server and client contexts
+SSL_CTX *tls_ctx_server, *tls_ctx_client;
+
+bool HasAvailableAddNodeSlots()
+{
+    LOCK(cs_vNodes);
+    int nAddNodeConnections = 0;
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if (pnode->fAddNode && !pnode->fInbound)
+            nAddNodeConnections++;
+    }
+    return nAddNodeConnections < MAX_ADDNODE_CONNECTIONS;
+}
+
+int GetAddNodeConnectionCount()
+{
+    LOCK(cs_vNodes);
+    int nAddNodeConnections = 0;
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if (pnode->fAddNode && !pnode->fInbound)
+            nAddNodeConnections++;
+    }
+    return nAddNodeConnections;
+}
+
+int GetTotalOutboundConnectionCount()
+{
+    LOCK(cs_vNodes);
+    int nOutboundConnections = 0;
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if (!pnode->fInbound)
+            nOutboundConnections++;
+    }
+    return nOutboundConnections;
+}
+
+int GetPrivacyPeerCount()
+{
+    LOCK(cs_vNodes);
+    int nPrivacyPeers = 0;
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if (IsPrivacyPeer(pnode->fInbound, pnode->addr))
+            nPrivacyPeers++;
+    }
+    return nPrivacyPeers;
+}
+
+int GetTotalInboundConnectionCount()
+{
+    LOCK(cs_vNodes);
+    int nInboundConnections = 0;
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if (pnode->fInbound)
+            nInboundConnections++;
+    }
+    return nInboundConnections;
+}
+
+bool IsAddNodeAddress(const CService& addr)
+{
+    LOCK(cs_setservAddNodeAddresses);
+    return setservAddNodeAddresses.count(addr) > 0;
+}
+
+
+
+unsigned short GetListenPort()
+{
+    //printf("Listenport.%u\n",Params().GetDefaultPort());
+    return (unsigned short)(GetArg("-port", Params().GetDefaultPort()));
+}
+
+// find 'best' local address for a particular peer
+bool GetLocal(CService& addr, const CNetAddr *paddrPeer)
+{
+    if (!fListen)
+        return false;
+
+    int nBestScore = -1;
+    int nBestReachability = -1;
+    {
+        LOCK(cs_mapLocalHost);
+        for (map<CNetAddr, LocalServiceInfo>::iterator it = mapLocalHost.begin(); it != mapLocalHost.end(); it++)
+        {
+            int nScore = (*it).second.nScore;
+            int nReachability = (*it).first.GetReachabilityFrom(paddrPeer);
+            // REACH_UNREACHABLE (0): for a Tor/I2P/CJDNS peer, this means the
+            // candidate is on a *different* network than the peer (see
+            // GetReachabilityFrom's NET_ONION/NET_I2P/NET_CJDNS cases) - skip
+            // it entirely rather than falling back to it as a last resort,
+            // so those peers are never handed an address outside their own
+            // network even when it's the only local address configured.
+            if (nReachability <= 0)
+                continue;
+            if (nReachability > nBestReachability || (nReachability == nBestReachability && nScore > nBestScore))
+            {
+                addr = CService((*it).first, (*it).second.nPort);
+                nBestReachability = nReachability;
+                nBestScore = nScore;
+            }
+        }
+    }
+    return nBestScore >= 0;
+}
+
+//! Convert the serialized seeds into usable address objects.
+static std::vector<CAddress> ConvertSeeds(const std::vector<uint8_t> &vSeedsIn)
+{
+    // It'll only connect to one or two seed nodes because once it connects,
+    // it'll get a pile of addresses with newer timestamps.
+    // Seed nodes are given a random 'last seen time' of between one and two
+    // weeks ago.
+    const int64_t nOneWeek = 7*24*60*60;
+    std::vector<CAddress> vSeedsOut;
+    CDataStream s(vSeedsIn, SER_NETWORK, PROTOCOL_VERSION | ADDRV2_FORMAT);
+    while (!s.eof()) {
+        CService endpoint;
+        s >> endpoint;
+        CAddress addr{endpoint, NODE_NETWORK};
+        addr.nTime = GetTime() - nOneWeek;
+        LogPrint("net", "Added hardcoded seed: %s\n", addr.ToString());
+        vSeedsOut.push_back(addr);
+    }
+    return vSeedsOut;
+}
+
+// get best local address for a particular peer as a CAddress
+// Otherwise, return the unroutable 0.0.0.0 but filled in with
+// the normal parameters, since the IP may be changed to a useful
+// one by discovery.
+CAddress GetLocalAddress(const CNetAddr *paddrPeer)
+{
+    CAddress ret(CService(CNetAddr(),GetListenPort()),0);
+    CService addr;
+    if (GetLocal(addr, paddrPeer))
+    {
+        ret = CAddress(addr);
+    }
+    ret.nServices = nLocalServices;
+    ret.nTime = GetTime();
+    return ret;
+}
+
+int GetnScore(const CService& addr)
+{
+    LOCK(cs_mapLocalHost);
+    if (mapLocalHost.count(addr) == LOCAL_NONE)
+        return 0;
+    return mapLocalHost[addr].nScore;
+}
+
+// Is our peer's addrLocal potentially useful as an external IP source?
+bool IsPeerAddrLocalGood(CNode *pnode)
+{
+    return fDiscover && pnode->addr.IsRoutable() && pnode->addrLocal.IsRoutable() &&
+           IsReachable(pnode->addrLocal.GetNetwork());
+}
+
+// pushes our own address to a peer
+void AdvertizeLocal(CNode *pnode)
+{
+    if (fListen && pnode->fSuccessfullyConnected)
+    {
+        CAddress addrLocal = GetLocalAddress(&pnode->addr);
+        // If discovery is enabled, sometimes give our peer the address it
+        // tells us that it sees us as in case it has a better idea of our
+        // address than we do.
+        if (IsPeerAddrLocalGood(pnode) && (!addrLocal.IsRoutable() ||
+             GetRand((GetnScore(addrLocal) > LOCAL_MANUAL) ? 8:2) == 0))
+        {
+            addrLocal.SetIP(pnode->addrLocal);
+        }
+        if (addrLocal.IsRoutable())
+        {
+            LogPrintf("AdvertizeLocal: advertizing address %s\n", addrLocal.ToString());
+            pnode->PushAddress(addrLocal);
+        }
+    }
+}
+
+// learn a new local address
+bool AddLocal(const CService& addr, int nScore)
+{
+    if (!addr.IsRoutable())
+        return false;
+
+    if (!fDiscover && nScore < LOCAL_MANUAL)
+        return false;
+
+    if (!IsReachable(addr))
+        return false;
+
+    //Add our local addresses to addrman to distribute to other nodes
+    addrman.Add(CAddress(addr), addr);
+    addrman.Connected(addr);
+    addrman.SetLocal(addr);
+
+    LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
+
+    {
+        LOCK(cs_mapLocalHost);
+        bool fAlready = mapLocalHost.count(addr) > 0;
+        LocalServiceInfo &info = mapLocalHost[addr];
+        if (!fAlready || nScore >= info.nScore) {
+            info.nScore = nScore + (fAlready ? 1 : 0);
+            info.nPort = addr.GetPort();
+        }
+    }
+
+    return true;
+}
+
+bool AddLocal(const CNetAddr &addr, int nScore)
+{
+    return AddLocal(CService(addr, GetListenPort()), nScore);
+}
+
+bool RemoveLocal(const CService& addr)
+{
+    LOCK(cs_mapLocalHost);
+    LogPrintf("RemoveLocal(%s)\n", addr.ToString());
+    mapLocalHost.erase(addr);
+    return true;
+}
+
+/** vote for a local address */
+bool SeenLocal(const CService& addr)
+{
+    {
+        LOCK(cs_mapLocalHost);
+        if (mapLocalHost.count(addr) == 0)
+            return false;
+        mapLocalHost[addr].nScore++;
+    }
+    return true;
+}
+
+
+//! Whether two addresses share the same underlying IP (ignoring port). Used
+//! to count same-source-IP inbound connections for MAX_INBOUND_FROMIP -
+//! deliberately compares as CNetAddr, not CService/CAddress, since every new
+//! inbound TCP connection gets a fresh ephemeral source port even from a
+//! repeat IP, so a port-inclusive comparison would never consider two real
+//! connections from the same source to match at all.
+bool SameNetAddr(const CNetAddr& a, const CNetAddr& b)
+{
+    return a == b;
+}
+
+//! Whether a new inbound connection should be rejected by the per-source-IP
+//! inbound cap. Connections accepted on the dedicated Tor-forwarding
+//! listener (see BindOnionListenPort) are exempt: Tor forwards every inbound
+//! onion-service connection to our own loopback address, so distinct real
+//! Tor peers are indistinguishable from each other by source IP and would
+//! otherwise collide against each other here, capping the node to
+//! nMaxInboundFromIP inbound Tor peers total regardless of how many real
+//! clients connect. The exemption is scoped to that specific listener
+//! (rather than to loopback addresses generally) so a non-Tor process
+//! connecting via loopback is still subject to the cap. The overall
+//! total-inbound cap still bounds Tor-sourced connections either way.
+bool ShouldRejectForInboundFromIPCap(int nInboundThisIP, int nMaxInboundFromIP, bool fOnionListener)
+{
+    return nInboundThisIP >= nMaxInboundFromIP && !fOnionListener;
+}
+
+//! Whether an existing inbound peer sharing a source address with a new
+//! connection attempt should count toward that source's MAX_INBOUND_FROMIP
+//! total. I2P is the only network where this node presents more than one
+//! local address: the primary identity plus each relay-pool slot (see
+//! g_i2p_relay_pool) each run their own independent SAM session/listener,
+//! and are meant to look like unrelated destinations to the outside world.
+//! A remote peer that discovers and connects to two or more of our local
+//! identities is exactly the behavior the pool design wants - without this
+//! scoping, that legitimate second connection would trip the same-IP cap
+//! against the first, artificially starving pool slots of the peers they
+//! need to reach READY. So for I2P, the cap is scoped per (source address,
+//! local identity) instead of per source address alone; every other network
+//! has exactly one local identity, so this preserves the existing global
+//! per-remote-address behavior there unchanged. Compares both pool index and
+//! generation, matching ShouldDisconnectForI2PPoolRotation's reasoning: once
+//! a slot index is retired and reused for a new identity, a lingering peer
+//! from the old generation must not be conflated with the new one.
+bool ShouldCountTowardInboundFromIPCap(bool fIsI2P, int existingPoolIdx, uint32_t existingPoolGeneration, int newPoolIdx, uint32_t newPoolGeneration)
+{
+    if (!fIsI2P)
+        return true;
+    return existingPoolIdx == newPoolIdx && existingPoolGeneration == newPoolGeneration;
+}
+
+//! Whether a new inbound connection should be rejected outright for being a
+//! local (loopback) connection that did not arrive via the dedicated Tor
+//! listener. As with ShouldRejectForInboundFromIPCap, fOnionListener (not
+//! the address) is what identifies a genuine Tor peer, since Tor-forwarded
+//! and other loopback-sourced connections are otherwise indistinguishable.
+//! Unlike the IP cap, this is a hard block, not a count - it exists so a
+//! node isn't unexpectedly reachable from other local processes/testing
+//! setups unless the operator opts in with -allowlocalip (the same
+//! flag that already permits -addnode to target local addresses).
+bool ShouldRejectLocalNonOnionInbound(const CNetAddr& addr, bool fOnionListener, bool fAllowLocalIp)
+{
+    return addr.IsLocal() && !fOnionListener && !fAllowLocalIp;
+}
+
+//! Whether an inbound connection from addr may skip TLS under -plaintextpeer.
+//! Always false for a Tor hidden-service connection (fOnionListener), for
+//! the same reason ShouldRejectLocalNonOnionInbound treats one specially:
+//! the onion listener forwards every remote peer to 127.0.0.1 locally, so if
+//! that address happened to be allowlisted (e.g. for local pool software),
+//! every inbound onion peer on the whole internet would silently skip TLS
+//! too - the address alone can't tell a real local peer from a Tor one.
+bool ShouldExemptInboundFromTls(const CNetAddr& addr, bool fOnionListener)
+{
+    return !fOnionListener && CNode::IsPlaintextPeer(addr.ToStringIP());
+}
+
+bool IsPrivacyPeer(bool fInbound, const CNetAddr& addr)
+{
+    // Inbound Tor connections always arrive loopback-forwarded from the
+    // local Tor daemon (see ShouldRejectForInboundFromIPCap), so there's no
+    // real .onion address to check on the inbound side - only outbound Tor
+    // peers qualify. I2P inbound connections carry the real remote I2P
+    // address (via SAM's STREAM ACCEPT), so both directions qualify there.
+    if (addr.IsI2P())
+        return true;
+    return !fInbound && addr.IsTor();
+}
+
+//! See net.h for the fail-open-by-default rationale, and -privatetxrelayfallback
+//! for opting into strict fail-closed behavior instead.
+bool ShouldRestrictRelayToPrivacyPeers(bool fLocalOrigin, bool fPrivateTxRelayEnabled, int nPrivacyPeers, bool fAllowFallback)
+{
+    if (!fLocalOrigin || !fPrivateTxRelayEnabled)
+        return false;
+    if (nPrivacyPeers > 0)
+        return true;
+    // No privacy peers currently connected. Restricting anyway (rather than
+    // returning false here) means the caller's peer loop will match no one
+    // and the transaction simply isn't relayed this round - unless the
+    // operator has explicitly allowed falling back to clearnet peers.
+    return !fAllowFallback;
+}
+
+int64_t ComputeI2PPoolStaggeredExpiry(int64_t nNow, const std::vector<int64_t>& vOtherExpiries, int64_t nRandSource)
+{
+    const int64_t nMin = nNow + I2P_POOL_MIN_LIFETIME;
+    const int64_t nMax = nNow + I2P_POOL_MAX_LIFETIME;
+    const int64_t nRange = I2P_POOL_MAX_LIFETIME - I2P_POOL_MIN_LIFETIME;
+    int64_t candidate = nMin + (int64_t)((uint64_t)nRandSource % (uint64_t)nRange);
+
+    // Push away from any neighbor within the stagger margin. Single pass
+    // over the neighbor list: with a small pool and a stagger margin much
+    // smaller than the lifetime window, a push reintroducing a collision
+    // with an already-checked neighbor is exceedingly unlikely, and this
+    // function is a defense-in-depth measure alongside the separate
+    // peer-count/READY gating, not the only thing standing between the
+    // pool and a simultaneous-expiry outage.
+    for (int64_t nOther : vOtherExpiries) {
+        if (nOther <= 0)
+            continue; // no constraint from an unset/bootstrap expiry
+        int64_t nDist = candidate - nOther;
+        if (nDist < 0)
+            nDist = -nDist;
+        if (nDist >= I2P_POOL_MIN_STAGGER)
+            continue; // already safe from this neighbor
+        candidate = (candidate <= nOther) ? (nOther - I2P_POOL_MIN_STAGGER) : (nOther + I2P_POOL_MIN_STAGGER);
+    }
+
+    // The lifetime floor/ceiling takes priority if satisfying the stagger
+    // margin would otherwise push the candidate out of range.
+    if (candidate < nMin)
+        candidate = nMin;
+    if (candidate > nMax)
+        candidate = nMax;
+    return candidate;
+}
+
+int SelectI2PPoolIdentityForRelay(const std::vector<I2PPoolSlotSelectionInfo>& vSlots, uint32_t nRoundRobinCounter)
+{
+    std::vector<int> vReadyWithPeers;
+    for (size_t i = 0; i < vSlots.size(); i++) {
+        if (vSlots[i].state == I2PPoolIdentityState::READY && vSlots[i].nPeerCount > 0)
+            vReadyWithPeers.push_back((int)i);
+    }
+    if (!vReadyWithPeers.empty())
+        return vReadyWithPeers[nRoundRobinCounter % vReadyWithPeers.size()];
+
+    // Degrade to reusing the least-recently-activated ACTIVE slot with
+    // peers (smallest drain deadline => activated first => drains
+    // soonest), rather than starving the relay entirely.
+    int nBestIdx = -1;
+    int64_t nBestDeadline = std::numeric_limits<int64_t>::max();
+    for (size_t i = 0; i < vSlots.size(); i++) {
+        if (vSlots[i].state == I2PPoolIdentityState::ACTIVE && vSlots[i].nPeerCount > 0 &&
+            vSlots[i].nDrainDeadline < nBestDeadline) {
+            nBestDeadline = vSlots[i].nDrainDeadline;
+            nBestIdx = (int)i;
+        }
+    }
+    return nBestIdx;
+}
+
+bool ShouldRetireI2PPoolIdentity(I2PPoolIdentityState state, int64_t nHardExpiryTime, int64_t nDrainDeadline, int64_t nNow)
+{
+    if (nNow >= nHardExpiryTime)
+        return true;
+    return state == I2PPoolIdentityState::ACTIVE && nNow >= nDrainDeadline;
+}
+
+bool ShouldPromoteI2PPoolIdentityToReady(int64_t nWarmupDeadline, int nPeerCount, int64_t nNow, int nMinPeersForReady)
+{
+    return nNow >= nWarmupDeadline && nPeerCount >= nMinPeersForReady;
+}
+
+bool ShouldDisconnectForI2PPoolRotation(int nodePoolIdx, uint32_t nodePoolGeneration, int rotatingIdx, uint32_t nCurrentGeneration)
+{
+    return nodePoolIdx == rotatingIdx && nodePoolGeneration == nCurrentGeneration;
+}
+
+/** check whether a given address is potentially local */
+bool IsLocal(const CService& addr)
+{
+    LOCK(cs_mapLocalHost);
+    return mapLocalHost.count(addr) > 0;
+}
+
+void SetReachable(enum Network net, bool reachable)
+{
+    if (net == NET_UNROUTABLE || net == NET_INTERNAL)
+        return;
+    LOCK(cs_mapLocalHost);
+    vfLimited[net] = !reachable;
+}
+
+/** check whether a given network is one we can probably connect to */
+bool IsReachable(enum Network net)
+{
+    LOCK(cs_mapLocalHost);
+    return !vfLimited[net];
+}
+
+/** check whether a given address is in a network we can probably connect to */
+bool IsReachable(const CNetAddr& addr)
+{
+    enum Network net = addr.GetNetwork();
+    return IsReachable(net);
+}
+
+std::set<Network> GetUnderTargetReachableNetworks(const std::map<Network, int>& outboundCountByNetwork,
+                                                   int nMinPerNetwork)
+{
+    static const Network kInterfaceNetworks[] = {NET_IPV4, NET_IPV6, NET_ONION, NET_I2P, NET_CJDNS};
+
+    std::set<Network> underTarget;
+    for (Network net : kInterfaceNetworks) {
+        if (!IsReachable(net)) continue;
+
+        int nCount = 0;
+        const auto it = outboundCountByNetwork.find(net);
+        if (it != outboundCountByNetwork.end()) nCount = it->second;
+
+        if (nCount < nMinPerNetwork) underTarget.insert(net);
+    }
+    return underTarget;
+}
+
+bool ShouldSkipForNetworkDiversity(Network net, const std::set<Network>& underTargetNetworks,
+                                    int nTries, int nDiversityTryBudget)
+{
+    if (underTargetNetworks.empty()) return false;
+    if (nTries >= nDiversityTryBudget) return false;
+    return underTargetNetworks.count(net) == 0;
+}
+
+int GetTorOutboundReserve(int nConfigured, int nMaxConnections)
+{
+    return std::max(0, std::min(std::min(nConfigured, MAX_TOR_OUTBOUND), nMaxConnections));
+}
+
+bool UseDedicatedTorSlots(int nTorOutboundReserved, bool fClearnetReachable)
+{
+    return nTorOutboundReserved > 0 && fClearnetReachable;
+}
+
+std::set<Network> GetUnderTargetNetworksForRegularDialer(const std::map<Network, int>& outboundCountByNetwork,
+                                                         bool fDedicatedTor)
+{
+    std::set<Network> underTarget = GetUnderTargetReachableNetworks(outboundCountByNetwork);
+    if (fDedicatedTor)
+        underTarget.erase(NET_ONION);
+    return underTarget;
+}
+
+bool ShouldSkipForDedicatedTor(Network net, bool fDedicatedTor)
+{
+    return fDedicatedTor && net == NET_ONION;
+}
+
+bool IsOnlyNetPermitted(Network net)
+{
+    if (!mapArgs.count("-onlynet"))
+        return true;
+    const auto it = mapMultiArgs.find("-onlynet");
+    if (it == mapMultiArgs.end())
+        return false;
+    for (const std::string& snet : it->second) {
+        if (ParseNetwork(snet) == net)
+            return true;
+    }
+    return false;
+}
+
+//! Whether Tor peers are currently dialed by ThreadOpenTorConnections() rather than the regular
+//! dialer. Re-evaluated on every pass: reachability can change at runtime (Tor becoming reachable
+//! once its control connection is up).
+static bool IsTorDedicated()
+{
+    return UseDedicatedTorSlots(nTorOutboundReserved, IsReachable(NET_IPV4) || IsReachable(NET_IPV6));
+}
+
+void AddressCurrentlyConnected(const CService& addr)
+{
+    addrman.Add(CAddress(addr),addr); //Add address if not alread in addrman (picks up addnodes)
+    addrman.Connected(addr);
+}
+
+int64_t GetDialBackoffSeconds(int nConsecutiveFailures)
+{
+    if (nConsecutiveFailures <= 0)
+        return 0;
+    // Cap the shift well before the result could overflow; the maximum is reached after a few steps.
+    const int nShift = std::min(nConsecutiveFailures - 1, 16);
+    return std::min<int64_t>(DIAL_BACKOFF_BASE_SECONDS << nShift, DIAL_BACKOFF_MAX_SECONDS);
+}
+
+void CDialBackoff::NoteFailure(int64_t nNow)
+{
+    LOCK(cs);
+    nFailures = std::min(nFailures + 1, 32);
+    nResumeTime = nNow + GetDialBackoffSeconds(nFailures);
+}
+
+void CDialBackoff::NoteReachable()
+{
+    LOCK(cs);
+    nFailures = 0;
+    nResumeTime = 0;
+}
+
+bool CDialBackoff::IsSuspended(int64_t nNow) const
+{
+    LOCK(cs);
+    // A resume time further out than the longest backoff can only come from the clock having
+    // stepped backwards since the failure was recorded; don't stay suspended for the step too.
+    if (nResumeTime - nNow > DIAL_BACKOFF_MAX_SECONDS)
+        return false;
+    return nNow < nResumeTime;
+}
+
+static CDialBackoff g_i2pDialBackoff;
+static CDialBackoff g_torDialBackoff;
+
+void NoteI2PProxyFailure(int64_t nNow) { g_i2pDialBackoff.NoteFailure(nNow); }
+void NoteI2PProxyReachable() { g_i2pDialBackoff.NoteReachable(); }
+bool IsI2PDialingSuspended(int64_t nNow) { return g_i2pDialBackoff.IsSuspended(nNow); }
+
+void NoteTorProxyFailure(int64_t nNow) { g_torDialBackoff.NoteFailure(nNow); }
+void NoteTorProxyReachable() { g_torDialBackoff.NoteReachable(); }
+bool IsTorDialingSuspended(int64_t nNow) { return g_torDialBackoff.IsSuspended(nNow); }
+
+bool PickDialCandidate(const std::vector<CAddrInfo>& vCandidates, int64_t nNow,
+                       const std::function<bool(const CAddrInfo&)>& fUsable, CAddress& addrOut)
+{
+    const CAddrInfo* pRecentlyTried = nullptr;
+    for (const CAddrInfo& addr : vCandidates) {
+        if (!fUsable(addr))
+            continue;
+        if (nNow - addr.nLastTry >= DIAL_RECENT_TRY_SECONDS) {
+            addrOut = addr;
+            return true;
+        }
+        if (pRecentlyTried == nullptr)
+            pRecentlyTried = &addr;
+    }
+    if (pRecentlyTried != nullptr) {
+        addrOut = *pRecentlyTried;
+        return true;
+    }
+    return false;
+}
+
+CNode::eTlsOption CNode::tlsValidate       = CNode::eTlsOption::FALLBACK_UNSET;
+
+uint64_t CNode::nTotalBytesRecv = 0;
+uint64_t CNode::nTotalBytesSent = 0;
+CCriticalSection CNode::cs_totalBytesRecv;
+CCriticalSection CNode::cs_totalBytesSent;
+
+CNode* FindNode(const CNetAddr& ip)
+{
+    LOCK(cs_vNodes);
+    for (CNode* pnode : vNodes) {
+      if (static_cast<CNetAddr>(pnode->addr) == ip) {
+            return pnode;
+        }
+    }
+    return nullptr;
+}
+
+CNode* FindNode(const CSubNet& subNet)
+{
+    LOCK(cs_vNodes);
+    for (CNode* pnode : vNodes) {
+        if (subNet.Match(static_cast<CNetAddr>(pnode->addr))) {
+            return pnode;
+        }
+    }
+    return nullptr;
+}
+
+CNode* FindNode(const std::string& addrName)
+{
+    LOCK(cs_vNodes);
+    for (CNode* pnode : vNodes) {
+        if (pnode->addrName == addrName) {
+            return pnode;
+        }
+    }
+    return nullptr;
+}
+
+CNode* FindNode(const CService& addr)
+{
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pnode, vNodes)
+        if ((CService)pnode->addr == addr)
+            return (pnode);
+    return NULL;
+}
+
+static CAddress GetBindAddress(SOCKET sock)
+{
+    CAddress addr_bind;
+    struct sockaddr_storage sockaddr_bind;
+    socklen_t sockaddr_bind_len = sizeof(sockaddr_bind);
+    if (sock != INVALID_SOCKET) {
+        if (!getsockname(sock, (struct sockaddr*)&sockaddr_bind, &sockaddr_bind_len)) {
+            addr_bind.SetSockAddr((const struct sockaddr*)&sockaddr_bind);
+        } else {
+            LogPrintf("Warning: getsockname failed\n");
+        }
+    }
+    return addr_bind;
+}
+
+CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fAddNode, int i2p_pool_idx)
+{
+    if (pszDest == NULL) {
+        // Allow local connections for addnode if the option is enabled
+        if (IsLocal(addrConnect) && !(fAddNode && GetBoolArg("-allowlocalip", false)))
+            return NULL;
+
+        // Look for an existing connection
+        CNode* pnode = FindNode(static_cast<CService>(addrConnect));
+        if (pnode)
+        {
+            pnode->AddRef();
+            return pnode;
+        }
+    }
+
+    /// debug print
+    LogPrint("net", "trying connection %s lastseen=%.1fhrs\n",
+        pszDest ? pszDest : addrConnect.ToString(),
+        pszDest ? 0.0 : (double)(GetTime() - addrConnect.nTime)/3600.0);
+
+    // Connect
+    SOCKET hSocket;
+    bool proxyConnectionFailed = false;
+    bool i2pRouterUnreachable = false;
+    bool connected = false;
+    std::unique_ptr<Sock> sock;
+    // Only set when this connection was dialed through an I2P relay-pool
+    // slot (i2p_pool_idx >= 0) rather than the node's normal/permanent I2P
+    // identity - used to tag the resulting CNode below.
+    uint32_t nUsedI2PPoolGeneration = 0;
+
+    if (!addrConnect.IsValid()) {
+        return NULL;
+    }
+
+    if (!IsReachable(addrConnect)) {
+        return NULL;
+    }
+
+    // Use shorter timeout for addnode connections (15 seconds instead of default 60)
+    int connectTimeout = fAddNode ? 15000 : nConnectTimeout;
+    
+    if (addrConnect.GetNetwork() == NET_I2P) {
+            i2p::sam::Session* session = nullptr;
+            // Keeps a pool identity's Session object alive for the duration of
+            // the blocking Connect() call below even if TickI2PRelayPool()
+            // concurrently retires this exact slot - see I2PPoolIdentitySlot::
+            // session's doc comment in net.h for why a raw pointer isn't safe
+            // here. Not needed for the primary identity (m_i2p_sam_session),
+            // which is never rotated during normal operation.
+            std::shared_ptr<i2p::sam::Session> poolSessionPin;
+            if (i2p_pool_idx >= 0) {
+                // Dial through a specific I2P relay-pool identity, e.g. to
+                // help a WARMING slot accumulate the peers it needs to
+                // reach READY, or (later) to relay a locally-originated
+                // transaction through the identity selected for it.
+                LOCK(cs_i2p_relay_pool);
+                if ((size_t)i2p_pool_idx < g_i2p_relay_pool.size() && g_i2p_relay_pool[i2p_pool_idx].session) {
+                    poolSessionPin = g_i2p_relay_pool[i2p_pool_idx].session;
+                    session = poolSessionPin.get();
+                    nUsedI2PPoolGeneration = g_i2p_relay_pool[i2p_pool_idx].nGeneration;
+                }
+            } else if (m_i2p_sam_session.get() != nullptr) {
+                session = m_i2p_sam_session.get();
+            }
+            if (session != nullptr) {
+                i2p::Connection conn;
+                if (session->Connect(addrConnect, conn, proxyConnectionFailed, &i2pRouterUnreachable)) {
+                    connected = true;
+                    sock = std::move(conn.sock);
+                    hSocket = sock->Release();
+                    // addr_bind = CAddress{conn.me, NODE_NONE};
+                    NoteI2PProxyReachable();
+                } else if (i2pRouterUnreachable) {
+                    // Lets the I2P dialer threads back off instead of picking new candidates
+                    // to fail against a router that isn't there. Deliberately keyed on the
+                    // router being unreachable, not on proxyConnectionFailed: that is also set
+                    // for a destination the (healthy) router doesn't know, which would let
+                    // stale or fake I2P addresses suspend all I2P dialing.
+                    NoteI2PProxyFailure(GetTime());
+                } else {
+                    // The router answered; only the destination failed.
+                    NoteI2PProxyReachable();
+                }
+            }
+    } else if (pszDest) {
+        connected = ConnectSocketByName(addrConnect, hSocket, pszDest, Params().GetDefaultPort(), connectTimeout, &proxyConnectionFailed);
+    }  else {
+        connected = ConnectSocket(addrConnect, hSocket, connectTimeout, &proxyConnectionFailed);
+    }
+
+    // Lets the Tor dialer thread back off while the Tor daemon isn't there, instead of picking a
+    // new onion peer to fail against its refused SOCKS port every second. proxyConnectionFailed
+    // is set only when the TCP connection to the proxy itself fails; a SOCKS error for this one
+    // peer (Tor answered, the onion peer didn't) means the daemon is up.
+    if (addrConnect.IsTor()) {
+        if (!connected && proxyConnectionFailed)
+            NoteTorProxyFailure(GetTime());
+        else
+            NoteTorProxyReachable();
+    }
+
+
+    if (connected)
+    {
+        if (!IsSelectableSocket(hSocket)) {
+            LogPrintf("Cannot create connection: non-selectable socket created (fd >= FD_SETSIZE ?)\n");
+            CloseSocket(hSocket);
+            return NULL;
+        }
+
+        addrman.Attempt(addrConnect);
+
+        SSL *ssl = NULL;
+
+        {
+            // TLS is mandatory for every peer except an operator-whitelisted
+            // -plaintextpeer IP (e.g. pool software on a local/trusted
+            // address) - no general fallback, no discovered/remembered
+            // exceptions, just this static per-IP allowlist.
+            bool plaintextpeer = CNode::IsPlaintextPeer(addrConnect.ToStringIP());
+            if (!plaintextpeer) {
+                unsigned long err_code = 0;
+                ssl = tlsmanager.connect(hSocket, addrConnect, err_code);
+                if (!ssl) {
+                    LogPrint("tls", "%s():%d - err_code %x, connection to %s failed\n", __func__, __LINE__, err_code, addrConnect.ToStringIP());
+                    CloseSocket(hSocket);
+                    return NULL;
+                }
+            }
+        }
+        // certificate validation is disabled by default
+        if (CNode::GetTlsValidate())
+        {
+            if (ssl && !ValidatePeerCertificate(ssl))
+            {
+                LogPrintf ("TLS: ERROR: Wrong server certificate from %s. Connection will be closed.\n", addrConnect.ToString());
+
+                SSL_shutdown(ssl);
+                CloseSocket(hSocket);
+                SSL_free(ssl);
+                return NULL;
+            }
+        }
+
+        // Add node
+        CNode* pnode = new CNode(hSocket, addrConnect, pszDest ? pszDest : "", false, ssl);
+        pnode->AddRef();
+        if (i2p_pool_idx >= 0 && addrConnect.GetNetwork() == NET_I2P) {
+            pnode->m_i2p_pool_idx = i2p_pool_idx;
+            pnode->m_i2p_pool_generation = nUsedI2PPoolGeneration;
+            LOCK(cs_i2p_relay_pool);
+            if ((size_t)i2p_pool_idx < g_i2p_relay_pool.size())
+                g_i2p_relay_pool[i2p_pool_idx].nPeerCount++;
+        }
+
+        {
+            LOCK(cs_vNodes);
+            vNodes.push_back(pnode);
+        }
+
+        pnode->nTimeConnected = GetTime();
+
+        return pnode;
+    } else if (!proxyConnectionFailed) {
+        // If connecting to the node failed, and failure is not caused by a problem connecting to
+        // the proxy, mark this as an attempt.
+        addrman.Attempt(addrConnect);
+    }
+
+    return NULL;
+}
+
+void CNode::CloseSocketDisconnect(bool sendShutDownSSL)
+{
+    fDisconnect = true;
+
+    {
+        LOCK(cs_hSocket);
+
+        if (hSocket != INVALID_SOCKET)
+        {
+            try
+            {
+                if (ssl)
+                {
+                    unsigned long err_code = 0;
+                    if (sendShutDownSSL)
+                    {
+                        tlsmanager.waitFor(SSL_SHUTDOWN, hSocket, ssl, (DEFAULT_CONNECT_TIMEOUT / 1000), err_code);
+                    }
+                    SSL_free(ssl);
+                    ssl = NULL;
+                }
+                CloseSocket(hSocket);
+                LogPrint("net", "disconnecting peer=%d\n", id);
+            }
+            catch(std::bad_alloc&)
+            {
+                // when the node is shutting down, the call above might use invalid memory resulting in a
+                // std::bad_alloc exception when instantiating internal objs for handling log category
+                LogPrintf("(node is probably shutting down) disconnecting peer=%d\n", id);
+            }
+        }
+    }
+
+    // in case this fails, we'll empty the recv buffer when the CNode is deleted
+    TRY_LOCK(cs_vRecvMsg, lockRecv);
+    if (lockRecv)
+        vRecvMsg.clear();
+}
+
+/* TODO remove
+#ifndef KOMODO_NSPV_FULLNODE
+#define KOMODO_NSPV_FULLNODE (KOMODO_NSPV <= 0)
+#endif // !KOMODO_NSPV_FULLNODE
+
+#ifndef KOMODO_NSPV_SUPERLITE
+#define KOMODO_NSPV_SUPERLITE (KOMODO_NSPV > 0)
+#endif // !KOMODO_NSPV_SUPERLITE
+*/
+
+void CNode::PushVersion()
+{
+    int nBestHeight = g_signals.GetHeight().get_value_or(0);
+
+    int64_t nTime = (fInbound ? GetTime() : GetTime());
+    CAddress addrYou = (addr.IsRoutable() && !IsProxy(addr) ? addr : CAddress(CService(), addr.nServices));
+    CAddress addrMe = GetLocalAddress(&addr);
+    GetRandBytes((unsigned char*)&nLocalHostNonce, sizeof(nLocalHostNonce));
+    if (fLogIPs)
+        LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%d\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), id);
+    else
+        LogPrint("net", "send version message: version %d, blocks=%d, us=%s, peer=%d\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), id);
+    PushMessage(NetMsgType::VERSION, PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe,
+                nLocalHostNonce, strSubVersion, nBestHeight, true);
+}
+
+
+
+
+
+// std::map<CSubNet, int64_t> CNode::setBanned;
+// CCriticalSection CNode::cs_setBanned;
+
+void DumpBanlist()
+{
+    SweepBanned(); // clean unused entries (if bantime has expired)
+
+    if (!BannedSetIsDirty())
+        return;
+
+    int64_t nStart = GetTimeMillis();
+
+    CBanDB bandb;
+    banmap_t banmap;
+    GetBanned(banmap);
+    if (bandb.Write(banmap)) {
+        SetBannedSetDirty(false);
+    }
+
+    LogPrint("net", "Flushed %d banned node ips/subnets to banlist.dat  %dms\n",
+        banmap.size(), GetTimeMillis() - nStart);
+}
+
+void CNode::ClearBanned()
+{
+    {
+        LOCK(cs_setBanned);
+        setBanned.clear();
+        setBannedIsDirty = true;
+    }
+    DumpBanlist(); //store banlist to disk
+    uiInterface.BannedListChanged();
+}
+
+bool CNode::IsBanned(CNetAddr ip)
+{
+    bool fResult = false;
+    {
+        LOCK(cs_setBanned);
+        for (banmap_t::iterator it = setBanned.begin(); it != setBanned.end(); it++)
+        {
+            CSubNet subNet = (*it).first;
+            CBanEntry banEntry = (*it).second;
+
+            if(subNet.Match(ip) && GetTime() < banEntry.nBanUntil)
+                fResult = true;
+        }
+    }
+    return fResult;
+}
+
+bool CNode::IsBanned(CSubNet subnet)
+{
+    bool fResult = false;
+    {
+        LOCK(cs_setBanned);
+        banmap_t::iterator i = setBanned.find(subnet);
+        if (i != setBanned.end())
+        {
+            CBanEntry banEntry = (*i).second;
+            if (GetTime() < banEntry.nBanUntil)
+                fResult = true;
+        }
+    }
+    return fResult;
+}
+
+void CNode::Ban(const CNetAddr& addr, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch) {
+    CSubNet subNet(addr);
+    Ban(subNet, banReason, bantimeoffset, sinceUnixEpoch);
+}
+
+void CNode::Ban(const CSubNet& subNet, const BanReason &banReason, int64_t bantimeoffset, bool sinceUnixEpoch) {
+    CBanEntry banEntry(GetTime());
+    banEntry.banReason = banReason;
+    banEntry.nBanUntil = GetTime()+GetArg("-bantime", 60*60*24);  // Default 24-hour ban
+    if (bantimeoffset > 0)
+        banEntry.nBanUntil = (sinceUnixEpoch ? 0 : GetTime() )+bantimeoffset;
+
+    {
+        LOCK(cs_setBanned);
+        if (setBanned[subNet].nBanUntil < banEntry.nBanUntil) {
+            setBanned[subNet] = banEntry;
+            setBannedIsDirty = true;
+        }
+        else
+            return;
+    }
+    uiInterface.BannedListChanged();
+    {
+        LOCK(cs_vNodes);
+        for (CNode* pnode : vNodes) {
+            if (subNet.Match(static_cast<CNetAddr>(pnode->addr)))
+                pnode->fDisconnect = true;
+        }
+    }
+    if(banReason == BanReasonManuallyAdded)
+        DumpBanlist(); //store banlist to disk immediately if user requested ban
+}
+
+bool CNode::Unban(const CNetAddr &addr) {
+    CSubNet subNet(addr);
+    return Unban(subNet);
+}
+
+bool CNode::Unban(const CSubNet &subNet) {
+    {
+        LOCK(cs_setBanned);
+        if (!setBanned.erase(subNet))
+            return false;
+        setBannedIsDirty = true;
+    }
+    uiInterface.BannedListChanged();
+    DumpBanlist(); //store banlist to disk immediately
+    return true;
+}
+
+void GetBanned(banmap_t &banMap)
+{
+    LOCK(cs_setBanned);
+    // Sweep the banlist so expired bans are not returned
+    SweepBanned();
+    banMap = setBanned; //create a thread safe copy
+}
+
+void SetBanned(const banmap_t &banMap)
+{
+    LOCK(cs_setBanned);
+    setBanned = banMap;
+    setBannedIsDirty = true;
+}
+
+void SweepBanned()
+{
+    int64_t now = GetTime();
+
+    LOCK(cs_setBanned);
+    banmap_t::iterator it = setBanned.begin();
+    while(it != setBanned.end())
+    {
+        CSubNet subNet = (*it).first;
+        CBanEntry banEntry = (*it).second;
+        if(now > banEntry.nBanUntil)
+        {
+            setBanned.erase(it++);
+            setBannedIsDirty = true;
+            LogPrint("net", "%s: Removed banned node ip/subnet from banlist.dat: %s\n", __func__, subNet.ToString());
+        }
+        else
+            ++it;
+    }
+}
+
+bool BannedSetIsDirty()
+{
+    LOCK(cs_setBanned);
+    return setBannedIsDirty;
+}
+
+void SetBannedSetDirty(bool dirty)
+{
+    LOCK(cs_setBanned); //reuse setBanned lock for the isDirty flag
+    setBannedIsDirty = dirty;
+}
+
+std::vector<CSubNet> CNode::vWhitelistedRange;
+CCriticalSection CNode::cs_vWhitelistedRange;
+
+bool CNode::IsWhitelistedRange(const CNetAddr &addr) {
+    LOCK(cs_vWhitelistedRange);
+    BOOST_FOREACH(const CSubNet& subnet, vWhitelistedRange) {
+        if (subnet.Match(addr))
+            return true;
+    }
+    return false;
+}
+
+void CNode::AddWhitelistedRange(const CSubNet &subnet) {
+    LOCK(cs_vWhitelistedRange);
+    vWhitelistedRange.push_back(subnet);
+}
+
+std::vector<std::string> CNode::vPlaintextPeers;
+CCriticalSection CNode::cs_vPlaintextPeers;
+
+bool CNode::IsPlaintextPeer(const std::string &strAddrIP) {
+    LOCK(cs_vPlaintextPeers);
+    return (std::find(vPlaintextPeers.begin(), vPlaintextPeers.end(), strAddrIP) != vPlaintextPeers.end());
+}
+
+void CNode::AddPlaintextPeer(const std::string &strAddrIP) {
+    LOCK(cs_vPlaintextPeers);
+    vPlaintextPeers.push_back(strAddrIP);
+}
+
+void CNode::copyStats(CNodeStats &stats, const std::vector<bool> &m_asmap)
+{
+    stats.nodeid = this->GetId();
+    stats.nServices = nServices;
+    stats.addr = addr;
+    stats.m_network = GetNetworkName(addr.GetNetwork());
+    // stats.addrBind = addrBind;
+    stats.m_mapped_as = addr.GetMappedAS(m_asmap);
+    stats.nLastSend = nLastSend;
+    stats.nLastRecv = nLastRecv;
+    stats.nTimeConnected = nTimeConnected;
+    stats.nTimeOffset = nTimeOffset;
+    stats.addrName = addrName;
+    stats.nVersion = nVersion;
+    stats.cleanSubVer = cleanSubVer;
+    stats.fInbound = fInbound;
+    stats.nStartingHeight = nStartingHeight;
+    stats.nSendBytes = nSendBytes;
+    stats.nRecvBytes = nRecvBytes;
+    stats.fWhitelisted = fWhitelisted;
+    stats.fAddNode = fAddNode;
+
+    // It is common for nodes with good ping times to suddenly become lagged,
+    // due to a new block arriving or other large transfer.
+    // Merely reporting pingtime might fool the caller into thinking the node was still responsive,
+    // since pingtime does not update until the ping is complete, which might take a while.
+    // So, if a ping is taking an unusually long time in flight,
+    // the caller can immediately detect that this is happening.
+    int64_t nPingUsecWait = 0;
+    if ((0 != nPingNonceSent) && (0 != nPingUsecStart)) {
+        nPingUsecWait = GetTimeMicros() - nPingUsecStart;
+    }
+
+    // Raw ping time is in microseconds, but show it to user as whole seconds (Bitcoin users should be well used to small numbers with many decimal places by now :)
+    stats.dPingTime = (((double)nPingUsecTime) / 1e6);
+    stats.dMinPing  = (((double)nMinPingUsecTime) / 1e6);
+    stats.dPingWait = (((double)nPingUsecWait) / 1e6);
+
+    stats.m_addr_processed = m_addr_processed.load();
+    stats.m_addr_rate_limited = m_addr_rate_limited.load();
+
+    // Leave string empty if addrLocal invalid (not filled in yet)
+    stats.addrLocal = addrLocal.IsValid() ? addrLocal.ToString() : "";
+
+    // Leave string empty if addrFromPeer invalid (not filled in yet, e.g.
+    // before the VERSION message has been received)
+    stats.addrFromPeer = addrFromPeer.IsValid() ? addrFromPeer.ToString() : "";
+
+    stats.m_inbound_onion = m_inbound_onion;
+    stats.m_i2p_pool_idx = m_i2p_pool_idx;
+    stats.m_i2p_pool_generation = m_i2p_pool_generation;
+
+    // If ssl != NULL it means TLS connection was established successfully
+    {
+        LOCK(cs_hSocket);
+        stats.fTLSEstablished = (ssl != NULL) && (SSL_get_state(ssl) == TLS_ST_OK);
+        stats.fTLSVerified = (ssl != NULL) && ValidatePeerCertificate(ssl);
+    }
+
+    stats.m_wants_addrv2 = m_wants_addrv2;
+}
+
+// requires LOCK(cs_vRecvMsg)
+bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)
+{
+    while (nBytes > 0) {
+
+        // get current incomplete message, or create a new one
+        if (vRecvMsg.empty() ||
+            vRecvMsg.back().complete())
+            vRecvMsg.push_back(CNetMessage(Params().MessageStart(), SER_NETWORK, nRecvVersion));
+
+        CNetMessage& msg = vRecvMsg.back();
+
+        // absorb network data
+        int handled;
+        if (!msg.in_data)
+            handled = msg.readHeader(pch, nBytes);
+        else
+            handled = msg.readData(pch, nBytes);
+
+        if (handled < 0)
+                return false;
+
+        if (msg.in_data && msg.hdr.nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH) {
+            LogPrint("net", "Oversized message from peer=%i, disconnecting\n", GetId());
+            return false;
+        }
+
+        pch += handled;
+        nBytes -= handled;
+
+        if (msg.complete()) {
+            msg.nTime = GetTimeMicros();
+            messageHandlerCondition.notify_one();
+        }
+    }
+
+    return true;
+}
+
+
+void V1TransportSerializer::prepareForTransport(CSerializedNetMsg& msg, std::vector<unsigned char>& header) {
+    // create dbl-sha256 checksum
+    uint256 hash = Hash(msg.data.begin(), msg.data.end());
+
+    // create header
+    CMessageHeader hdr(Params().MessageStart(), msg.m_type.c_str(), msg.data.size());
+    // memcpy(hdr.nChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
+    memcpy(&hdr.nChecksum, hash.begin(), CMessageHeader::CHECKSUM_SIZE);
+    // serialize header
+    header.reserve(CMessageHeader::HEADER_SIZE);
+    CVectorWriter{SER_NETWORK, INIT_PROTO_VERSION, header, 0, hdr};
+}
+
+int CNetMessage::readHeader(const char *pch, unsigned int nBytes)
+{
+    // copy data to temporary parsing buffer
+    unsigned int nRemaining = 24 - nHdrPos;
+    unsigned int nCopy = std::min(nRemaining, nBytes);
+
+    memcpy(&hdrbuf[nHdrPos], pch, nCopy);
+    nHdrPos += nCopy;
+
+    // if header incomplete, exit
+    if (nHdrPos < 24)
+        return nCopy;
+
+    // deserialize to CMessageHeader
+    try {
+        hdrbuf >> hdr;
+    }
+    catch (const std::exception&) {
+        return -1;
+    }
+
+    // reject messages larger than MAX_SIZE
+    if (hdr.nMessageSize > MAX_SIZE)
+            return -1;
+
+    // switch state to reading message data
+    in_data = true;
+
+    return nCopy;
+}
+
+int CNetMessage::readData(const char *pch, unsigned int nBytes)
+{
+    unsigned int nRemaining = hdr.nMessageSize - nDataPos;
+    unsigned int nCopy = std::min(nRemaining, nBytes);
+
+    if (vRecv.size() < nDataPos + nCopy) {
+        // Allocate up to 256 KiB ahead, but never more than the total message size.
+        vRecv.resize(std::min(hdr.nMessageSize, nDataPos + nCopy + 256 * 1024));
+    }
+
+    memcpy(&vRecv[nDataPos], pch, nCopy);
+    nDataPos += nCopy;
+
+    return nCopy;
+}
+
+
+
+// requires LOCK(cs_vSend)
+void SocketSendData(CNode *pnode)
+{
+    std::deque<CSerializeData>::iterator it = pnode->vSendMsg.begin();
+
+    while (it != pnode->vSendMsg.end())
+    {
+        const CSerializeData &data = *it;
+        assert(data.size() > pnode->nSendOffset);
+
+        bool bIsSSL = false;
+        int nBytes = 0, nRet = 0;
+        {
+            LOCK(pnode->cs_hSocket);
+
+            if (pnode->hSocket == INVALID_SOCKET)
+            {
+                LogPrint("net", "Send: connection with %s is already closed\n", pnode->addr.ToString());
+                break;
+            }
+
+            bIsSSL = (pnode->ssl != NULL);
+
+            if (bIsSSL)
+            {
+                ERR_clear_error(); // clear the error queue, otherwise we may be reading an old error that occurred previously in the current thread
+                nBytes = SSL_write(pnode->ssl, &data[pnode->nSendOffset], data.size() - pnode->nSendOffset);
+                nRet = SSL_get_error(pnode->ssl, nBytes);
+            }
+            else
+            {
+                nBytes = send(pnode->hSocket, &data[pnode->nSendOffset], data.size() - pnode->nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
+                nRet = WSAGetLastError();
+            }
+        }
+        if (nBytes > 0)
+        {
+            pnode->nLastSend = GetTime();
+            pnode->nSendBytes += nBytes;
+            pnode->nSendOffset += nBytes;
+            pnode->RecordBytesSent(nBytes);
+
+            if (pnode->nSendOffset == data.size())
+            {
+                pnode->nSendOffset = 0;
+                pnode->nSendSize -= data.size();
+                it++;
+            }
+            else
+            {
+                // could not send full message; stop sending more
+                break;
+            }
+        }
+        else
+        {
+            if (nBytes <= 0)
+            {
+                // error
+                //
+                if (bIsSSL)
+                {
+                    if (nRet != SSL_ERROR_WANT_READ && nRet != SSL_ERROR_WANT_WRITE)
+                    {
+                        LogPrintf("ERROR: SSL_write %s; closing connection\n", ERR_error_string(nRet, NULL));
+                        pnode->CloseSocketDisconnect();
+                    }
+                    else
+                    {
+                        // preventive measure from exhausting CPU usage
+                        //
+                        MilliSleep(1);    // 1 msec
+                    }
+                }
+                else
+                {
+                    if (nRet != WSAEWOULDBLOCK && nRet != WSAEMSGSIZE && nRet != WSAEINTR && nRet != WSAEINPROGRESS)
+                    {
+                        LogPrintf("ERROR: send %s; closing connection\n", NetworkErrorString(nRet));
+                        pnode->CloseSocketDisconnect();
+                    }
+                }
+            }
+
+            // couldn't send anything at all
+            break;
+        }
+    }
+
+    if (it == pnode->vSendMsg.end())
+    {
+        assert(pnode->nSendOffset == 0);
+        assert(pnode->nSendSize == 0);
+    }
+    pnode->vSendMsg.erase(pnode->vSendMsg.begin(), it);
+}
+
+static list<CNode*> vNodesDisconnected;
+
+class CNodeRef {
+public:
+    CNodeRef(CNode *pnode) : _pnode(pnode) {
+        LOCK(cs_vNodes);
+        _pnode->AddRef();
+    }
+
+    ~CNodeRef() {
+        LOCK(cs_vNodes);
+        _pnode->Release();
+    }
+
+    CNode& operator *() const {return *_pnode;};
+    CNode* operator ->() const {return _pnode;};
+
+    CNodeRef& operator =(const CNodeRef& other)
+    {
+        if (this != &other) {
+            LOCK(cs_vNodes);
+
+            _pnode->Release();
+            _pnode = other._pnode;
+            _pnode->AddRef();
+        }
+        return *this;
+    }
+
+    CNodeRef(const CNodeRef& other):
+        _pnode(other._pnode)
+    {
+        LOCK(cs_vNodes);
+        _pnode->AddRef();
+    }
+private:
+    CNode *_pnode;
+};
+
+static bool ReverseCompareNodeMinPingTime(const CNodeRef &a, const CNodeRef &b)
+{
+    return a->nMinPingUsecTime > b->nMinPingUsecTime;
+}
+
+static bool ReverseCompareNodeTimeConnected(const CNodeRef &a, const CNodeRef &b)
+{
+    return a->nTimeConnected > b->nTimeConnected;
+}
+
+class CompareNetGroupKeyed
+{
+    std::vector<unsigned char> vchSecretKey;
+public:
+    CompareNetGroupKeyed()
+    {
+        vchSecretKey.resize(32, 0);
+        GetRandBytes(vchSecretKey.data(), vchSecretKey.size());
+    }
+
+    bool operator()(const CNodeRef &a, const CNodeRef &b)
+    {
+        std::vector<unsigned char> vchGroupA, vchGroupB;
+        CSHA256 hashA, hashB;
+        std::vector<unsigned char> vchA(32), vchB(32);
+
+        vchGroupA = a->addr.GetGroup(addrman.m_asmap);
+        vchGroupB = b->addr.GetGroup(addrman.m_asmap);
+
+        hashA.Write(begin_ptr(vchGroupA), vchGroupA.size());
+        hashB.Write(begin_ptr(vchGroupB), vchGroupB.size());
+
+        hashA.Write(begin_ptr(vchSecretKey), vchSecretKey.size());
+        hashB.Write(begin_ptr(vchSecretKey), vchSecretKey.size());
+
+        hashA.Finalize(begin_ptr(vchA));
+        hashB.Finalize(begin_ptr(vchB));
+
+        return vchA < vchB;
+    }
+};
+
+static bool AttemptToEvictConnection(bool fPreferNewConnection) {
+    std::vector<CNodeRef> vEvictionCandidates;
+    {
+        LOCK(cs_vNodes);
+
+        BOOST_FOREACH(CNode *node, vNodes) {
+            if (node->fWhitelisted)
+                continue;
+            if (node->fAddNode)  // Protect addnode connections from eviction
+                continue;
+            if (!node->fInbound)
+                continue;
+            if (node->fDisconnect)
+                continue;
+            vEvictionCandidates.push_back(CNodeRef(node));
+        }
+    }
+
+    if (vEvictionCandidates.empty()) return false;
+
+    // Protect connections with certain characteristics
+
+    // Check version of eviction candidates and prioritize nodes which do not support network upgrade.
+    std::vector<CNodeRef> vTmpEvictionCandidates;
+    int height;
+    {
+        LOCK(cs_main);
+        height = chainActive.Height();
+    }
+
+    const Consensus::Params& params = Params().GetConsensus();
+    auto nextEpoch = NextEpoch(height, params);
+    if (nextEpoch.has_value()) {
+        auto idx = nextEpoch.value();
+        int nActivationHeight = params.vUpgrades[idx].nActivationHeight;
+
+        if (nActivationHeight > 0 &&
+            height < nActivationHeight &&
+            height >= nActivationHeight - NETWORK_UPGRADE_PEER_PREFERENCE_BLOCK_PERIOD)
+        {
+            // Find any nodes which don't support the protocol version for the next upgrade
+            for (const CNodeRef &node : vEvictionCandidates) {
+                if (node->nVersion < params.vUpgrades[idx].nProtocolVersion) {
+                    vTmpEvictionCandidates.push_back(node);
+                }
+            }
+
+            // Prioritize these nodes by replacing eviction set with them
+            if (vTmpEvictionCandidates.size() > 0) {
+                vEvictionCandidates = vTmpEvictionCandidates;
+            }
+        }
+    }
+
+    // Deterministically select 4 peers to protect by netgroup.
+    // An attacker cannot predict which netgroups will be protected.
+    static CompareNetGroupKeyed comparerNetGroupKeyed;
+    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(), comparerNetGroupKeyed);
+    vEvictionCandidates.erase(vEvictionCandidates.end() - std::min(4, static_cast<int>(vEvictionCandidates.size())), vEvictionCandidates.end());
+
+    if (vEvictionCandidates.empty()) return false;
+
+    // Protect the 8 nodes with the best ping times.
+    // An attacker cannot manipulate this metric without physically moving nodes closer to the target.
+    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(), ReverseCompareNodeMinPingTime);
+    vEvictionCandidates.erase(vEvictionCandidates.end() - std::min(8, static_cast<int>(vEvictionCandidates.size())), vEvictionCandidates.end());
+
+    if (vEvictionCandidates.empty()) return false;
+
+    // Protect the half of the remaining nodes which have been connected the longest.
+    // This replicates the existing implicit behavior.
+    std::sort(vEvictionCandidates.begin(), vEvictionCandidates.end(), ReverseCompareNodeTimeConnected);
+    vEvictionCandidates.erase(vEvictionCandidates.end() - static_cast<int>(vEvictionCandidates.size() / 2), vEvictionCandidates.end());
+
+    if (vEvictionCandidates.empty()) return false;
+
+    // Identify the network group with the most connections and youngest member.
+    // (vEvictionCandidates is already sorted by reverse connect time)
+    std::vector<unsigned char> naMostConnections;
+    unsigned int nMostConnections = 0;
+    int64_t nMostConnectionsTime = 0;
+    std::map<std::vector<unsigned char>, std::vector<CNodeRef> > mapAddrCounts;
+    BOOST_FOREACH(const CNodeRef &node, vEvictionCandidates) {
+        mapAddrCounts[node->addr.GetGroup(addrman.m_asmap)].push_back(node);
+        int64_t grouptime = mapAddrCounts[node->addr.GetGroup(addrman.m_asmap)][0]->nTimeConnected;
+        size_t groupsize = mapAddrCounts[node->addr.GetGroup(addrman.m_asmap)].size();
+
+        if (groupsize > nMostConnections || (groupsize == nMostConnections && grouptime > nMostConnectionsTime)) {
+            nMostConnections = groupsize;
+            nMostConnectionsTime = grouptime;
+            naMostConnections = node->addr.GetGroup(addrman.m_asmap);
+        }
+    }
+
+    // Reduce to the network group with the most connections
+    vEvictionCandidates = mapAddrCounts[naMostConnections];
+
+    // Do not disconnect peers if there is only one unprotected connection from their network group.
+    if (vEvictionCandidates.size() <= 1)
+        // unless we prefer the new connection (for whitelisted peers)
+        if (!fPreferNewConnection)
+            return false;
+
+    // Disconnect from the network group with the most connections
+    vEvictionCandidates[0]->fDisconnect = true;
+
+    return true;
+}
+
+static void AcceptConnection(const ListenSocket& hListenSocket) {
+    struct sockaddr_storage sockaddr;
+    socklen_t len = sizeof(sockaddr);
+    SOCKET hSocket = accept(hListenSocket.socket, (struct sockaddr*)&sockaddr, &len);
+    CAddress addr;
+
+    if (hSocket == INVALID_SOCKET) {
+        const int nErr = WSAGetLastError();
+        if (nErr != WSAEWOULDBLOCK) {
+            LogPrintf("socket error accept failed: %s\n", NetworkErrorString(nErr));
+        }
+        return;
+    }
+
+    if (!addr.SetSockAddr((const struct sockaddr*)&sockaddr)) {
+        LogPrintf("Warning: Unknown socket family\n");
+    }
+
+    const CAddress addr_bind = GetBindAddress(hSocket);
+
+    bool whitelisted = hListenSocket.whitelisted || CNode::IsWhitelistedRange(addr);
+
+    CreateNodeFromAcceptedSocket(hSocket, whitelisted, addr_bind, addr, hListenSocket.onion);
+}
+
+void CreateNodeFromAcceptedSocket(SOCKET hSocket,
+                                            bool whitelisted,
+                                            const CAddress& addr_bind,
+                                            const CAddress& addr,
+                                            bool fOnionListener,
+                                            int i2p_pool_idx,
+                                            uint32_t i2p_pool_generation)
+{
+    int nInboundThisIP = 0;
+    int nInbound = 0;
+    int nMaxInbound = nMaxConnections - MAX_OUTBOUND_CONNECTIONS;
+
+    {
+        LOCK(cs_vNodes);
+        BOOST_FOREACH(CNode* pnode, vNodes)
+        {
+            if (pnode->fInbound)
+            {
+                nInbound++;
+                // Compare as CNetAddr (address only, no port): this counts
+                // connections sharing a source IP regardless of source port,
+                // which is what MAX_INBOUND_FROMIP is meant to limit (every
+                // new inbound TCP connection gets a fresh ephemeral source
+                // port even from a repeat IP, so a port-inclusive comparison
+                // would never match two real connections from the same
+                // source at all). This used to build a raw sockaddr via
+                // CService::GetSockAddr() (which includes the port) and
+                // memcmp() it against an *uninitialized* local sockaddr that
+                // was never populated from `addr` in the first place - so
+                // MAX_INBOUND_FROMIP (the eclipse-attack mitigation reduced
+                // from 5 to 2 connections per IP) never actually triggered
+                // for a real repeat source, on top of comparing the wrong
+                // granularity even if it had.
+                if (SameNetAddr(pnode->addr, addr) &&
+                    ShouldCountTowardInboundFromIPCap(addr.IsI2P(), pnode->m_i2p_pool_idx, pnode->m_i2p_pool_generation,
+                                                       i2p_pool_idx, i2p_pool_generation))
+                    nInboundThisIP++;
+            }
+        }
+    }
+
+    if (!fNetworkActive) {
+        LogPrintf("connection from %s dropped: not accepting new connections\n", addr.ToString());
+        CloseSocket(hSocket);
+        return;
+    }
+
+    if (!IsSelectableSocket(hSocket))
+    {
+        LogPrintf("connection from %s dropped: non-selectable socket\n", addr.ToString());
+        CloseSocket(hSocket);
+        return;
+    }
+
+    if (CNode::IsBanned(addr) && !whitelisted)
+    {
+        LogPrintf("connection from %s dropped (banned)\n", addr.ToString());
+        CloseSocket(hSocket);
+        return;
+    }
+
+    if (!IsReachable(addr))
+    {
+        CloseSocket(hSocket);
+        return;
+    }
+
+    if (ShouldRejectLocalNonOnionInbound(addr, fOnionListener, GetBoolArg("-allowlocalip", false)))
+    {
+        LogPrint("net", "connection from %s dropped: local (non-Tor) inbound connections are disabled; set -allowlocalip to allow\n", addr.ToString());
+        CloseSocket(hSocket);
+        return;
+    }
+
+    if (nInbound >= nMaxInbound)
+    {
+        if (!AttemptToEvictConnection(whitelisted)) {
+            // No connection to evict, disconnect the new connection
+            LogPrint("net", "failed to find an eviction candidate - connection dropped (full)\n");
+            CloseSocket(hSocket);
+            return;
+        }
+    }
+
+    if (ShouldRejectForInboundFromIPCap(nInboundThisIP, nMaxInboundFromIP, fOnionListener))
+    {
+        // No connection to evict, disconnect the new connection
+        LogPrint("net", "too many connections from %s, connection refused\n", addr.ToString());
+        CloseSocket(hSocket);
+        return;
+    }
+
+    // According to the internet TCP_NODELAY is not carried into accepted sockets
+    // on all platforms.  Set it again here just to be sure.
+    int set = 1;
+#ifdef _WIN32
+    setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&set, sizeof(int));
+#else
+    setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (void*)&set, sizeof(int));
+#endif
+
+SSL *ssl = NULL;
+
+SetSocketNonBlocking(hSocket, true);
+
+    {
+        // TLS is mandatory for every peer except an operator-whitelisted
+        // -plaintextpeer IP (e.g. pool software on a local/trusted address) -
+        // no general fallback, no discovered/remembered exceptions, just
+        // this static per-IP allowlist, and never for a Tor connection (see
+        // ShouldExemptInboundFromTls).
+        bool plaintextpeer = ShouldExemptInboundFromTls(addr, fOnionListener);
+        if (!plaintextpeer) {
+            unsigned long err_code = 0;
+            ssl = tlsmanager.accept(hSocket, addr, err_code);
+            if (!ssl) {
+                LogPrint("tls", "%s():%d - err_code %x, failure accepting connection from %s\n", __func__, __LINE__, err_code, addr.ToStringIP());
+                CloseSocket(hSocket);
+                return;
+            }
+        }
+    }
+    // certificate validation is disabled by default
+    if (CNode::GetTlsValidate())
+    {
+        if (ssl && !ValidatePeerCertificate(ssl))
+        {
+            LogPrintf ("TLS: ERROR: Wrong client certificate from %s. Connection will be closed.\n", addr.ToString());
+
+            SSL_shutdown(ssl);
+            CloseSocket(hSocket);
+            SSL_free(ssl);
+            return;
+        }
+    }
+
+    CNode* pnode = new CNode(hSocket, addr, "", true, ssl);
+    pnode->AddRef();
+    pnode->fWhitelisted = whitelisted;
+    pnode->m_inbound_onion = fOnionListener;
+    pnode->m_i2p_pool_idx = i2p_pool_idx;
+    pnode->m_i2p_pool_generation = i2p_pool_generation;
+    if (i2p_pool_idx >= 0) {
+        LOCK(cs_i2p_relay_pool);
+        if ((size_t)i2p_pool_idx < g_i2p_relay_pool.size())
+            g_i2p_relay_pool[i2p_pool_idx].nPeerCount++;
+    }
+
+    LogPrint("net", "connection from %s accepted\n", addr.ToString());
+
+    {
+        LOCK(cs_vNodes);
+        vNodes.push_back(pnode);
+    }
+}
+
+
+void ThreadSocketHandler()
+{
+    unsigned int nPrevNodeCount = 0;
+    while (true)
+    {
+        //
+        // Disconnect nodes
+        //
+        // Pool slots whose nPeerCount needs decrementing for nodes
+        // disconnected this pass - applied after cs_vNodes is released
+        // below. Must not lock cs_i2p_relay_pool while still holding
+        // cs_vNodes here: TickI2PRelayPool() locks cs_i2p_relay_pool first
+        // and nests cs_vNodes inside it (see that function's own comment),
+        // so nesting the other way around here would deadlock against it.
+        std::vector<std::pair<size_t, uint32_t>> vDisconnectedPoolSlots;
+        {
+            LOCK(cs_vNodes);
+            // Disconnect unused nodes
+            vector<CNode*> vNodesCopy = vNodes;
+            BOOST_FOREACH(CNode* pnode, vNodesCopy)
+            {
+                if (pnode->fDisconnect ||
+                    (pnode->GetRefCount() <= 0 && pnode->vRecvMsg.empty() && pnode->nSendSize == 0 && pnode->ssSend.empty()))
+                {
+                    // remove from vNodes
+                    vNodes.erase(remove(vNodes.begin(), vNodes.end(), pnode), vNodes.end());
+
+                    if (pnode->m_i2p_pool_idx >= 0) {
+                        vDisconnectedPoolSlots.push_back({(size_t)pnode->m_i2p_pool_idx, pnode->m_i2p_pool_generation});
+                    }
+
+                    // release outbound grant (if any)
+                    pnode->grantOutbound.Release();
+
+                    // close socket and cleanup
+                    pnode->CloseSocketDisconnect();
+
+                    // hold in disconnected pool until all refs are released
+                    if (pnode->fNetworkNode || pnode->fInbound)
+                        pnode->Release();
+                    vNodesDisconnected.push_back(pnode);
+                }
+            }
+        }
+        if (!vDisconnectedPoolSlots.empty()) {
+            LOCK(cs_i2p_relay_pool);
+            for (const auto& slot : vDisconnectedPoolSlots) {
+                size_t idx = slot.first;
+                if (idx < g_i2p_relay_pool.size() && g_i2p_relay_pool[idx].nGeneration == slot.second &&
+                    g_i2p_relay_pool[idx].nPeerCount > 0)
+                    g_i2p_relay_pool[idx].nPeerCount--;
+            }
+        }
+        {
+            // Delete disconnected nodes
+            list<CNode*> vNodesDisconnectedCopy = vNodesDisconnected;
+            BOOST_FOREACH(CNode* pnode, vNodesDisconnectedCopy)
+            {
+                // wait until threads are done using it
+                if (pnode->GetRefCount() <= 0)
+                {
+                    bool fDelete = false;
+                    {
+                        TRY_LOCK(pnode->cs_vSend, lockSend);
+                        if (lockSend)
+                        {
+                            TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
+                            if (lockRecv)
+                            {
+                                TRY_LOCK(pnode->cs_inventory, lockInv);
+                                if (lockInv)
+                                    fDelete = true;
+                            }
+                        }
+                    }
+                    if (fDelete)
+                    {
+                        vNodesDisconnected.remove(pnode);
+                        delete pnode;
+                    }
+                }
+            }
+        }
+        if(vNodes.size() != nPrevNodeCount) {
+            nPrevNodeCount = vNodes.size();
+            uiInterface.NotifyNumConnectionsChanged(nPrevNodeCount);
+        }
+
+        //
+        // Find which sockets have data to receive
+        //
+        struct timeval timeout;
+        timeout.tv_sec  = 0;
+        timeout.tv_usec = 50000; // frequency to poll pnode->vSend
+
+        fd_set fdsetRecv;
+        fd_set fdsetSend;
+        fd_set fdsetError;
+        FD_ZERO(&fdsetRecv);
+        FD_ZERO(&fdsetSend);
+        FD_ZERO(&fdsetError);
+        SOCKET hSocketMax = 0;
+        bool have_fds = false;
+
+        BOOST_FOREACH(const ListenSocket& hListenSocket, vhListenSocket) {
+            FD_SET(hListenSocket.socket, &fdsetRecv);
+            hSocketMax = max(hSocketMax, hListenSocket.socket);
+            have_fds = true;
+        }
+
+        {
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes)
+            {
+                LOCK(pnode->cs_hSocket);
+
+                if (pnode->hSocket == INVALID_SOCKET)
+                    continue;
+
+                FD_SET(pnode->hSocket, &fdsetError);
+                hSocketMax = max(hSocketMax, pnode->hSocket);
+                have_fds = true;
+
+                // Implement the following logic:
+                // * If there is data to send, select() for sending data. As this only
+                //   happens when optimistic write failed, we choose to first drain the
+                //   write buffer in this case before receiving more. This avoids
+                //   needlessly queueing received data, if the remote peer is not themselves
+                //   receiving data. This means properly utilizing TCP flow control signaling.
+                // * Otherwise, if there is no (complete) message in the receive buffer,
+                //   or there is space left in the buffer, select() for receiving data.
+                // * (if neither of the above applies, there is certainly one message
+                //   in the receiver buffer ready to be processed).
+                // Together, that means that at least one of the following is always possible,
+                // so we don't deadlock:
+                // * We send some data.
+                // * We wait for data to be received (and disconnect after timeout).
+                // * We process a message in the buffer (message handler thread).
+                {
+                    TRY_LOCK(pnode->cs_vSend, lockSend);
+                    if (lockSend && !pnode->vSendMsg.empty()) {
+                        FD_SET(pnode->hSocket, &fdsetSend);
+                        continue;
+                    }
+                }
+                {
+                    TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
+                    if (lockRecv && (
+                        pnode->vRecvMsg.empty() || !pnode->vRecvMsg.front().complete() ||
+                        pnode->GetTotalRecvSize() <= ReceiveFloodSize()))
+                        FD_SET(pnode->hSocket, &fdsetRecv);
+                }
+            }
+        }
+
+        int nSelect = select(have_fds ? hSocketMax + 1 : 0,
+                             &fdsetRecv, &fdsetSend, &fdsetError, &timeout);
+        boost::this_thread::interruption_point();
+
+        if (nSelect == SOCKET_ERROR)
+        {
+            if (have_fds)
+            {
+                int nErr = WSAGetLastError();
+                LogPrintf("socket select error %s\n", NetworkErrorString(nErr));
+                for (unsigned int i = 0; i <= hSocketMax; i++)
+                    FD_SET(i, &fdsetRecv);
+            }
+            FD_ZERO(&fdsetSend);
+            FD_ZERO(&fdsetError);
+            MilliSleep(timeout.tv_usec/1000);
+        }
+
+        //
+        // Accept new connections
+        //
+        BOOST_FOREACH(const ListenSocket& hListenSocket, vhListenSocket)
+        {
+            if (hListenSocket.socket != INVALID_SOCKET && FD_ISSET(hListenSocket.socket, &fdsetRecv))
+            {
+                AcceptConnection(hListenSocket);
+            }
+        }
+
+        //
+        // Service each socket
+        //
+        vector<CNode*> vNodesCopy;
+        {
+            LOCK(cs_vNodes);
+            vNodesCopy = vNodes;
+            BOOST_FOREACH(CNode* pnode, vNodesCopy)
+                pnode->AddRef();
+        }
+        BOOST_FOREACH(CNode* pnode, vNodesCopy)
+        {
+            boost::this_thread::interruption_point();
+
+            if (tlsmanager.threadSocketHandler(pnode,fdsetRecv,fdsetSend,fdsetError)==-1){
+                continue;
+            }
+
+            //
+            // Inactivity checking
+            //
+            int64_t nTime = GetTime();
+            if (nTime - pnode->nTimeConnected > 60)
+            {
+                if (pnode->nLastRecv == 0 || pnode->nLastSend == 0)
+                {
+                    LogPrint("net", "socket no message in first 60 seconds, %d %d from %d\n", pnode->nLastRecv != 0, pnode->nLastSend != 0, pnode->id);
+                    pnode->fDisconnect = true;
+                }
+                else if (nTime - pnode->nLastSend > TIMEOUT_INTERVAL)
+                {
+                    LogPrintf("socket sending timeout: %is\n", nTime - pnode->nLastSend);
+                    pnode->fDisconnect = true;
+                }
+                else if (nTime - pnode->nLastRecv > (pnode->nVersion > BIP0031_VERSION ? TIMEOUT_INTERVAL : 90*60))
+                {
+                    LogPrintf("socket receive timeout: %is\n", nTime - pnode->nLastRecv);
+                    pnode->fDisconnect = true;
+                }
+                else if (pnode->nPingRetry > MAX_PING_RETRY)
+                {
+                    LogPrintf("ping max retry exceeded, disconnecting node %i\n", pnode->id);
+                    pnode->fDisconnect = true;
+                }
+            }
+        }
+        {
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodesCopy)
+                pnode->Release();
+        }
+    }
+}
+
+void ThreadDNSAddressSeed()
+{
+    // goal: only query DNS seeds if address need is acute
+    if ((addrman.size() > 0) &&
+        (!GetBoolArg("-forcednsseed", false))) {
+        MilliSleep(11 * 1000);
+
+        LOCK(cs_vNodes);
+        if (vNodes.size() >= 16) {
+            LogPrintf("P2P peers available. Skipped DNS seeding.\n");
+            return;
+        }
+    }
+
+    const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
+    int found = 0;
+
+    LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
+
+    BOOST_FOREACH(const CDNSSeedData &seed, vSeeds) {
+        if (HaveNameProxy()) {
+            AddOneShot(seed.host);
+        } else {
+            vector<CNetAddr> vIPs;
+            vector<CAddress> vAdd;
+            if (LookupHost(seed.host.c_str(), vIPs, 256, true))
+            {
+                BOOST_FOREACH(const CNetAddr& ip, vIPs)
+                {
+                    int nOneDay = 24*3600;
+                    CAddress addr = CAddress(CService(ip, ASSETCHAINS_P2PPORT));
+                    addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
+                    vAdd.push_back(addr);
+                    found++;
+                }
+            }
+            // TODO: The seed name resolve may fail, yielding an IP of [::], which results in
+            // addrman assigning the same source to results from different seeds.
+            // This should switch to a hard-coded stable dummy IP for each seed name, so that the
+            // resolve is not required at all.
+            if (!vIPs.empty()) {
+                CService seedSource;
+                Lookup(seed.name.c_str(), seedSource, 0, true);
+                addrman.Add(vAdd, seedSource);
+            }
+        }
+    }
+
+    LogPrintf("%d addresses found from DNS seeds\n", found);
+}
+
+
+void DumpAddresses()
+{
+    int64_t nStart = GetTimeMillis();
+
+    CAddrDB adb;
+    adb.Write(addrman);
+
+    LogPrint("net", "Flushed %d addresses to peers.dat  %dms\n",
+           addrman.size(), GetTimeMillis() - nStart);
+}
+
+void SweepTerribleAddresses()
+{
+    int64_t nStart = GetTimeMillis();
+    int nBefore = addrman.size();
+
+    addrman.SweepTerrible();
+
+    LogPrint("net", "Swept %d terrible addresses from addrman (%d -> %d)  %dms\n",
+           nBefore - addrman.size(), nBefore, addrman.size(), GetTimeMillis() - nStart);
+}
+
+void static ProcessOneShot()
+{
+    string strDest;
+    {
+        LOCK(cs_vOneShots);
+        if (vOneShots.empty())
+            return;
+        strDest = vOneShots.front();
+        vOneShots.pop_front();
+    }
+    CAddress addr;
+    CSemaphoreGrant grant(*semOutbound, true);
+    if (grant) {
+        if (!OpenNetworkConnection(addr, &grant, strDest.c_str(), true, false))
+            AddOneShot(strDest);
+    }
+}
+
+void ThreadOpenConnections()
+{
+    // Connect to specific addresses
+    if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0)
+    {
+        for (int64_t nLoop = 0;; nLoop++)
+        {
+            ProcessOneShot();
+            BOOST_FOREACH(const std::string& strAddr, mapMultiArgs["-connect"])
+            {
+                CAddress addr;
+                OpenNetworkConnection(addr, NULL, strAddr.c_str(), false, false);
+                for (int i = 0; i < 10 && i < nLoop; i++)
+                {
+                    MilliSleep(500);
+                }
+            }
+            MilliSleep(500);
+        }
+    }
+
+    // Initiate network connections
+    int64_t nStart = GetTime();
+    while (true)
+    {
+        if (ShutdownRequested())
+            break;
+
+        ProcessOneShot();
+
+        // Adaptive sleep based on connection health
+        int nTotalOutbound = GetTotalOutboundConnectionCount();
+        int nTotalInbound = GetTotalInboundConnectionCount();
+        int nAddNodeCount = GetAddNodeConnectionCount();
+        int nTotalConnections = nTotalOutbound + nTotalInbound;
+        
+        // Use adaptive retry interval: prioritize establishing connections when poorly connected
+        int sleepInterval = (nTotalConnections == 0) ? 500 :           // No connections - fast retry
+                           (nTotalConnections < 4) ? 1000 :             // Very few - quick retry
+                           (nTotalOutbound < 4 || nAddNodeCount == 0) ? 2000 :  // Need more outbound/addnodes
+                           (nTotalConnections < 16) ? 3000 : 5000;      // Well connected - slow retry
+        MilliSleep(sleepInterval);
+
+        CSemaphoreGrant grant(*semOutbound);
+
+        // Add known valid seed at the time this release
+        if (GetTime() - nStart > 60) {
+            static bool done = false;
+            if (!done) {
+                LogPrintf("Adding fixed seed nodes as DNS doesn't seem to be available.\n");
+                std::vector<CAddress> vFixedSeeds = ConvertSeeds(Params().FixedSeeds());
+                BOOST_FOREACH(CAddress fixedSeed, vFixedSeeds) {
+                    std::vector<CAddress> vFixedSeed;
+                    vFixedSeed.push_back(fixedSeed);
+                    CService seedSource;
+                    Lookup(fixedSeed.ToString().c_str(), seedSource, Params().GetDefaultPort(), false);
+                    addrman.Add(vFixedSeed, seedSource);
+                }
+                done = true;
+            }
+        }
+
+
+        //
+        // Choose an address to connect to based on most recently seen
+        //
+        CAddress addrConnect;
+
+        // Only connect out to one peer per network group (/16 for IPv4).
+        // Do this here so we don't have to critsect vNodes inside mapAddresses critsect.
+        int nOutbound = 0;
+        set<vector<unsigned char> > setConnected;
+        map<Network, int> outboundCountByNetwork;
+        {
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes) {
+                if (!pnode->fInbound) {
+                    setConnected.insert(pnode->addr.GetGroup(addrman.m_asmap));
+                    outboundCountByNetwork[pnode->addr.GetNetwork()]++;
+                    nOutbound++;
+                }
+            }
+        }
+
+        // On a multi-interface node, keep a minimum spread of outbound
+        // connections across every currently-reachable network rather than
+        // letting whichever network is best represented in addrman (usually
+        // IPv4) claim every outbound slot - see GetUnderTargetReachableNetworks.
+        const bool fDedicatedTor = IsTorDedicated();
+        const std::set<Network> underTargetNetworks =
+            GetUnderTargetNetworksForRegularDialer(outboundCountByNetwork, fDedicatedTor);
+
+        int64_t nANow = GetTime();
+
+        int nTries = 0;
+        int nSkipped = 0;
+        while (true)
+        {
+            if (ShutdownRequested())
+                break;
+
+            CAddrInfo addr = addrman.Select();
+
+            // if we selected an invalid address, restart
+            if (!addr.IsValid())
+                break;
+
+            // I2P peers are dialed by the dedicated ThreadOpenI2PConnections()
+            // thread instead of here - see that thread's doc comment for why
+            // (a slow/unresponsive I2P SAM proxy must never be able to block
+            // clearnet/Tor dialing on this thread).
+            //
+            // Likewise Tor peers, when they have slots of their own: they are dialed by
+            // ThreadOpenTorConnections(), so a regular slot never goes to one (and is never
+            // left idle waiting for one).
+            //
+            // Checked before the connected-group test below, which ends the whole pass: a
+            // candidate this thread would never dial must not be able to do that (with several
+            // of the 16 Tor groups held by the Tor thread, about that share of onion picks
+            // would otherwise cut every pass short).
+            //
+            // Counted separately from nTries, which also paces the diversity budget and the
+            // relaxations below: on an addrman full of onion/I2P entries, skipped candidates must
+            // not use those up.
+            if (addr.GetNetwork() == NET_I2P || ShouldSkipForDedicatedTor(addr.GetNetwork(), fDedicatedTor)) {
+                if (++nSkipped > 100)
+                    break;
+                continue;
+            }
+
+            if (setConnected.count(addr.GetGroup(addrman.m_asmap)) || IsLocal(addr))
+                break;
+
+            // If we didn't find an appropriate destination after trying 100 addresses fetched from addrman,
+            // stop this loop, and let the outer loop run again (which sleeps, adds seed nodes, recalculates
+            // already-connected network ranges, ...) before trying new addrman addresses.
+            nTries++;
+            if (nTries > 100)
+                break;
+
+            if (!IsReachable(addr)) {
+                continue;
+            }
+
+            // Give under-represented reachable networks priority until they
+            // catch up to MIN_OUTBOUND_PER_REACHABLE_NETWORK, or until we've
+            // spent DIVERSITY_TRY_BUDGET attempts looking (whichever comes
+            // first - an under-target network may simply have no usable
+            // addresses in addrman yet, and this must not starve connections
+            // entirely while waiting for one to show up).
+            if (ShouldSkipForNetworkDiversity(addr.GetNetwork(), underTargetNetworks, nTries, DIVERSITY_TRY_BUDGET)) {
+                continue;
+            }
+
+            // only consider very recently tried nodes after 30 failed attempts
+            if (nANow - addr.nLastTry < 600 && nTries < 30)
+                continue;
+
+            // do not allow non-default ports, unless after 50 invalid addresses selected already
+            if (addr.GetPort() != Params().GetDefaultPort() && nTries < 50)
+                continue;
+
+            addrConnect = addr;
+            break;
+        }
+
+        if (addrConnect.IsValid())
+            OpenNetworkConnection(addrConnect, &grant, nullptr, false, false);
+    }
+}
+
+//! Dedicated thread for dialing regular (non-pool) I2P peers selected from
+//! addrman - the I2P counterpart of the clearnet/Tor dialing done by
+//! ThreadOpenConnections() above, which deliberately skips NET_I2P
+//! addresses so this thread is the only one that ever calls
+//! i2p::sam::Session::Connect() for the primary identity's outbound peers.
+//!
+//! Split out for the same reason ThreadI2PPoolTopUp() is split from
+//! TickI2PRelayPool() (see that thread's doc comment): each SAM round trip
+//! inside Session::Connect() (HELLO / NAMING LOOKUP / STREAM CONNECT) can
+//! block for up to 3 minutes if the I2P client/proxy is slow or
+//! unresponsive (see i2p.cpp's SendRequestAndGetReply()), and Connect() can
+//! make several of these calls in sequence. Doing that on the same thread
+//! that also dials clearnet/Tor peers would freeze those too for however
+//! long I2P stays unresponsive - that used to be the actual thread this
+//! code ran on, and was the cause of the node appearing to hang whenever
+//! the I2P client was slow to answer.
+//!
+//! Shares semOutbound with ThreadOpenConnections() (rather than a separate
+//! semaphore like the relay pool's semI2PPoolOutbound) since I2P peers
+//! dialed here still count toward the same overall outbound connection
+//! budget they always did - only which thread performs the dial has
+//! changed, not how many I2P connections are allowed.
+void ThreadOpenI2PConnections()
+{
+    while (true)
+    {
+        if (ShutdownRequested())
+            break;
+
+        MilliSleep(1000);
+        boost::this_thread::interruption_point();
+
+        if (m_i2p_sam_session.get() == nullptr || semOutbound == nullptr)
+            continue;
+
+        // The proxy was just unreachable: don't select candidates to fail against it.
+        if (IsI2PDialingSuspended(GetTime()))
+            continue;
+
+        CSemaphoreGrant grant(*semOutbound, /* fTry */ true);
+        if (!grant)
+            continue;
+
+        std::set<std::vector<unsigned char> > setConnected;
+        {
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes) {
+                if (!pnode->fInbound)
+                    setConnected.insert(pnode->addr.GetGroup(addrman.m_asmap));
+            }
+        }
+
+        // One pass over addrman for I2P entries only, instead of repeatedly calling
+        // addrman.Select() over every network and discarding the non-I2P results.
+        CAddress addrConnect;
+        const bool fFound = PickDialCandidate(
+            addrman.SelectCandidates(NET_I2P, 50), GetTime(),
+            [&setConnected](const CAddrInfo& addr) {
+                return !setConnected.count(addr.GetGroup(addrman.m_asmap)) && !IsLocal(addr) && IsReachable(addr);
+            },
+            addrConnect);
+
+        if (fFound)
+            OpenNetworkConnection(addrConnect, &grant, nullptr, false, false);
+    }
+}
+
+//! Dedicated thread for dialing outbound Tor peers selected from addrman, from its own
+//! semaphore (semTorOutbound) - the Tor counterpart of ThreadOpenI2PConnections(), except that it
+//! has slots of its own instead of sharing semOutbound (as the I2P relay pool's top-up dialer does;
+//! see semTorOutbound for why). ThreadOpenConnections() leaves onion candidates to this thread
+//! whenever IsTorDedicated().
+//!
+//! Tor peers are picked with CAddrMan::SelectCandidates() - one pass over the onion entries
+//! only - instead of repeatedly calling Select() over every network and discarding the rest.
+//! Like every outbound peer they are limited to one per network group; for Tor that is one per
+//! 4-bit address prefix (see MAX_TOR_OUTBOUND).
+void ThreadOpenTorConnections()
+{
+    while (true)
+    {
+        if (ShutdownRequested())
+            break;
+
+        MilliSleep(1000);
+        boost::this_thread::interruption_point();
+
+        if (semTorOutbound == nullptr)
+            continue;
+
+        // Tor isn't up (yet): nothing to dial through.
+        if (!IsReachable(NET_ONION))
+            continue;
+
+        // Only when the regular dialer has handed Tor over to us.
+        if (!IsTorDedicated())
+            continue;
+
+        // The Tor daemon was just unreachable: don't select candidates to fail against it.
+        if (IsTorDialingSuspended(GetTime()))
+            continue;
+
+        CSemaphoreGrant grant(*semTorOutbound, /* fTry */ true);
+        if (!grant)
+            continue;
+
+        std::set<std::vector<unsigned char> > setConnected;
+        {
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes) {
+                if (!pnode->fInbound && ((CNetAddr)pnode->addr).IsTor())
+                    setConnected.insert(pnode->addr.GetGroup(addrman.m_asmap));
+            }
+        }
+
+        CAddress addrConnect;
+        const bool fFound = PickDialCandidate(
+            addrman.SelectCandidates(NET_ONION, 50), GetTime(),
+            [&setConnected](const CAddrInfo& addr) {
+                return !setConnected.count(addr.GetGroup(addrman.m_asmap)) && !IsLocal(addr) && IsReachable(addr);
+            },
+            addrConnect);
+
+        if (fFound) {
+            OpenNetworkConnection(addrConnect, &grant, nullptr, false, false);
+        } else {
+            // Nothing dialable right now (no known onion peers yet, or every group already
+            // held): don't rescan addrman every second - a slot that can't be filled stays
+            // unfilled for a while regardless.
+            MilliSleep(9000);
+        }
+    }
+}
+
+void ThreadOpenAddedConnections()
+{
+    {
+        LOCK(cs_vAddedNodes);
+        vAddedNodes = mapMultiArgs["-addnode"];
+    }
+
+    if (HaveNameProxy()) {
+        while(true) {
+            list<string> lAddresses(0);
+            {
+                LOCK(cs_vAddedNodes);
+                BOOST_FOREACH(const std::string& strAddNode, vAddedNodes)
+                    lAddresses.push_back(strAddNode);
+            }
+            BOOST_FOREACH(const std::string& strAddNode, lAddresses) {
+                CAddress addr;
+                CSemaphoreGrant grant(*semAddNodeOutbound);
+                OpenNetworkConnection(addr, &grant, strAddNode.c_str(), false, true);
+                MilliSleep(500);
+            }
+            // Use adaptive retry interval based on connection health
+            int nTotalOutbound = GetTotalOutboundConnectionCount();
+            int nTotalInbound = GetTotalInboundConnectionCount();
+            int nAddNodeCount = GetAddNodeConnectionCount();
+            int nTotalConnections = nTotalOutbound + nTotalInbound;
+            
+            // Prioritize establishing addnode connections when poorly connected overall
+            int retryInterval = (nTotalConnections == 0) ? 10000 :      // No connections - fast retry
+                               (nTotalConnections < 4) ? 30000 :         // Very few - moderate retry
+                               (nAddNodeCount == 0) ? 60000 :            // Need addnodes - quick retry
+                               (nTotalConnections < 16) ? 120000 : 300000; // Well connected - slow retry
+            MilliSleep(retryInterval);
+        }
+    }
+
+    for (unsigned int i = 0; true; i++)
+    {
+        list<string> lAddresses(0);
+        {
+            LOCK(cs_vAddedNodes);
+            BOOST_FOREACH(const std::string& strAddNode, vAddedNodes)
+                lAddresses.push_back(strAddNode);
+        }
+
+        list<vector<CService> > lservAddressesToAdd(0);
+        BOOST_FOREACH(const std::string& strAddNode, lAddresses) {
+            vector<CService> vservNode(0);
+            if(Lookup(strAddNode.c_str(), vservNode, Params().GetDefaultPort(), fNameLookup, 0))
+            {
+                lservAddressesToAdd.push_back(vservNode);
+                {
+                    LOCK(cs_setservAddNodeAddresses);
+                    BOOST_FOREACH(const CService& serv, vservNode)
+                        setservAddNodeAddresses.insert(serv);
+                }
+            }
+        }
+        // Attempt to connect to each IP for each addnode entry until at least one is successful per addnode entry
+        // (keeping in mind that addnode entries can have many IPs if fNameLookup)
+        // Enhanced logic: Check for existing connections (both inbound and outbound) and mark inbound connections as addnode
+        {
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes)
+                for (list<vector<CService> >::iterator it = lservAddressesToAdd.begin(); it != lservAddressesToAdd.end(); it++)
+                {
+                    BOOST_FOREACH(const CService& addrNode, *(it))
+                        if (pnode->addr == addrNode)
+                        {
+                            // If this is an inbound connection that matches an addnode address, mark it as addnode
+                            if (pnode->fInbound && !pnode->fAddNode) {
+                                pnode->fAddNode = true;
+                                LogPrintf("ThreadOpenAddedConnections: Marked existing inbound connection from %s as addnode connection\n", 
+                                         addrNode.ToString());
+                            }
+                            
+                            // Remove this address from connection attempts since we already have a connection
+                            LogPrint("addnode", "ThreadOpenAddedConnections: Skipping connection attempt to %s (already connected, inbound=%s, addnode=%s)\n", 
+                                    addrNode.ToString(), pnode->fInbound ? "true" : "false", pnode->fAddNode ? "true" : "false");
+                            
+                            it = lservAddressesToAdd.erase(it);
+                            if ( it != lservAddressesToAdd.begin() )
+                                it--;
+                            break;
+                        }
+                    if (it == lservAddressesToAdd.end())
+                        break;
+                }
+        }
+        BOOST_FOREACH(vector<CService>& vserv, lservAddressesToAdd)
+        {
+            CSemaphoreGrant grant(*semAddNodeOutbound);
+            CAddress addrToConnect = CAddress(vserv[i % vserv.size()]);
+            LogPrint("addnode", "Attempting prioritized connection to addnode %s\n", addrToConnect.ToString());
+            if (OpenNetworkConnection(addrToConnect, &grant, nullptr, false, true)) {
+                LogPrintf("Successfully connected to prioritized addnode %s\n", addrToConnect.ToString());
+            } else {
+                LogPrint("addnode", "Failed to connect to addnode %s\n", addrToConnect.ToString());
+            }
+            MilliSleep(500);
+        }
+        
+        // Report connection status before retry
+        int nAddNodeCount = GetAddNodeConnectionCount();
+        int nTotalOutbound = GetTotalOutboundConnectionCount();
+        int nTotalInbound = GetTotalInboundConnectionCount();
+        int nTotalConnections = nTotalOutbound + nTotalInbound;
+        LogPrint("addnode", "Connections - AddNode: %d/%d, Outbound: %d, Inbound: %d, Total: %d\n", 
+                 nAddNodeCount, MAX_ADDNODE_CONNECTIONS, nTotalOutbound, nTotalInbound, nTotalConnections);
+        
+        // Use adaptive retry interval based on connection health
+        // Prioritize establishing addnode connections when poorly connected overall
+        int retryInterval = (nTotalConnections == 0) ? 10000 :      // No connections - fast retry
+                           (nTotalConnections < 4) ? 30000 :         // Very few - moderate retry
+                           (nAddNodeCount == 0) ? 60000 :            // Need addnodes - quick retry
+                           (nTotalConnections < 16) ? 120000 : 300000; // Well connected - slow retry
+        MilliSleep(retryInterval);
+    }
+}
+
+// if successful, this moves the passed grant to the constructed node
+bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound, const char *pszDest, bool fOneShot, bool fAddNode, int i2p_pool_idx)
+{
+    //
+    // Initiate outbound network connection
+    //
+    boost::this_thread::interruption_point();
+    if (!fNetworkActive) {
+        return false;
+    }
+
+    if (!IsReachable(addrConnect)) {
+        return false;
+    }
+
+    if (!pszDest) {
+        if ((IsLocal(addrConnect) && !(fAddNode && GetBoolArg("-allowlocalip", false))) ||
+            FindNode(static_cast<CNetAddr>(addrConnect)) || CNode::IsBanned(addrConnect) ||
+            FindNode(addrConnect.ToStringIPPort()))
+            return false;
+    } else if (FindNode(std::string(pszDest)))
+        return false;
+
+    CNode* pnode = ConnectNode(addrConnect, pszDest, fAddNode, i2p_pool_idx);
+    boost::this_thread::interruption_point();
+
+    if (!pnode)
+        return false;
+    if (grantOutbound)
+        grantOutbound->MoveTo(pnode->grantOutbound);
+    pnode->fNetworkNode = true;
+    if (fOneShot)
+        pnode->fOneShot = true;
+    if (fAddNode)
+        pnode->fAddNode = true;
+
+    return true;
+}
+
+
+void ThreadMessageHandler()
+{
+    boost::mutex condition_mutex;
+    boost::unique_lock<boost::mutex> lock(condition_mutex);
+
+    SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
+    while (true)
+    {
+        vector<CNode*> vNodesCopy;
+        {
+            LOCK(cs_vNodes);
+            vNodesCopy = vNodes;
+            BOOST_FOREACH(CNode* pnode, vNodesCopy) {
+                pnode->AddRef();
+            }
+        }
+
+        // Poll the connected nodes for messages
+        CNode* pnodeTrickle = NULL;
+        if (!vNodesCopy.empty())
+            pnodeTrickle = vNodesCopy[GetRand(vNodesCopy.size())];
+
+        bool fSleep = true;
+
+        BOOST_FOREACH(CNode* pnode, vNodesCopy)
+        {
+            if (pnode->fDisconnect)
+                continue;
+
+            // Receive messages
+            {
+                TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
+                if (lockRecv)
+                {
+                    if (!g_signals.ProcessMessages(pnode))
+                        pnode->CloseSocketDisconnect();
+
+                    if (pnode->nSendSize < SendBufferSize())
+                    {
+                        if (!pnode->vRecvGetData.empty() || (!pnode->vRecvMsg.empty() && pnode->vRecvMsg[0].complete()))
+                        {
+                            fSleep = false;
+                        }
+                    }
+                }
+            }
+            boost::this_thread::interruption_point();
+
+            // Send messages
+            {
+                TRY_LOCK(pnode->cs_vSend, lockSend);
+                if (lockSend)
+                    g_signals.SendMessages(pnode, pnode == pnodeTrickle || pnode->fWhitelisted);
+            }
+            boost::this_thread::interruption_point();
+        }
+
+        {
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodesCopy)
+                pnode->Release();
+        }
+
+        if (fSleep)
+            messageHandlerCondition.timed_wait(lock, boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(100));
+    }
+}
+
+void ThreadI2PCheck()
+{
+    const int64_t wait_time = 5000;
+    const int64_t err_wait_cap = wait_time * 60;
+    auto err_wait = wait_time;
+
+    bool advertising_listen_addr = false;
+    i2p::Connection conn;
+
+    while (true) {
+
+        MilliSleep(wait_time);
+
+        boost::this_thread::interruption_point();
+
+        if (!m_i2p_sam_session->Check()) {
+
+            MilliSleep(err_wait);
+
+            if (err_wait < err_wait_cap) {
+                err_wait *= 2;
+            }
+
+        } else {
+            err_wait = wait_time;
+        }
+    }
+}
+
+void ThreadI2PAcceptIncoming()
+{
+    const int64_t err_wait_begin = 1000;
+    const int64_t err_wait_cap = 1000 * 60 * 5;
+    auto err_wait = err_wait_begin;
+
+    bool advertising_listen_addr = false;
+    i2p::Connection conn;
+
+    while (true) {
+
+        boost::this_thread::interruption_point();
+
+        if (!m_i2p_sam_session->Listen(conn)) {
+            if (advertising_listen_addr && conn.me.IsValid()) {
+                RemoveLocal(conn.me);
+                advertising_listen_addr = false;
+            }
+
+            MilliSleep(err_wait);
+
+            if (err_wait < err_wait_cap) {
+                err_wait *= 2;
+            }
+
+            continue;
+        }
+
+        if (!advertising_listen_addr) {
+            AddLocal(conn.me, LOCAL_MANUAL);
+            advertising_listen_addr = true;
+        }
+
+        if (!m_i2p_sam_session->Accept(conn)) {
+            continue;
+        }
+
+        CreateNodeFromAcceptedSocket(conn.sock->Release(), false,
+                                     CAddress{conn.me, NODE_NETWORK}, CAddress{conn.peer, NODE_NETWORK},
+                                     /* fOnionListener */ false);
+    }
+}
+
+//! Bind (or rebind) I2P relay-pool slot idx to a fresh Session, staggering
+//! its backstop expiry against every other currently-active slot. Caller
+//! must hold cs_i2p_relay_pool. Does not touch nGeneration - retirement
+//! (which reuses a slot index across identities) bumps it explicitly
+//! before calling this; first-time activation of a never-used slot leaves
+//! it at its default of 0.
+static void ActivateI2PPoolSlot(size_t idx, int64_t nNow)
+{
+    proxyType i2p_sam_pool;
+    if (!GetProxy(NET_I2P, i2p_sam_pool))
+        return;
+
+    I2PPoolIdentitySlot& slot = g_i2p_relay_pool[idx];
+    slot.session = std::make_shared<i2p::sam::Session>(
+        GetDataDir() / strprintf("i2p_relay_pool_key_%d", idx), i2p_sam_pool.proxy);
+    slot.state = I2PPoolIdentityState::WARMING;
+    slot.nWarmupDeadline = nNow + I2P_POOL_WARMUP_PERIOD;
+    slot.nDrainDeadline = 0;
+    slot.nLocalRelayCount = 0;
+    slot.nPeerCount = 0;
+    slot.lastAdvertisedAddr = CService();
+
+    std::vector<int64_t> vOtherExpiries;
+    for (size_t j = 0; j < g_i2p_relay_pool.size(); j++) {
+        if (j != idx && g_i2p_relay_pool[j].session != nullptr)
+            vOtherExpiries.push_back(g_i2p_relay_pool[j].nHardExpiryTime);
+    }
+    slot.nHardExpiryTime = ComputeI2PPoolStaggeredExpiry(nNow, vOtherExpiries, GetRand(std::numeric_limits<int64_t>::max()));
+
+    LogPrint("net", "I2P pool: slot %d activated (WARMING), warmup deadline in %ds, hard expiry in %ds\n",
+             (int)idx, (int)(slot.nWarmupDeadline - nNow), (int)(slot.nHardExpiryTime - nNow));
+}
+
+//! Periodic maintenance for the I2P relay pool (retirement, warmup
+//! promotion, reserve replenishment) - registered via
+//! scheduler.scheduleEvery() in StartNode(), following the same pattern as
+//! DumpAddresses. See net.h's I2PPoolIdentitySlot/I2P_POOL_* constants and
+//! the "Rotating burn-after-use I2P identities for transaction relay"
+//! design for the full rationale.
+void TickI2PRelayPool()
+{
+    if (!fI2PIdentityRotation)
+        return;
+
+    LOCK(cs_i2p_relay_pool);
+    const int64_t nNow = GetTime();
+
+    // 1. Retire any slot past its expiry/drain deadline.
+    for (size_t idx = 0; idx < g_i2p_relay_pool.size(); idx++) {
+        I2PPoolIdentitySlot& slot = g_i2p_relay_pool[idx];
+        if (slot.session == nullptr)
+            continue;
+        if (!ShouldRetireI2PPoolIdentity(slot.state, slot.nHardExpiryTime, slot.nDrainDeadline, nNow))
+            continue;
+
+        const uint32_t nRetiringGeneration = slot.nGeneration;
+        int nDisconnected = 0;
+        {
+            LOCK(cs_vNodes);
+            for (CNode* pnode : vNodes) {
+                if (ShouldDisconnectForI2PPoolRotation(pnode->m_i2p_pool_idx, pnode->m_i2p_pool_generation, (int)idx, nRetiringGeneration)) {
+                    pnode->fDisconnect = true;
+                    pnode->CloseSocketDisconnect();
+                    nDisconnected++;
+                }
+            }
+        }
+
+        if (slot.lastAdvertisedAddr.IsValid())
+            RemoveLocal(slot.lastAdvertisedAddr);
+
+        // Destroy and regenerate: deleting the on-disk key file first
+        // means the next Session's CreateIfNotCreatedAlready()
+        // (i2p.cpp, unmodified) falls through to GenerateAndSavePrivateKey()
+        // and produces a genuinely fresh DEST GENERATE keypair.
+        slot.session.reset();
+        boost::system::error_code ec;
+        boost::filesystem::remove(GetDataDir() / strprintf("i2p_relay_pool_key_%d", idx), ec);
+
+        LogPrint("net", "I2P pool: retiring slot %d (generation %u -> %u), disconnected %d peer(s), %u local relay(s) served\n",
+                 (int)idx, nRetiringGeneration, nRetiringGeneration + 1, nDisconnected, slot.nLocalRelayCount);
+
+        slot.nGeneration = nRetiringGeneration + 1;
+        ActivateI2PPoolSlot(idx, nNow);
+    }
+
+    // 2. Promote WARMING -> READY.
+    for (size_t idx = 0; idx < g_i2p_relay_pool.size(); idx++) {
+        I2PPoolIdentitySlot& slot = g_i2p_relay_pool[idx];
+        if (slot.session == nullptr || slot.state != I2PPoolIdentityState::WARMING)
+            continue;
+        if (ShouldPromoteI2PPoolIdentityToReady(slot.nWarmupDeadline, slot.nPeerCount, nNow, I2P_POOL_MIN_PEERS_FOR_READY)) {
+            slot.state = I2PPoolIdentityState::READY;
+            LogPrint("net", "I2P pool: slot %d promoted WARMING -> READY (%d peers)\n", (int)idx, slot.nPeerCount);
+        }
+    }
+
+    // 3. Replenish the reserve: activate previously-inactive slots (up to
+    // nI2PPoolMaxSize, i.e. g_i2p_relay_pool.size()) until the count of
+    // WARMING+READY slots reaches nI2PPoolMinReserve.
+    int nReserve = 0;
+    for (const auto& slot : g_i2p_relay_pool) {
+        if (slot.session != nullptr && (slot.state == I2PPoolIdentityState::WARMING || slot.state == I2PPoolIdentityState::READY))
+            nReserve++;
+    }
+    for (size_t idx = 0; idx < g_i2p_relay_pool.size() && nReserve < nI2PPoolMinReserve; idx++) {
+        if (g_i2p_relay_pool[idx].session != nullptr)
+            continue;
+        ActivateI2PPoolSlot(idx, nNow);
+        if (g_i2p_relay_pool[idx].session != nullptr) {
+            nReserve++;
+            LogPrint("net", "I2P pool: activated slot %d to replenish reserve (now %d/%d)\n", (int)idx, nReserve, nI2PPoolMinReserve);
+        }
+    }
+}
+
+//! Parameterized worker serving I2P relay-pool slot idx's inbound
+//! connections - one thread per slot (see the design doc for why: Accept()
+//! is a blocking per-session call, so one thread per identity avoids
+//! serializing accept latency across slots). Structurally identical to
+//! ThreadI2PAcceptIncoming() above, but re-resolves its Session pointer
+//! from g_i2p_relay_pool every loop iteration (rather than capturing one
+//! at spawn time) so a rotation can swap the slot's Session out from under
+//! this thread without needing to restart it, and tracks generation
+//! changes to know when to stop advertising a just-retired slot's address.
+void ThreadI2PPoolAcceptIncoming(size_t idx)
+{
+    const int64_t err_wait_begin = 1000;
+    const int64_t err_wait_cap = 1000 * 60 * 5;
+    auto err_wait = err_wait_begin;
+
+    bool advertising_listen_addr = false;
+    uint32_t nLastGeneration = 0;
+    i2p::Connection conn;
+
+    while (true) {
+        boost::this_thread::interruption_point();
+
+        // A shared_ptr copy, not a raw pointer: pins the Session object alive
+        // through the Listen()/Accept() calls below (each potentially
+        // blocking for minutes) even if TickI2PRelayPool() retires this slot
+        // concurrently. See I2PPoolIdentitySlot::session's doc comment.
+        std::shared_ptr<i2p::sam::Session> session;
+        uint32_t generation = 0;
+        {
+            LOCK(cs_i2p_relay_pool);
+            if (idx < g_i2p_relay_pool.size() && g_i2p_relay_pool[idx].session) {
+                session = g_i2p_relay_pool[idx].session;
+                generation = g_i2p_relay_pool[idx].nGeneration;
+            }
+        }
+
+        if (session == nullptr || generation != nLastGeneration) {
+            // No session active yet, or the slot was rotated out from
+            // under us since our last iteration (new Session, bumped
+            // generation) - stop advertising whatever we were advertising
+            // and start fresh.
+            if (advertising_listen_addr && conn.me.IsValid())
+                RemoveLocal(conn.me);
+            advertising_listen_addr = false;
+            nLastGeneration = generation;
+            if (session == nullptr) {
+                MilliSleep(err_wait);
+                continue;
+            }
+        }
+
+        if (!session->Listen(conn)) {
+            if (advertising_listen_addr && conn.me.IsValid()) {
+                RemoveLocal(conn.me);
+                advertising_listen_addr = false;
+            }
+            MilliSleep(err_wait);
+            if (err_wait < err_wait_cap) {
+                err_wait *= 2;
+            }
+            continue;
+        }
+        err_wait = err_wait_begin;
+
+        if (!advertising_listen_addr) {
+            AddLocal(conn.me, LOCAL_MANUAL);
+            advertising_listen_addr = true;
+            LOCK(cs_i2p_relay_pool);
+            if (idx < g_i2p_relay_pool.size() && g_i2p_relay_pool[idx].nGeneration == generation)
+                g_i2p_relay_pool[idx].lastAdvertisedAddr = conn.me;
+        }
+
+        if (!session->Accept(conn)) {
+            continue;
+        }
+
+        CreateNodeFromAcceptedSocket(conn.sock->Release(), false,
+                                     CAddress{conn.me, NODE_NETWORK}, CAddress{conn.peer, NODE_NETWORK},
+                                     /* fOnionListener */ false,
+                                     /* i2p_pool_idx */ (int)idx,
+                                     /* i2p_pool_generation */ generation);
+    }
+}
+
+//! Pool-slot analog of ThreadI2PCheck() - used instead of
+//! ThreadI2PPoolAcceptIncoming() when -i2pacceptincoming=0 (outbound-only
+//! I2P operation).
+void ThreadI2PPoolCheck(size_t idx)
+{
+    const int64_t wait_time = 5000;
+    const int64_t err_wait_cap = wait_time * 60;
+    auto err_wait = wait_time;
+
+    while (true) {
+        MilliSleep(wait_time);
+        boost::this_thread::interruption_point();
+
+        // Shared_ptr copy, not a raw pointer - see I2PPoolIdentitySlot::
+        // session's doc comment: pins the object alive through Check() below
+        // even if TickI2PRelayPool() retires this slot concurrently.
+        std::shared_ptr<i2p::sam::Session> session;
+        {
+            LOCK(cs_i2p_relay_pool);
+            session = (idx < g_i2p_relay_pool.size() && g_i2p_relay_pool[idx].session) ? g_i2p_relay_pool[idx].session : nullptr;
+        }
+        if (session == nullptr)
+            continue;
+
+        if (!session->Check()) {
+            MilliSleep(err_wait);
+            if (err_wait < err_wait_cap) {
+                err_wait *= 2;
+            }
+        } else {
+            err_wait = wait_time;
+        }
+    }
+}
+
+//! Dedicated thread that proactively dials out through under-peered I2P
+//! relay-pool slots (WARMING or READY, below I2P_POOL_MIN_PEERS_FOR_READY
+//! live connections), so a slot doesn't have to rely on inbound accepts
+//! alone to reach READY. Deliberately a separate thread from
+//! TickI2PRelayPool() (a lightweight scheduler callback) since a SAM
+//! Connect() call can block for a real connection attempt - doing this
+//! work on the scheduler thread would stall other scheduled tasks (e.g.
+//! DumpAddresses). Draws from its own dedicated semaphore
+//! (semI2PPoolOutbound) rather than the regular outbound one (semOutbound)
+//! - ThreadOpenConnections() holds a blocking wait on semOutbound and
+//! polls far more often than this thread's 30s tick, so sharing it would
+//! let ordinary peer discovery win every freed slot first and starve pool
+//! warmup on any well-connected node; ThreadOpenConnections()'s own
+//! diversity bookkeeping is untouched by this - it's a separate,
+//! smaller, targeted dialing effort alongside it, not a modification to
+//! the main outbound-connection loop.
+void ThreadI2PPoolTopUp()
+{
+    while (true) {
+        MilliSleep(30 * 1000);
+        boost::this_thread::interruption_point();
+
+        if (!fI2PIdentityRotation)
+            continue;
+
+        // The proxy was just unreachable: don't select candidates to fail against it.
+        if (IsI2PDialingSuspended(GetTime()))
+            continue;
+
+        std::vector<std::pair<size_t, uint32_t>> vNeedsPeers;
+        {
+            LOCK(cs_i2p_relay_pool);
+            for (size_t idx = 0; idx < g_i2p_relay_pool.size(); idx++) {
+                const I2PPoolIdentitySlot& slot = g_i2p_relay_pool[idx];
+                if (slot.session != nullptr &&
+                    (slot.state == I2PPoolIdentityState::WARMING || slot.state == I2PPoolIdentityState::READY) &&
+                    slot.nPeerCount < I2P_POOL_MIN_PEERS_FOR_READY) {
+                    vNeedsPeers.push_back({idx, slot.nGeneration});
+                }
+            }
+        }
+
+        // Randomize processing order each tick. vNeedsPeers is otherwise
+        // always built in ascending index order, which - when the known
+        // I2P address pool is small relative to the number of under-peered
+        // slots - would let lower-indexed slots systematically win every
+        // scarce candidate first, permanently starving higher-indexed
+        // slots rather than just being unlucky once. A simple
+        // Fisher-Yates shuffle gives every under-peered slot a fair shot
+        // each tick instead.
+        for (size_t i = vNeedsPeers.size(); i > 1; i--) {
+            size_t j = (size_t)(GetRand((uint64_t)i));
+            std::swap(vNeedsPeers[i - 1], vNeedsPeers[j]);
+        }
+
+        for (const auto& needsPeers : vNeedsPeers) {
+            size_t idx = needsPeers.first;
+            uint32_t generation = needsPeers.second;
+            boost::this_thread::interruption_point();
+
+            if (semI2PPoolOutbound == nullptr)
+                break;
+
+            // An earlier slot's dial in this tick may have found the router down.
+            if (IsI2PDialingSuspended(GetTime()))
+                break;
+
+            CAddress addrConnect;
+            bool fFound = false;
+            // One pass over addrman for I2P entries only - see ThreadOpenI2PConnections().
+            const std::vector<CAddrInfo> vCandidates = addrman.SelectCandidates(NET_I2P, 50);
+            for (const CAddrInfo& addr : vCandidates) {
+                if (!addr.IsValid() || addr.GetNetwork() != NET_I2P || IsLocal(addr))
+                    continue;
+                // Only exclude this candidate if it's already connected to
+                // *this same slot's current generation* - a remote address
+                // already connected via the primary identity, or via a
+                // different pool slot, is not "already connected" from
+                // this slot's perspective. Dialing it anyway is exactly
+                // the multi-identity behavior the pool exists for, and
+                // excluding it here would needlessly compound I2P address
+                // scarcity (mirrors ShouldCountTowardInboundFromIPCap's
+                // reasoning for the inbound per-source-IP cap).
+                bool fAlreadyConnected = false;
+                {
+                    LOCK(cs_vNodes);
+                    for (CNode* pnode : vNodes) {
+                        if (static_cast<CService>(pnode->addr) == static_cast<CService>(addr) &&
+                            ShouldDisconnectForI2PPoolRotation(pnode->m_i2p_pool_idx, pnode->m_i2p_pool_generation, (int)idx, generation)) {
+                            fAlreadyConnected = true;
+                            break;
+                        }
+                    }
+                }
+                if (fAlreadyConnected)
+                    continue;
+                addrConnect = addr;
+                fFound = true;
+                break;
+            }
+            if (!fFound) {
+                LogPrint("net", "I2P pool: top-up for slot %d found no usable candidate this tick (%d candidates)\n", (int)idx, (int)vCandidates.size());
+                continue;
+            }
+
+            // Randomized delay before actually dialing - see
+            // I2P_POOL_TOPUP_DIAL_JITTER_MIN_MS/MAX_MS for why this can't
+            // just fire back-to-back for every needy slot in this tick.
+            MilliSleep(I2P_POOL_TOPUP_DIAL_JITTER_MIN_MS + GetRand(I2P_POOL_TOPUP_DIAL_JITTER_MAX_MS - I2P_POOL_TOPUP_DIAL_JITTER_MIN_MS));
+            boost::this_thread::interruption_point();
+
+            CSemaphoreGrant grant(*semI2PPoolOutbound, /* fTry */ true);
+            if (!grant) {
+                LogPrint("net", "I2P pool: top-up for slot %d found %s but no free I2P pool outbound slot\n", (int)idx, addrConnect.ToString());
+                continue;
+            }
+
+            LogPrint("net", "I2P pool: top-up dialing %s for slot %d\n", addrConnect.ToString(), (int)idx);
+            OpenNetworkConnection(addrConnect, &grant, nullptr, /* fOneShot */ false, /* fAddNode */ false, (int)idx);
+        }
+    }
+}
+
+bool BindListenPort(const CService &addrBind, string& strError, bool fWhitelisted)
+{
+    strError = "";
+    int nOne = 1;
+
+    // Create socket for listening for incoming connections
+    struct sockaddr_storage sockaddr;
+    socklen_t len = sizeof(sockaddr);
+    if (!addrBind.GetSockAddr((struct sockaddr*)&sockaddr, &len))
+    {
+        strError = strprintf("Error: Bind address family for %s not supported", addrBind.ToString());
+        LogPrintf("%s\n", strError);
+        return false;
+    }
+
+    SOCKET hListenSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
+    if (hListenSocket == INVALID_SOCKET)
+    {
+        strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %s)", NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
+        return false;
+    }
+
+    if (!IsSelectableSocket(hListenSocket))
+    {
+        strError = "Error: Couldn't create a listenable socket for incoming connections";
+        LogPrintf("%s\n", strError);
+        return false;
+    }
+
+    // Allow binding if the port is still in TIME_WAIT state after
+    // the program was closed and restarted.
+    setsockopt(hListenSocket, SOL_SOCKET, SO_REUSEADDR, (sockopt_arg_type)&nOne, sizeof(int));
+
+    // Set to non-blocking, incoming connections will also inherit this
+    //
+    // WARNING!
+    // On Linux, the new socket returned by accept() does not inherit file
+    // status flags such as O_NONBLOCK and O_ASYNC from the listening
+    // socket. http://man7.org/linux/man-pages/man2/accept.2.html
+    if (!SetSocketNonBlocking(hListenSocket, true)) {
+        strError = strprintf("BindListenPort: Setting listening socket to non-blocking failed, error %s\n", NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
+        return false;
+    }
+
+    // some systems don't have IPV6_V6ONLY but are always v6only; others do have the option
+    // and enable it by default or not. Try to enable it, if possible.
+    if (addrBind.IsIPv6()) {
+#ifdef IPV6_V6ONLY
+        setsockopt(hListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, (sockopt_arg_type)&nOne, sizeof(int));
+#endif
+#ifdef _WIN32
+        int nProtLevel = PROTECTION_LEVEL_UNRESTRICTED;
+        setsockopt(hListenSocket, IPPROTO_IPV6, IPV6_PROTECTION_LEVEL, (const char*)&nProtLevel, sizeof(int));
+#endif
+    }
+
+    if (::bind(hListenSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR)
+    {
+        int nErr = WSAGetLastError();
+        if (nErr == WSAEADDRINUSE)
+            strError = strprintf(_("Unable to bind to %s on this computer. Treasure Chest is probably already running."), addrBind.ToString());
+        else
+            strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %s)"), addrBind.ToString(), NetworkErrorString(nErr));
+        LogPrintf("%s\n", strError);
+        CloseSocket(hListenSocket);
+        return false;
+    }
+    LogPrintf("Bound to %s\n", addrBind.ToString());
+
+    // Listen for incoming connections
+    if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR)
+    {
+        strError = strprintf(_("Error: Listening for incoming connections failed (listen returned error %s)"), NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
+        CloseSocket(hListenSocket);
+        return false;
+    }
+
+    vhListenSocket.push_back(ListenSocket(hListenSocket, fWhitelisted));
+
+    if (addrBind.IsRoutable() && fDiscover && !fWhitelisted)
+        AddLocal(addrBind, LOCAL_BIND);
+
+    return true;
+}
+
+unsigned short GetOnionListenPort()
+{
+    return nOnionListenPort;
+}
+
+// Binds a dedicated, loopback-only listening socket used exclusively as the
+// local forwarding target for Tor's onion-service connections (see
+// torcontrol.cpp's ADD_ONION command). This lets inbound connections
+// accepted on it be reliably identified as genuinely Tor-sourced -
+// otherwise, since Tor forwards hidden-service traffic to our own loopback
+// address, every distinct remote Tor peer would be indistinguishable from
+// any other loopback-connecting process (or from each other) by source IP
+// alone. Binds an OS-assigned ephemeral port, since nothing outside this
+// process ever needs to know it. Must be called during single-threaded
+// startup, before ThreadSocketHandler begins iterating vhListenSocket -
+// concurrent pushes from a later Tor-control callback would race that scan.
+bool BindOnionListenPort(string& strError)
+{
+    if (nOnionListenPort != 0)
+        return true;
+
+    strError = "";
+    CService addrBind(LookupNumeric("127.0.0.1", 0));
+    struct sockaddr_storage sockaddr;
+    socklen_t len = sizeof(sockaddr);
+    if (!addrBind.GetSockAddr((struct sockaddr*)&sockaddr, &len))
+    {
+        strError = "Error: Could not construct loopback bind address for the Tor listener";
+        LogPrintf("%s\n", strError);
+        return false;
+    }
+
+    SOCKET hListenSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
+    if (hListenSocket == INVALID_SOCKET)
+    {
+        strError = strprintf("Error: Couldn't open socket for the Tor listener (socket returned error %s)", NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
+        return false;
+    }
+
+    if (!IsSelectableSocket(hListenSocket))
+    {
+        strError = "Error: Couldn't create a listenable socket for the Tor listener";
+        LogPrintf("%s\n", strError);
+        CloseSocket(hListenSocket);
+        return false;
+    }
+
+    if (!SetSocketNonBlocking(hListenSocket, true)) {
+        strError = strprintf("BindOnionListenPort: Setting listening socket to non-blocking failed, error %s\n", NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
+        CloseSocket(hListenSocket);
+        return false;
+    }
+
+    if (::bind(hListenSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR)
+    {
+        strError = strprintf(_("Unable to bind the Tor listener to 127.0.0.1 (bind returned error %s)"), NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
+        CloseSocket(hListenSocket);
+        return false;
+    }
+
+    if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR)
+    {
+        strError = strprintf(_("Error: Listening for Tor connections failed (listen returned error %s)"), NetworkErrorString(WSAGetLastError()));
+        LogPrintf("%s\n", strError);
+        CloseSocket(hListenSocket);
+        return false;
+    }
+
+    struct sockaddr_storage boundAddr;
+    socklen_t boundLen = sizeof(boundAddr);
+    if (getsockname(hListenSocket, (struct sockaddr*)&boundAddr, &boundLen) != 0) {
+        strError = "Error: Could not determine the bound port for the Tor listener";
+        LogPrintf("%s\n", strError);
+        CloseSocket(hListenSocket);
+        return false;
+    }
+    CService boundService;
+    boundService.SetSockAddr((struct sockaddr*)&boundAddr);
+    nOnionListenPort = boundService.GetPort();
+
+    vhListenSocket.push_back(ListenSocket(hListenSocket, false, true));
+    LogPrint("tor", "Bound dedicated Tor-forwarding listener to 127.0.0.1:%d\n", nOnionListenPort);
+    return true;
+}
+
+void static Discover(boost::thread_group& threadGroup)
+{
+    if (!fDiscover)
+        return;
+
+#ifdef _WIN32
+    // Get local host IP
+    char pszHostName[256] = "";
+    if (gethostname(pszHostName, sizeof(pszHostName)) != SOCKET_ERROR)
+    {
+        vector<CNetAddr> vaddr;
+        if (LookupHost(pszHostName, vaddr, 256, false))
+        {
+            BOOST_FOREACH (const CNetAddr &addr, vaddr)
+            {
+                if (AddLocal(addr, LOCAL_IF))
+                    LogPrintf("%s: %s - %s\n", __func__, pszHostName, addr.ToString());
+            }
+        }
+    }
+#else
+    // Get local host ip
+    struct ifaddrs* myaddrs;
+    if (getifaddrs(&myaddrs) == 0)
+    {
+        for (struct ifaddrs* ifa = myaddrs; ifa != NULL; ifa = ifa->ifa_next)
+        {
+            if (ifa->ifa_addr == NULL) continue;
+            if ((ifa->ifa_flags & IFF_UP) == 0) continue;
+            if (strcmp(ifa->ifa_name, "lo") == 0) continue;
+            if (strcmp(ifa->ifa_name, "lo0") == 0) continue;
+            if (ifa->ifa_addr->sa_family == AF_INET)
+            {
+                struct sockaddr_in* s4 = (struct sockaddr_in*)(ifa->ifa_addr);
+                CNetAddr addr(s4->sin_addr);
+                if (AddLocal(addr, LOCAL_IF))
+                    LogPrintf("%s: IPv4 %s: %s\n", __func__, ifa->ifa_name, addr.ToString());
+            }
+            else if (ifa->ifa_addr->sa_family == AF_INET6)
+            {
+                struct sockaddr_in6* s6 = (struct sockaddr_in6*)(ifa->ifa_addr);
+                CNetAddr addr(s6->sin6_addr);
+                if (AddLocal(addr, LOCAL_IF))
+                    LogPrintf("%s: IPv6 %s: %s\n", __func__, ifa->ifa_name, addr.ToString());
+            }
+        }
+        freeifaddrs(myaddrs);
+    }
+#endif
+}
+
+//! CAddrDB::Write() writes to a randomly-named peers.dat.XXXX (4 hex
+//! digits) temp file, then renames it over the real peers.dat for a
+//! crash-safe atomic write - see CAddrDB::Write(). If the process is
+//! killed or crashes in the narrow window between the temp file being
+//! written and the rename completing, that temp file is orphaned:
+//! nothing else ever revisits it, so repeated non-graceful shutdowns
+//! (the periodic dump runs every DUMP_ADDRESSES_INTERVAL) leave these
+//! accumulating in the datadir indefinitely. Each one is a stale
+//! snapshot that never got promoted to be the real peers.dat and is
+//! safe to discard outright.
+bool IsStalePeersDatTempFilename(const std::string& filename)
+{
+    static const std::string prefix = "peers.dat.";
+    if (filename.length() != prefix.length() + 4)
+        return false;
+    return filename.compare(0, prefix.length(), prefix) == 0;
+}
+
+static void CleanupStalePeersDatTempFiles()
+{
+    using namespace boost::filesystem;
+    const path datadir = GetDataDir();
+
+    // Collect matches in a first, read-only pass before deleting anything.
+    // Removing an entry while directory_iterator is still actively
+    // scanning the same directory isn't guaranteed to be safe across every
+    // filesystem/iterator implementation - some can skip not-yet-visited
+    // entries when the directory is mutated mid-scan, silently leaving
+    // some stale files behind instead of removing all of them.
+    std::vector<path> vStale;
+    for (directory_iterator it(datadir); it != directory_iterator(); it++) {
+        if (!is_regular_file(*it))
+            continue;
+        if (IsStalePeersDatTempFilename(it->path().filename().string()))
+            vStale.push_back(it->path());
+    }
+
+    for (const path& stalePath : vStale) {
+        boost::system::error_code ec;
+        remove(stalePath, ec);
+        if (ec)
+            LogPrintf("Failed to remove stale address-database temp file %s: %s\n",
+                       stalePath.filename().string(), ec.message());
+        else
+            LogPrint("net", "Removed stale address-database temp file %s\n",
+                       stalePath.filename().string());
+    }
+}
+
+void LoadPeers() {
+      uiInterface.InitMessage(_("Loading addresses..."));
+      CleanupStalePeersDatTempFiles();
+      // Load addresses for peers.dat
+      int64_t nStart = GetTimeMillis();
+      {
+          CAddrDB adb;
+          if (!adb.Read(addrman)) {
+              addrman.Clear();
+              LogPrintf("Invalid or missing peers.dat; recreating\n");
+          }
+      }
+      LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
+             addrman.size(), GetTimeMillis() - nStart);
+      fAddressesInitialized = true;
+}
+
+bool StartNode(boost::thread_group& threadGroup, CScheduler& scheduler)
+{
+
+    if (GetBoolArg("-nspv_msg", DEFAULT_NSPV_PROCESSING)) {
+        nLocalServices |= NODE_NSPV;
+        LogPrintf("NSPV messages processing enabled\n");
+    }
+
+    proxyType i2p_sam;
+    if (GetProxy(NET_I2P, i2p_sam)) {
+        m_i2p_sam_session = std::unique_ptr<i2p::sam::Session>(new i2p::sam::Session(GetDataDir() / "i2p_private_key",
+                                                                i2p_sam.proxy));
+
+        // I2P relay pool: burn-after-use identities used only for
+        // relaying our own transactions, separate from the identity just
+        // created above. See TickI2PRelayPool()/ActivateI2PPoolSlot() for
+        // the lifecycle this feeds.
+        if (fI2PIdentityRotation) {
+            LOCK(cs_i2p_relay_pool);
+            g_i2p_relay_pool.resize(nI2PPoolMaxSize);
+            const int64_t nNow = GetTime();
+            for (int idx = 0; idx < nI2PPoolMinReserve; idx++) {
+                ActivateI2PPoolSlot((size_t)idx, nNow);
+            }
+        }
+    }
+
+    // Every pool identity needs I2P_POOL_MIN_PEERS_FOR_READY (2) live peers
+    // to reach READY, and in the worst case (poor inbound reach) both have
+    // to come from outbound dialing - so this reserves headroom for two
+    // connections per configured slot, not one. Deliberately additive
+    // alongside the regular outbound allowance rather than carved out of
+    // it (contrast MAX_ADDNODE_CONNECTIONS, which is carved out of
+    // MAX_OUTBOUND_CONNECTIONS): at current defaults, carving a 16-slot
+    // pool's worst-case reservation (32) out of a 56-slot regular budget
+    // would nearly halve the node's regular outbound peer capacity just
+    // to guarantee I2P pool dialing - trading pool starvation for
+    // degraded general connectivity/network diversity instead. Bounded by
+    // nMaxConnections so an operator running with a very small
+    // -maxconnections doesn't get a reservation request larger than the
+    // node's entire connection budget.
+    int nI2PPoolReserved = fI2PIdentityRotation
+        ? std::max(0, std::min(nI2PPoolMaxSize * I2P_POOL_MIN_PEERS_FOR_READY, nMaxConnections))
+        : 0;
+
+    if (semOutbound == NULL) {
+        // initialize semaphore
+        int nMaxOutbound = min(MAX_REGULAR_OUTBOUND_CONNECTIONS, nMaxConnections - MAX_ADDNODE_CONNECTIONS);
+        semOutbound = new CSemaphore(nMaxOutbound);
+    }
+
+    if (semAddNodeOutbound == NULL) {
+        // initialize separate semaphore for addnode connections
+        int nMaxAddNodeOutbound = min(MAX_ADDNODE_CONNECTIONS, nMaxConnections);
+        semAddNodeOutbound = new CSemaphore(nMaxAddNodeOutbound);
+    }
+
+    if (semI2PPoolOutbound == NULL) {
+        // initialize separate semaphore for I2P relay-pool top-up dialing,
+        // sized for every configured slot to reach READY via outbound
+        // dialing alone if it has to, so it never competes with regular
+        // peer discovery for a connection slot
+        nI2PPoolOutboundReserved = nI2PPoolReserved;
+        semI2PPoolOutbound = new CSemaphore(nI2PPoolReserved);
+    }
+
+    if (semTorOutbound == NULL) {
+        // Additive to the regular outbound allowance, like the I2P relay pool's reservation above,
+        // and bounded by the node's whole connection budget.
+        //
+        // With -connect the node talks to exactly the peers it was told to (ThreadOpenConnections
+        // never touches addrman), so no automatic Tor dialing either.
+        const bool fConnectOnly = mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0;
+        nTorOutboundReserved = fConnectOnly ? 0 : GetTorOutboundReserve(nTorOutbound, nMaxConnections);
+        semTorOutbound = new CSemaphore(nTorOutboundReserved);
+    }
+
+    if (pnodeLocalHost == NULL) {
+        CNetAddr local;
+        LookupHost("127.0.0.1", local, false);
+        pnodeLocalHost = new CNode(INVALID_SOCKET, CAddress(CService(local, 0), nLocalServices));
+    }
+
+    Discover(threadGroup);
+
+    if (!tlsmanager.prepareCredentials())
+    {
+        LogPrintf("TLS: ERROR: %s: %s: Credentials weren't loaded. Node can't be started.\n", __FILE__, __func__);
+        return false;
+    }
+
+    if (!tlsmanager.initialize())
+    {
+        LogPrintf("TLS: ERROR: %s: %s: TLS initialization failed. Node can't be started.\n", __FILE__, __func__);
+        return false;
+    }
+
+    // skip DNS seeds for staked chains.
+    if ( is_STAKED(chainName.symbol()) != 0 )
+        SoftSetBoolArg("-dnsseed", false);
+
+    //
+    // Start threads
+    //
+
+    if (!GetBoolArg("-dnsseed", true))
+        LogPrintf("DNS seeding disabled\n");
+    else
+        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "dnsseed", &ThreadDNSAddressSeed));
+
+    // Send and receive from sockets, accept connections
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "net", &ThreadSocketHandler));
+
+    //Listen for I2P connections, or periodically check the i2p control port.
+    if (m_i2p_sam_session.get() != nullptr) {
+        if (GetBoolArg("-i2pacceptincoming", true) ) {
+            threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "i2paccept", &ThreadI2PAcceptIncoming));
+        } else {
+            threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "i2pcheck", &ThreadI2PCheck));
+        }
+
+        // Dial outbound I2P peers on a dedicated thread, separate from the
+        // clearnet/Tor dialing in ThreadOpenConnections() - see
+        // ThreadOpenI2PConnections()'s doc comment for why.
+        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "i2popencon", &ThreadOpenI2PConnections));
+
+        // I2P relay pool: one accept-or-check thread per slot, mirroring
+        // the primary identity's own -i2pacceptincoming choice above. Each
+        // thread polls g_i2p_relay_pool[idx] for a live session rather
+        // than requiring one to exist at spawn time, so the full
+        // nI2PPoolMaxSize thread set can be spawned up front even though
+        // only nI2PPoolMinReserve slots start out active (see
+        // ActivateI2PPoolSlot/TickI2PRelayPool) - avoids ever needing to
+        // spawn new threads at runtime as the pool grows.
+        if (fI2PIdentityRotation) {
+            bool fAcceptIncoming = GetBoolArg("-i2pacceptincoming", true);
+            for (size_t idx = 0; idx < (size_t)nI2PPoolMaxSize; idx++) {
+                // TraceThread<Callable> invokes func() with no arguments,
+                // so idx must be bound in first - CScheduler::Function
+                // (boost::function<void()>) is reused here purely for its
+                // type (net.cpp already includes scheduler.h for it),
+                // matching the pattern already used for the scheduler's
+                // own thread in init.cpp.
+                if (fAcceptIncoming) {
+                    CScheduler::Function boundAccept = boost::bind(&ThreadI2PPoolAcceptIncoming, idx);
+                    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "i2ppoolaccept", boundAccept));
+                } else {
+                    CScheduler::Function boundCheck = boost::bind(&ThreadI2PPoolCheck, idx);
+                    threadGroup.create_thread(boost::bind(&TraceThread<CScheduler::Function>, "i2ppoolcheck", boundCheck));
+                }
+            }
+            scheduler.scheduleEvery(&TickI2PRelayPool, I2P_POOL_TICK_INTERVAL);
+            threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "i2ppooltopup", &ThreadI2PPoolTopUp));
+        }
+    }
+    // Initiate outbound connections from -addnode FIRST (prioritized)
+    LogPrintf("Starting addnode connection thread with reserved %d slots\n", MAX_ADDNODE_CONNECTIONS);
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "addcon", &ThreadOpenAddedConnections));
+    
+    // Give addnode connections time to establish before starting regular peer connections
+    MilliSleep(1000);
+
+    // Initiate outbound connections
+    LogPrintf("Starting regular peer connections with %d slots available\n", MAX_REGULAR_OUTBOUND_CONNECTIONS);
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "opencon", &ThreadOpenConnections));
+
+    // Tor peers get their own dialer and slots - see ThreadOpenTorConnections().
+    if (nTorOutboundReserved > 0) {
+        LogPrintf("Starting Tor peer connections with %d dedicated slots available\n", nTorOutboundReserved);
+        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "toropencon", &ThreadOpenTorConnections));
+    }
+
+    // Process messages
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler));
+
+    // Dump network addresses
+    scheduler.scheduleEvery(&DumpAddresses, DUMP_ADDRESSES_INTERVAL);
+
+    // Purge terrible addresses from addrman
+    scheduler.scheduleEvery(&SweepTerribleAddresses, SWEEP_TERRIBLE_ADDRESSES_INTERVAL);
+
+    return true;
+}
+
+bool StopNode()
+{
+    LogPrintf("StopNode()\n");
+    if (semOutbound)
+        for (int i=0; i<MAX_REGULAR_OUTBOUND_CONNECTIONS; i++)
+            semOutbound->post();
+
+    if (semAddNodeOutbound)
+        for (int i=0; i<MAX_ADDNODE_CONNECTIONS; i++)
+            semAddNodeOutbound->post();
+
+    if (semI2PPoolOutbound)
+        for (int i=0; i<nI2PPoolOutboundReserved; i++)
+            semI2PPoolOutbound->post();
+
+    if (semTorOutbound)
+        for (int i=0; i<nTorOutboundReserved; i++)
+            semTorOutbound->post();
+
+    // The I2P SAM session is never otherwise torn down explicitly; without this it
+    // only gets destroyed implicitly at process exit via the CNetCleanup static.
+    m_i2p_sam_session.reset();
+    {
+        LOCK(cs_i2p_relay_pool);
+        for (auto& slot : g_i2p_relay_pool)
+            slot.session.reset();
+    }
+
+    if (KOMODO_NSPV_FULLNODE && fAddressesInitialized)
+    {
+        DumpAddresses();
+        fAddressesInitialized = false;
+    }
+
+    return true;
+}
+
+static class CNetCleanup
+{
+public:
+    CNetCleanup() {}
+
+    ~CNetCleanup()
+    {
+        // Close sockets
+        BOOST_FOREACH(CNode* pnode, vNodes)
+            if (pnode->hSocket != INVALID_SOCKET)
+                CloseSocket(pnode->hSocket);
+        BOOST_FOREACH(ListenSocket& hListenSocket, vhListenSocket)
+            if (hListenSocket.socket != INVALID_SOCKET)
+                if (!CloseSocket(hListenSocket.socket))
+                    LogPrintf("CloseSocket(hListenSocket) failed with error %s\n", NetworkErrorString(WSAGetLastError()));
+
+        // clean up some globals (to help leak detection)
+        BOOST_FOREACH(CNode *pnode, vNodes)
+            delete pnode;
+        BOOST_FOREACH(CNode *pnode, vNodesDisconnected)
+            delete pnode;
+        vNodes.clear();
+        vNodesDisconnected.clear();
+        vhListenSocket.clear();
+        delete semOutbound;
+        semOutbound = NULL;
+        delete semAddNodeOutbound;
+        semAddNodeOutbound = NULL;
+        delete semI2PPoolOutbound;
+        semI2PPoolOutbound = NULL;
+        delete semTorOutbound;
+        semTorOutbound = NULL;
+        delete pnodeLocalHost;
+        pnodeLocalHost = NULL;
+
+#ifdef _WIN32
+        // Shutdown Windows Sockets
+        WSACleanup();
+#endif
+    }
+}
+instance_of_cnetcleanup;
+
+//! Select an I2P relay-pool identity to relay a locally-originated
+//! transaction through (burn-after-use - see the "Rotating burn-after-use
+//! I2P identities for transaction relay" design), and mark it ACTIVE with
+//! a fresh drain deadline if it was READY. Returns the selected index, or
+//! -1 if no pool identity currently has a usable peer. Does not touch
+//! cs_vNodes - callers must not hold that lock across this call, to avoid
+//! acquiring cs_i2p_relay_pool/cs_vNodes in the opposite order from
+//! TickI2PRelayPool's retirement step (which locks cs_i2p_relay_pool then
+//! nests cs_vNodes inside it).
+static int SelectAndActivateI2PPoolIdentityForRelay()
+{
+    static std::atomic<uint32_t> s_nI2PPoolRoundRobin{0};
+
+    LOCK(cs_i2p_relay_pool);
+    std::vector<I2PPoolSlotSelectionInfo> vSlots;
+    vSlots.reserve(g_i2p_relay_pool.size());
+    for (const auto& slot : g_i2p_relay_pool) {
+        if (slot.session == nullptr) {
+            // Inactive slot - push a never-eligible placeholder so indices
+            // still line up 1:1 with g_i2p_relay_pool.
+            vSlots.push_back({I2PPoolIdentityState::WARMING, 0, 0});
+            continue;
+        }
+        vSlots.push_back({slot.state, slot.nPeerCount, slot.nDrainDeadline});
+    }
+
+    int idx = SelectI2PPoolIdentityForRelay(vSlots, s_nI2PPoolRoundRobin.fetch_add(1));
+    if (idx < 0) {
+        LogPrint("net", "I2P pool: no usable identity for locally-originated relay (no READY or ACTIVE slot with peers)\n");
+        return -1;
+    }
+
+    I2PPoolIdentitySlot& slot = g_i2p_relay_pool[(size_t)idx];
+    if (slot.state == I2PPoolIdentityState::READY) {
+        slot.state = I2PPoolIdentityState::ACTIVE;
+        slot.nDrainDeadline = GetTime() + I2P_POOL_DRAIN_PERIOD;
+        LogPrint("net", "I2P pool: slot %d selected for local relay, READY -> ACTIVE, draining in %ds\n", idx, (int)I2P_POOL_DRAIN_PERIOD);
+    } else {
+        LogPrint("net", "I2P pool: slot %d reused for local relay (already ACTIVE, %u prior local relay(s))\n", idx, slot.nLocalRelayCount);
+    }
+    slot.nLocalRelayCount++;
+    return idx;
+}
+
+void RelayTransaction(const CTransaction& tx, bool fLocalOrigin)
+{
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss.reserve(10000);
+    ss << tx;
+    RelayTransaction(tx, ss, fLocalOrigin);
+}
+
+void RelayTransaction(const CTransaction& tx, const CDataStream& ss, bool fLocalOrigin)
+{
+    CInv inv(MSG_TX, tx.GetHash());
+    {
+        LOCK(cs_mapRelay);
+        // Expire old relay messages, and enforce a hard entry cap so the cache
+        // cannot grow unbounded within the 15-minute window under a tx flood.
+        static const size_t MAX_RELAY_ENTRIES = 15000;
+        while (!vRelayExpiration.empty() &&
+               (vRelayExpiration.front().first < GetTime() || mapRelay.size() >= MAX_RELAY_ENTRIES))
+        {
+            mapRelay.erase(vRelayExpiration.front().second);
+            vRelayExpiration.pop_front();
+        }
+
+        // Save original serialized message so newer versions are preserved
+        mapRelay.insert(std::make_pair(inv, ss));
+        vRelayExpiration.push_back(std::make_pair(GetTime() + 15 * 60, inv));
+    }
+    // For a transaction we created ourselves, prefer relaying only to
+    // privacy peers: outbound Tor peers (any of them), plus I2P peers -
+    // but for I2P specifically, only those on a single burn-after-use
+    // relay-pool identity selected for this transaction, never the node's
+    // primary/permanent I2P identity (see IsPrivacyPeer,
+    // SelectAndActivateI2PPoolIdentityForRelay, and the "Rotating
+    // burn-after-use I2P identities" design). This is so a
+    // clearnet-monitoring adversary can't use "which node's IP first
+    // announced this tx" to deanonymize the sender, and so a single I2P
+    // peer can't link multiple transactions to one persistent identity
+    // over time. Falls back to relaying via all peers if there's
+    // currently no usable privacy peer - see ShouldRestrictRelayToPrivacyPeers.
+    int nOutboundTorPeers = 0;
+    if (fLocalOrigin && fPrivateTxRelay) {
+        LOCK(cs_vNodes);
+        for (CNode* pnode : vNodes) {
+            if (!pnode->fInbound && ((CNetAddr)pnode->addr).IsTor())
+                nOutboundTorPeers++;
+        }
+    }
+    // Must not be called while cs_vNodes is held - see the function's own
+    // comment for the lock-ordering reason (it locks cs_i2p_relay_pool,
+    // and TickI2PRelayPool locks cs_i2p_relay_pool before nesting
+    // cs_vNodes, so this function must never nest the other way).
+    int nSelectedI2PPoolIdx = (fLocalOrigin && fPrivateTxRelay) ? SelectAndActivateI2PPoolIdentityForRelay() : -1;
+
+    int nPrivacyPeers = nOutboundTorPeers + (nSelectedI2PPoolIdx >= 0 ? 1 : 0);
+    bool fRestrictToPrivacyPeers = ShouldRestrictRelayToPrivacyPeers(fLocalOrigin, fPrivateTxRelay, nPrivacyPeers, fPrivateTxRelayFallback);
+    if (fLocalOrigin && fPrivateTxRelay && nPrivacyPeers == 0) {
+        if (fRestrictToPrivacyPeers) {
+            LogPrintf("RelayTransaction: no privacy peers connected; not relaying locally-originated transaction %s this round (will retry once a privacy peer connects; see -privatetxrelayfallback)\n", tx.GetHash().ToString());
+        } else {
+            LogPrintf("RelayTransaction: no privacy peers connected; relaying locally-originated transaction %s via all peers (privacy degraded)\n", tx.GetHash().ToString());
+        }
+    }
+
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pnode, vNodes)
+    {
+        if (fRestrictToPrivacyPeers) {
+            if (!IsPrivacyPeer(pnode->fInbound, pnode->addr))
+                continue;
+            // I2P is further restricted to the one pool identity selected
+            // above - excludes peers on the primary I2P identity
+            // (m_i2p_pool_idx stays -1 for those) and peers on any other
+            // pool slot. Tor peers are unaffected here; IsPrivacyPeer()
+            // already scoped them to outbound-only.
+            if (((CNetAddr)pnode->addr).IsI2P() &&
+                (nSelectedI2PPoolIdx < 0 || pnode->m_i2p_pool_idx != nSelectedI2PPoolIdx))
+                continue;
+        }
+        if(!pnode->fRelayTxes)
+            continue;
+        LOCK(pnode->cs_filter);
+        if (pnode->pfilter)
+        {
+            if (pnode->pfilter->IsRelevantAndUpdate(tx))
+                pnode->PushInventory(inv);
+        } else pnode->PushInventory(inv);
+    }
+}
+
+void CNode::RecordBytesRecv(uint64_t bytes)
+{
+    LOCK(cs_totalBytesRecv);
+    nTotalBytesRecv += bytes;
+}
+
+void CNode::RecordBytesSent(uint64_t bytes)
+{
+    LOCK(cs_totalBytesSent);
+    nTotalBytesSent += bytes;
+}
+
+uint64_t CNode::GetTotalBytesRecv()
+{
+    LOCK(cs_totalBytesRecv);
+    return nTotalBytesRecv;
+}
+
+uint64_t CNode::GetTotalBytesSent()
+{
+    LOCK(cs_totalBytesSent);
+    return nTotalBytesSent;
+}
+
+void CNode::Fuzz(int nChance)
+{
+    if (!fSuccessfullyConnected) return; // Don't fuzz initial handshake
+    if (GetRand(nChance) != 0) return; // Fuzz 1 of every nChance messages
+
+    switch (GetRand(3))
+    {
+    case 0:
+        // xor a random byte with a random value:
+        if (!ssSend.empty()) {
+            CDataStream::size_type pos = GetRand(ssSend.size());
+            ssSend[pos] ^= (unsigned char)(GetRand(256));
+        }
+        break;
+    case 1:
+        // delete a random byte:
+        if (!ssSend.empty()) {
+            CDataStream::size_type pos = GetRand(ssSend.size());
+            ssSend.erase(ssSend.begin()+pos);
+        }
+        break;
+    case 2:
+        // insert a random byte at a random position
+        {
+            CDataStream::size_type pos = GetRand(ssSend.size());
+            char ch = (char)GetRand(256);
+            ssSend.insert(ssSend.begin()+pos, ch);
+        }
+        break;
+    }
+    // Chance of more than one change half the time:
+    // (more changes exponentially less likely):
+    Fuzz(2);
+}
+
+//
+// CAddrDB
+//
+
+CAddrDB::CAddrDB()
+{
+    pathAddr = GetDataDir() / "peers.dat";
+}
+
+bool CAddrDB::Write(const CAddrMan& addr)
+{
+    // Generate random temporary filename
+    unsigned short randv = 0;
+    GetRandBytes((unsigned char*)&randv, sizeof(randv));
+    std::string tmpfn = strprintf("peers.dat.%04x", randv);
+
+    // serialize addresses, checksum data up to that point, then append csum
+    CDataStream ssPeers(SER_DISK, CLIENT_VERSION);
+    ssPeers << FLATDATA(Params().MessageStart());
+    ssPeers << addr;
+    uint256 hash = Hash(ssPeers.begin(), ssPeers.end());
+    ssPeers << hash;
+
+    // open temp output file, and associate with CAutoFile
+    boost::filesystem::path pathTmp = GetDataDir() / tmpfn;
+    FILE *file = fopen(pathTmp.string().c_str(), "wb");
+    CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
+    if (fileout.IsNull())
+        return error("%s: Failed to open file %s", __func__, pathTmp.string());
+
+    // Write and commit header, data
+    try {
+        fileout << ssPeers;
+    }
+    catch (const std::exception& e) {
+        return error("%s: Serialize or I/O error - %s", __func__, e.what());
+    }
+    FileCommit(fileout.Get());
+    fileout.fclose();
+
+    // replace existing peers.dat, if any, with new peers.dat.XXXX
+    if (!RenameOver(pathTmp, pathAddr))
+        return error("%s: Rename-into-place failed", __func__);
+
+    return true;
+}
+
+bool CAddrDB::Read(CAddrMan& addr)
+{
+    // open input file, and associate with CAutoFile
+    FILE *file = fopen(pathAddr.string().c_str(), "rb");
+    CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
+    if (filein.IsNull())
+        return error("%s: Failed to open file %s", __func__, pathAddr.string());
+
+    // use file size to size memory buffer
+    int fileSize = boost::filesystem::file_size(pathAddr);
+    int dataSize = fileSize - sizeof(uint256);
+    // Don't try to resize to a negative number if file is small
+    if (dataSize < 0)
+        dataSize = 0;
+    vector<unsigned char> vchData;
+    vchData.resize(dataSize);
+    uint256 hashIn;
+
+    // read data and checksum from file
+    try {
+        filein.read((char *)&vchData[0], dataSize);
+        filein >> hashIn;
+    }
+    catch (const std::exception& e) {
+        return error("%s: Deserialize or I/O error - %s", __func__, e.what());
+    }
+    filein.fclose();
+
+    CDataStream ssPeers(vchData, SER_DISK, CLIENT_VERSION);
+
+    // verify stored checksum matches input data
+    uint256 hashTmp = Hash(ssPeers.begin(), ssPeers.end());
+    if (hashIn != hashTmp)
+        return error("%s: Checksum mismatch, data corrupted", __func__);
+
+    unsigned char pchMsgTmp[4];
+    try {
+        // de-serialize file header (network specific magic number) and ..
+        ssPeers >> FLATDATA(pchMsgTmp);
+
+        // ... verify the network matches ours
+        if (memcmp(pchMsgTmp, Params().MessageStart(), sizeof(pchMsgTmp)))
+            return error("%s: Invalid network magic number", __func__);
+
+        // de-serialize address data into one CAddrMan object
+        ssPeers >> addr;
+    }
+    catch (const std::exception& e) {
+        return error("%s: Deserialize or I/O error - %s", __func__, e.what());
+    }
+
+    return true;
+}
+
+unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", 5*1000); }
+unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 1*1000); }
+
+CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNameIn, bool fInboundIn, SSL *sslIn) :
+    ssSend(SER_NETWORK, INIT_PROTO_VERSION),
+    addrKnown(5000, 0.001),
+    setInventoryKnown(SendBufferSize() / 1000)
+{
+    ssl = sslIn;
+    nServices = 0;
+    hSocket = hSocketIn;
+    nRecvVersion = INIT_PROTO_VERSION;
+    nLastSend = 0;
+    nLastRecv = 0;
+    nSendBytes = 0;
+    nRecvBytes = 0;
+    nTimeConnected = GetTime();
+    nTimeOffset = 0;
+    addr = addrIn;
+    addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
+    nVersion = 0;
+    strSubVer = "";
+    cleanSubVer = "";
+    fWhitelisted = false;
+    fOneShot = false;
+    fAddNode = false;
+    fClient = false; // set by version message
+    fInbound = fInboundIn;
+    fNetworkNode = false;
+    fSuccessfullyConnected = false;
+    fDisconnect = false;
+    nRefCount = 0;
+    nSendSize = 0;
+    nSendOffset = 0;
+    hashContinue = uint256();
+    nStartingHeight = -1;
+    fGetAddr = false;
+    fRelayTxes = false;
+    fSentAddr = false;
+    pfilter = new CBloomFilter();
+    nPingNonceSent = 0;
+    nPingUsecStart = 0;
+    nPingUsecTime = 0;
+    fPingQueued = false;
+    nPingRetry = 0;
+    nMinPingUsecTime = std::numeric_limits<int64_t>::max();
+    nLastGetBlocksRecv = 0;
+    nLastGetHeadersRecv = 0;
+    nLastAlertRelayed = 0;
+
+    {
+        LOCK(cs_nLastNodeId);
+        id = nLastNodeId++;
+    }
+
+    if (fLogIPs)
+        LogPrint("net", "Added connection to %s peer=%d\n", addrName, id);
+    else
+        LogPrint("net", "Added connection peer=%d\n", id);
+
+    // Be shy and don't send version until we hear
+    if (hSocket != INVALID_SOCKET && !fInbound)
+        PushVersion();
+
+    GetNodeSignals().InitializeNode(GetId(), this);
+
+    m_serializer = std::unique_ptr<V1TransportSerializer>(new V1TransportSerializer());
+}
+
+bool CNode::GetTlsValidate()
+{
+    if (tlsValidate == eTlsOption::FALLBACK_UNSET)
+    {
+        // one time only setting of static class attribute
+        if ( GetBoolArg("-tlsvalidate", false))
+        {
+            LogPrint("tls", "%s():%d - TLS certificates will be validated\n",
+                __func__, __LINE__);
+            tlsValidate = eTlsOption::FALLBACK_TRUE;
+        }
+        else
+        {
+            LogPrint("tls", "%s():%d - TLS certificates will NOT be validated\n",
+                __func__, __LINE__);
+            tlsValidate = eTlsOption::FALLBACK_FALSE;
+        }
+    }
+    return (tlsValidate == eTlsOption::FALLBACK_TRUE);
+}
+
+CNode::~CNode()
+{
+    // No need to make a lock on cs_hSocket, because before deletion CNode object is removed from the vNodes vector, so any other thread hasn't access to it.
+    // Removal is synchronized with read and write routines, so all of them will be completed to this moment.
+
+    if (hSocket != INVALID_SOCKET)
+    {
+        if (ssl)
+        {
+            unsigned long err_code = 0;
+            tlsmanager.waitFor(SSL_SHUTDOWN, hSocket, ssl, (DEFAULT_CONNECT_TIMEOUT / 1000), err_code);
+
+            SSL_free(ssl);
+            ssl = NULL;
+        }
+
+        CloseSocket(hSocket);
+    }
+
+    if (pfilter)
+        delete pfilter;
+
+    GetNodeSignals().FinalizeNode(GetId());
+}
+
+void CNode::AskFor(const CInv& inv)
+{
+    if (mapAskFor.size() > MAPASKFOR_MAX_SZ || setAskFor.size() > SETASKFOR_MAX_SZ)
+        return;
+    // a peer may not have multiple non-responded queue positions for a single inv item
+    if (!setAskFor.insert(inv.hash).second)
+        return;
+
+    // We're using mapAskFor as a priority queue,
+    // the key is the earliest time the request can be sent
+    int64_t nRequestTime;
+    limitedmap<CInv, int64_t>::const_iterator it = mapAlreadyAskedFor.find(inv);
+    if (it != mapAlreadyAskedFor.end())
+        nRequestTime = it->second;
+    else
+        nRequestTime = 0;
+    LogPrint("net", "askfor %s  %d (%s) peer=%d\n", inv.ToString(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000), id);
+
+    // Make sure not to reuse time indexes to keep things in the same order
+    int64_t nNow = GetTimeMicros() - 1000000;
+    static int64_t nLastTime;
+    ++nLastTime;
+    nNow = std::max(nNow, nLastTime);
+    nLastTime = nNow;
+
+    // Each retry is 2 minutes after the last
+    nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
+    if (it != mapAlreadyAskedFor.end())
+        mapAlreadyAskedFor.update(it, nRequestTime);
+    else
+        mapAlreadyAskedFor.insert(std::make_pair(inv, nRequestTime));
+    mapAskFor.insert(std::make_pair(nRequestTime, inv));
+}
+
+void CNode::BeginMessage(const char* pszCommand) ACQUIRE(cs_vSend)
+{
+    ENTER_CRITICAL_SECTION(cs_vSend);
+    assert(ssSend.size() == 0);
+    ssSend << CMessageHeader(Params().MessageStart(), pszCommand, 0);
+    LogPrint("net", "sending: %s ", SanitizeString(pszCommand));
+}
+
+void CNode::AbortMessage() RELEASE(cs_vSend)
+{
+    ssSend.clear();
+
+    LEAVE_CRITICAL_SECTION(cs_vSend);
+
+    LogPrint("net", "(aborted)\n");
+}
+
+void CNode::EndMessage() RELEASE(cs_vSend)
+{
+    // The -*messagestest options are intentionally not documented in the help message,
+    // since they are only used during development to debug the networking code and are
+    // not intended for end-users.
+    if (mapArgs.count("-dropmessagestest") && GetRand(GetArg("-dropmessagestest", 2)) == 0)
+    {
+        LogPrint("net", "dropmessages DROPPING SEND MESSAGE\n");
+        AbortMessage();
+        return;
+    }
+    if (mapArgs.count("-fuzzmessagestest"))
+        Fuzz(GetArg("-fuzzmessagestest", 10));
+
+    if (ssSend.size() == 0)
+    {
+        LEAVE_CRITICAL_SECTION(cs_vSend);
+        return;
+    }
+    // Set the size
+    unsigned int nSize = ssSend.size() - CMessageHeader::HEADER_SIZE;
+    WriteLE32((uint8_t*)&ssSend[CMessageHeader::MESSAGE_SIZE_OFFSET], nSize);
+
+    // Set the checksum
+    uint256 hash = Hash(ssSend.begin() + CMessageHeader::HEADER_SIZE, ssSend.end());
+    unsigned int nChecksum = 0;
+    memcpy(&nChecksum, &hash, sizeof(nChecksum));
+    assert(ssSend.size () >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
+    memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
+
+    LogPrint("net", "(%d bytes) peer=%d\n", nSize, id);
+
+    std::deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
+    ssSend.GetAndClear(*it);
+    nSendSize += (*it).size();
+
+    // If write queue empty, attempt "optimistic write"
+    if (it == vSendMsg.begin())
+        SocketSendData(this);
+
+    LEAVE_CRITICAL_SECTION(cs_vSend);
+}
+
+void CNode::PushAddrMessage(CSerializedNetMsg&& msg)
+{
+    size_t nMessageSize = msg.data.size();
+    LogPrint("net", "sending %s (%d bytes) peer=%d\n",  SanitizeString(msg.m_type), nMessageSize, GetId());
+
+    // make sure we use the appropriate network transport format
+    std::vector<unsigned char> serializedHeader;
+    m_serializer->prepareForTransport(msg, serializedHeader);
+    size_t nTotalSize = nMessageSize + serializedHeader.size();
+    {
+        LOCK(cs_vSend);
+        //log total amount of bytes per message type
+        mapSendBytesPerMsgCmd[msg.m_type] += nTotalSize;
+        nSendSize += nTotalSize;
+
+        // if (nSendSize > nSendBufferMaxSize) fPauseSend = true;
+
+        //Add Header
+        std::deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
+        CSerializeData &d = *it;
+        d.insert(d.end(), serializedHeader.begin(), serializedHeader.end());
+
+        //Add Message
+        if (nMessageSize) {
+          d.insert(d.end(), msg.data.begin(), msg.data.end());
+        }
+
+        if (it == vSendMsg.begin())
+            SocketSendData(this);
+    }
+}
+
+size_t GetNodeCount(NumConnections flags)
+{
+    LOCK(cs_vNodes);
+    if (flags == CONNECTIONS_ALL) // Shortcut if we want total
+        return vNodes.size();
+
+    int nNum = 0;
+    for (const auto& pnode : vNodes) {
+        if (flags & (pnode->fInbound ? CONNECTIONS_IN : CONNECTIONS_OUT)) {
+            nNum++;
+        }
+    }
+
+    return nNum;
+}
+
+void SetNetworkActive(bool active)
+{
+    LogPrint("net", "SetNetworkActive: %s\n", active);
+
+    if (fNetworkActive == active) {
+        return;
+    }
+
+    fNetworkActive = active;
+
+    if (!fNetworkActive) {
+        LOCK(cs_vNodes);
+        // Close sockets to all nodes
+        for (CNode* pnode : vNodes) {
+            pnode->CloseSocketDisconnect();
+        }
+    }
+
+    uiInterface.NotifyNetworkActiveChanged(fNetworkActive);
+}
+
+void CopyNodeStats(std::vector<CNodeStats>& vstats)
+{
+    vstats.clear();
+
+    LOCK(cs_vNodes);
+    vstats.reserve(vNodes.size());
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        CNodeStats stats;
+        pnode->copyStats(stats, addrman.m_asmap);
+        vstats.push_back(stats);
+    }
+}
