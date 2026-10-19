@@ -1,0 +1,117 @@
+{
+ "block": 26229556,
+ "rad_total": 44711032.52406093,
+ "rad_value_nominal_usd": 12675846.87,
+ "non_rad_usd": 2084324.94,
+ "treasury_total_usd": 14396924.22,
+ "drips_admin_tvl_usd": 363247.58,
+ "gross_accessible_usd": 14760171.8,
+ "costs": {
+  "A_4m_cex_only": 1360000,
+  "A_4m_dex_plus_cex": 1850000,
+  "B_7.2m": 2880000,
+  "B_7.2m_high": 3200000,
+  "C_11.3m": 4520000,
+  "C_11.3m_high": 5650000,
+  "D_16.3m": 8150000
+ },
+ "net_by_realization": {
+  "0pct": {
+   "A_4m_cex_only": 724324.94,
+   "A_4m_dex_plus_cex": 234324.94,
+   "B_7.2m": -795675.06,
+   "B_7.2m_high": -1115675.06,
+   "C_11.3m": -2435675.06,
+   "C_11.3m_high": -3565675.06,
+   "D_16.3m": -6065675.06
+  },
+  "10pct": {
+   "A_4m_cex_only": 1991909.62,
+   "A_4m_dex_plus_cex": 1501909.62,
+   "B_7.2m": 471909.62,
+   "B_7.2m_high": 151909.62,
+   "C_11.3m": -1168090.38,
+   "C_11.3m_high": -2298090.38,
+   "D_16.3m": -4798090.38
+  },
+  "20pct": {
+   "A_4m_cex_only": 3259494.31,
+   "A_4m_dex_plus_cex": 2769494.31,
+   "B_7.2m": 1739494.31,
+   "B_7.2m_high": 1419494.31,
+   "C_11.3m": 99494.31,
+   "C_11.3m_high": -1030505.69,
+   "D_16.3m": -3530505.69
+  },
+  "30pct": {
+   "A_4m_cex_only": 4527079.0,
+   "A_4m_dex_plus_cex": 4037079.0,
+   "B_7.2m": 3007079.0,
+   "B_7.2m_high": 2687079.0,
+   "C_11.3m": 1367079.0,
+   "C_11.3m_high": 237079.0,
+   "D_16.3m": -2262921.0
+  },
+  "40pct": {
+   "A_4m_cex_only": 5794663.68,
+   "A_4m_dex_plus_cex": 5304663.68,
+   "B_7.2m": 4274663.68,
+   "B_7.2m_high": 3954663.68,
+   "C_11.3m": 2634663.68,
+   "C_11.3m_high": 1504663.68,
+   "D_16.3m": -995336.32
+  },
+  "50pct": {
+   "A_4m_cex_only": 7062248.37,
+   "A_4m_dex_plus_cex": 6572248.37,
+   "B_7.2m": 5542248.37,
+   "B_7.2m_high": 5222248.37,
+   "C_11.3m": 3902248.37,
+   "C_11.3m_high": 2772248.37,
+   "D_16.3m": 272248.37
+  }
+ },
+ "breakeven_realization_pct": {
+  "A_4m_cex_only": 0,
+  "A_4m_dex_plus_cex": 0,
+  "B_7.2m": 6.28,
+  "B_7.2m_high": 8.8,
+  "C_11.3m": 19.22,
+  "C_11.3m_high": 28.13,
+  "D_16.3m": 47.85
+ },
+ "scenario_probabilities": {
+  "A_unopposed": 0.35,
+  "B_drips_only": 0.2,
+  "C_drips_plus_core": 0.4,
+  "D_all_delegates": 0.05
+ },
+ "expected_net_usd": {
+  "10pct": 84409.62,
+  "20pct": 1351994.31,
+  "30pct": 2619579.0,
+  "40pct": 3887163.68,
+  "50pct": 5154748.37
+ },
+ "headline_net_central_usd": 3000000,
+ "headline_net_range_usd": [
+  1400000,
+  5200000
+ ],
+ "capital_required_usd": {
+  "unopposed_4m": [
+   1300000,
+   2500000
+  ],
+  "contested_11m": [
+   4000000,
+   6000000
+  ]
+ },
+ "notes": [
+  "Net = realizable RAD value + non-RAD stolen assets (USDC/WETH/GTC/Drips TVL) - RAD acquisition cost.",
+  "The 4M path is profitable even if stolen RAD is worthless because non-RAD assets (~$2.08M) exceed the ~$1.36M acquisition cost.",
+  "The binding constraint is delegate opposition: Drips 7.105M + core voters ~4.2M = ~11.3M RAD.",
+  "Realization = fraction of spot RAD value recovered; 30% = 70% haircut."
+ ]
+}

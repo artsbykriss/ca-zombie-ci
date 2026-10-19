@@ -1,0 +1,66 @@
+{
+ "block": 26229556,
+ "timelock": "0x8dA8f82d2BbDd896822de723F55D6EdF416130ba",
+ "live_allowances": [
+  {
+   "token": "RAD",
+   "token_address": "0x31c8EAcBFFdD875c74b94b077895Bd78CF1E64A3",
+   "spender": "0xb76fc4ebe4fc0cc34af440ad79565a68bfcb095e",
+   "spender_name": "AddLiquidity",
+   "allowance": "212600000000000000000000",
+   "allowance_human": 212600.0,
+   "last_approval_block": 12061887,
+   "original_approval": 500000.0,
+   "note": "addLiquidity() uses transferFrom(msg.sender), not an arbitrary from; not externally drainable. Contract holds 0 RAD/USDC."
+  }
+ ],
+ "zero_allowances": [
+  {
+   "token": "USDC",
+   "spender": "0xb76fc4ebe4fc0cc34af440ad79565a68bfcb095e",
+   "allowance": "0"
+  },
+  {
+   "token": "RAD",
+   "spender": "0x864fdef96374a2060ae18f83bbec924f174d6b35",
+   "allowance": "0"
+  },
+  {
+   "token": "USDC",
+   "spender": "0x864fdef96374a2060ae18f83bbec924f174d6b35",
+   "allowance": "0"
+  },
+  {
+   "token": "RAD",
+   "spender": "0x1455d9bd6b98f95dd8feb2b3d60ed825fcef0610",
+   "allowance": "0"
+  },
+  {
+   "token": "USDC",
+   "spender": "0x1455d9bd6b98f95dd8feb2b3d60ed825fcef0610",
+   "allowance": "0"
+  },
+  {
+   "token": "RAD",
+   "spender": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+   "allowance": "0"
+  },
+  {
+   "token": "RAD",
+   "spender": "0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B",
+   "allowance": "0"
+  },
+  {
+   "token": "USDC",
+   "spender": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+   "allowance": "0"
+  },
+  {
+   "token": "WETH",
+   "spender": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+   "allowance": "0"
+  }
+ ],
+ "approval_event_scan": "RAD: 8 Approval logs from the timelock; only the AddLiquidity approval remains non-zero. USDC: 3 Approval logs; all current allowances 0. WETH/GTC: no Approval logs.",
+ "conclusion": "No external attacker can pull timelock tokens through an allowance. The 212,600 RAD allowance is latent/ops-only."
+}

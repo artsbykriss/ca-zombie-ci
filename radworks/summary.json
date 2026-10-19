@@ -1,0 +1,103 @@
+{
+ "finding": "ZH4-P2-01",
+ "title": "Radworks (Radicle) governance capture \u2014 $14.40M timelock, no guardian, treasury undelegated; +$0.36M Drips admin",
+ "chains": [
+  "ethereum"
+ ],
+ "headline_extractable_usd": 3000000,
+ "headline_confidence": "medium",
+ "categories": {
+  "E-U": 3000000,
+  "H-O": 0,
+  "P": 0,
+  "S": 0
+ },
+ "nominal_treasury_usd": 14396924.22,
+ "drips_admin_tvl_usd": 363247.58,
+ "gross_accessible_usd": 14760171.8,
+ "net_range_usd": [
+  1400000,
+  5200000
+ ],
+ "unopposed_net_usd": 4500000,
+ "contested_net_usd": 1400000,
+ "capital_required_usd": [
+  1300000,
+  6000000
+ ],
+ "capital_required_detail": {
+  "unopposed_4m": [
+   1300000,
+   2500000
+  ],
+  "drips_only_7_2m": [
+   2900000,
+   3200000
+  ],
+  "drips_plus_core_11_3m": [
+   4500000,
+   5600000
+  ]
+ },
+ "latest_block": 26229853,
+ "block_numbers": {
+  "ethereum": 26229853
+ },
+ "fork_block": 26229556,
+ "targets_checked": 10,
+ "live_targets": 2,
+ "closed_reasons": [
+  "No on-chain guardian, veto, security council or cancel role: verified RadworksGovernor source + guardian()/veto()/securityCouncil()/owner() all revert; only the proposer can cancel while Pending.",
+  "Treasury RAD is undelegated: RAD.delegates(timelock)=0x0 and RAD.getPriorVotes(timelock, block-1)=0, so the treasury cannot vote to defend itself.",
+  "The timelock is the Governor's executor and holds 40,922,601.104474 RAD + 319,133.030979 USDC + 59.9 WETH + 500,000 GTC + 0.09816 ETH + 99.9958% of the Uniswap V2 RAD/USDC LP (3,788,431 RAD + 1,079,429 USDC).",
+  "No active hostile proposal today: 8 ProposalCreated events, all terminal (states 2/3/6/7), last executed 2026-04-25.",
+  "The main defense is voluntary delegate voting: Drips 7,105,352 RAD + core delegates ~4.2M RAD. If they vote No, the attacker needs >11.3M RAD and $4M-$6M; the 4M quorum is not enough.",
+  "The 0x2887 2-of-3 Safe holds 3,211,112 RAD but has never voted; if it joins the defense the bar rises to ~14.5M RAD.",
+  "Direct allowance path checked: only 212,600 RAD allowance to AddLiquidity; addLiquidity() uses transferFrom(msg.sender), so it is not externally drainable. All other timelock allowances are 0.",
+  "Drips.withdraw() public excess is dust (~$0.007 USDC), not a direct drain; the Drips TVL is drainable only through the timelock's admin upgrade right.",
+  "No V3 NFT positions, no value in the old Sale contract 0x864fdef9..., no other non-spam treasury assets beyond RAD/USDC/WETH/GTC/ETH/LP.",
+  "The 5.4-5.5 day path cannot be shortened by the attacker: votingDelay 7,200 blocks, votingPeriod 17,280 blocks, timelock delay 172,800s."
+ ],
+ "poc": {
+  "tests_passed": 8,
+  "tests_total": 8,
+  "ci_run_urls": [
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39340625186"
+  ],
+  "ci_conclusion": "success",
+  "artifact_url": "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39340625186/artifacts/12228418498",
+  "fork_block": 26229556,
+  "full_path_gas": 1449383,
+  "drips_handover_gas": 673255
+ },
+ "key_facts": [
+  "Governor 0xD64D01D04498bFc60f04178e0B62a757C5048212 (RadworksGovernor, solc 0.8.20): quorum=4,000,000e18 constant, proposalThreshold=1,000,000e18, votingDelay=7,200 blocks, votingPeriod=17,280 blocks, timelock=0x8dA8f82d2BbDd896822de723F55D6EdF416130ba; no guardian/veto.",
+  "Timelock 0x8dA8f82d2BbDd896822de723F55D6EdF416130ba: admin=Governor, pendingAdmin=0, delay=172,800s, GRACE_PERIOD=1,209,600s.",
+  "RAD 0x31c8EAcBFFdD875c74b94b077895Bd78CF1E64A3: totalSupply=99,998,580e18, decimals=18, delegates(timelock)=0x0, getPriorVotes(timelock)=0; no mint/pause/blacklist; balances uint96.",
+  "Treasury at block 26,229,556: 40,922,601.104474020173290301 RAD + 319,133.030979 USDC + 59.9 WETH + 500,000 GTC + 0.098163434973740509 ETH + 1,198,749.348279279609 LP (99.9958% of the Uniswap V2 RAD/USDC pair 0x8C1c499b1796D7F3C2521AC37186B52De024e58c).",
+  "Corrected treasury USD at RAD $0.283506 / ETH $2,407.95 / GTC $0.356086: $14,396,924.22. The pass-2 brief's $11.98M omitted the $2.15M LP, 500k GTC ($178k) and 59.9 WETH ($144k).",
+  "LP at block 26,229,556: pair reserves 3,788,788.968862096512916891 RAD + 1,079,531.009208 USDC; timelock LP share 99.9958%; fork-proven burn output 3,788,431.419586904229180381 RAD + 1,079,429.133507 USDC.",
+  "Drips core 0xd0Dd053392db676D57317CD4fe96Fc2cCf42D0b4 is a ManagedProxy with EIP-1967 admin=timelock; implementation=Drips 0xb0c9b6d67608be300398d0e4fb0cca3891e1b33f; Managed._authorizeUpgrade is onlyAdmin. Drips TVL ~$363,248 at block 26,229,556.",
+  "The timelock is also admin of four Drips drivers: NFTDriver 0xcf9c49b0962edb01cdaa5326299ba85d72405258, ImmutableSplitsDriver 0x1212975c0642b07f696080ec1916998441c2b774, RepoDriver 0x770023d55d09a9c110694827f1a6b32d5c2b373e, AddressDriver 0x1455d9bd6b98f95dd8feb2b3d60ed825fcef0610.",
+  "Voting landscape: Drips 7,105,352.11 RAD (43.7% of delegated), 0x2887 Safe 3,211,112.40 (never voted), 0xc74f 1,300,000, 0x7dca 1,200,000, 0x464d 1,000,122.27, 0x2d7d 680,272.11; total delegated ~16,246,745 RAD; undelegated ~83,334,769 RAD (including the 40,922,601 treasury).",
+  "Turnout: 8 proposals, no material Against vote ever; last two (RGP-29/30) had 2 and 1 voters, 7,424,525.53 For; RGP-27/28 passed with 4,055,627 For (only 55,627 above quorum).",
+  "The 4M RAD quorum is constant and not supply-scaled; but in a contested vote the attacker must outvote Drips 7.105M (=>7.2M) or Drips + core ~11.3M (=>11.3M) or all delegates ~16.25M.",
+  "Economics: gross nominal $14,760,171.80 (treasury $14,396,924.22 + Drips $363,247.58); 44,711,032.524 RAD = 75.7% of the 59,075,979 circulating supply. Net central ~$3.0M (range $1.4M-$5.2M); 4M unopposed path is profitable even at zero RAD (+$0.72M) because non-RAD assets ~$2.08M exceed the ~$1.36M acquisition cost.",
+  "Acquisition/liquidity: Uniswap V2 RAD/USDC pool $2.15M reserves, 24h DEX volume $45,691; buying 2M RAD from the pool costs $1.207M (avg $0.604), 3M costs $4.106M (avg $1.369). CEX 24h volume $3.136M (Binance RAD/USDT $747k; Binance RAD/TRY $530k; BTCC $376k; BtcTurk $245k; LBank $187k; others smaller). MEXC bids $65.8k, Gate bids $18.6k; Binance order book unavailable.",
+  "The treasury owns 99.9958% of the only DEX pool, so the DEX leg of the attacker's RAD purchase is paid to the timelock's own LP and is recovered if the attacker captures the LP in the same proposal; the permanent cost is the CEX/OTC leg only.",
+  "PoC: 8/8 tests pass at fork block 26,229,556; full path gas 1,389,233; attacker ends with 48,711,032.524060924402470682 RAD + 1,398,562.164486 USDC; Drips admin handover gas 673,255.",
+  "No mainnet transactions; all state changes are local-fork only."
+ ],
+ "caveats": [
+  "Point-in-time 2026-10-19/20; Drips/core delegate behavior and RAD liquidity must be re-checked before any action. The attack is capital-gated, not privilege-gated.",
+  "The $3.0M central net is a scenario-weighted estimate (A 35% / B 20% / C 40% / D 5%) and depends on the RAD liquidation realization (30-40% of spot) and on whether Drips/core delegates vote No. It is not a market quote.",
+  "44,711,033 RAD is 75.7% of circulating supply; DEX/CEX depth cannot absorb it at spot. The 50-70% haircut (30-50% realization) is the optimistic-to-central case; a 90% drawdown (10% realization) leaves only ~$0.08M expected net.",
+  "Binance's order book was not retrievable from this environment (geo/API block); MEXC/Gate books are thin and may not represent Binance depth. Aggregate 24h volume is the better liquidity proxy.",
+  "Drips TVL is mark-to-market at approximate token prices; the Drips drain requires a UUPS upgrade. The PoC proves the admin handover (proposeNewAdmin + acceptAdmin), not the final malicious implementation, due to a public-RPC vm.etch limitation at the pinned historical block.",
+  "The top-600 holder scan covers 99.58% of supply; 417k RAD outside the scan could include additional delegated votes. Top delegates were cross-checked with getCurrentVotes().",
+  "The pass-2 brief's $11.98M treasury and $3.5M-$6M net are corrected: treasury $14.40M, net central ~$3.0M (unopposed case can reach ~$4.5M; contested case ~$0.1M-$1.4M). The 4M quorum is not the contested-vote cost.",
+  "No secrets or keyed RPC URLs are stored in this folder; all work read-only."
+ ],
+ "one_liner": "External unprivileged attacker can capture the Radworks timelock: buy ~4M RAD (1.3-2.5M USD; ~11.3M RAD / 4-6M USD if Drips+core oppose), propose a transfer of the undelegated 40.92M RAD + 319k USDC + 59.9 WETH + 500k GTC + 99.996% of the RAD/USDC LP, vote, queue, and execute in ~5.4 days with no guardian; gross ~$14.76M (corrected from $11.98M), realistic net ~$3.0M (range $1.4-5.2M), and the same proposal can hand over Drips admin (~$0.36M).",
+ "recommendation": "KEEP AS CRITICAL (E-U). Immediately delegate the treasury's 40.9M RAD to a defensive delegate and add a guardian/security council with cancel power; raise the proposal threshold to >=4M RAD; move Drips admin off the timelock."
+}
