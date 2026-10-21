@@ -1,0 +1,53 @@
+{
+  "finding": "ZH4-P3-T3-2",
+  "title": "Waterline Reservoir / Agua — HF 1.0057 is a mark-to-model artifact; live E-U $0",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 13077199.94,
+    "P": 11524507.06,
+    "S": 11524507.06
+  },
+  "latest_block": 26241741,
+  "block_numbers": {
+    "ethereum": 26241741
+  },
+  "targets_checked": 2,
+  "live_targets": 1,
+  "closed_reasons": [
+    "oracle 0x47c1699b… is a MorphoChainlinkOracleV2 with immutable BASE_VAULT=Agua and all feeds zero: price() = Agua.convertToAssets(1e18), no owner/no setter",
+    "Agua NAV = totalSupply * cumulativeRateFactor / RAY; cumulativeRateFactor is only multiplied by a growth factor >= 1 (agua.sol:536) — no function can lower it; setRate only changes the future currentRate",
+    "live HF 1.0063837296 is improving: collateral APY 10.0072% vs borrow APY 9.2182% (net +0.79%/yr); borrower 0x81A4470b… also holds 880,431 agua ($910,259) outside the collateral and can self-cure",
+    "liquidate(…, 0, borrowShares, '') reverts HEALTHY_POSITION at the fork block",
+    "even with a -1% mock write-down (HF 0.99632), the 2.617% liquidation bonus ($133,643) cannot be realized: redeemEarly charges 5% (net -2.514%) and the 5-day completeRedemption queue is unfunded ($30.00 USDC in the vault)",
+    "no DEX pair for aguaUSDCgc (DexScreener pairs=null; DefiLlama mark with no pairs), so there is no discounted-collateral borrow-and-default path",
+    "the $11.52M Agua NAV is off-contract: 52 AdminWithdraw events moved $28,375,717.34 gross to the ADMIN_ROLE EOA 0x086eb9c2… (last $218,500 at block 26,241,779); the vault holds $30.00"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39628160020"
+    ]
+  },
+  "key_facts": [
+    "Market 0x167f1d100200e7b7348a82f81e556f4f6c0271d79532073e57630ad9781a9ec8: USDC/aguaUSDCgc, LLTV 91.5%, supply $5,683,174.90, borrow $5,195,190.65, borrowable $487,984.25, util 91.41%",
+    "Borrower 0x81A4470b461a6b205871298A32d761A1D66649c9: debt $5,103,656.09, collateral 5,428,944.749 agua ($5,613,373.17), LTV 90.92%, HF 1.0063837296, buffer 0.6343%",
+    "Liquidation incentive 1.026167 = $133,549 on full debt; PoC at -1% mark repaid $5,107,265, seized 5,119,917.108 agua ($5,240,908 at the shocked mark), bonus $133,643 — but both exits revert",
+    "Oracle price 1.03397132e24 at block 26,241,741; +30d warp → 1.04210296e24 (strictly increasing); BASE_VAULT 0xa98b4A70…, SCALE_FACTOR 1e16",
+    "Agua vault 0xa98b4A70E17e55045CDE4972B95Bc2E8CEC22a0F: totalAssets $11,524,537.06, totalSupply 11,145,896.2053, cap $12.5M, USDC balance $30.00, APY 10.0072%, early fee 500 bps, lockup 432,000 s",
+    "Agua roles: DEFAULT_ADMIN 0xf23D535a… (49-byte contract); ADMIN_ROLE 0xf23D535a… + 0x086eb9c2b14dd657ae77d07df9115a2f946ce327 (plain EOA); adminWithdraw has no timelock/cap",
+    "Reservoir VaultV2 0xBEeFF047C03714965a54b671A37C18beF6b96210: totalAssets $13,077,199.94, totalSupply 12,693,010.5346, PPS 1.030267, one adapter 0x5e7c120c…, 2 markets; owner 0x5c48Cffd… (15,661-byte contract), curator 0xC5fA35a7… (345-byte contract)",
+    "Pushing utilisation to 100% (borrow the $487,984) lifts borrow APY to ~28.1% and crosses the buffer in ~12.8 days, but needs ~$533k of agua collateral minted at par into an unfunded vault; the borrower's 880k spare agua cures it"
+  ],
+  "caveats": [
+    "P and S both refer to the Agua $11.52M NAV (admin-controlled off-vault / unredeemable on-chain); they are two lenses on the same value and are not additive",
+    "The -1% oracle mark is a vm.mockCall used only to prove the liquidation/exit mechanics; it is not a reachable on-chain state",
+    "The $28.38M AdminWithdraw figure is gross over 4 months and includes recycled deposits; it is not the current off-vault balance. The admin EOA held $0.001552 USDC at the fork block; downstream transfers were not traced",
+    "Borrow APY is an instantaneous AdaptiveCurveIRM estimate (util 91.41%, C=4); it adapts and could overshoot above the 10.01% collateral APY, but the borrower can cure with 880k spare agua",
+    "The Reservoir's $13.08M is H-O (depositor claims) subject to adapter liquidity; the owner/curator control is a P risk over the same value"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 from Waterline Reservoir: the $5.10M borrower's HF 1.0057 is a mark-to-model artifact of a monotone rate oracle that cannot be written down, the position is improving (10.01% collateral vs 9.22% borrow), and even a forced liquidation's 2.62% bonus is eaten by the 5% instant-exit fee and an unfunded $30 vault; the real $11.52M risk is the Agua ADMIN EOA custody, not an outsider."
+}
