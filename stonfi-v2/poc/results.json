@@ -1,0 +1,141 @@
+{
+  "passed": 27,
+  "total": 27,
+  "results": [
+    {
+      "name": "router build hash == on-chain library hash",
+      "pass": true,
+      "detail": "848d1da9f94d125219685290a670a23573a3ff671dfe3c04b7aa8832c6a4f5cc"
+    },
+    {
+      "name": "pool build hash == on-chain library hash",
+      "pass": true,
+      "detail": "a9338ecd624ca15d37e4a8d9bf677ddc9b84f0e98f05f2fb84c7afe332a281b4"
+    },
+    {
+      "name": "router deployed & live data readable",
+      "pass": true,
+      "detail": "id=479170 locked=0 pool_code_lib=a9338ecd624c..."
+    },
+    {
+      "name": "router derives exactly the canonical pool address from the two jetton wallets",
+      "pass": true,
+      "detail": "EQBkDcduM1eijxHozHk3meIEi2ubs9v4tbezUfVv4NyvA-db"
+    },
+    {
+      "name": "pool token0/token1 are the two live jetton wallets",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "forged pay_to (arbitrary sender) rejected with exit 82 invalid_caller",
+      "pass": true,
+      "detail": "exit=82 outMsgs=0"
+    },
+    {
+      "name": "forged pay_to produced no jetton transfer",
+      "pass": true,
+      "detail": "jettonTransfers=0 outMsgs=0"
+    },
+    {
+      "name": "pay_to from canonical pool accepted (exit 0)",
+      "pass": true,
+      "detail": "exit=0"
+    },
+    {
+      "name": "accepted pay_to emits jetton transfer of exact amount to owner",
+      "pass": true,
+      "detail": "amount=1000 dest=EQAsP6MHRFOGtFf2xcx4Kt82AAwQWGEcYsQB7v3-vGd8MR-j"
+    },
+    {
+      "name": "swap sent directly to pool by non-router rejected (wrong_op 0xFFFF)",
+      "pass": true,
+      "detail": "exit=65535"
+    },
+    {
+      "name": "rejected direct swap changed no reserves",
+      "pass": true,
+      "detail": "r0 2495983160467->2495983160467 r1 1838503356805576->1838503356805576"
+    },
+    {
+      "name": "internal_set_fees from arbitrary sender rejected (wrong_op)",
+      "pass": true,
+      "detail": "exit=65535"
+    },
+    {
+      "name": "internal_update_status from arbitrary sender rejected (wrong_op)",
+      "pass": true,
+      "detail": "exit=65535"
+    },
+    {
+      "name": "transfer_notification sent straight to pool rejected (pool has no credit handler)",
+      "pass": true,
+      "detail": "exit=65535"
+    },
+    {
+      "name": "internal_transfer sent straight to pool rejected",
+      "pass": true,
+      "detail": "exit=65535"
+    },
+    {
+      "name": "pay_to from the real pool with a substituted token pair is rejected",
+      "pass": true,
+      "detail": "exit=82"
+    },
+    {
+      "name": "fake transfer_notification is routed to a *different* (attacker-token) pool, never the real pool",
+      "pass": true,
+      "detail": "routedTo=EQATHHCW32cVFGGSI0OKep3KM2gxhA2lRHkKsYyJZKdPknpa"
+    },
+    {
+      "name": "fake notification leaves real pool reserves untouched",
+      "pass": true,
+      "detail": "r0 2495983160467->2495983160467 r1 1838503356805576->1838503356805576"
+    },
+    {
+      "name": "legit router->pool swap accepted",
+      "pass": true,
+      "detail": "exit=0"
+    },
+    {
+      "name": "swap pay_to amount == CP-with-fee formula (floored output, ceil protocol fee)",
+      "pass": true,
+      "detail": "pay_to=735553921026 formula=735553921026 baseOut=735774653423 pf=220732397"
+    },
+    {
+      "name": "swap reserve0 credited exactly by amount_in",
+      "pass": true,
+      "detail": "2495983160467 -> 2496983160467"
+    },
+    {
+      "name": "swap reserve1 debited exactly by base_out (out + protocol fee)",
+      "pass": true,
+      "detail": "1838503356805576 -> 1837767582152153"
+    },
+    {
+      "name": "swap pay_to carries exit_code swap_ok",
+      "pass": true,
+      "detail": "exit_code=0xc64370e5"
+    },
+    {
+      "name": "min_out above achievable => swap_refund_slippage",
+      "pass": true,
+      "detail": "exit_code=0x39603190"
+    },
+    {
+      "name": "slippage path refunds the full input (no partial fill)",
+      "pass": true,
+      "detail": "refund=1000000000"
+    },
+    {
+      "name": "slippage path leaves reserves unchanged",
+      "pass": true,
+      "detail": "r0 2496983160467->2496983160467 r1 1837767582152153->1837767582152153"
+    },
+    {
+      "name": "expired tx_deadline => swap_refund_tx_expired",
+      "pass": true,
+      "detail": "exit_code=0x1ec28412"
+    }
+  ]
+}

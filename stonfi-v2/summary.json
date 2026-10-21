@@ -1,0 +1,49 @@
+{
+  "finding": "P3-STONFI-V2",
+  "title": "STON.fi V2 (TON) — deployed-bytecode audit of pool/router custody, pay_to authentication, reserve math and async settlement",
+  "chains": ["ton"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_masterchain_seqno": 100470578,
+  "latest_block": 100470578,
+  "targets_checked": 49016,
+  "live_targets": 30190,
+  "closed_reasons": [
+    "v2 did NOT drop v1's pay_to guard: contracts/router/msgs/pool.fc:18-28 rebuilds the canonical pool from the body's token0/token1 and requires sender == that pool (exit 82 invalid_caller otherwise); v1 equivalent is dex-core/contracts/router.func:52-53",
+    "pools accept credit/swap/fee/lock messages only from storage::router_address (contracts/pool.fc:28-31) or storage::protocol_fee_address (:22-25); getter messages are read-only; anything else throws wrong_op 0xFFFF",
+    "lp_account and lp_wallet callbacks are authenticated by derived addresses (contracts/pool/msgs/lp_account.fc:18-26, contracts/pool/msgs/lp_wallet.fc:11-22) and lp_wallet transfer/burn require sender == owner (contracts/lp_wallet.fc:20,111)",
+    "constant-product output floors (muldiv, contracts/pool/pools/constant_product/pool.fc:3) and protocol/ref fees ceil (divc, :9,:13); burn floors (pool.fc:54-56); sandbox reproduced the exact pay_to amount against live reserves",
+    "min_out violation and expired deadline both refund the full input and leave reserves unchanged (contracts/pool/msgs/router.fc:111-118,153-174); sandbox-proven",
+    "async settlement cannot double-credit: pool debits+saves before payout, router ignores bounces (contracts/router.fc:11-13); a failed payout only strands value in the router's jetton wallet (donation), it never re-credits reserves",
+    "a forged jetton transfer_notification to the router derives a different pool from the attacker's wallet address, so it cannot credit a real pool (sandbox: routed to a fresh address, real reserves unchanged)",
+    "referral vaults pay only storage::owner_address (contracts/vault.fc:51-71, router/msgs/vault.fc:9-13); excesses are TON-only change",
+    "fees, lock/unlock, pool-code upgrade and router upgrade are all gated by storage::admin_address (contracts/router.fc:28-32, router/msgs/admin.fc) — privileged, not unprivileged"
+  ],
+  "poc": {
+    "tests_passed": 27,
+    "tests_total": 27,
+    "ci_run_urls": [],
+    "kind": "TON sandbox execution of the deployed bytecode (code cells hash-identical to on-chain PUBLIB library hashes) against live pool/router data",
+    "files": ["poc/run.js", "poc/artifacts/deployed_artifacts.json", "poc/results.json"]
+  },
+  "key_facts": [
+    "api.ston.fi/v1/pools?dex_v2=true returns BOTH v1 and v2: 49,016 pools, $24,096,708.61 total. The largest router EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt is major_version 1 / minor_version 0 and holds 18,826 pools / $9,749,006.80 — that is v1, already closed as C2-38, not v2",
+    "true v2 TVL: 30,190 pools / $14,347,701.81. Of that, 29,215 pools on 23 v2.2 ConstantProduct routers = $13,030,543.98 run bytecode identical to the public source",
+    "bytecode verification: live accounts use PUBLIB library-reference cells. Extracted 256-bit library hashes: router 848d1da9f94d125219685290a670a23573a3ff671dfe3c04b7aa8832c6a4f5cc, pool a9338ecd624ca15d37e4a8d9bf677ddc9b84f0e98f05f2fb84c7afe332a281b4, lp_account c95a2ed22ab516f77f9d4898dc4578e72f18a2448e8f6832334b0b4bf501bc79, lp_wallet c00836440d084e44fb94316132ac5a21417ef4f429ee09b5560b5678b334c3e8, vault e874ac89ab826bb4403e5e7bdb8b95df3698d2e7187fa366246e98ce329ea613 — all five equal the local build of github.com/ston-fi/dex-core-v2 @ af0a955cc835af9697cd383e201fefcbe1a6a87e (v2.2.0), dexType=constant_product",
+    "on-chain get_router_version on the dominant v2 router = (2, 2, \"release\")",
+    "largest v2 pool EQCGScrZe1xbyWqWDvdI6mzP-GAcAWFv6ZXuaJOuSqemxku4 (USDT/TON, fee 7/3, router EQCS4UEa…cN3) = $4,974,815; on-chain reserves at lt 111448125000011: 2,495,983.160467 USDT + 1,838,503.356806 TON, LP supply 55,300,686,121,352",
+    "sandbox against the deployed bytecode: forged pay_to -> exit 82 and no jetton transfer; pay_to from the canonical pool -> exit 0 and an exact jetton transfer; direct swap/fee/lock/notification to the pool -> wrong_op with byte-identical reserves",
+    "sandbox swap on live reserves (in 1e9, fee 7/3): pay_to 735,553,921,026 == floored CP formula, protocol fee 220,732,397 (ceil), reserve0 credited exactly, reserve1 debited exactly by base_out",
+    "v2 architecture change: all jettons of a given jetton are custodied in ONE router-owned jetton wallet; pools keep virtual reserves. The pay_to guard is therefore the single authorization boundary for the whole v2 TVL — it is present and correct today",
+    "no concentrated-liquidity (CL) pools in v2; pool types are constant_product, constant_sum, stableswap, weighted_const_product, weighted_stableswap"
+  ],
+  "caveats": [
+    "v2.1 ConstantProduct ($445,679.91, 965 pools, 18 routers) and non-CP v2.2 ($871,477.93, 10 pools) deployed library hashes do NOT match any build of the public HEAD (grid over func 0.4.4/0.4.5/0.4.6, opt 0/1/2, fee/lock configs). Their source version is unpublished; architecture reviewed from the public source, bytecode identity unproven",
+    "PUBLIB: public RPCs expose the library-reference cell as account code, not the code itself; the PoC redeploys the byte-identical resolved code at fresh addresses and rebinds the router field, so the sandbox addresses differ from mainnet while the executed code is identical",
+    "TVL/reserves are an API snapshot plus one get_pool_data at an explicit last_transaction_lt; STON.fi has no block-pinned pool endpoint",
+    "no formal verification and no fuzzing beyond the live-reserve vectors; the jetton-wallet internals are not re-executed in the sandbox (the guard under test is entirely in router/pool)",
+    "v1 ($9.75M) is out of scope for this P3 and was assessed separately as C2-38"
+  ],
+  "one_liner": "No unprivileged extraction found on STON.fi V2: $0 E-U (high confidence) across the $13.03M bytecode-verified v2.2 ConstantProduct code — v2 retains v1's pay_to sender==pool guard (router/msgs/pool.fc:28), pools only accept router/protocol-fee messages, and 27/27 sandbox tests against the deployed bytecode reject forged notifications and reproduce the exact pool-favouring math; the parent's $24.1M v2 TVL was actually $9.75M v1 + $14.35M v2."
+}
