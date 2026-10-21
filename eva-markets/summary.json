@@ -1,0 +1,57 @@
+{
+  "finding": "ZH4-P3-T3-1",
+  "title": "Eva Markets — face-valued Wildcat deposits; live E-U $0, $5.31M is depositor/H-O exposure",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 5314010.84,
+    "P": 5314010.84,
+    "S": 0
+  },
+  "latest_block": 26241741,
+  "block_numbers": {
+    "ethereum": 26241741
+  },
+  "targets_checked": 3,
+  "live_targets": 3,
+  "closed_reasons": [
+    "all 3 Wildcat markets are current at the fork block: wmtUSDC/wmtUSDT/wmtWETH isDelinquent=false; USDC/USDT timeDelinquent=0, WETH 11,184 s historic and cured",
+    "depositFromMarket() shares = balanceAfter * scaledReceived / scaledAfter = exactly the face value received, but each Eva vault is single-market: face-minted shares are a pro-rata claim on the same market, so existing holders are not diluted",
+    "no on-chain venue for impaired wmtUSDC/wmtUSDT/wmtWETH: DexScreener pairs=null, DefiLlama price empty, Curve registry 0 pools — there is no trustless way to buy the tokens at a discount",
+    "the vault's only live liquid USDC is $112.998; claimRequest pays from underlying.balanceOf(vault), not from totalAssets/excess; new deposits go straight into the market",
+    "a fresh attacker cannot force delinquency: depositing to obtain wmt* adds cash equal to the queue, making the batch payable; only an existing holder exit or a borrower coupon miss triggers it",
+    "a 200k exit (8.2% of evaUSDC) already freezes the vault: batch pays $126,379.56, claimRequest reverts (needs full 200k), isDelinquent=true, and queueRequestsBatch reverts ActiveBatchExists until the $73,620 shortfall is repaid",
+    "even with a discounted token, the extraction is capped by the market cash ($2,695,448.45 today) and requires a pre-delinquency queue slot; with no venue, realized E-U is $0"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39628846662"
+    ]
+  },
+  "key_facts": [
+    "evaUSDC 0x741bD193B6b40f8703d2e116FD1965421f290F58: totalAssets $2,440,738.43, totalSupply 2,440,738.433896, market 0xC9499006…19E2 (wmtUSDC), idle $112.998, excess $4,999.47",
+    "evaUSDT 0x501eBf66d76A96D4FB26ccead42957653e16B8B8: totalAssets $2,870,718.36, market 0x5Ab22e9c…1a5B (wmtUSDT), idle $0, excess $6,113.07",
+    "evaETH 0xdBECD077c1C2feFDCB75f547d1b5a73BF8207e4C: totalAssets 1.0182047 ETH, market 0xBAd1b632…8353 (wmtWETH), idle 0, excess 0.0009247 ETH",
+    "Total $5,314,010.84 at ETH $2,508.38 (DefiLlama 2026-10-21); $5.31M is H-O depositor claims, not an outsider payout",
+    "wmtUSDC: cash $126,379.56, debt $74,024,134.68, face supply $73,942,515.06, scale 1.179076487…, 8.50% APR, reserve 0",
+    "wmtUSDT: cash $2,544,640.35, debt $48,665,999.47, face supply $46,154,514.78, scale 1.181221753…, 8.75% APR, reserve 0",
+    "wmtWETH: cash 9.738754821 ETH, debt 2,360.699354 ETH, face supply 2,351.669500 ETH, scale 1.064242359…, 3.75% APR, reserve 0",
+    "Borrower of all 3: 0x5b15F94EFC3A6e2c82D7db8efd8D5ba55dA11fEb (EOA, Wintermute Trading)",
+    "depositFromMarket face mint: 2,499,999,999 wmtUSDC -> 2,499,999,999 evaUSDC shares; previewRedeem = 2,499,999,999; round trip while current = 1 wei loss",
+    "Delinquent-state face mint: 2,499,999,999 wmtUSDC -> 2,499,999,999 shares while isDelinquent=true (the accounting overstatement)",
+    "Three TransparentUpgradeableProxy vaults (impl 0xdc9f47c2…e2e2), ProxyAdmins 0x5c6faf8b…/0x19d1db3a…/0x247aa660…, owner 0x85d19EC4…; operator EOA 0x42E24C89… can skim/queue; live P risk over the full $5.31M",
+    "evaUSDC/evaUSDT Curve pool 0x3C0965582dB7A0F660D491aA6174B9438f911c21 (~$4.1M TVL, price ~0.9986/0.9980) is vault shares, not wmt* market tokens"
+  ],
+  "caveats": [
+    "H-O and P both refer to the same $5.31M vault TVL (depositor claims vs upgrade/operator control); they are two lenses and are not additive",
+    "The forced-delinquency test impersonates the Curve pool (an existing 1.916M evaUSDC holder) to request redemption and impersonates the operator to queue it; this is a faithful state transition, not a live transaction",
+    "The no-DEX-pair result is a point-in-time negative across DexScreener, DefiLlama and Curve; an unindexed Uniswap v4 pool cannot be ruled out",
+    "totalAssets/excess are 1:1 virtual accounting, not a mark-to-market of the Wintermute debt; the true recovery in a default is unobservable",
+    "USD values use $1.00 for USDC/USDT (DefiLlama marks $0.99948/$0.99920) and ETH $2,508.38"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 from Eva Markets: depositFromMarket does mark Wildcat tokens at face, but all three $5.31M of markets are current, each vault is a single-market pro-rata pass-through, there is no on-chain venue to buy impaired wmt* tokens at a discount, and the only live liquid balance is $112.998; a 200k exit already freezes the vault, so the $5.31M is depositor/H-O credit exposure to Wintermute, not an outsider payout."
+}
