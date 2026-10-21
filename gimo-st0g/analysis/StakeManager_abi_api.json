@@ -1,0 +1,1497 @@
+[
+ {
+  "type": "constructor",
+  "inputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "AddressNotAllowed",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "AlreadyInitialized",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "AlreadyWithdrawed",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "CallerNotAllowed",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "CommissionRateInvalid",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "DelegateNotEmpty",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "EraNotMatch",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ExceedsPendingMigration",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "FailedToCall",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "GreaterThanMaxEraSeconds",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "eraSeconds",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "name": "GreaterThanMaxProtocolFeeCommission",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "protocolFeeCommission",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "name": "GreaterThanMaxRateChangeLimit",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "rateChangeLimit",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "name": "GreaterThanMaxUnbondingDuration",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "unbondingDuration",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "name": "InvalidRate",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "LessThanMinEraSeconds",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "eraSeconds",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "name": "NotAuthorizedLsdToken",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "NotEnoughStakeAmount",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "NotInitialized",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "PoolExist",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "poolAddress",
+    "type": "address",
+    "internalType": "address"
+   }
+  ]
+ },
+ {
+  "name": "PoolNotEmpty",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "PoolNotExist",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "poolAddress",
+    "type": "address",
+    "internalType": "address"
+   }
+  ]
+ },
+ {
+  "name": "RateChangeExceedLimit",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "oldRate",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "newRate",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "name": "UnstakeTimesExceedLimit",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ValidatorDuplicated",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ValidatorNotExist",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ValidatorNotInPool",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ValidatorsEmpty",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ValidatorsLenExceedLimit",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "WrongEraParameters",
+  "type": "error",
+  "inputs": [
+   {
+    "name": "eraSeconds",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "eraOffset",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "name": "ZeroMigrationAmount",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ZeroRedelegateAmount",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ZeroUnbondingDuration",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ZeroUnstakeAmount",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "ZeroWithdrawAmount",
+  "type": "error",
+  "inputs": []
+ },
+ {
+  "name": "AdminChanged",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "previousAdmin",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "newAdmin",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "AdminCompleteMigration",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "pool",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "validators",
+    "type": "address[]",
+    "indexed": false,
+    "internalType": "address[]"
+   },
+   {
+    "name": "amount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "AdminForceUndelegate",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "pool",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "validators",
+    "type": "address[]",
+    "indexed": false,
+    "internalType": "address[]"
+   },
+   {
+    "name": "amount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "BeaconUpgraded",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "beacon",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "Delegate",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "pool",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "validators",
+    "type": "address[]",
+    "indexed": false,
+    "internalType": "address[]"
+   },
+   {
+    "name": "amount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "ExecuteNewEra",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "era",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "rate",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "Initialized",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "version",
+    "type": "uint8",
+    "indexed": false,
+    "internalType": "uint8"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "MigrateValidatorBegin",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "pool",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "oldValidator",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "newValidator",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "amount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "NewReward",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "pool",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "amount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "OwnershipTransferred",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "previousOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "newOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "SetUnbondingDuration",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "unbondingDuration",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "Stake",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "staker",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "poolAddress",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "tokenAmount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "lsdTokenAmount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "memo",
+    "type": "string",
+    "indexed": false,
+    "internalType": "string"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "Undelegate",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "pool",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "validators",
+    "type": "address[]",
+    "indexed": false,
+    "internalType": "address[]"
+   },
+   {
+    "name": "amount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "Unstake",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "staker",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "poolAddress",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "tokenAmount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "lsdTokenAmount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "unstakeIndex",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "Upgraded",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "implementation",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "Withdraw",
+  "type": "event",
+  "inputs": [
+   {
+    "name": "staker",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "poolAddress",
+    "type": "address",
+    "indexed": false,
+    "internalType": "address"
+   },
+   {
+    "name": "tokenAmount",
+    "type": "uint256",
+    "indexed": false,
+    "internalType": "uint256"
+   },
+   {
+    "name": "unstakeIndexList",
+    "type": "int256[]",
+    "indexed": false,
+    "internalType": "int256[]"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "name": "MAX_ERA_SECONDS",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "MAX_PROTOCOL_FEE_COMMISSION",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "MAX_RATE_CHANGE_LIMIT",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "MAX_UNBONDING_DURATION",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "MAX_VALIDATORS_LEN",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "MIN_ERA_SECONDS",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "UNSTAKE_TIMES_LIMIT",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "acceptOwnership",
+  "type": "function",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "addStakePool",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "addValidator",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_validator",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "adminCompleteMigration",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_validators",
+    "type": "address[]",
+    "internalType": "address[]"
+   },
+   {
+    "name": "_amount",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "adminForceUndelegate",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_validators",
+    "type": "address[]",
+    "internalType": "address[]"
+   },
+   {
+    "name": "_amount",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "currentEra",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "eraOffset",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "eraRate",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "eraSeconds",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "getBondedPools",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "pools",
+    "type": "address[]",
+    "internalType": "address[]"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "getRate",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "getUnstakeIndexListOf",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_staker",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "unstakeIndexList",
+    "type": "uint256[]",
+    "internalType": "uint256[]"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "getValidatorsOf",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "validators",
+    "type": "address[]",
+    "internalType": "address[]"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "initialize",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_lsdToken",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_validators",
+    "type": "address[]",
+    "internalType": "address[]"
+   },
+   {
+    "name": "_eraSeconds",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "latestEra",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "lsdToken",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "migrateValidatorBegin",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_oldValidator",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_newValidator",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "minStakeAmount",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "newEra",
+  "type": "function",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "nextUnstakeIndex",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "owner",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "pendingMigration",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "pendingOwner",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "poolInfoOf",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "era",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "bond",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "unbond",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "active",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "protocolFeeCommission",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "proxiableUUID",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bytes32",
+    "internalType": "bytes32"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "rate",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "rateChangeLimit",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "rmStakePool",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "rmValidator",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_validator",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "setEraParams",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_eraSeconds",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "_eraOffset",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "setMinStakeAmount",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_minStakeAmount",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "setProtocolFeeCommission",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_protocolFeeCommission",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "setRateChangeLimit",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_rateChangeLimit",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "setUnbondingDuration",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_unbondingDuration",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "stake",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_memo",
+    "type": "string",
+    "internalType": "string"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "payable"
+ },
+ {
+  "name": "stakeWithPool",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_memo",
+    "type": "string",
+    "internalType": "string"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "payable"
+ },
+ {
+  "name": "stakeWithPoolReceiver",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_receiver",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_memo",
+    "type": "string",
+    "internalType": "string"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "payable"
+ },
+ {
+  "name": "stakeWithReceiver",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_receiver",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_memo",
+    "type": "string",
+    "internalType": "string"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "payable"
+ },
+ {
+  "name": "totalProtocolFee",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "transferOwnership",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_newOwner",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "unbondingDuration",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "unstake",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_lsdTokenAmount",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "unstakeAtIndex",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "era",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "pool",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "receiver",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "amount",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "unstakeWithPool",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "_lsdTokenAmount",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "upgradeTo",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "newImplementation",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "upgradeToAndCall",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "newImplementation",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "data",
+    "type": "bytes",
+    "internalType": "bytes"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "payable"
+ },
+ {
+  "name": "version",
+  "type": "function",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "uint8"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "name": "withdraw",
+  "type": "function",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "withdrawProtocolFee",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_to",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "name": "withdrawWithPool",
+  "type": "function",
+  "inputs": [
+   {
+    "name": "_poolAddress",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ }
+]
