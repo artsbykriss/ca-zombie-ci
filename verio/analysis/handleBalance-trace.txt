@@ -1,0 +1,69 @@
+# handleBalance() — decisive dynamic evidence (anvil fork of Story, block 23,623,495)
+
+No mainnet transaction was signed. The WP proxy was called on a local anvil fork
+(`anvil --fork-url https://mainnet.storyrpc.io --chain-id 1514`).
+
+## 1. Destination of the surplus: WithdrawalPool InsurancePool, NOT the StakePool
+
+Setup on fork: WP balance 0, Pw = 6,665.841927501986166900, E = 0,
+insurance pool balance 263.583953655634299353, capacity 24,736.416046344366.
+
+Donate 20,000 IP to WP, then call `WP.handleBalance()` as the StakePool
+(`0xf670…1a27`). Result: WP balance = 6,665.841927501986166900 (exactly Pw),
+StakePool balance unchanged, insurance pool +13,334.158072498014.
+
+`debug_traceTransaction` (callTracer, abridged):
+
+```
+CALL  0xf6701a6a -> 0x2a7935e9  0x5600231a  value 0
+  DELEGATECALL 0x2a7935e9 -> 0x8512eed9  0x5600231a
+    STATICCALL 0x2a7935e9 -> 0x20cb9dcb  0xf8ea4756 -> 0xf6701a6a   (stakePool())
+    STATICCALL 0x2a7935e9 -> 0x20cb9dcb  0x3e323df2(WP) -> 0x22df4ef4 (insurancePoolByComponent)
+    STATICCALL 0x2a7935e9 -> 0x22df4ef4  0x14a6bf0f -> 24,736.416046344366 (capacity)
+    STATICCALL 0x2a7935e9 -> 0x20cb9dcb  0xf8ea4756 -> 0xf6701a6a
+    STATICCALL 0x2a7935e9 -> 0xf6701a6a  0x6c21157a -> 0            (stakePool.getUnstaked())
+    CALL       0x2a7935e9 -> 0x22df4ef4  0xb60d4288  value 13,334.158072498014
+                                              (insurancePool.fund())
+```
+
+There is **no call to the StakePool with value** and **no path that raises
+`address(this).balance` of the StakePool**. `fund()` (0xb60d4288) is called on the
+insurance pool, not on 0xf670….
+
+## 2. handleBalance() reserves excessUnstake E
+
+Fork state reset; then `anvil_setStorageAt(SP, E_SLOT, 1000e18)` (E_SLOT =
+`0xe41b…6709`, the 10th field of StakePoolState). Donate 10,000 IP to WP, call
+`handleBalance()` as the StakePool. Value sent to insurance = **2,334.158072498014**
+= 10,000 − Pw(6,665.841927501986166900) − E(1,000). WP retained Pw + E.
+The trace reads `stakePool.getUnstaked()` (0x6c21157a) immediately before the
+surplus computation, i.e. the reservation is explicit.
+
+This means the pass-3 hypothesis ("surplus IP is returned to the StakePool and
+E is still counted in totalStake") is **false**: E is held in the WP, not the SP,
+and `address(this).balance` of the SP never sees it.
+
+## 3. Where unbonded IP goes
+
+`Delegator.setWithdrawalAddress()` (verified source) calls
+`ipTokenStaking.setWithdrawalAddress{value: fee}(address(_selector().withdrawalPool()))`
+— the precompile's withdrawal address is the **WithdrawalPool** (0x2a79…).
+Unbonding settlement therefore mints IP to the WP, not to the StakePool.
+`getTotalPendingWithdrawals()` is never read by the StakePool (grep of verified
+StakePool source: only the interface declares it).
+
+## 4. Full permissionless path (fork test `test_realUnstake_noStakePoolCredit`)
+
+stake 3,000 IP → 2,650.894518112556978690 vIP → unstake all →
+withdrawal claim 3,010.602472426093000343 IP, `excessUnstake` after = **0**
+(the flexible delegation is partially unstaked; no 2,048-IP over-unstake).
+Simulate the 16-day unbonding settlement by transferring exactly the claim to the WP,
+then `handleBalance()` as the StakePool:
+- StakePool balance delta: **0**
+- `getTotalStake()` delta: **0**
+- WP keeps the claim (nothing forwarded; balance < Pw).
+
+## 5. Live state: no E at all
+
+At block 23,624,317 `getUnstaked()` = 0, WP balance = 0. Even if the hypothesis
+were mechanically possible, its precondition (E > 0) is absent today.

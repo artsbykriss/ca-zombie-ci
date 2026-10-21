@@ -1,0 +1,57 @@
+{
+  "finding": "ZH4-PASS3-LST-07",
+  "title": "Verio vIP (Story) — excessUnstake/pendingUnstake ledger and WithdrawalPool surplus",
+  "chains": ["story"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 0,
+    "H-O": 1019.54,
+    "P": 2380094.80,
+    "S": 0
+  },
+  "latest_block": 23624317,
+  "block_numbers": {
+    "story": 23624317
+  },
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "handleBalance() sends the true surplus to the WithdrawalPool InsurancePool (0x22dF4eF4...Ebc4) via insurancePool.fund() (0xb60d4288); it never sends value to the StakePool, so address(this).balance of the StakePool is never credited with pending-withdrawal IP.",
+    "handleBalance() explicitly subtracts stakePool.getUnstaked() (excessUnstake) before computing the surplus, so E is held as a real WithdrawalPool reserve and is not double counted.",
+    "The Delegator's Story staking precompile withdrawal address is selector.withdrawalPool() = 0x2a7935E9...92d8; unbonded principal settles to the WithdrawalPool, never to the StakePool.",
+    "excessUnstake is 0 at block 23,624,317; even when created, D decreases by the same amount E increases, so it is an accounting wash, not a double count.",
+    "All mutation paths are gated: addWithdrawal onlyStakePool, handleBalance onlyAdminOrStakePool, vIP mint onlyStakePool, vIP burn onlyStakePoolOrHolder, insurance claim onlyWithdrawalPool, reward claim onlyStakePool.",
+    "Roundtrip loses the 10 bps burn fee; donation and first-depositor inflation are unprofitable at a 13.67M vIP supply and 1.1317 rate."
+  ],
+  "poc": {
+    "tests_passed": 8,
+    "tests_total": 8,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39628623564"
+    ]
+  },
+  "key_facts": [
+    "Block 23624317: stakePool.getUnstaked()=0; getPendingUnstake()=1469357216360810924995; delegator.getGlobalDistributionTotal()=15475537586749393557894500; getTotalStake()=15474068229533032746969505 (exactly D+E-P).",
+    "Block 23624317: withdrawalPool.getTotalPendingWithdrawals()=6665841927501986166900; WP balance=0; WP InsurancePool balance=263583953655634299353; capacity getter 0x14a6bf0f=24736416046344365700647 (25,000 IP cap minus balance).",
+    "Block 23624317: vIP totalSupply=getTotalSupply=13675004869990373338040218; rate=1.131693464037191087 IP/vIP; StakePool balance=1845402511830810000000; NAV=15475913632044863556969505.",
+    "Fork trace of WP.handleBalance() (selector 0x5600231a, onlyAdminOrStakePool): reads stakePool() 0xf8ea4756, insurancePoolByComponent 0x3e323df2, capacity 0x14a6bf0f, stakePool.getUnstaked() 0x6c21157a, then CALL 0x2a7935e9 -> 0x22dF4eF4 with selector 0xb60d4288 and value 13,334.158072498014 IP; no value call to the StakePool.",
+    "E reservation proven dynamically: with excessUnstake set to 1000e18 at storage slot 0xe41b22deefae2f9a6392ef27a1127c46110b60ec2d4f6d998d8b7863795f6709, a 10,000 IP WP donation results in insurancePool.fund(2,334.158072498014) = 10,000 - Pw - E; WP retains Pw+E.",
+    "Unbonded IP destination: Delegator._setWithdrawalAddress() (verified source) calls ipTokenStaking.setWithdrawalAddress{value: fee}(address(_selector().withdrawalPool())) and selector.withdrawalPool()=0x2a7935E926C65Ef2671D5807760e2421adf992d8.",
+    "Full permissionless fork path: stake 3,000 IP -> 2,650.894518112556978690 vIP -> unstake all -> claim 3,010.602472426093000343 IP; excessUnstake after = 0; simulating the 16-day settlement leaves StakePool balance and getTotalStake unchanged.",
+    "Gating reverts: WP.addWithdrawal 0x8622fd9d OnlyStakePool; WP.handleBalance 0xf36646ed OnlyAdminOrStakePool; WP.withdraw 0x1e205007 NoWithdrawalsToProcess; vIP.mint 0x8622fd9d; vIP.burn(victim) 0x1d856626 OnlyStakePoolOrHolder; insurance.claim 0x143abd98 OnlyWithdrawalPool; RewardPool.claimRewards 0x8622fd9d.",
+    "Roundtrip: 1 IP -> 0.883631506037518992 vIP -> 0.999999999999999998 IP (-2 wei view path); real unstake adds the 10 bps burn fee (burnFeeBps=10, enabled; mintFeeBps=0).",
+    "P-class: owner()=0x0f0172E30795958dA86f068F80A1743Df1955e16 is an EOA (codesize 0); admin is a verified TimelockController 0xc64129116e6906686a39e7a6Be633a5A3EF5B7B8 with getMinDelay()=300 s; setAdmin is onlyOwner. Fork test test_P_ownerCanBypassTimelock passes: owner replaces admin, sets withdrawalPool and stakePool to a malicious contract with getVersion(), and Delegator.setWithdrawalAddress() succeeds.",
+    "RewardPool balance=83613991616934000000000 IP (16% fee to treasury). A JIT staker captures a pro-rata share; gross one-shot maximum computed at 19,773 IP (~$3,024 at $0.15295) for X=17.49M IP with a 16-day lock, but the excess over the normal ~5% APR staking yield is at most ~1,192 IP (~$182) and negative for X > ~8M IP. Not counted as E-U."
+  ],
+  "caveats": [
+    "The WithdrawalPool, vIP, RewardPool and insurance implementations are unverified. The heimdall decompile is lossy; handleBalance semantics were settled by callTracer + exact balance deltas, not by the decompiled text.",
+    "The public Story RPC https://mainnet.storyrpc.io does not serve archive state; all reads are at the fork block 23,624,317 (CI fork block 23,624,468) and live values drift by a few IP per hour.",
+    "The 16-day Story consensus-layer unbonding settlement is off-EVM and was simulated by transferring the claim amount to the WithdrawalPool; the EVM-side authorization and precompile setWithdrawalAddress call were executed on the fork.",
+    "The P-class owner drain's final CL settlement is inferred from the precompile interface (setWithdrawalAddress), not executed end-to-end.",
+    "IP price $0.15295 is implied by DefiLlama protocol TVL ($2,369,454.98 / 15,491,283.906 IP) at timestamp 1792592663; pass-3 used $0.1468.",
+    "No mempool/front-running analysis was performed; the conclusions are state-based."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Verio vIP: handleBalance() sends WithdrawalPool surplus to the WithdrawalPool InsurancePool (not the StakePool) and reserves excessUnstake, unbonded IP settles to the WithdrawalPool, and excessUnstake is 0; remaining value is user-owned claims ($1,019.54) or owner-privileged ($2.38M)."
+}
