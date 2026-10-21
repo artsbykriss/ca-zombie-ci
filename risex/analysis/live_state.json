@@ -1,0 +1,81 @@
+{
+  "target": "RISEx (RISE chain, chainId 4153)",
+  "observed_at_utc": "2026-10-21T16:00Z",
+  "pinned_block": 24990257,
+  "contracts": {
+    "CollateralManager_proxy": "0x2C03C7d7e2974C6599b6B108879109281ef3F818",
+    "CollateralManager_impl_unverified": "0x893fc1ce864e5a5c0c9fb23c18bc6486dab8b93f",
+    "PerpsManager_proxy": "0x53f10fAcFC8965750494E6965F5d6dA39B41d852",
+    "PerpsManager_impl_unverified": "0xac3919b01bf61b5da143d61dab472df0a430804b",
+    "OrdersManager_proxy": "0xE03C1D5081eb2d0E6bFd62A949C5b12eFa44F2cD",
+    "OrdersManager_impl_unverified": "0x9b9b37d6abf78774403e2db7ae2975819c488e7e",
+    "AccountRegistry_proxy": "0x1238991Cac4E65902C08213e79909A9c813Eebc3",
+    "AccountRegistry_impl_unverified": "0x531a0c7687cbaf02383b21443619487eb18b91e5",
+    "Oracle_proxy": "0x8fC4D0Cf74cdF595254cB763d4C05D38Df0e9503",
+    "FundingRate_proxy": "0x069eDF2C2A3c93b54640Ae142B9f5375fe4A207a",
+    "Authorization_proxy": "0x0D919DAA3f12AE715744Eb648c00066c5DBd66f0",
+    "FeeManager_proxy": "0x11541dc387b9C307043ea732127DF92b80bab52b",
+    "AccessManager": "0x1BEe39C01907E3018b7ec2021Cf73F70541b36cC",
+    "USDCe": "0xe436820ba0C69702c1d3E601d421c0eF38262739",
+    "xlpUSD_vault": "0xBCf7A882B6A95827B4996055a5018FdC3B95D40c",
+    "MM_strategy": "0x3C63b0A9ba081BD1B709Ac1a2B56B50c2E810972",
+    "MM_adapter_account": "0x938a104179a2D23DeC249A968ecd5B4F8B857cac",
+    "Liquidation_strategy": "0xEF5c778b2DcBb48E7F4a7Ac48EAdBAf256425193",
+    "Composer": "0x228e195eb98fAa456b17c2d285495A3bee22765E"
+  },
+  "live_value": {
+    "collateral_manager_usdce": {"raw_6dp": 20895931492064, "amount": 20895931.492064, "usd": 20886150.34},
+    "xlp_vault_total_assets_usdce": {"raw_6dp": 5001520609168, "amount": 5001520.609168, "usd": 4999179.45},
+    "total_usd": 25885329.80,
+    "usdc_price": 0.9995319114021595,
+    "price_source": "coins.llama.fi 2026-10-21",
+    "registered_accounts": 23712,
+    "markets": 46,
+    "market2": {"name": "ETH/USDC", "maxLeverage": 25, "maintenanceMarginFactor": "0.0375", "stepSize": "0.001 ETH", "stepPrice": "0.01 USDC"},
+    "mm_adapter_equity_wad": 3571011620014474579074034,
+    "mm_strategy_totalAssets_6dp": 3567749481076,
+    "liq_strategy_totalAssets_6dp": 336851803912,
+    "rwa_strategy_totalAssets_6dp": 1275354131700
+  },
+  "access_manager_scan": {
+    "method": "custom AccessManager: getTargetFunctionRole(address,bytes4) + canCall(caller,target,selector); role uint64.max = public bypass; role 0 is NOT public here (hasRole(0,random)=false)",
+    "selectors_scanned": {"PerpsManager": 82, "CollateralManager": 53, "OrdersManager": 64, "Oracle": 46, "FundingRate": 28, "AccountRegistry": 8, "Authorization": 37, "FeeManager": 60},
+    "public_by_random_eoa": {
+      "PerpsManager": ["0x494f787b backfillLeverage(uint16,uint32[])", "0x6d7b773e setImpactPriceCache role0 but canCall=false (no role-0 member among tested)"],
+      "CollateralManager": ["0x8340f549 deposit(address,address,uint256)", "0xd9caed12 withdraw(address,address,uint256)", "0x30f28b7a permitTransferFrom (Permit2-style)", "0x137c29fe permitWitnessTransferFrom (Permit2-style)"],
+      "OrdersManager": [],
+      "Oracle": [],
+      "FundingRate": [],
+      "AccountRegistry": [],
+      "Authorization": [],
+      "FeeManager": ["0x95c94111 registerBuilderCode(address) (fee manager holds 0 USDC)"]
+    },
+    "engine_role_map": {
+      "placeOrder": {"selector": "0xe3ce724f", "role": 14},
+      "liquidate": {"selector": "0xff508b4a", "role": 9},
+      "crossTakeover": {"selector": "0x8aa1c60c", "role": 10},
+      "executeADL": {"selector": "0x62d0ee3e", "role": 11},
+      "setImpactPriceCache": {"selector": "0x6d7b773e", "role": 0}
+    }
+  },
+  "call_path_tests_eth_call": [
+    {"call": "PerpsManager.placeOrder(...) from registered user 0x3d56", "result": "revert AccessManagedUnauthorized(0x3d56...)"},
+    {"call": "PerpsManager.liquidate(...) from registered user 0x3d56", "result": "revert AccessManagedUnauthorized"},
+    {"call": "PerpsManager.executeADL(...) from registered user 0x3d56", "result": "revert AccessManagedUnauthorized"},
+    {"call": "PerpsManager.updateLeverage(...) from registered user", "result": "revert AccessManagedUnauthorized"},
+    {"call": "PerpsManager.backfillLeverage(2,[22411]) from random via anvil fork", "result": "success, zero storage writes (prestateTracer diff empty), leverage unchanged 2.5e19"},
+    {"call": "CollateralManager.deposit(attacker,USDCe,1) from unfunded attacker", "result": "revert ERC20: transfer amount exceeds allowance"},
+    {"call": "CollateralManager.withdraw(registered,USDCe,1) from fresh 0xbeef", "result": "revert AccountNotRegistered(0xbeef)"},
+    {"call": "CollateralManager.withdraw(0xdead,USDCe,1) from registered adapter account", "result": "success; CM balance -1, receiver +1"},
+    {"call": "CollateralManager.withdraw(adapter,USDCe,balance+1) from adapter", "result": "revert InsufficientSupply(USDCe,balance,balance+1)"},
+    {"call": "CollateralManager.withdraw(user,USDCe,30000e6) from user holding 25764.11", "result": "revert InsufficientBalance(user,USDCe,withdrawable,30000e6)"}
+  ],
+  "conclusions": {
+    "E-U_usd": 0.0,
+    "E-U_conditional_usd": 0.0,
+    "H-O_usd": 25885329.80,
+    "P_usd": 25885329.80,
+    "S_usd": 0.0,
+    "confidence": "high on the direct-surface negative (role map + live reverts); medium on absence of an indirect mark/funding manipulation via the official order gateway (order-book depth not modelled)"
+  }
+}
