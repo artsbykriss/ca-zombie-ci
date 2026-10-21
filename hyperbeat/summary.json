@@ -1,0 +1,41 @@
+{
+  "finding": "ZH4-PASS3-T3-9",
+  "title": "Hyperbeat (HyperEVM) — ether.fi-lineage withdraw manager / queue accounting",
+  "chains": ["hyperevm"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 12689673.77, "P": 12689673.77, "S": 0},
+  "latest_block": 49145310,
+  "block_numbers": {"hyperevm": 49145310},
+  "targets_checked": 4,
+  "live_targets": 1,
+  "closed_reasons": [
+    "finalizeWithdrawals is PROTOCOL_ADMIN-only (fork test reverts NotAuthorized)",
+    "claimWithdrawal pays entry.user fixed at request time and sets claimed=true before the external call; attacker claim of another id pays that user, double claim reverts AlreadyClaimed",
+    "manager ETH balance equals the sum of the 217 finalized-unclaimed entries exactly (1621.905798325016362542 HYPE) - no surplus, no shortfall",
+    "the 2025 Critical (reverting receiver bricks finalization) is fixed by the pull pattern; fork test shows finalize still succeeds",
+    "no AtomicQueue/solver/arbitrary-call surface exists; deployed source is byte-identical to audited etherfi-protocol/beHYPE HEAD",
+    "stored exchangeRatio is only 5.68e-5 below NAV/share; instant exit costs 30 bps and queue exit locks capital 3-7 days, so the JIT yield capture is net-negative"
+  ],
+  "poc": {
+    "tests_passed": 8,
+    "tests_total": 8,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "NAV 155682.416469713166186119 HYPE = $12,689,673.77 at HYPE $81.51; beHYPE supply 152174.254757123986133928",
+    "exchangeRatio 1.022995496666924603 vs NAV/share 1.023053582343401925 -> gap 0.0057% (720.52 USD of un-poked yield for all holders)",
+    "queue: 13 pending (632.481469192585276309 HYPE), lastFinalizedIndex 5590, 217 finalized-unclaimed = 1621.905798325016362542 HYPE == manager balance to the wei",
+    "instant: 30 bps fee, capacity 4976.17 beHYPE, low watermark 100 bps of TVL, exchangeRateGuard=true (500 bps APR)",
+    "deployed impls: WM 0xd7e4B8aC588591a75e3B977ebd19563DDB629353, StakingCore 0xB829b6f905eadc9d9E08a1f54F190d83C7A6F370, beHYPE 0x91F5D2531cbC9Db03887589536F6DD28f432e978",
+    "deployed source == etherfi-protocol/beHYPE 06ee135 (2026-03-29); repo ships Certora + Nethermind NM-0628 + Bundle 9 + OFT audits",
+    "ether.fi Liquid 2026-09-11 43260 USD exploit was in legacy AtomicQueue (arbitrary external call); no AtomicQueue in beHYPE"
+  ],
+  "caveats": [
+    "HyperCore read precompiles are absent from the fork; delegatorSummary and spotBalance are mocked with the exact same-block values, and getTotalProtocolHype is asserted equal to the on-chain value",
+    "owner/upgrader timelock getMinDelay() is 1800s (30 min), not the 3 days the repo README claims - privileged risk over the full TVL",
+    "admin keys are 2 EOAs (PROTOCOL_ADMIN), guardian 1 EOA",
+    "JIT becomes profitable if ExchangeRatioUpdated cadence exceeds ~51 days; monitor"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live; the queue is an exactly-funded escrow with beneficiary-bound claims, the Critical queue-DoS is fixed, and the only asymmetry (0.0057% stale ratio) is dominated by the 30 bps instant fee"
+}
