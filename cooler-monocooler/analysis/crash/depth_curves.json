@@ -1,0 +1,53 @@
+{
+  "note": "All numbers are from pinned-fork simulations (Foundry, latest block 2026-10-21) executed in CI. Oracle threshold: gOHM 3,119.289 USDS/gOHM = OHM $11.586 (index 269.238508004). ETH $2,515.71, sUSDS PPS 1.11360497.",
+  "sell_side_ohlm_to_weth_0p3": [
+    {"ohm_sold": 5000, "usd_received": 95634, "avg_ohm_usd": 19.13},
+    {"ohm_sold": 10000, "usd_received": 184096, "avg_ohm_usd": 18.41},
+    {"ohm_sold": 20000, "usd_received": 342504, "avg_ohm_usd": 17.13},
+    {"ohm_sold": 30000, "usd_received": 480249, "avg_ohm_usd": 16.01},
+    {"ohm_sold": 40000, "usd_received": 601127, "avg_ohm_usd": 15.03, "marginal_ohm_usd": 11.0},
+    {"ohm_sold": 60000, "usd_received": 803321, "avg_ohm_usd": 13.39},
+    {"ohm_sold": 80000, "usd_received": 965738, "avg_ohm_usd": 12.07},
+    {"ohm_sold": 120000, "usd_received": 1210473, "avg_ohm_usd": 10.09},
+    {"ohm_sold": 200000, "usd_received": 1518280, "avg_ohm_usd": 7.59}
+  ],
+  "sell_side_ohm_to_susds_0p3": [
+    {"ohm_sold": 10000, "usd_received": 194898, "avg_ohm_usd": 19.49},
+    {"ohm_sold": 30000, "usd_received": 563661, "avg_ohm_usd": 18.79},
+    {"ohm_sold": 40000, "usd_received": 738270, "avg_ohm_usd": 18.46},
+    {"ohm_sold": 60000, "usd_received": 863545, "avg_ohm_usd": 14.39, "note": "pool drained to min tick; no more bid"}
+  ],
+  "full_crash_cost_both_venues": {
+    "ohm_sold_total": 90000,
+    "usd_received_total": 1464788,
+    "start_value_usd": 1796202,
+    "manipulation_cost_usd": 331414,
+    "result": "marginal OHM $11.0 (gOHM ~2,962, i.e. <= oracle threshold); attacker holds ZERO cheap gOHM (sold all inventory)",
+    "conclusion": "cost to crash the spot to the oracle threshold is ~$331k, but it is a pure loss: the only counterparty to the dump is the AMM the attacker must buy back from"
+  },
+  "same_pool_round_trip_self": {
+    "notional_ohm": 40000,
+    "weth_out_usd": 601127,
+    "weth_in_usd": 605340,
+    "net_usd": -4213,
+    "net_pct": -0.70,
+    "conclusion": "sell-then-buy round trip returns the SAME 40,000 OHM and loses ~2x pool fees (0.3%+0.3%=0.6%) plus tick rounding. Confirms: manipulation cannot change the attacker's own gOHM holdings."
+  },
+  "buy_side_depth_below_oracle_gifted_panic": {
+    "note": "Model: a THIRD PARTY crashes the OHM/WETH pool to the target, then the attacker buys OHM (==gOHM) until the marginal price returns to the oracle threshold. This is the maximum acquirable below the oracle IF the crash is free. The attacker cannot cause the crash (see round_trip / full_crash_cost).",
+    "rows": [
+      {"panic_target_ohm_usd": 11, "gohm_acquired": 25.04, "usd_spent": 75471, "cooler_borrow_usd": 78098, "net_usd": 2627},
+      {"panic_target_ohm_usd": 9, "gohm_acquired": 98.19, "usd_spent": 264149, "cooler_borrow_usd": 306284, "net_usd": 42134},
+      {"panic_target_ohm_usd": 7, "gohm_acquired": 175.04, "usd_spent": 427671, "cooler_borrow_usd": 545996, "net_usd": 118325},
+      {"panic_target_ohm_usd": 5, "gohm_acquired": 320.52, "usd_spent": 654085, "cooler_borrow_usd": 999787, "net_usd": 345702},
+      {"panic_target_ohm_usd": 3, "gohm_acquired": 582.24, "usd_spent": 930813, "cooler_borrow_usd": 1816175, "net_usd": 885362}
+    ],
+    "ceiling": "bounded by the DEX bid depth (~$0.93M in the deep pool; ~$1.8M across all OHM venues). Even a crash to OHM $2 only frees ~582 gOHM / ~$0.89M of profit on the deep venue. Adding the sUSDS pool (~$0.87M bid) roughly doubles it to ~$1.7M — still far below the $1.39M-$3.6M treasury headroom, and it requires a GIFTED panic."
+  },
+  "self_crash_then_buy": {
+    "crash": {"ohm_sold": 40000, "usd_received": 601127, "cost_usd": 197364},
+    "buy_back_below_threshold": {"ohm_bought": 4291.17, "usd_spent": 50314, "gohm_acquired": 15.94, "cooler_borrow_usd": 49715},
+    "net_round_trip_usd": -598,
+    "conclusion": "a self-funded crash yields only ~16 gOHM before the marginal returns to the oracle; net loss. The $197k of crash impact is unrecoverable."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "question": "Flash-loan liquidity for (a) a borrow-gOHM path and (b) a buy path (stables), and whether a flash loan enables a spot crash.",
+  "flash_available": {
+    "aave_v3_eth_usdc": {"aToken": "0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c", "totalSupply_usdc": 2390204870.12},
+    "aave_v3_eth_weth": {"aToken": "0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8", "totalSupply_weth": 2188890.39},
+    "aave_v3_eth_usds": {"listed": true},
+    "note": "Balancer/Morpho add more; stables are effectively unbounded (billions) for a flash path"
+  },
+  "ohm_or_gohm_flash": {
+    "aave_v3_ohm": false,
+    "aave_v3_gohm": false,
+    "any_protocol": "none - no lending market lists OHM or gOHM (see cross_protocol.json), so there is no OHM/gOHM flash-loan source"
+  },
+  "why_flash_cannot_crash": [
+    "To push a price DOWN you must SELL the base asset (OHM/gOHM). A flash loan provides the QUOTE asset (USDC/USDS/WETH); spending it BUYS OHM and pushes the price UP, not down.",
+    "There is no OHM/gOHM flash source, so the attacker cannot flash-borrow the inventory needed to dump.",
+    "Even with OHM inventory, a flash crash + buy-back is a round trip: the same AMM the attacker dumped into is the only buyer, so the buy-back pays the impact + 2x fees (measured: -$4,213 / -0.70% on a 40k OHM round trip).",
+    "Cooler's oracle reads no market price, so there is nothing to manipulate; no third-party oracle reads the crashed spot (the only gOHM oracle, Inverse FiRM, is a Chainlink feed and its market is paused)."
+  ],
+  "max_extractable_via_flash_path": 0,
+  "conclusion": "Flash-loan spot manipulation is DEFINITIVELY not viable for this finding. Quote-asset flash depth (billions) is irrelevant because the binding constraint is OHM/gOHM inventory, which cannot be flash-borrowed."
+}

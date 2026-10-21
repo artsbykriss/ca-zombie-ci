@@ -1,0 +1,33 @@
+{
+  "note": "gOHM / OHM DEX venues on Ethereum, read at latest block (26,242,7xx, 2026-10-21). Balances are raw token balances held by the pool contract. 'bid_usd' = value of the quote-side reserve (what a seller of the base token can extract). gOHM is 1:1 convertible with OHM via Staking.stake at index 269.238508004, so the OHM venues are the real gOHM acquisition venue.",
+  "gohm_index_1e9": 269238508004,
+  "prices": {"gOHM_usd": 5375.497033964778, "OHM_usd": 19.98245360239726, "WETH_usd": 2515.711778511763, "sUSDS_pps": 1.113604972115241549, "source": "DefiLlama coins.llama.fi + sUSDS.convertToAssets(1e18)"},
+  "uniswap_v3": [
+    {"name": "OHM/WETH 0.3%", "address": "0x88051B0eea095007D3bEf21aB287Be961f3d8598", "token0": "OHM", "token1": "WETH", "base_raw": "123013559108187", "quote_raw": "975990634979531732476", "bid_usd": 2455000, "note": "deep, balanced; the marginal-price venue"},
+    {"name": "OHM/sUSDS 0.3%", "address": "0x0858e2B0F9D75f7300B38D64482aC2C8DF06a755", "token0": "OHM", "token1": "sUSDS", "base_raw": "524469571672116", "quote_raw": "777191192506726500422266", "bid_usd": 865545, "note": "one-sided (Olympus POL): 524k OHM vs only 777k sUSDS; the entire bid is ~$0.87M and selling ~50k OHM drains it to the min tick"},
+    {"name": "OHM/WETH 1%", "address": "0x584eC2562b937C4AC0452184D8d83346382B5D3a", "base_raw": "2085122040636", "quote_raw": "20302225147532193712", "bid_usd": 51070},
+    {"name": "OHM/USDC 0.3%", "address": "0x893f503FaC2Ee1e5B78665db23F9c94017Aae97D", "base_raw": "1855712004364", "quote_raw": "13689871830", "bid_usd": 13690},
+    {"name": "gOHM/WETH 0.3%", "address": "0xC987D503a9f78F6D1d782C1fFF5aF4cb34437E3F", "base_raw": "372929798964918639", "quote_raw": "1849518153213940317", "bid_usd": 4653},
+    {"name": "gOHM/WETH 1%", "address": "0xcF7e21b96a7DAe8e1663b5A266FD812CBE973E70", "base_raw": "1870855410973569144", "quote_raw": "5539402483879737927", "bid_usd": 13937},
+    {"name": "gOHM/USDC 0.3%", "address": "0x08f68110f1e0Ca67C80a24B4Bd206675610f445D", "base_raw": "1155182079410603970", "quote_raw": "7993471471", "bid_usd": 7993},
+    {"name": "gOHM/OHM 0.3%", "address": "0x6220E96dCE2351336d5A6E598B6d185662d36e2c", "base_raw": "969698576296684021", "quote_raw": "41063020421", "bid_usd": 820, "note": "0.97 gOHM vs 41 OHM"}
+  ],
+  "uniswap_v4": [
+    {"name": "gOHM/ETH 1%", "pool_id": "0x99629f0edfd9e7f3377037bb99f9cdaad74f6fd9128488b4bdac1cb830b3902a", "tvl_usd": 10537, "source": "GeckoTerminal"}
+  ],
+  "sushiswap_v2": [
+    {"name": "OHM/DAI", "address": "0x055475920a8c93CfFb64d039A8205F7AcC7722d3", "base_raw": "99683246090", "quote_raw": "1966002149885407308113", "bid_usd": 1966},
+    {"name": "OHM/WETH", "address": "0x69b81152c5A8d35A67B32A4D3772795d96CaE4da", "base_raw": "54537510854", "quote_raw": "434708350732957385", "bid_usd": 1094}
+  ],
+  "curve": [
+    {"name": "OHM/crvFRAX", "address": "0xfc1e8bf3e81383ef07be24c3fd146745719de48d", "ohm_raw": "4230927158351", "crvfrax_raw": "84762131480184687679120", "bid_usd": 84762}
+  ],
+  "balancer": [
+    {"name": "OHM/wstETH 50/50", "tvl_usd": 17054, "source": "DefiLlama"}
+  ],
+  "totals": {
+    "gohm_own_bid_usd": "~35,000 (all gOHM pools are dust: <10 gOHM combined)",
+    "ohm_bid_usd": "~3,400,000 (dominated by OHM/WETH 0.3% $2.46M + OHM/sUSDS 0.3% $0.87M)",
+    "gohm_mintable_from_ohm": "1:1 at index; the OHM bid is the real acquisition depth for gOHM"
+  }
+}

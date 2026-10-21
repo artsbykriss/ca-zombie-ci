@@ -1,0 +1,29 @@
+{
+  "question": "Is gOHM (or OHM) listed as borrowable collateral on any third-party lending market, and if so does its oracle read a manipulable spot/AMM price?",
+  "method": "Morpho Blue GraphQL (all chains, collateral+loan), Aave v3 getReservesList (Ethereum/Arbitrum/Optimism/Polygon), DefiLlama yields (all chains, all protocols), Inverse FiRM market read on-chain, web search.",
+  "results": {
+    "morpho_blue": {"gohm_markets": 0, "ohm_markets": 0, "chains": "all", "source": "blue-api.morpho.org/graphql"},
+    "aave_v3": {"gohm": false, "ohm": false, "chains_checked": ["ethereum", "arbitrum", "optimism", "polygon"], "source": "getReservesList()"},
+    "defillama_yields_all_chains": {"lending_pools_with_gohm": 0, "lending_pools_with_ohm": 0, "note": "the only gOHM-symbol pools are two uniswap-v3 DEX pools (GOHM-WETH $23.9k, GOHM-USDC $14.2k); no Lending-category pool contains OHM or gOHM on any of the 15 tracked chains"},
+    "euler_v2": {"gohm_or_ohm_markets": 0, "note": "DefiLlama tracks Euler v2 vaults on 16 chains; none contain OHM/gOHM"},
+    "silo_v2": {"gohm_or_ohm_markets": 0},
+    "fluid": {"gohm_or_ohm_markets": 0},
+    "inverse_firm_gohm": {
+      "address": "0x7Cd3ab8354289BEF52c84c2BF0A54E3608e66b37",
+      "collateral": "0x0ab87046fBb341D058F17CBC4c1133F25a20a52f (gOHM)",
+      "oracle": "0xaBe146CF570FD27ddD985895ce9B138a7110cce8",
+      "oracle_type": "Chainlink-style 'Pessimistic Oracle' (daily-low dampened); feed = 'gOhmV2 / USD' 0xe893297a9d4310976424fD0B25f53aC2B6464fe3, latest answer 5,384.8656e18 (2026-10-21)",
+      "collateral_factor_bps": 7500,
+      "borrow_paused": true,
+      "total_debt": 0,
+      "borrow_events_since_block_25e6": 0,
+      "status": "PHASED OUT. New borrows paused; zero outstanding debt; on-fork borrow() reverts. Even if live, the oracle is a Chainlink feed, NOT an AMM spot price, so DEX manipulation would not move it (and the 2-day daily-low dampening makes logging artificial lows useless for a borrower).",
+      "governance_note": "the gOHM market is being phased out per Inverse governance"
+    },
+    "olympus_own": {
+      "cooler_v1_clearinghouse": "legacy, same protocol family (fixed LTB ~2,892.92 DAI/gOHM), not third-party",
+      "flex_loans": "legacy whitelisted, gOHM collateral borrowing OHM at 100% LTV; not permissionless"
+    }
+  },
+  "conclusion": "There is NO live third-party lending market that accepts gOHM or OHM as collateral, and the only one that ever did (Inverse FiRM gOHM) is paused with zero debt AND uses a Chainlink oracle. The cross-protocol route (borrow cheap gOHM from a spot-oracle lending market) is not available. The cross-protocol verdict is CLOSED."
+}

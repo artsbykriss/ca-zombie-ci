@@ -1,0 +1,53 @@
+{
+  "finding": "ZH4-PASS3-T3-13",
+  "title": "Cooler MonoCooler (Olympus) \u2014 up-only fixed LTV oracle: no live E-U, 41.6% price gap to re-arm",
+  "chains": [
+    "ethereum"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 26241769,
+  "block_numbers": {
+    "ethereum": 26241769
+  },
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "oracle 3,119.289 USDS/gOHM vs gOHM market 5,337.30 = 58.44% of market; borrowing 100% of oracle loses 41.56% (-$2,218.01 per gOHM)",
+    "all 328 borrowing accounts enumerated from 9,020 Borrow events: 0 above LLTV (3,150.482), 0 above OLTV (3,119.289), max LTV 3,118.439",
+    "liquidations use only the internal up-only oracle (no market price input), so no position can be liquidated on a market crash and the free-collateral batchLiquidate path is unreachable",
+    "DLGTE mutators are kernel-permissioned; withdrawCollateral re-checks LTV after the state write; authorization is signature/nonce-bound",
+    "oracle setters are onlyAdminRole and can only increase (CannotDecreaseLtv)"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39625968766",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39625018533"
+    ]
+  },
+  "key_facts": [
+    "MonoCooler 0xdb591Ea2e5Db886dA872654D58f6cc584b68e7cC (verified, non-proxy); CoolerLtvOracle 0x9ee9f0c2e91E4f6B195B988a9e6e19efcf91e8dc",
+    "totalCollateral 42,058.343233953062415086 gOHM; totalDebt 128,971,024.878805048809040285 USDS; interest 0.49875%/yr",
+    "OLTV ramp 2,989.652 (2026-04-25) -> 3,123.183 (2026-10-27), slope +0.7252/day; governance can add up to 500/call at <=100/day with a 7-day lead, never decrease",
+    "oracle = 58.44% of market; trigger requires a 41.56% gOHM drawdown (OHM to ~$11.586 at index 269.2385)",
+    "treasury sUSDS headroom 3,238,435 sUSDS = 3,606,287.84 USDS; existing borrowers have 2,217,856 USDS of pre-authorised top-up room",
+    "largest borrower = OrigamiHOhmManager 0xe6C5dc8508939B1c417f83B7fed3149ef22cF3Ff: 23,417.01 gOHM / 73,024,516.73 USDS at LTV 3,118.439 (55.7% of collateral, 56.6% of debt)",
+    "conditional E-U if gOHM < oracle: 3.606M x (1 - P/3,119.289); 715k at P=2,500, 1.29M at P=2,000, 1.87M at P=1,500, ceiling 3.61M at P=0; fresh attacker residual ~1.39M if incumbents top up first",
+    "protocol bad debt (not E-U): 0 at >=3,066.48; 23.8M at 2,500; 44.9M at 2,000; 86.9M at 1,000; 129.0M at 0",
+    "LLTV-OLTV gap 100 bps means a max-LTV position needs ~2.00 years of 0.49875%/yr accrual to become liquidatable"
+  ],
+  "caveats": [
+    "gOHM market price is a DefiLlama aggregate (confidence 1.0, index x OHM price); DEX slippage for a multi-million gOHM acquisition via OHM staking is estimated, not simulated",
+    "treasury headroom is the binding constraint today and can be topped up by Olympus governance, so the conditional ceiling is a point-in-time number",
+    "no mainnet transaction was signed or sent; all verification is eth_call plus a pinned-block Foundry fork"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Cooler MonoCooler: the up-only oracle prices gOHM 41.6% below market, all 328 accounts are above water, and liquidation is impossible without debt growth; the latent $(3.61M x (1 - P/3,119.289)) re-arms only if gOHM falls below $3,119."
+}
