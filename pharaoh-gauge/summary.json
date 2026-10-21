@@ -1,0 +1,60 @@
+{
+  "finding": "P3-01",
+  "title": "Pharaoh CL GaugeV2 skipped-period reward inflation (Ramses C4 2024-10 M-01) — two-position 2x claim drains gauge float",
+  "chains": ["avalanche", "linea", "scroll", "mantle"],
+  "headline_extractable_usd": 7271.93,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 7271.93,
+    "H-O": 20838.96,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 98162895,
+  "block_numbers": {
+    "avalanche": 98162895,
+    "avalanche_snapshot": 98162261,
+    "linea": 32387477,
+    "scroll": 35454612,
+    "mantle": 102233976
+  },
+  "targets_checked": 305,
+  "live_targets": 82,
+  "closed_reasons": [
+    "A single dominant LP (s>0.5) over a 2-week span is zeroed by the Position.positionPeriodSecondsInRange 1-week sanity clamp (test_1: payout 0). The pass-3 'dominate the pool' recipe is invalid.",
+    "The working path needs >=2 positions each below 50% of in-range liquidity: each accrues <=1 week, passes the clamp, and each is paid the full period supply (test_2/test_6: total payout 1.99x deposit).",
+    "No gauge has any reward supply for periods 2962-2964: 202 gauges x 448 reward tokens x 3 periods = 1344 calls, 0 non-zero. Weekly emissions/bribes stopped around period 2908/2909 (~54 weeks ago); Voter holds 0.466 PHAR.",
+    "The $28.1k of gauge balances are legacy unclaimed rewards from periods <=2909. A fresh position cannot claim them (checkpoint gate, test_4) — the only reachable route is funding a new period and double-claiming, which consumes the float by the attacker's net.",
+    "The two largest balances ($7,130.97 pool 0xa20c959b, $5,210.65 pool 0xa71ba393) sit on active pools that advance every week and cannot be skipped; they are H-O, not E-U.",
+    "Nile CL (Linea): pre-fix code live but zero supply 2961-2964, 30,774 NILE legacy balance, no deep market -> $0.",
+    "Nuri CL (Scroll): pool stale at period 2876, gauge holds 0.0068 NURI -> $0.",
+    "Cleopatra CL (Mantle): same pre-fix accounting, TVL $12.2k, CLEO has no DEX pair -> $0 (prior evidence, not re-enumerated)."
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39629612846",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39631152725"
+    ]
+  },
+  "key_facts": [
+    "ClPool impl 0x77dd39F2B04a5095B287deab21943d81dCf91CcA: _advancePeriod (ClPool.sol:90-131) advances one step; Oracle.newPeriod (Oracle.sol:378) uses delta = period*1 weeks - last.blockTimestamp (no -1), so a skipped week writes a 2-week span into the previous period.",
+    "GaugeV2 impl 0xf556e96bdc4A0D1C938aAA967985de42980AbF32 pays baseRewards * periodSecondsInsideX96 / (WEEK<<96) with no cap (GaugeV2.sol:370); notifyRewardAmountForPeriod is permissionless (GaugeV2.sol:582).",
+    "Position.positionPeriodSecondsInRange (Position.sol:968-970) zeroes any position whose in-range seconds exceed 1 week — so s=1 pays 0 and s<=0.5 pays the full period supply.",
+    "Live skip proof: pool 0xf40e2320 periods(2963).previousPeriod = 2961 (week 2962 skipped); pool 0x80b405b4 lastPeriod 2956 with previous 2953; pool 0x0c81fb1d 2956 <- 2932.",
+    "Fork PoC (Avalanche head, Foundry): two positions of 2.2938e17 liquidity on pool 0xf40e2320, deposit 5e18 sAVAX, skip one week, advance, claim both -> total payout 9.9507e18 (1.99x), net +4.9507e18, gauge float 85.756e18 -> 80.805e18 (debit equals net).",
+    "202 Pharaoh CL gauges enumerated; 106 are CL pools; 82 have >=1 skipped week in their last 6 advances; their priced float totals $7,271.93 (sAVAX $3,388.99, stAVAX $2,991.00, WAVAX $868.83, memecoins $23.10).",
+    "Top single: gauge 0xa011554ef697e88221217b70b3b3ecdf51345342 / pool 0xf40e23204b2e1cc94930e15576b9ce47b4ad0f19, $1,743.58 (sAVAX 85.756 @ $12.7811 + stAVAX 54.523 @ $11.8762), block 98,162,261.",
+    "Capital = the gauge float (deposited and returned inside the 2x payout); gas ~1.5M per gauge (~$0.37 at 25 nAVAX); all gauges share the Unix-week boundary so one 2-week cycle can cover all 82."
+  ],
+  "caveats": [
+    "The forward one-week skip is the natural state of the 82 dormant pools but is not guaranteed for each; the top gauge's pool skipped the most recent week and 4 of the last 6.",
+    "The $7,271.93 aggregate is a sum of per-gauge balances and independent claims, not one atomic transaction; it assumes the attacker funds and claims each gauge.",
+    "USD values are at Avalanche block 98,162,261 (2026-10-21) with DefiLlama prices; token amounts are exact. PHAR/xPHAR/NURI/CLEO are unpriced and excluded.",
+    "H-O ($20,838.96) is claimable only by historical LP positions; it is the source of the E-U payout and is consumed by it, but is not directly attacker-reachable.",
+    "Active top-balance pools ($12.3k combined) re-arm as E-U if they go 7 days without any swap/mint/burn/collect, or if emissions/bribes resume.",
+    "No mainnet transaction was signed or sent; the claim was executed only on a local Foundry fork of live state."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$7,272 net (top gauge $1,743.58) from 82 dormant Pharaoh CL gauges on Avalanche by funding a future period, minting two sub-50% positions, skipping a week, and claiming 2x the deposit from the gauge's legacy float — fork-proven end-to-end (6/6 tests); Nile/Nuri/Cleopatra are the same code but worth $0."
+}
