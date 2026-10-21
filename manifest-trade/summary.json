@@ -1,0 +1,40 @@
+{
+  "finding": "ZH4-PASS3-T3-6",
+  "title": "Manifest Trade (Solana) — global-seat eviction + Token-2022 fee delta",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 12848220.57, "P": 12848220.57, "S": 0},
+  "latest_block": 459675283,
+  "block_numbers": {"solana": 459675283},
+  "targets_checked": 4257,
+  "live_targets": 2441,
+  "closed_reasons": [
+    "global_evict requires num_seats_claimed >= 999; all 6 live global accounts have 0 seats (slot 459675283)",
+    "all 6 global vaults hold 0 tokens; there are no global orders to evict or clean",
+    "live simulateTransaction of global_evict returns InvalidEvict (custom 20) 'Eviction is only allowed when global is at capacity'",
+    "even at capacity eviction pays the evictee's full balance to the evictee and requires the evictor to deposit strictly more - zero-sum, no authority transfer",
+    "Token-2022 deposits credit the measured vault delta (after-before); evict re-measures; withdraw debits nominal - no fee inflation",
+    "global_clean and defrag are collector-only in the deployed v3.0.26 build (the 2026-10-20 upgrade removed, not added, a permissionless payout)"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "deployed ELF sha256 31ac04c9159fa7090430759ec47e13f6a901cd708464656131be2addb5c36996 is byte-identical to GitHub release program-v3.0.26 (commit c51120b)",
+    "last deploy slot 459237697 (2026-10-20 12:55 UTC), upgrade authority CDFU8tEWsVU2ZMiek57Sgk3Huha2yBNcSHLAts3V3Cbf",
+    "4257 markets, 2441 non-zero vaults, priced vault value 12848220.57 USD (875/1120 mints priced) at 2026-10-21",
+    "DefiLlama reports 17.28M; the 382 unpriced long-tail mints are not included in the 12.85M",
+    "6 global accounts: YWE5YVRb, 3B7x1opT, 7SVenoiA, A8yKjzZo, DFL4YjUx, FqTMBBFR - all seats 0, all vaults amount 0",
+    "v3.0.26 diff vs v3.0.25: global_clean collector-only, defrag callable collector-only, lenient index hints with full re-validation; no change to evict/withdraw/deposit"
+  ],
+  "caveats": [
+    "the 12.85M is maker collateral backing resting orders, not withdrawable custody; it is 'at risk only if a CLOB bug exists'",
+    "upgrade authority is a single key with no on-chain timelock (P risk over the full TVL)",
+    "382 of 1120 mints unpriced, so 12.85M is a floor",
+    "no local Solana validator/fork was used; deployed code verified by hash + live simulateTransaction"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live; eviction needs 999 seats (0 live) and is zero-sum, Token-2022 credits are measured deltas, and the deployed bytecode is exactly release v3.0.26"
+}
