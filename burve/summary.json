@@ -1,0 +1,50 @@
+{
+  "finding": "ZH4-PASS4 / P4-02",
+  "title": "Burve (Berachain) — Sherlock 2025-04-burve H-5 acknowledged-unfixed fee capture is NOT reachable on the live $32k target (H-5 targets an undeployed single-pair product)",
+  "chains": ["berachain"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0.00, "P": 33600.00, "S": 0.00},
+  "latest_block": 27828532,
+  "block_numbers": {"berachain": 27828532},
+  "targets_checked": 16,
+  "live_targets": 1,
+  "closed_reasons": [
+    "H-5 targets src/single/Burve.sol (Kodiak UniV3 LP wrapper with immutable ranges + collectAndCalcCompound). No instance of that product is deployed on Berachain mainnet (only bArtio testnet 80084 0xda5826868528ace919721ef324a69c16b9486d08, no code on 80094).",
+    "The live $32k target 0xa1beD164... is the MULTI 'Omni-Pool' SimplexDiamond: 15 facets, no single-Burve facet; its selectors queryTVL()/getInfo() revert; live facet sources contain no collectAndCalcCompound/TickRange/uniswapV3MintCallback -> the H-5 mechanism is structurally absent.",
+    "The multi uses checkpoint-based fee accounting: Closure.trimAllBalances() recognises pending yield before the deposit, Closure.finalize() applies addEarnings(tax) before valueStaked += value (H-4 fix present), and AssetBookImpl.collect() snapshots the depositor's checkpoint before their value is added -> a new depositor captures zero pre-existing fees. Fork-proven (earnings == 0).",
+    "Self-funded fee injection cannot profit: the attacker pays the fee they would capture (fraction < 1) plus entry+exit taxes. Fork-proven net loss (-0.27 USDC on a 1000 USDC round trip).",
+    "H-7 NoopVault donation is closed on MEAD: the Diamond owns 100% of the NoopVault shares, so a donation accrues to Burve users and the donor loses the full amount. Fork-proven.",
+    "All admin/value-moving paths (addClosure, set*, addVault/acceptVault/vetoVault/removeVault/transferBalance/hotSwap, withdraw, lock/unlock, addLocker/addUnlocker) are AdminLib.validateOwner()-gated; owner = 0xEAD30c685F6B4817722018E3205c5f2edD5403DB.",
+    "Other Sherlock Highs H-1..H-9 are fixed in the live facets (H-3 netting: E4626.commit subtracts correctly; H-4: finalize order; H-6: realTax uses realRemoved; H-8: withdraw uses amount+realTax)."
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Live target (multi): SimplexDiamond 0xa1beD164c12CD9479A1049f97BDe5b3D6EC21089, created block 6660733 (2025-06-20) by 0xbe7dc5cc7977ac378ead410869d6c96f1e6c773e; 15 facets; impl reported by Etherscan 0x223184e3a571eaba246dc3f23807423c45ae11bd = SimplexAdminFacet.",
+    "9 tokens: USDC.e, USDT0, BUSD, NECT, USDe, USDA, MEAD, rUSD, BYUSD. 511 closures enumerated; ~24 hold non-dust value (cid 3 largest).",
+    "Live TVL: $33,583.48 by closure accounting (block 27827952) and $35,313.64 by ground-truth vault custody (block 27828119); DefiLlama 'burve' = $32,030. Cap ~ $32-35k.",
+    "defaultEdgeFeeX128 = 1.70e35 (~0.05%); protocolTakeX128 = 2.72e34 (~0.008%).",
+    "owner() = 0xEAD30c685F6B4817722018E3205c5f2edD5403DB (contract). No token is locked. Diamond holds 0 of every token (custody is in 9 ERC-4626 vertex vaults).",
+    "MEAD uses a NoopVault (0x82576213872683791b9f779cf788a6d478651c78); the Diamond owns 100% of its shares.",
+    "Fork tests (Berachain, keyless public RPC): after a fee-generating swap, a fresh depositor's queryValue earnings = 0 for both tokens; immediate round trip = -0.03 USDC on 100 USDC; self-funded fee injection = -0.27 USDC on 1000 USDC; NoopVault donation accrues to the Diamond.",
+    "H-5 (Sherlock 2025-04-burve #288) is explicitly 'acknowledged by the team but won't be fixed at this time' and concerns src/single/Burve.sol, NOT the live multi."
+  ],
+  "caveats": [
+    "Point-in-time 2026-10-22; re-read balances before acting. No mainnet transactions were signed or sent.",
+    "The single-Burve-not-deployed verdict is ~85% confident: there is no fully exhaustive keyless ERC-20 name index for Berachain 80094, so a deployed-but-empty/unindexed single Burve cannot be excluded at 100%.",
+    "H-5 itself was not re-demonstrated by deploying the single Burve on a fork (would need a Kodiak pool + exact range config); the mechanism is taken from the audit report and source, and its ABSENCE from the live target is what determines the live verdict.",
+    "Rounding/composability bugs in the live multi's invariant math (ValueLib / Erc4626 / Reserve) were not fuzzed; residual LOW risk given a ~$33k cap.",
+    "If the team later deploys a single-pair Burve (or adds an empty NoopVault vertex), the H-5 / H-7 windows reopen -> monitors."
+  ],
+  "monitors": [
+    "Any new deployment of src/single/Burve.sol (Kodiak stable LP; ERC20 symbol ending -SLP-KDK / name ending -Stable-KodiakLP; views queryTVL()/getInfo()) on Berachain or other chains -> re-test the H-5 fee-sniping recipe.",
+    "VaultFacet.addVault events: a new NoopVault vertex added while empty reopens the H-7 donation window.",
+    "DiamondCutFacet.DiamondCut events: any facet swap that changes ValueFacet/Closure logic.",
+    "MEAD closure value: currently ~$20; if a NoopVault-backed closure grows, re-check the donation surface."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: Sherlock H-5 (acknowledged-unfixed fee sniping) targets the single-pair src/single/Burve.sol, which is NOT deployed on Berachain; the live $32-35k target is the multi SimplexDiamond whose checkpoint-based fee accounting (fork-proven: fresh depositor earnings = 0, fee-injection round trips are net losses) makes the analogous attack impossible."
+}

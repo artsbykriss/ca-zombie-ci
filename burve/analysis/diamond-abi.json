@@ -1,0 +1,352 @@
+[
+ {
+  "inputs": [
+   {
+    "components": [
+     {
+      "internalType": "address",
+      "name": "valueFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "valueSingleFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "addTokenValueFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "removeTokenValueFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "queryValueFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "simplexAdminFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "simplexSetFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "simplexGetFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "valueTokenFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "swapFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "vaultFacet",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "adjustor",
+      "type": "address"
+     }
+    ],
+    "internalType": "struct BurveFacets",
+    "name": "facets",
+    "type": "tuple"
+   },
+   {
+    "internalType": "string",
+    "name": "name",
+    "type": "string"
+   },
+   {
+    "internalType": "string",
+    "name": "symbol",
+    "type": "string"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4",
+    "name": "_selector",
+    "type": "bytes4"
+   }
+  ],
+  "name": "CannotAddFunctionToDiamondThatAlreadyExists",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4[]",
+    "name": "_selectors",
+    "type": "bytes4[]"
+   }
+  ],
+  "name": "CannotAddSelectorsToZeroAddress",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "existingOwner",
+    "type": "address"
+   }
+  ],
+  "name": "CannotReinitializeOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4",
+    "name": "_selector",
+    "type": "bytes4"
+   }
+  ],
+  "name": "CannotRemoveFunctionThatDoesNotExist",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4",
+    "name": "_selector",
+    "type": "bytes4"
+   }
+  ],
+  "name": "CannotRemoveImmutableFunction",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4",
+    "name": "_selector",
+    "type": "bytes4"
+   }
+  ],
+  "name": "CannotReplaceFunctionThatDoesNotExists",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4",
+    "name": "_selector",
+    "type": "bytes4"
+   }
+  ],
+  "name": "CannotReplaceFunctionWithTheSameFunctionFromTheSameFacet",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4[]",
+    "name": "_selectors",
+    "type": "bytes4[]"
+   }
+  ],
+  "name": "CannotReplaceFunctionsFromFacetWithZeroAddress",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4",
+    "name": "_selector",
+    "type": "bytes4"
+   }
+  ],
+  "name": "CannotReplaceImmutableFunction",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes4",
+    "name": "_functionSelector",
+    "type": "bytes4"
+   }
+  ],
+  "name": "FunctionNotFound",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint8",
+    "name": "_action",
+    "type": "uint8"
+   }
+  ],
+  "name": "IncorrectFacetCutAction",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_initializationContractAddress",
+    "type": "address"
+   },
+   {
+    "internalType": "bytes",
+    "name": "_calldata",
+    "type": "bytes"
+   }
+  ],
+  "name": "InitializationFunctionReverted",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_contractAddress",
+    "type": "address"
+   },
+   {
+    "internalType": "string",
+    "name": "_message",
+    "type": "string"
+   }
+  ],
+  "name": "NoBytecodeAtAddress",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_facetAddress",
+    "type": "address"
+   }
+  ],
+  "name": "NoSelectorsProvidedForFacetForCut",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_facetAddress",
+    "type": "address"
+   }
+  ],
+  "name": "RemoveFacetAddressMustBeZeroAddress",
+  "type": "error"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "components": [
+     {
+      "internalType": "address",
+      "name": "facetAddress",
+      "type": "address"
+     },
+     {
+      "internalType": "enum IDiamond.FacetCutAction",
+      "name": "action",
+      "type": "uint8"
+     },
+     {
+      "internalType": "bytes4[]",
+      "name": "functionSelectors",
+      "type": "bytes4[]"
+     }
+    ],
+    "indexed": false,
+    "internalType": "struct IDiamond.FacetCut[]",
+    "name": "_diamondCut",
+    "type": "tuple[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "address",
+    "name": "_init",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bytes",
+    "name": "_calldata",
+    "type": "bytes"
+   }
+  ],
+  "name": "DiamondCut",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "components": [
+     {
+      "internalType": "address",
+      "name": "facetAddress",
+      "type": "address"
+     },
+     {
+      "internalType": "enum IDiamond.FacetCutAction",
+      "name": "action",
+      "type": "uint8"
+     },
+     {
+      "internalType": "bytes4[]",
+      "name": "functionSelectors",
+      "type": "bytes4[]"
+     }
+    ],
+    "indexed": false,
+    "internalType": "struct IDiamond.FacetCut[]",
+    "name": "_diamondCut",
+    "type": "tuple[]"
+   },
+   {
+    "indexed": false,
+    "internalType": "address",
+    "name": "_init",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bytes",
+    "name": "_calldata",
+    "type": "bytes"
+   }
+  ],
+  "name": "DiamondCut",
+  "type": "event"
+ },
+ {
+  "stateMutability": "payable",
+  "type": "fallback"
+ },
+ {
+  "stateMutability": "payable",
+  "type": "receive"
+ }
+]
