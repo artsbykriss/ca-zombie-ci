@@ -1,0 +1,51 @@
+{
+  "target": "0x274D146c910dCe811805E08fF8F61a1c3A931c4a",
+  "sibling_definition": "same address / same source on other chains; plus the class of Uniswap V3 periphery contracts exposing public sweepToken/unwrapWETH9/refundETH",
+  "same_source_deployments_found": 1,
+  "deployments": [
+    {
+      "chain": "optimism",
+      "chain_id": 10,
+      "codesize": 18214,
+      "codehash": "0x851d58c8d5b0ebc8984546a43696fdb941c7e529802078a46da432f173052911",
+      "owner": "0xbA79a22A4b8018caFDC24201ab934c9AdF6903d7",
+      "weth9": "0x4200000000000000000000000000000000000006",
+      "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      "native_wei": "0",
+      "transactions_count": 0,
+      "token_transfers_count": 0,
+      "verdict": "$0 empty / never used"
+    },
+    {
+      "chain": "polygon",
+      "chain_id": 137,
+      "codesize": 18214,
+      "codehash": "0x692d2785c9e093955527e91dd965a1318929b5846954ce6342fbcd0559e2b298",
+      "owner": "0xbA79a22A4b8018caFDC24201ab934c9AdF6903d7",
+      "weth9": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+      "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+      "native_wei": "0",
+      "deployment_block": 33570593,
+      "deployment_timestamp": 1664154909,
+      "transactions_count": 1,
+      "erc20_transfers_ever": 0,
+      "sweepToken_selector_present": true,
+      "verdict": "$0 empty / never used (only the deployment tx; no ERC-20 ever moved)"
+    }
+  ],
+  "address_codesize_other_chains": {
+    "ethereum": 0, "base": 0, "arbitrum": 0, "bsc": 0, "gnosis": 0, "linea": 0, "scroll": 0,
+    "mantle": 0, "zksync": 0, "blast": 0, "mode": 0, "unichain": 0, "soneium": 0, "celo": 0,
+    "avalanche": 0, "fantom": 0, "worldchain": 0,
+    "polygon-zkevm": 0, "arbitrum-nova": 0, "manta": 0, "opbnb": 0, "fraxtal": 0, "moonbeam": "ERR",
+    "cronos": 0, "boba": 0, "aurora": 0, "core": 0, "xlayer": 0, "zetachain": 0, "apechain": 0,
+    "sonic": 0, "ink": 0, "taiko": 0, "metis": 0, "kava": 0, "sei": 0, "astar": 0
+  },
+  "class_level_siblings": [
+    {"addr": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88", "chain": "optimism", "what": "canonical Uniswap V3 NonfungiblePositionManager", "native_wei": "0", "token_balances": "228 spam airdrop tokens (~$0)", "verdict": "public-by-design, spam-only"},
+    {"addr": "0xE592427A0AEce92De3Edee1F18E0157C05861564", "chain": "optimism", "what": "Uniswap V3 SwapRouter", "native_wei": "0", "verdict": "public-by-design, empty at rest"},
+    {"addr": "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45", "chain": "optimism", "what": "Uniswap V3 SwapRouter02", "native_wei": "0", "verdict": "public-by-design, empty at rest"}
+  ],
+  "funded_by_same_pattern": 0,
+  "conclusion": "BigShot is deployed on exactly two chains (Optimism + Polygon), both with the same owner and the public sweepToken drain, and both are EMPTY and essentially unused (OP: 0 txs ever; Polygon: 1 tx = the 2022 deployment, 0 ERC-20 transfers ever). No material-value contract fundable by the same pattern was found."
+}

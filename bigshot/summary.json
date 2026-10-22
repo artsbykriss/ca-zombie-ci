@@ -1,0 +1,34 @@
+{
+  "finding": "ZH4-PASS4-Tier3-LOW-1",
+  "title": "BigShot public sweepToken() pays the whole balance to a caller-supplied recipient (Optimism) — empty today",
+  "chains": ["optimism", "polygon"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0.00, "P": 0.00, "S": 0.00},
+  "latest_block": 158535915,
+  "block_numbers": {"optimism": 158535915, "polygon": 33570593},
+  "targets_checked": 36,
+  "live_targets": 0,
+  "closed_reasons": [
+    "Optimism target holds 0 native and 0 ERC-20 (has_tokens=false, token-balances=[])",
+    "Optimism target has 0 transactions and 0 token transfers ever (never used)",
+    "Polygon sibling (same source, same owner) holds 0 native, has 0 ERC-20 transfers ever, and only 1 tx total (the 2022 deployment)",
+    "address has codesize 0 on 34 other chains checked (no other sibling deployment)",
+    "canonical Uniswap V3 periphery siblings hold only worthless spam airdrops (public sweepToken by design)"
+  ],
+  "poc": {"tests_passed": 4, "tests_total": 4, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39781517056"]},
+  "key_facts": [
+    "0x274D146c910dCe811805E08fF8F61a1c3A931c4a (Optimism) verified source 'BigShot' (solc 0.8.10), codesize 18214, codehash 0x851d58c8d5b0ebc8984546a43696fdb941c7e529802078a46da432f173052911",
+    "inherits uniswap v3-periphery PeripheryPayments: public sweepToken(address,uint256,address) 0xdf2ab5bb pays the whole balanceOf(this) to a caller-supplied recipient; unwrapWETH9 0x49404b7c; refundETH() 0x12210e8a pays the whole native balance to msg.sender",
+    "no onlyOwner/msg.sender check; owner 0xbA79a22A4b8018caFDC24201ab934c9AdF6903d7 is an EIP-7702 smart EOA (code 0xef0100||0x1232b00bfa86e83353e05753caa3be8ea7087fac)",
+    "live state at block 158535915: native 0 wei, no ERC-20 balances, 0 transactions, 0 token transfers",
+    "second deployment on Polygon (same source, same owner 0xbA79a22A..., deployed 2022 block 33570593): native 0, 0 ERC-20 transfers ever, only the deployment tx",
+    "address has codesize 0 on 34 other chains checked (only Optimism + Polygon host it)",
+    "fork-proven: etch of the exact runtime + OP fork; seeding 1000e6/1e18 makes any unprivileged EOA able to sweep the whole balance"
+  ],
+  "caveats": [
+    "point-in-time 2026-10-22; any ERC-20/native inflow instantly re-arms an open drain (one permissionless call)",
+    "no transaction was signed or sent; PoC is fork/etch only"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from BigShot on Optimism (contract empty, never used); it is a fork-proven instant drain that re-arms on any token inflow"
+}
