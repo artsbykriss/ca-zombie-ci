@@ -1,0 +1,28 @@
+{
+  "target": "0x6222f99443A0d75bd96d40F2904606f60f37cdc2",
+  "name": "Multicall3Router",
+  "verified_source": {"name": "Multicall3Router", "compiler": "0.8.9", "project": "Wheelx"},
+  "deployer_proxy": "0x4e59b44847b379578588920cA78FbF26c0B4956C (Arachnid deterministic deployment proxy)",
+  "codesize": 4795,
+  "codehash": "0x1797a996a32bdc9c3053cfcbd546946296ca37557a2a51ce3d593c267c63b8e0",
+  "chains_with_identical_code": 34,
+  "selectors": {
+    "cleanupERC20(address,address)": "0x3dad0c9c",
+    "safeApproveIfBelow(address,address,uint256)": "0x5e069ba5",
+    "safeApprovePermit2(address,address,uint256)": "0xe13157f5",
+    "multicall3()": "0xed856306",
+    "permit2()": "0x12261ee7"
+  },
+  "unguarded_functions": ["cleanupERC20", "cleanupErc20s", "safeApproveIfBelow", "safeApprovePermit2", "safeMultiCall", "sellToPool"],
+  "native_wei_all_chains": "0",
+  "erc20_dust": {
+    "ethereum": "1.0 HEX (100000000 @1e8) ~ $0.00063; +1 wei stETH; +1 wei eETH; + spam tokens/NFTs",
+    "bsc": "20081028819 wei WBNB (2.008e-8 BNB) ~ $0.000014",
+    "optimism": "spam airdrops only (incl. 8888e18 'www.base1.cfd')",
+    "gnosis": "spam airdrops only",
+    "scroll": "1 spam ERC-20 (BAGGOR 63130) + 57 spam ERC-1155"
+  },
+  "metis_target_live": {"block": 23307448, "native_wei": "0", "erc20_balances": []},
+  "exact_calldata_template": "0x3dad0c9c || 12-byte pad || token(20) || 12-byte pad || refundTo(20)",
+  "notes": "cleanupERC20 is external with no gate and pays the router's whole balance to a caller-supplied refundTo; safeMultiCall delegatecalls multicall3 with caller-controlled calldata so any asset the router holds (ERC-20/721/1155) is drainable."
+}

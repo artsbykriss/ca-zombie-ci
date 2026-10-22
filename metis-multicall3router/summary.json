@@ -1,0 +1,81 @@
+{
+  "finding": "ZH4-PASS4-Tier3-LOW-2",
+  "title": "Wheelx Multicall3Router unguarded cleanupERC20(token,refundTo) drains its whole balance \u2014 deployed on 34 chains, empty today",
+  "chains": [
+    "ethereum",
+    "optimism",
+    "base",
+    "arbitrum",
+    "bsc",
+    "polygon",
+    "gnosis",
+    "avalanche",
+    "celo",
+    "linea",
+    "scroll",
+    "mantle",
+    "zksync",
+    "blast",
+    "mode",
+    "metis",
+    "unichain",
+    "soneium",
+    "worldchain",
+    "xlayer",
+    "opbnb",
+    "sonic",
+    "manta",
+    "taiko",
+    "polygon-zkevm",
+    "ink",
+    "cronos",
+    "sei",
+    "zora",
+    "bob",
+    "flare",
+    "ronin",
+    "rootstock",
+    "lisk"
+  ],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "H-O": 0.0,
+    "P": 0.0,
+    "S": 0.0
+  },
+  "latest_block": 23307448,
+  "block_numbers": {
+    "metis": 23307448,
+    "bsc": 129127210,
+    "ethereum": 26248050
+  },
+  "targets_checked": 50,
+  "live_targets": 0,
+  "closed_reasons": [
+    "native balance 0 wei on all 34 chains",
+    "ERC-20 balances are spam/dust only: Ethereum 1.0 HEX (~$0.0006) + 1 wei stETH/eETH; BSC 2.008e-8 WBNB (~$0.000014); OP/Gnosis/Scroll spam; others empty",
+    "router transits tokens within a tx (Arbitrum USD0/WBTC/STG/WETH/USDC/ARB all 0 at rest)"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39779479219"
+    ]
+  },
+  "key_facts": [
+    "0x6222f99443A0d75bd96d40F2904606f60f37cdc2 verified 'Multicall3Router' (solc 0.8.9, Wheelx), codesize 4795, codehash 0x1797a996a32bdc9c3053cfcbd546946296ca37557a2a51ce3d593c267c63b8e0",
+    "deployed via the Arachnid deterministic deployment proxy 0x4e59b44847b379578588920cA78FbF26c0B4956C -> identical address+code on 34 chains",
+    "unguarded: cleanupERC20(address,address) 0x3dad0c9c sends whole balance to caller-supplied refundTo; cleanupErc20s(...); safeApproveIfBelow(address,address,uint256) 0x5e069ba5; safeApprovePermit2 0xe13157f5; safeMultiCall delegatecalls multicall3 with caller data",
+    "fork-proven on the LIVE chain: BSC fork drains the real 20,081,028,819 wei WBNB dust and the same via safeMultiCall; ETH fork drains the real 1.0 HEX; Metis fork confirms selectors + native 0 + seeded drain",
+    "the Metis instance (named target) holds 0 native and 0 tokens"
+  ],
+  "caveats": [
+    "point-in-time 2026-10-22; any ERC-20/native inflow on any of the 34 chains instantly re-arms an open drain",
+    "Base/BSC/Arbitrum Blockscout are Cloudflare/PRO-blocked so their ERC-20 token lists were not exhaustively enumerated; native balances are 0 and Arbitrum token balances were checked = 0",
+    "the deterministic deployer can reproduce the same address on any new chain"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live (\u2248$0.0006 dust) from the Multicall3Router on 34 chains; the unguarded cleanupERC20/safeApproveIfBelow/safeMultiCall drain is fork-proven and re-arms on any token inflow"
+}
