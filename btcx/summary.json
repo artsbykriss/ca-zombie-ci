@@ -1,0 +1,35 @@
+{
+  "finding": "ZH4-PASS4 Tier-3 #3 (BTCX)",
+  "title": "BTCX (BTToken) burn-from-pair + pair.sync() — permissionless but self-limited; pool is one-way (buys revert T0)",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.0, "H-O": 2462523.19, "P": 0.0, "S": 0.0},
+  "latest_block": 129126816,
+  "block_numbers": {"bsc": 129126816},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "burn is fixed-rate (~0.104%/hour of the pair's real BTCX balance), capped at 1 cycle/hour, no per-tx loop",
+    "the pool is one-way: any transfer with from==pancakePair reverts \"T0\", so a fresh attacker cannot acquire BTCX",
+    "redeem returns 0 BTCX if held <60 days (100% burned), so deposit+redeem cannot obtain BTCX either"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "token 0xb1939843fB9220719d13076dCeEfb0aeaeF06666; pair 0x3cC292bB0011951F3151eB998816c31680a2Ce87 (PancakeV2 BTCX/BTCB)",
+    "reserves (blk 129126816): 30.166339329950305264 BTCB / 1340443.034863621595719426 BTCX; balanceOf(pair)==reserve1 (no desync)",
+    "sync() caller resolved: _executeFee <- _executePoolBurn <- _updateCycle <- transfer() (permissionless); burnRate=104/100000",
+    "gate = revert(\"T0\") when from==pancakePair in _transferWithLogic — blocks all buys",
+    "base-side value $2,462,523 @ BTCB $81,631.49 (DefiLlama)"
+  ],
+  "caveats": [
+    "point-in-time 2026-10-22; BTCB USD is DefiLlama spot",
+    "latent: if the token were dormant >100h a single tx replays 100 cycles (~9.9% of pair BTCX) — still non-extractable (unbuyable)",
+    "adjacent tokenExt.processBuildLP / _redeem accounting not evaluated (different bug class)"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live; the burn-from-pair+sync() is real and permissionless but fixed-rate/self-limited and the pool cannot be bought out (revert T0), so the $2.46M BTCB is unreachable to an outsider"
+}
