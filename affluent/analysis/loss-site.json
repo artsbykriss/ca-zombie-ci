@@ -1,0 +1,173 @@
+{
+  "incident": {
+    "protocol": "Affluent / Factorial Finance",
+    "chain": "TON",
+    "reported_date": "2026-10-15",
+    "slowmist_date": "2026-10-14",
+    "classification": "Token & Share Accounting",
+    "technique": "Unbacked Mint",
+    "reported_amount_usd": 1053000,
+    "source": "DefiLlama / SlowMist"
+  },
+  "window": {
+    "start": "2026-10-12T00:00:00Z",
+    "end": "2026-10-19T00:00:00Z",
+    "extended_start": "2026-09-30T00:00:00Z",
+    "note": "Extended back to 2026-09-30 once the repeated drain pattern was found."
+  },
+  "contracts_checked": 20,
+  "auxiliary_accounts_checked": 12,
+  "loss_site": {
+    "type": "affluent_lending_vault + jetton_master (share accounting)",
+    "primary": [
+      {
+        "name": "TON Lending Vault (affTONl master)",
+        "address_friendly": "EQADQ6JcK0NMuNM5uwCcS9bjcn2RTvcxYIZjNlhIhywUrfBN",
+        "address_raw": "0:0343a25c2b434cb8d339bb009c4bd6e3727d914ef731608663365848872c14ad",
+        "share_token": "affTONl",
+        "interfaces": ["affluent_lending_vault", "jetton_master"],
+        "supply_raw_now": "64871505591689835",
+        "supply_decimals": 9
+      },
+      {
+        "name": "USDT Lending Vault (affUSDTl master)",
+        "address_friendly": "EQAGtgnr1G0XDilGURcOB3pUhl-Lo__J-TaJP0K4ey8cuSaW",
+        "address_raw": "0:06b609ebd46d170e294651170e077a54865f8ba3ffc9f936893f42b87b2f1cb9",
+        "share_token": "affUSDTl",
+        "interfaces": ["affluent_lending_vault", "jetton_master"],
+        "supply_raw_now": "35718338743354595",
+        "supply_decimals": 6
+      }
+    ],
+    "mechanism": "Burning vault share tokens (affTONl/affUSDTl) causes the vault to pay out underlying TON/USDT to the burner at a share price far above fair value (~0.202 TON paid per affTONl vs fair ~0.017 TON/share), with large residual share balances left in the burner's freshly-deployed jetton wallets. Underlying assets are physically pulled from BasicPool, AdvancedPool, LendingVaultPool, StormUsdtPool, EthenaPool, StormAdvancedPool.",
+    "funding_pools": [
+      "EQCrEHHG4Ff8TD3PzuH5tFSwHBD3zxeXaosz48jGLebwiiNx",
+      "EQBCXQp2sSTJhvnV6DlBqhTsdNMZc_tJcXQJ5XjoWiy-OAge",
+      "EQBQMDjWVLeX0vAUNDTRL-aA665EItLzSvONywKDHXJRCuxB",
+      "EQAYJdU9JFRcKAwMZv3MqD0QVjBEMGO_4mgwOJtTBOHR22ec",
+      "EQA9iTdgsPxvk08idCXQoefGqJGLTDQFy4W34AtEj7Z_25iT",
+      "EQCOA3gN3Dk-ml66zux_vuia7mTIBTENKxtomD6TDgnFZXoH"
+    ]
+  },
+  "attackers": [
+    {
+      "label": "B",
+      "address_friendly": "EQAkM7tiVXJGaB0CTZ3Cc2MPi3vgPLfwx8fLmoVUKRTCwuCw",
+      "address_raw": "0:2433bb62557246681d024d9dc273630f8b7be03cb7f0c7c7cb9a85542914c2c2",
+      "type": "wallet_v5r1",
+      "sessions": ["2026-10-16"],
+      "residual_shares": {"affUSDTl": "5697376531863130 (dec 6)", "affTONl": "3566984350414534 (dec 9)"}
+    },
+    {
+      "label": "A",
+      "address_friendly": "EQA04__gOPOZvYeI0nBS233hWOKYWFyUBwtRecztUwyXobCz",
+      "address_raw": "0:34e3ffe038f399bd8788d27052db7de158e298585c94070b5179cced530c97a1",
+      "type": "wallet_v4r2",
+      "sessions": ["2026-09-30", "2026-10-12"],
+      "affTONl_burned_total": "4179348.535029431",
+      "forward_target": "0:2830bdd386afd8f449147b5d99d26c817ae40c88853aa424f8d53374f50f3307"
+    }
+  ],
+  "candidates": [
+    {
+      "address": "EQADQ6JcK0NMuNM5uwCcS9bjcn2RTvcxYIZjNlhIhywUrfBN",
+      "type": "lending_vault/affTONl (TON Lending Vault)",
+      "tx": "ba3fc8ad72185639820e639316d3a8b2521cb07be96eb8522d29f6c168aa846a",
+      "lt": 110416595000020,
+      "timestamp": "2026-10-16T20:48:23Z",
+      "amount_ton": 150041.292480715,
+      "amount_usd": 203487,
+      "detail": "Attacker EQAkM7ti burns 10,000,000 affTONl and receives 150,041.232480715 AffluentTON + 150,041.292480715 TON from BasicPool (126,352.43), AdvancedPool (19,600.11), LendingVaultPool (4,088.76). LARGEST single tx in the window."
+    },
+    {
+      "address": "EQAGtgnr1G0XDilGURcOB3pUhl-Lo__J-TaJP0K4ey8cuSaW",
+      "type": "lending_vault/affUSDTl (USDT Lending Vault)",
+      "tx": "08b1751a89637f7c14fa4232fca3ceb93f0ce54548c2d473f4fdb04b0a7e7df1",
+      "lt": 110416241000008,
+      "timestamp": "2026-10-16T20:46:02Z",
+      "amount_usdt": 13824.934818,
+      "amount_usd": 13825,
+      "detail": "Attacker EQAkM7ti burns 10,000,000,000 affUSDTl and receives 13,824.934818 USDT from BasicPool (3,029.46), StormUsdtPool (3,399.08), EthenaPool (7,196.39), AdvancedPool (100), StormAdvancedPool (100)."
+    },
+    {
+      "address": "EQADQ6JcK0NMuNM5uwCcS9bjcn2RTvcxYIZjNlhIhywUrfBN",
+      "type": "lending_vault/affTONl (TON Lending Vault)",
+      "tx": "4b75b5801aa7a5a2f945282df5a0c2f6970494d59e0bfd957fe14307ffc3a15b",
+      "lt": null,
+      "timestamp": "2026-09-30T05:24:29Z",
+      "amount_ton": 504826.86,
+      "amount_usd": 749688,
+      "detail": "Drainer EQA04__g loop-burns 80,000 affTONl per iteration (~0.2024 TON/share) until the vault empties; forwards 504,826.86 TON to 0:2830bdd3 (wallet_v5r1)."
+    },
+    {
+      "address": "EQADQ6JcK0NMuNM5uwCcS9bjcn2RTvcxYIZjNlhIhywUrfBN",
+      "type": "lending_vault/affTONl (TON Lending Vault)",
+      "tx": "75a656d94e818a359aaaad42c4a1eb24b52d71032011583da444bcfb70986aa2",
+      "lt": null,
+      "timestamp": "2026-10-12T10:25:29Z",
+      "amount_ton": 126686.16,
+      "amount_usd": 172619,
+      "detail": "Second session of drainer EQA04__g (same loop, 623,131 affTONl burned that day); forwards 126,686.16 TON to 0:2830bdd3. Matches DefiLlama 10-12->13 TVL drop (~$300k)."
+    }
+  ],
+  "best_candidate": "EQADQ6JcK0NMuNM5uwCcS9bjcn2RTvcxYIZjNlhIhywUrfBN (TON Lending Vault / affTONl) + EQAGtgnr1G0XDilGURcOB3pUhl-Lo__J-TaJP0K4ey8cuSaW (USDT Lending Vault / affUSDTl) -- lending-vault share accounting; single largest tx = ba3fc8ad72185639820e639316d3a8b2521cb07be96eb8522d29f6c168aa846a (2026-10-16 20:48:23Z, 150,041.29 TON)",
+  "total_extracted": {
+    "ton": 781906.75,
+    "usdt": 13824.94,
+    "usd_blended": 1139619,
+    "sessions": ["2026-09-30", "2026-10-12", "2026-10-16"]
+  },
+  "defillama_crosscheck": {
+    "url": "https://api.llama.fi/protocol/affluent",
+    "tvl_2026_10_12": 2015501,
+    "tvl_2026_10_13": 1715568,
+    "tvl_2026_10_16": 1741485,
+    "tvl_2026_10_17": 1509099,
+    "drop_10_12_to_13": 299933,
+    "drop_10_16_to_17": 232386
+  },
+  "confidence": {
+    "drain_2026_10_16_is_exploit": "high",
+    "loss_site_is_lending_vault_share_accounting": "medium-high",
+    "aggregates_to_reported_1_05M": "medium"
+  },
+  "cleared": [
+    "EQBowXTtxDTSMEJbrIIcYzIvSXZ9V5HW2Oo2iSW0chUzod3d (GoldMultiply)",
+    "EQD3F7Ex_uxBjxEub8FgeDoYYUSIbAUVyehCb_JSiCVL369T (EthenaVault)",
+    "EQDtxQqkgIRQQR5hWlrQxiJMtLwjR3rEYNUBbEcvPDwCs1Ng (TON-Multiply-1)",
+    "EQBzSItiC1vpDUEftDeWDyjgMutf6CIzme16gzn9iNlolpcY (USDT-Multiply-1)",
+    "EQDXmtbt1-WSP00tSh6N6FH-4lX7LbnrjORClmtmuZqg4Ymm (Ethena-Multiply-1)",
+    "EQBjpfG5fzFESWJb6K5EdjvY_yhFa6fxhcwkVff0jlK1za82 (Sentora-Affluent)",
+    "EQD5O4qzJmVwuKDIfDcuM6HI7fUf1AOolgF2oiPGyqr_WZsp (Sentora-Wallet)",
+    "EQCNgBmHVBRWpMeZE7E92RM-Gecnv88LJaXAlmqn4WAfJIA9 (TradoorAdvancedPool)",
+    "EQA3m4H3vTUOeXGW-o6AEyZxv6i79tR-i1f4XiW588HJoqND (StormTonPool)",
+    "EQA2zgb-gK0JBknK5aN63dora40GmO2wRpQDhkL2cz1H2ZKq (AffluentBatch)",
+    "EQAc65JgiTwcoC3M1VYnQcM2Ivq4DTWOtyY2k2EaBuXsKRAZ (Affluent-USDT)",
+    "EQDIKEz2BYLnTRWo5W5a6moZ9PXNtyOVOFF7noi8Ufv3axz_ (AffluentTON jetton master)"
+  ],
+  "victim_pools_not_root_cause": [
+    "EQCrEHHG4Ff8TD3PzuH5tFSwHBD3zxeXaosz48jGLebwiiNx (BasicPool)",
+    "EQBCXQp2sSTJhvnV6DlBqhTsdNMZc_tJcXQJ5XjoWiy-OAge (AdvancedPool)",
+    "EQBQMDjWVLeX0vAUNDTRL-aA665EItLzSvONywKDHXJRCuxB (LendingVaultPool)",
+    "EQAYJdU9JFRcKAwMZv3MqD0QVjBEMGO_4mgwOJtTBOHR22ec (StormUsdtPool)",
+    "EQA9iTdgsPxvk08idCXQoefGqJGLTDQFy4W34AtEj7Z_25iT (EthenaPool)",
+    "EQCOA3gN3Dk-ml66zux_vuia7mTIBTENKxtomD6TDgnFZXoH (StormAdvancedPool)"
+  ],
+  "corrections": [
+    "BasicPool EQCrEHHG... was NOT event-free: it has 165 in-window events (2026-10-12..10-18) and paid out 126,352 TON + 3,029 USDT on 2026-10-16. The prior 'zero events' result was caused by tonapi's broken next_from cursor; correct pagination uses before_lt.",
+    "No JettonMint actions exist on any queried contract; the unbacked share credit is not surfaced as a mint action.",
+    "AffluentTON master EQDIKEz2... reports a non-standard/broken total_supply (1e9 raw) and shows no supply anomaly in Oct 14-16."
+  ],
+  "raw_dumps": [
+    "raw_events_all.json",
+    "drain_event_details.json",
+    "drain_tx_details.json",
+    "drain_dest_events.json",
+    "attacker_jetton_wallets.json",
+    "loop_34e3ffe0_events.json",
+    "jetton_info.json",
+    "addr_resolution.json",
+    "downstream_addrs.json",
+    "reconciliation.json"
+  ]
+}

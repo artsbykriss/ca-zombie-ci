@@ -1,0 +1,37 @@
+{
+  "finding": "ZH4-PASS4-P4-01",
+  "title": "Affluent / Factorial Finance (TON) — live unbacked-mint chain (pool -> LendingVault), unpatched",
+  "chains": ["ton"],
+  "headline_extractable_usd": 1416000.0,
+  "headline_confidence": "medium",
+  "categories": {"E-U": 1416000.0, "E-U-conditional": 0.0, "H-O": 0.0, "P": 0.0, "S": 0.0},
+  "latest_block": 100647841,
+  "block_numbers": {"ton_masterchain_seqno": 100647841},
+  "targets_checked": 16,
+  "live_targets": 9,
+  "closed_reasons": [
+    "LIVE PATH PROVEN: a single forged jetton_notify (op 0x7362d09c) sent by an arbitrary wallet to an Affluent pool, with sender = a LendingVault master, is accepted without sender verification; the pool relays an attacker-influenced 0xa1b21e8b message to that vault; the vault (which trusts pool-sourced messages) MUTATES its share-accounting storage (a mint). Reproduced end-to-end against live state on the verified BasicPool (data_changed=True).",
+    "The vault REJECTS the same 0xa1b21e8b body when sent directly by an arbitrary sender (data_changed=False) -> the pool is the necessary confused deputy.",
+    "All relevant code hashes are unchanged from the registry (unpatched): BasicPool 1b16962d.., pool 0:425d0a76 b73ff42e.., LendingVaults eb9d9891..",
+    "MultiplyVaults (7): forged jetton_notify and provide_aggregated_data ops leave their storage unchanged -> cleared.",
+    "Positive control: 13/16 real BasicPool inbound messages DO change storage; 1-2/16 on the LendingVaults -> the harness detects writes.",
+    "Reported $1.05M Oct-16 loss was executed by burning unbacked affTONl/affUSDTl shares (tx 08b1751a.. 13,824.93 USDT; tx ba3fc8ad.. 150,041.29 TON), pulling from BasicPool/AdvancedPool/LendingVaultPool/StormUsdtPool/EthenaPool/StormAdvancedPool."
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": []},
+  "key_facts": [
+    "Root cause: Affluent pools do not verify the sender of op 0x7362d09c is their own asset jetton wallet; they relay an internal 0xa1b21e8b message to the notify's `sender` field (a LendingVault master).",
+    "The LendingVault mints/credits shares on a pool-sourced 0xa1b21e8b (data_changed=True) but rejects it from an arbitrary sender (data_changed=False).",
+    "Chain reproduced on the verified BasicPool EQCrEHHG4Ff8TD3PzuH5tFSwHBD3zxeXaosz48jGLebwiiNx using the exact 2026-10-16 exploit notify body (tx 9d627a1901c06cf54a30c6873fa1806a8fc9efa8d3fd5d757ee7619dd31c91e9).",
+    "Pools' live custody (2026-10-22): BasicPool ~$757k, AdvancedPool ~$337k, EthenaPool ~$272k, LendingVaultPool ~$42k, StormUsdtPool ~$6.2k, StormAdvancedPool ~$2.2k; total ~$1.416M.",
+    "Realised loss: 09-30 ~504,827 TON, 10-12 ~126,686 TON, 10-16 150,041.29 TON + 13,824.94 USDT (attackers EQAkM7tiVXJGaB0CTZ3Cc2MPi3vgPLfwx8fLmoVUKRTCwuCw and EQA04__gOPOZvYeI0nBS233hWOKYWFyUBwtRecztUwyXobCz).",
+    "Correction: BasicPool was NOT event-free (prior pass4 'zero events' was a tonapi next_from pagination artifact); BasicPool was a victim pool.",
+    "No public attacker address / tx / post-mortem exists (DefiLlama source field empty; SlowMist cites DefiLlama only)."
+  ],
+  "caveats": [
+    "TON tooling is emulation-only; Tolk/FunC source is not public, so handlers are characterised behaviourally (storage diff + emitted messages).",
+    "Proved the chain MINTS; did not fully reverse the forward_payload / 0xa1b21e8b format, so a fresh attacker's ability to redirect the mint recipient with a custom payload is inferred (medium-high) rather than directly proven.",
+    "The exact maximum extractable (vs the $1.416M custody bound) is not established; the realised precedent is $1.05M.",
+    "Lite-server reads are rate-limited; per-run block seqnos are in ci-out/*.json."
+  ],
+  "one_liner": "LIVE and unpatched: a single forged jetton_notify (0x7362d09c) to an Affluent pool, with sender set to a LendingVault master, makes the pool relay an attacker-influenced 0xa1b21e8b to the vault, which mints unbacked shares redeemable for the pools' underlying (~$1.42M custody; the same mechanism took ~$1.05M on 2026-10-16)."
+}
