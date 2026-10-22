@@ -1,0 +1,31 @@
+{
+  "finding": "ZH4-PASS4 Tier-3 #3 (DMD)",
+  "title": "DMD (DMDToken) burnFromMainPair burn-from-pair + sync() — onlyAdmin (EOA), no cooldown; buying disabled",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.0, "H-O": 0.0, "P": 284917.59, "S": 0.0},
+  "latest_block": 129126816,
+  "block_numbers": {"bsc": 129126816},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "burnFromMainPair() is `onlyAdmin` -> `if (msg.sender != admin) revert NotAdmin()`",
+    "admin() == 0xfB9E004c6e8a89F0348fEcBD1c62387635630247 (EOA, code size 0)",
+    "fresh EOA eth_call reverts NotAdmin() 0x7bfa4b9f",
+    "buyEnabled()==false -> buys revert BuyingDisabled() 0x44c1679c (no outsider entry)"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": []},
+  "key_facts": [
+    "token 0x939Df4A5A5022037BB33102C6489e774E063b160; pair 0x29f9148a8518e327e8677Ba21C3fa3A55DD1e6Bc (PancakeV2 DMD/USDC)",
+    "reserves (blk 129126816): 284917.587339866291158858 USDC / 722196.582352079125067941 DMD; balanceOf(pair)==reserve1 (no desync)",
+    "PAIR_BURN_BPS=50 (0.5%/call), MIN_TOTAL_SUPPLY=1e24, no cooldown",
+    "latent: admin key can loop burnFromMainPair 100x -> ~39% of pair DMD removed (price +65%), USDC side untouched",
+    "owner() == 0x3Df33d473811c46c402a014840C07Cf6397304Bf (EOA); base-side value $284,918 (USDC)"
+  ],
+  "caveats": [
+    "point-in-time 2026-10-22",
+    "P value = privileged/admin-only ceiling, NOT extractable by an outsider; EOA admin + no cooldown is a key-compromise risk"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live; burnFromMainPair is the NEM shape but onlyAdmin (a single EOA) and buying is disabled"
+}
