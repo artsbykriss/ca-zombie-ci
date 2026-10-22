@@ -1,0 +1,25 @@
+{
+  "chain": "monad",
+  "chain_id": 143,
+  "rpc": "https://rpc.monad.xyz",
+  "block": 115621431,
+  "account_core": {
+    "address": "0x264123a9B96Cc1193944cC25C188f1bD3dFa670e",
+    "proxy_code_bytes": 141,
+    "native_wei": 918113172724259143186798,
+    "native_mon": 918113.1727242591
+  },
+  "margin_account": {
+    "address": "0x2A68ba1833cDf93fa9Da1EEbd7F46242aD8E90c5",
+    "native_wei": 4195855967804576350185564,
+    "native_mon": 4195855.967804576
+  },
+  "fresh_caller_probes": {
+    "AccountCore.withdraw(26,native,1e18,attacker)": "0x82b42900",
+    "MarginAccount.withdraw(1e18,native)": "0xf4d678b8"
+  },
+  "expected": {
+    "AccountCore": "0x82b42900 Unauthorized()",
+    "MarginAccount": "0xf4d678b8 InsufficientBalance()"
+  }
+}

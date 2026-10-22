@@ -1,0 +1,53 @@
+{
+  "finding": "P4-03",
+  "title": "Kuru (Monad) — unverified ERC-1967 custody clones (AccountCore + MarginAccount): every value path self/owner/authority-gated; E-U $0",
+  "chains": ["monad"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 379724.90, "P": 0, "S": 0},
+  "latest_block": 115617713,
+  "block_numbers": {"monad": 115617713},
+  "targets_checked": 4,
+  "live_targets": 4,
+  "closed_reasons": [
+    "AccountCore 0x264123a9B96Cc1193944cC25C188f1bD3dFa670e (EIP-1967 proxy, 141-byte code) -> unverified impl 0xb52debad718730ee0a4c12c28e70d346dbcc9e5b (33,512 B). withdraw(uint40,address,uint256,address) requires msg.sender == account owner or an authorised signer with ACCOUNT_PERMISSION_WITHDRAW; live eth_call from a fresh address reverts 0x82b42900 Unauthorized() even against funded account id 26, while the SAME calldata from the real owner (0x9daba38229f593d90f99062bb18ed41f57b16ce8) succeeds.",
+    "AccountCore.fulfillApprovedWithdrawal requires caller == withdrawalAuthority (0x81f6f37d079b88fdd6c5f674b3f328eee028fe56) AND the root owner's EIP-712 ApprovedWithdrawal signature with nonce/epoch/deadline checks and pre-transfer nonce consumption; a fresh caller with sig=0x reverts.",
+    "AccountCore admin selectors setAuthority/setWithdrawalAuthority/toggleProtocolState/upgradeToAndCall and createSubaccount(for another owner) all revert 0x82b42900 Unauthorized() from a fresh address; createSubaccount for the caller's own root account succeeds but moves zero value.",
+    "MarginAccount 0x2A68ba1833cDf93fa9Da1EEbd7F46242aD8E90c5 -> unverified impl 0x351525073afa933720329756716fcf7d741e7ff0 (5,174 B): withdraw(uint256,address) debits _msgSender()'s own balances only (fresh caller reverts 0xf4d678b8 InsufficientBalance()); batchWithdrawMaxTokens is a no-op for a zero-balance caller; debitUser/creditUser/creditUsersEncoded/creditFee are gated by verifiedMarket[msg.sender]; deposit credits a named user but pulls tokens from msg.sender.",
+    "ERC-2771 is not a spoofing vector: MarginAccount.isTrustedForwarder(0x974E61BBa9C4704E8Bcc1923fdC3527B41323FAA)==true, and the VERIFIED KuruForwarder impl 0xbf6cc109c6ebca4b28e3e51fd8798294599cfe2a only forwards after verify() recovers the EIP-712 signer and requires signer==req.from, with monotone nonces and an allowed-interface allow-list; a forged request reverts SignatureMismatch.",
+    "The pass-4 'unreadable source' premise is largely resolved: the deployed AccountCore selector set corresponds to the official public Kuru SDK accountCoreAbi (github.com/Kuru-Labs/ts-sdk), the DEX contracts are public (Kuru-Labs/Kuru-contracts-dex-public), and the exact AccountCore withdrawal policy (src/account/AccountCore.sol, revision 62c478b05dfe936c87fa95f35d89307d4a2d303c) is formally verified by the independent lfglabs-dev/ethereum-verification-benchmark case kuru/withdrawal_limit (8 spec groups + PolicyBundle, proofs complete).",
+    "The pass-4 balance figure is stale: AccountCore + MarginAccount now hold 5,162,222.19 MON (not 6,150,375) and additionally 270,275.59 USDC the lead did not count."
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39785217010",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39784189678",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39783856284"
+    ]
+  },
+  "key_facts": [
+    "AccountCore proxy 0x264123a9B96Cc1193944cC25C188f1bD3dFa670e: 141-byte EIP-1967 minimal proxy; impl slot 0x360894a1.. = 0xb52debad718730ee0a4c12c28e70d346dbcc9e5b (unverified).",
+    "MarginAccount proxy 0x2A68ba1833cDf93fa9Da1EEbd7F46242aD8E90c5: 141-byte EIP-1967 minimal proxy; impl slot = 0x351525073afa933720329756716fcf7d741e7ff0 (unverified).",
+    "Custody at block 115,617,713: AccountCore 966,366.2188 MON + 136,809.390411 USDC; MarginAccount 4,195,855.9678 MON + 133,466.203201 USDC; total 5,162,222.1866 MON + 270,275.5936 USDC.",
+    "USD: MON $0.021201974484101976 (DefiLlama coingecko:monad, ts 1792673817), USDC $1.00. Total custody USD $379,724.90 (H-O).",
+    "Config: owner()=0x8b736dce2071783fd9db0a423dad17cc8ed5788b (both); AccountCore authority()=0x15db88bac73d856b3ca53683f82058826a3b6e8f; withdrawalAuthority()=0x81f6f37d079b88fdd6c5f674b3f328eee028fe56; feeCollector()=0x62ee1b8d1efdf8f73c78db87b888406b194e266a; withdrawalsFrozen()=false; protocolPaused()=false.",
+    "AccountCore selector count 105; MarginAccount 23; KuruForwarder 24; Router 26. AccountCore selector set matches Kuru's official ts-sdk accountCoreAbi (104 fns).",
+    "Error selectors confirmed on-chain: 0x82b42900 Unauthorized(), 0xfaba8ebe AccountNotFound(), 0xf4d678b8 InsufficientBalance(), 0xcd41a9e3 (native mismatch on deposit).",
+    "Differential gate proof: AccountCore.withdraw(26, native, 1, recipient) from a fresh address reverts Unauthorized(), from owner 0x9daba38229f593d90f99062bb18ed41f57b16ce8 it succeeds (returns 0x).",
+    "Account id 26 owner = 0x9daba38229f593d90f99062bb18ed41f57b16ce8; getBalance(26,native)=73,613.82 MON; getSpotReservedBalance(26,native)=706,519.58 MON. Id 94 holds 50,000 MON.",
+    "KuruForwarder proxy 0x974E61BBa9C4704E8Bcc1923fdC3527B41323FAA -> impl 0xbf6cc109c6ebca4b28e3e51fd8798294599cfe2a is Etherscan-VERIFIED (KuruForwarder).",
+    "USDC token 0x754704Bc059F8C67012fEd69BC8A327a5aafb603: symbol()='USDC', decimals()=6.",
+    "Public sources: github.com/Kuru-Labs/Kuru-contracts-dex-public (MarginAccount/KuruForwarder/Router/OrderBook), github.com/Kuru-Labs/ts-sdk (accountCoreAbi + ApprovedWithdrawal typed data), github.com/Kuru-Labs/Kuru-contracts-flow-public.",
+    "Formal verification: github.com/lfglabs-dev/ethereum-verification-benchmark case kuru/withdrawal_limit, source revision 62c478b05dfe936c87fa95f35d89307d4a2d303c (src/account/AccountCore.sol); withdrawAuthorized = caller==owner OR grant with WITHDRAW/INTERNAL_TRANSFER bit and unexpired."
+  ],
+  "caveats": [
+    "Point-in-time 2026-10-22 at Monad block 115,617,713; re-read before acting. Nothing here is an instruction to transact.",
+    "The AccountCore and MarginAccount IMPLEMENTATIONS are not verified on the explorer; ABI identity is established from Kuru's official SDK + live selector scanning, not a byte-exact recompile (the exact source revision is not public).",
+    "The Lean formal model pins revision 62c478b and does not mechanise Solidity->Lean refinement, bytecode or storage layout; the deployed AccountCore is a NEWER revision (adds sub-accounts, authorizeAccountSigner, approveBuilder, loseWager). Re-test if the impl changes or withdrawalsFrozen/protocolPaused flip.",
+    "USD context uses MON $0.021202 and USDC $1.00; the headline is $0 so price only affects the H-O custody context.",
+    "Fork PoC pins no block (forks latest via public keyless rpc.monad.xyz) to avoid dependence on archive state; the owner-withdraw test is skipped if account 26 is empty at run time."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Kuru's $379.7k of custodied MON+USDC on Monad: both unverified ERC-1967 clones are self-scoped/owner/authority-gated (fresh caller gets Unauthorized()/InsufficientBalance(), the real owner's identical withdraw succeeds), the ERC-2771 relay is EIP-712 signature-verified, and the AccountCore withdrawal policy is independently formally verified."
+}
