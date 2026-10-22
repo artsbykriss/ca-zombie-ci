@@ -1,0 +1,56 @@
+{
+  "finding": "P4-04",
+  "title": "Infrared iBERA liquid-staking token (Berachain) — verified impl, every value path gated; E-U $0",
+  "chains": ["berachain"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 11.34, "S": 0},
+  "latest_block": 27827865,
+  "block_numbers": {"berachain": 27827865},
+  "targets_checked": 7,
+  "live_targets": 7,
+  "closed_reasons": [
+    "0x9b6761bf2397Bb5a6624a856cC84A3A14Dcd3fe5 is the iBERA liquid-staking TOKEN (name 'Infrared BERA', symbol iBERA), not a deposit vault; its native BERA balance is 0 and the $14.2M backing is staked on the Berachain CL via the Depositor/Withdrawor.",
+    "The implementation 0xC0654903c7d76F7FE63f9AD2F01618c3B55D9DcF IS Etherscan-verified (InfraredBERAV2_1, exact match, SimilarMatch='') and is proven BYTE-EXACTLY equal to the public source github.com/infrared-dao/contracts src/staking/InfraredBERAV2_1.sol (recompiled with solc 0.8.26+commit.8a97fa7a, runs 50, cancun, library 0x49b696528cf0979ed8b13c1e32a9e54f09285416, 3 UUPS immutables filled). The pass-4 'unverified implementation' residual is removed.",
+    "mint(address) payable is permissionless but fully backed by msg.value: shares = (totalSupply*amount)/deposits floored, compound() runs BEFORE the price is read, and mint with 0 value reverts InvalidShares(). No unbacked mint exists.",
+    "burn(address,uint256) is self-scoped: it burns msg.sender's own iBERA and reverts ERC20InsufficientBalance for a caller with no balance; the receiver may not be the depositor.",
+    "All admin setters (setWithdrawalsEnabled/updateBurnFee/updateRateProvider/setFeeDivisorShareholders/updateProofTimestampBuffer/setDepositSignature/claimExitFees/unpause/upgradeToAndCall) revert AccessControlUnauthorizedAccount(caller, GOVERNANCE_ROLE) from a fresh address.",
+    "grantRole/revokeRole revert AccessControlUnauthorizedAccount; pause() reverts NotPauser(); collect()/sweep()/register() revert Unauthorized(caller); registerViaProofs is onlyKeeper.",
+    "The deployed revision has NO initialize() at all (proxy and impl both revert with empty data), so there is no re-initialization / role-grant takeover.",
+    "Governance is a 3-of-6 Gnosis Safe v1.3.0 (0x182a31A27A0D39d735b31e80534CFE1fCd92c38f) holding DEFAULT_ADMIN_ROLE + GOVERNANCE_ROLE; PAUSER_ROLE has no holder; KEEPER_ROLE = 1 Safe-style contract + 1 EOA.",
+    "The InfraredV2 core 0xb71b3DaEA39012Fb0f2B14D2a9C86da9292fC126 (0.0099 BERA) re-probed from a fresh address: redeemIbgtForBera = onlyKeeper, claimExternalVaultRewards = Unauthorized, setters/upgradeToAndCall = onlyGovernor."
+  ],
+  "poc": {
+    "tests_passed": 16,
+    "tests_total": 16,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39780904501"
+    ]
+  },
+  "key_facts": [
+    "Primary snapshot block 27827865 (0x1a89e99); secondary reads at 27828198.",
+    "iBERA proxy 0x9b6761bf2397Bb5a6624a856cC84A3A14Dcd3fe5 (163-byte OZ v5.1.0 ERC1967Proxy) -> impl 0xC0654903c7d76F7FE63f9AD2F01618c3B55D9DcF (14082 bytes, keccak256 code 0xf1c00f0e9ba3431a2d3c4634d775eecf2b16e7359b88f9e217632da415bd766f).",
+    "totalSupply = 79515424.296432355153529597 iBERA; totalAssets == deposits = 84122523.818056978854247603 BERA; share price 1.057939696 BERA/iBERA.",
+    "TVL = 84122523.818 BERA = $14200709.25 at BERA $0.16880983 (DefiLlama, ts 1792670220). DefiLlama 'infrared-finance' ~$19.0M is the same BERA at ~$0.226.",
+    "asset() == address(0) (native BERA); token contract native balance 0 wei; EIP-1967 admin slot 0 (no ProxyAdmin); beacon slot 0; UPGRADE_INTERFACE_VERSION '5.0.0'.",
+    "withdrawalsEnabled true, paused false, burnFee 0.01 iBERA, feeDivisorShareholders 4 (25% of EL yield to protocol), proofTimestampBuffer 600.",
+    "Protocol wiring: infrared 0xb71b3DaEA39012Fb0f2B14D2a9C86da9292fC126, depositor 0x04CddC538ea65908106416986aDaeCeFD4CAB7D7, withdrawor 0x8c0E122960dc2E97dc0059c07d6901Dce72818E1, receivor 0xf6a4A6aCECd5311327AE3866624486b6179fEF97, rateProvider 0x776fD57Bbeb752BDeEB200310faFAe9A155C50a0.",
+    "Roles: DEFAULT_ADMIN_ROLE + GOVERNANCE_ROLE = 3-of-6 Gnosis Safe 0x182a31A27A0D39d735b31e80534CFE1fCd92c38f; KEEPER_ROLE = 0x242D55c9404E0Ed1fD37dB1f00D60437820fe4f0 + 0x0C224f0F468675aD6299f7A93D23a829964a2369; PAUSER_ROLE = none.",
+    "P-category: 63.50983597134332 iBERA of accrued exit fees held by the proxy, claimable only via claimExitFees() (onlyGovernor) = $11.34.",
+    "Balance census: depositor 5203.510681436065834288 BERA, withdrawor reserves() 0.986762306 BERA, receivor 0.066886552347151180 BERA (distribution 0.006943675010847447, shareholderFees 0.042026290476175885), InfraredV2 core 0.0099 BERA.",
+    "Withdrawor: requestLength 5140, requestsFinalisedUntil 5138, totalClaimable 0, pendingWithdrawalsLength 4, minActivationBalance 250000 BERA, WITHDRAW_PRECOMPILE 0x00000961Ef480Eb55e80D19ad83579A64c007002.",
+    "Byte-exact source-identity proof: recompiling the Etherscan standard-JSON with solc v0.8.26+commit.8a97fa7a (optimizer runs 50, evmVersion cancun, no 'libraries' in settings), linking BeaconRootsVerify at 0x49b696528cf0979ed8b13c1e32a9e54f09285416 and filling the 3 UUPS immutable __self slots with 0xC0654903... reproduces eth_getCode(impl) byte-for-byte (14082 bytes; metadata hash c031d2f45be36020e3cec9d2d8e46dc215d787607908dfd0c0b0dd211fe8d2bc on both sides).",
+    "Revert-data evidence from a fresh address (block ~27827880): setters/upgradeToAndCall/grantRole/revokeRole -> 0xe2517d3f AccessControlUnauthorizedAccount(0x..deadbeef, GOVERNANCE_ROLE|roleAdmin); pause -> 0x492f6781 NotPauser; collect/sweep/register -> 0x8e4a23d6 Unauthorized; mint(0 value) and burn(burnFee) -> 0x6edcc523 InvalidShares; burn(1e18) -> 0xe450d38c ERC20InsufficientBalance; transferFrom(proxy,..) -> 0xfb8f41b2 ERC20InsufficientAllowance; initialize()/fafe94a8 -> empty (selector absent); proxiableUUID -> 0xe07c8dba UUPSUnauthorizedCallContext.",
+    "The pass-4 lead's 'custom selector fafe94a8' does not exist in the verified 70-function ABI (spurious PUSH4 constant in the bytecode)."
+  ],
+  "caveats": [
+    "Point-in-time 2026-10-22 at block 27827865 / 27828198; re-read state before acting. Nothing here is an instruction to transact.",
+    "USD context uses BERA $0.16880983 (DefiLlama); the headline is $0 so price only affects the context TVL figure.",
+    "Only the iBERA implementation bytecode was independently recompiled to a byte-exact match. The Depositor / Withdrawor / Receivor implementations are Etherscan-verified and were read in full from their verified sources, but differ from the public repo master by an import-path/licence-header revision (src/interfaces vs src/depreciated/interfaces) and were not recompiled.",
+    "The bytecode proof depends on the exact solc build 0.8.26+commit.8a97fa7a; another 0.8.26 build would change the metadata fingerprint.",
+    "Latent (not extractable today): Receivor.sweep() has no auth check (benign - pays the caller nothing, mints to the gated collect() path); mint() is not whenNotPaused; previewBurn() waives the fee for msg.sender==rateProvider while burn() does not.",
+    "Trust assumption: the 3-of-6 Safe can upgradeToAndCall to arbitrary code - the $14.2M is P-class by construction, not attacker-reachable.",
+    "Not attempted: CL-side validator accounting reconciliation; decompilation of the other pass-4 unverified impls (Kuru)."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from the Infrared iBERA LST ($14.2M TVL on Berachain): the target is the iBERA token (not a deposit vault), its implementation is Etherscan-verified and proven byte-identical to the public source, and every value path is governance-gated (AccessControlUnauthorizedAccount(_, GOVERNANCE_ROLE)), keeper-gated, fixed-caller-gated, or self-scoped (mint needs msg.value; burn burns the caller's own iBERA) - fork-verified 16/16."
+}
