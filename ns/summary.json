@@ -1,0 +1,31 @@
+{
+  "finding": "ZH4-PASS4 Tier-3 #3 (NS)",
+  "title": "NS (NSToken) burnNsFromPair burn-from-pair + sync() — gated by pairBurnOperator (Gnosis Safe multisig), 1-day cooldown, 5% cap",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.0, "H-O": 0.0, "P": 628841.2, "S": 0.0},
+  "latest_block": 129126816,
+  "block_numbers": {"bsc": 129126816},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "burnNsFromPair(uint256) has `if (msg.sender != pairBurnOperator) revert Unauthorized()`",
+    "pairBurnOperator == governance == Gnosis Safe proxy 0x2bdeadCEf40a9129ea99A4a99Ec03ccdBC9a3942 (masterCopy 0x29fCb43b...C762, Safe v1.3.0)",
+    "fresh EOA eth_call reverts Unauthorized() 0x82b42900",
+    "1-day cooldown + bps<=500 cap; public burn(uint256) only burns the caller's own NS"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": []},
+  "key_facts": [
+    "token 0x33F1c4FBb7e4e040F4f4E6bC492E4fedf750fd41; pair 0xF1a5896D91C1E2372b159455ad013B2D17c0BB0b (PancakeV2 NS/USDT)",
+    "reserves (blk 129126816): 11265.766484491480745237 NS / 628841.197473420625955417 USDT; balanceOf(pair)==reserve0 (no desync)",
+    "pairBurnSequence == 0 (never called since launch); owner() renounced (0x0)",
+    "latent: if operator key compromised, one call = +5.26% NS price (5% of pair burned), capped at 1/day by cooldown",
+    "base-side value $628,841 (USDT)"
+  ],
+  "caveats": [
+    "point-in-time 2026-10-22",
+    "P value = privileged/operator-only ceiling, NOT extractable by an outsider"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live; burnNsFromPair is the exact NEM shape but role-gated to a Gnosis Safe multisig with a 1-day cooldown and 5% cap"
+}
