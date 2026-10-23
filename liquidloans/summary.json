@@ -1,0 +1,51 @@
+{
+  "finding": "OPEN-7",
+  "title": "LiquidLoans (PulseChain) Liquity-v1 fork — TVL $4.28M->$1.63M is a PLS price artifact + repayments; no unprivileged path",
+  "chains": ["pulsechain"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 0, "H-O": 2157430, "P": 0, "S": 0},
+  "latest_block": 27868978,
+  "block_numbers": {"pulsechain": 27868978},
+  "targets_checked": 1,
+  "live_targets": 0,
+  "closed_reasons": [
+    "The pass-2 address 0x9159f1d2a9f51998fc9ab03fbd8f265ab14a1b3b is the LOAN governance token, not the CDP; the CDP is the LiquidLoans Liquity-v1 fork (BorrowerOperations 0xa09bB56B..., VaultManager 0xD79bfb86..., StabilityPool 0x7bFD4066..., USDL 0x0dEEd148...).",
+    "All admin surfaces are owner-renounced: owner()=0 on VaultManager, BorrowerOperations, StabilityPool, ActivePool, DefaultPool, CollSurplusPool, PriceFeed, LOANStaking, CommunityIssuance.",
+    "No vault is liquidatable: 96 vaults, minimum ICR 1.5156, median 1.989, max 7.249; MCR=1.10; 0 vaults below MCR (block 27,868,978).",
+    "The oracle is not manipulable by a single transaction: primary Fetch oracle fresh and reporter-based; secondary is a period-limited PulseX-V2 TWAP; both within 1.1% of each other and of market WPLS ($5.68e-6 vs oracle $5.66e-6); status=fetchWorking.",
+    "Every exit is msg.sender-scoped: CollSurplusPool.claimColl requires msg.sender==BorrowerOperations and passes the caller; StabilityPool.withdrawFromSP and LOANStaking withdrawals are per-depositor; both revert for a fresh caller.",
+    "Borrowing creates no value: max borrow = coll*price/1.10, and the minted USDL is worth less than the collateral's market value (test E: $5,062 vs $5,636 per 1M PLS).",
+    "TVL drop reconciled: protocol oracle fell 9.4059e-6 -> 4.8683e-6 (-48%) from 13 to 19 Oct while system collateral fell only 6.3% (377.0e9 -> 353.2e9 PLS) and debt fell 21.6% (repayments/redemptions); no outflow trail."
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40010530029",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39921598361"
+    ],
+    "ci_conclusion": "success",
+    "fork_block": 27873228
+  },
+  "key_facts": [
+    "LOAN token 0x9159f1D2a9f51998Fc9Ab03fbd8f265ab14A1b3B: LOANToken solc 0.6.11, totalSupply 5.5e30, deploymentStartTime 1701402455.",
+    "System at block 27,868,978: getEntireSystemColl=348,005,202,970.03 PLS; getEntireSystemDebt=955,590.92 USDL; oracle fetchPrice 5.6558e-6, lastGoodPrice 5.7252e-6; TCR 206%; MCR 110%; CCR 150%; baseRate 0.5186%.",
+    "Core addresses: BorrowerOperations 0xa09bB56B39D652988C7E7d3665aA7EC7308BbF09; VaultManager 0xD79bfb86fA06e8782b401bC0197d92563602D2Ab; StabilityPool 0x7bFD406632483ad00c6EdF655E04De91A96f84bc; ActivePool 0x3983f040916681085D7949F7ee78BfA12c5CB119; DefaultPool 0x717A736b34308d97EeFb5bd91539E0D3B9142dBE; CollSurplusPool 0x88742a6Fd16A00Fc671fff371E4CC8ff58378596; SortedVaults 0xE1246517c3eCa1e2a198fc927296d8ff87BaBD3c; PriceFeed 0xc65Abc8B9B4B3cEE03430f6fc3d8A4760221A113; USDL 0x0dEEd1486bc52aA0d3E6f8849cEC5adD6598A162.",
+    "Oracle: PriceFeed.fetchCaller=0xb3E153ab13043AC0Aa933daCEbB6F26F9ed1801B (primary Fetch, unverified); secondaryOracle=0x6039D143299166Fb733Ef4e45d748FBDF509B0aC -> impl 0x72992fcb616fb99b150edda114210100acbd382b, UUPS proxy owned by Gnosis Safe 0xF796661E25ee682Fc090C9dB1BdB981b3b252999.",
+    "Balances: StabilityPool 66,650,227,927.06 PLS + 605,042.75 USDL; CollSurplusPool 7,327,483,804.37 PLS ($41.6k); LOANStaking 2,614,069,234,881.94 LOAN + 50,528.77 USDL + 1,315,560,632.88 PLS; CommunityIssuance 446,403,004,644.45 LOAN; GasPool 0.",
+    "TVL series (on-chain): 13 Oct coll 377.0e9 PLS @ 9.4059e-6 = $3.546M; 15 Oct 360.6e9 @ 6.2139e-6 = $2.240M; 19 Oct 353.2e9 @ 4.8683e-6 = $1.719M; 23 Oct 348.0e9 @ 5.7252e-6 = $1.992M.",
+    "DefiLlama's $1,722,083 = ActivePool_PLS x DefiLlama native-PLS price $4.948e-6 (WPLS is $5.677e-6, a 13% internal spread); the separate staking leg $1,081,287 = 2.614e12 staked LOAN x $4.1366e-7.",
+    "PoC test_C: redeem 1,000 USDL -> fee 5.02 USDL; net +$2.00 (+0.2%) locally, -$7.87 at the first CI block and +$45.71 (+4.6%) at a later CI block => a sign-flipping oracle-vs-market basis trade (about +/-5%), the intended redemption/peg mechanism, bounded by USDL DEX depth (~$7k/24h) and the $955k debt; not protocol extraction.",
+    "USDL market marks: 9mm V3 USDL/DAI $1.01, Phux USDL/USDC $0.991, PulseX V2 USDL/WPLS $0.993; DefiLlama USDL $0.98947."
+  ],
+  "caveats": [
+    "Point-in-time 2026-10-23 (block 27,868,978); the vault set, prices and the secondary-oracle owner must be re-read before any action.",
+    "H-O ~$2.16M is mark-to-market at PLS $5.6768e-6 / USDL $0.98947 / LOAN $4.1366e-7 and is user-owned, self-service only (not attacker-extractable).",
+    "P risk stated but not proven: the secondary oracle is a UUPS proxy owned by a Gnosis Safe; a Safe compromise could re-price the oracle and liquidate/drain (key risk, not an unprivileged path).",
+    "The Base deployment advertised by liquidloans.io is out of scope of this PulseChain OPEN.",
+    "DefiLlama's LiquidLoans adapter (module liquidloans-io/index.js) is not present in the current public DefiLlama-Adapters tree; the reconciliation uses on-chain reads + DefiLlama price marks.",
+    "No secrets or keyed RPC URLs are stored in this folder; all work is read-only."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 from LiquidLoans: the $4.28M->$1.63M TVL fall is the PLS oracle price dropping 48% plus a 6.3% collateral outflow (repayments/redemptions), the protocol is a Liquity-v1 fork with all admin renounced, the oracle is at market and two-sourced, no vault is liquidatable, and every exit is msg.sender-scoped; only a ~0.2% intended peg arbitrage exists."
+}
