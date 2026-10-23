@@ -1,0 +1,71 @@
+{
+  "finding": "OPEN #8 (ZH4 residual) — World Markets Spot",
+  "title": "World Markets Spot / Concord Exchange (MegaETH) — no unprivileged extraction path; $668.9k is user custody, $1.10 unattributed",
+  "chains": [
+    "megaeth"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 668907.19,
+    "P": 668908.29,
+    "S": 1.1
+  },
+  "latest_block": 29964301,
+  "block_numbers": {
+    "megaeth": 29964301,
+    "also_checked": [
+      29963161,
+      29963541,
+      29963373
+    ]
+  },
+  "targets_checked": 22,
+  "live_targets": 22,
+  "closed_reasons": [
+    "All user-scoped entry points (batchCommands, newSpotBuy/SellOrder, cancel*, newLendOrder, liquidate, payInterestAndFees, markLendPositionAsNonReturnable, lifoLenderSwap, renewLoan, requestPerpTrueUp, liqSwap) are gated by checkTradingPermission -> CallerIsNotTrader (0xd07a9d6b) for a caller with no account (20/20 probes revert at pinned block 29963541)",
+    "Account/custody paths are msg.sender-scoped: withdrawErc20 from a caller with no account -> CallerHasNoAccount (0xfb64298d); allowTradingForAccount(victim) -> CallerNotPermissioned (0xaebf6f28)",
+    "All admin paths (setTokenConfig, setOpsAddress, switchTokenAddress) -> AdminRoleOnly (0x10c95c62); changeAdmin reverts for everyone but a separate super-admin",
+    "Order-book admin (haltTrading, setMinOrderQuantity) -> ExchangeOnlyCall (0x26e41fb0); order books hold zero tokens",
+    "wl* vault admin (setManagerAddress, setTraderAddress, setAdmin, rescueErc20) reverts with vault-specific guards",
+    "Order-book compute*MarketOrderSpecify* simulations are callable by anyone but side-effect-free (countBuyOrders unchanged across the call)",
+    "No free-credit path: createAccount + depositErc20 credit only actually-transferred tokens; wl* share tokens are tracked under distinct token ids 11/12/13",
+    "No liquidatable-keeper profit: 4 accounts are genuinely underwater (users 561/954/1434/1574) but liquidate() reverts LiquidationNotSuccessful (0x62a8087e) — 4/5 spot books and 4/5 perp books have zero orders, so there is no liquidity to execute the liquidation; total sequestered collateral is dust (2.29e9 raw USDm spot/lend, 3.16e7 raw perp)"
+  ],
+  "poc": {
+    "tests_passed": 13,
+    "tests_total": 13,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39959641892",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39957898878",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39957092762"
+    ]
+  },
+  "key_facts": [
+    "Chain: MegaETH, chain id 4326. Exchange proxy 0x5e3Ae52EbA0F9740364Bd5dd39738e1336086A8b (348-byte dispatcher, internal name 'Concord Exchange').",
+    "Facets: router 0xe1fc1881d1c495b399c9890930aa416e89d691c2 (56 selectors); trading 0x431212abc35737011ddd7306fb5229752b6bd115 (22 selectors); bulk/account 0xafba6b6a8d1b8cacd1fc12df9e32f23f1a923417 (26 selectors). Proxy admin EOA 0xCe46EE0664e02d6FF478f08e580De42EeFA29cC9.",
+    "14 order books (5 spot bookType 11, 5 perp bookType 22, 4 lend bookType 33) all hold ZERO tokens — single custody contract.",
+    "Exchange custody at block 29963541 = $668,908.29 across 9 tokens (USDm 358,475.91; WETH 13.0461; USDT0 432.488; BTC.b 0.28477; wiTRY 10,241,538.32; MEGA 170,090.28; wlBTCb 0.008055; wlUSDm 79.7726; wlETH 0.044902).",
+    "Full 1,581 user x 11 token ledger scan at a pinned block: 1,687 active user-token pairs, 1,218 funded users; user-ledger sums equal exchange custody EXACTLY for 8 of 9 tokens; only USDm shows a 1.1e18 raw residual ($1.10).",
+    "Therefore $668,907.19 is user-attributable (H-O, self-service) and only $1.10 is unattributed (likely accumulated protocol fees; no admin withdraw function exists -> effectively stuck).",
+    "riskAdjustedPortfolioValue scan of all 1,581 users: 4 accounts are UNDERWATER (liquidatable) — users 561/954/1434/1574 with risk-adjusted values -1,211,666 / -14,773 / -5,107,389 / -32,062 in 1e-4 USDm (-$121.17 / -$1.48 / -$510.74 / -$3.21).",
+    "Permissionless keeper path is inoperable: an attacker account calling liquidate(userToLiquidate, attackerUid, 0) on all 4 underwater accounts reverts LiquidationNotSuccessful (0x62a8087e) because the order books have no liquidity to execute the liquidation swaps; attacker USDm delta = 0 (fork-proven, test_keeper_liquidation_path).",
+    "Custody reconciliation residual is stable across four independent runs: exactly 1.1e18 raw USDm ($1.10) unattributed; all other 8 tokens reconcile to delta 0.",
+    "Team publishes a 2026-02-20 collaborative audit (6 High / 12 Medium / 5 Low, all RESOLVED) at github.com/World-Markets-Inc/smart-contract-audits — DefiLlama's audits:0 is wrong.",
+    "Contracts are NOT source-verified on Mega Etherscan (chainid 4326) or megaeth.blockscout.com; Sourcify match:null. ABI reconstructed from the team's public interface repo World-Markets-Inc/contract-owner (IConcordProtocolPub, PublicStruct.sol, IConcordProtocolErrors).",
+    "Spot order books are effectively empty (countBuyOrders = 0 on 4/5); the DefiLlama 'Spot TVL' is the exchange's user vault balances, not order-book liquidity.",
+    "Admin EOA 0xCe46EE0664e02d6FF478f08e580De42EeFA29cC9 can setTokenConfig / setOpsAddress / switchTokenAddress (migrate a token mapping and balances) — $668.9k is exposed to that single EOA key.",
+    "Privileged wl* vault manager/trader = 0x0ac3dd9aebf2889fb85c5b6792eadbfc4f599e18."
+  ],
+  "caveats": [
+    "Source is unverified; logic reconstructed from the team's public interfaces + the audit report + deployed-runtime selector extraction. A deeper accounting/funding/liquidation bug cannot be excluded by interface-level probes, though no unprivileged value-moving entry point exists.",
+    "Keeper path is state-dependent: if order-book liquidity returns, the 4 underwater accounts (total risk-adjusted deficit ~$641) become liquidatable with a design-intended <=1% keeper bounty. That is a bounded, intended payment, not an extraction.",
+    "The three facets were (re)deployed at blocks 21,800,870-876 (2026-06), after the 2026-02-20 audit date.",
+    "Point-in-time: all reads at blocks 29,963,373 / 29,963,541 (2026-10-23). Re-read before acting.",
+    "The $1.10 residual is inferred to be protocol fees (unattributed by construction, not proven origin).",
+    "wl* NAVs computed as getAum()/totalSupply() at the read block.",
+    "Read-only: no mainnet transaction signed or sent; all state changes are local forks. No secrets or keyed RPC URLs in the folder (public CI repo)."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live from World Markets Spot on MegaETH: the $668.9k of custody is 100% user-attributable (H-O) and every state-changing entry point is role- or msg.sender-gated (20/20 permissionless probes revert with CallerIsNotTrader / CallerHasNoAccount / AdminRoleOnly / ExchangeOnlyCall; 13/13 fork tests pass); the only residual is $1.10 of unattributed USDm and a single-EOA admin key over the whole vault."
+}

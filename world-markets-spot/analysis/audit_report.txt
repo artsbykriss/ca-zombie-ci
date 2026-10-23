@@ -1,0 +1,730 @@
+/burl@stxnulldef/BU.S /burl@stxnulldef def/BU.SS currentpoint/burl@llyexchdef/burl@llxexchdefburl@stxnullneburl@endxburl@llxneBU.FLBU.Sififburl@stxnulleq burl@llxdup/burl@stxexchdef/burl@endxexchdefburl@llydup/burl@botyexchdef/burl@topyexchdef ifburl@llyburl@botygt/burl@botyburl@llydefif def/BU.SE currentpoint/burl@uryexchdefdup/burl@urxexchdef/burl@endxexchdefburl@uryburl@topylt/burl@topyburl@urydefif def/BU.E BU.FL def/BU.FL burl@stxnullneBU.DFif def/BU.DF BU.BB[/H/I/Border[burl@border]/Color[burl@bordercolor]/Action«/Subtype/URI/URIBU.L»/Subtype/LinkBU.B/ANNpdfmark/burl@stxnulldef def/BU.BB burl@stxHyperBordersub/burl@stxexchdefburl@endxHyperBorderadd/burl@endxexchdefburl@botyHyperBorderadd/burl@botyexchdefburl@topyHyperBordersub/burl@topyexchdef def/BU.B /Rect[burl@stxburl@botyburl@endxburl@topy] def/eopwhere begin/@ldeopburl/eoploaddef/eop SDictbeginBU.FLend@ldeopburl defend /eop SDictbeginBU.FLend def ifelse
+Security Review For
+World Markets
+CollaborativeAuditPreparedFor:World Markets
+LeadSecurityExpert(s):
+DateAudited: October 28 - December 9, 2025
+1
+Introduction
+WorldMarketsisthecanonicalDEXonMegaETH.Itisthefirsttradingvenuetocombine
+spot,under-collateralizedlending,andperpetualfuturesunderoneportfolio-levelrisk
+engine. Yourvaultinvestments,unrealizedPnL,stakedassets,andloansallcontributeto
+youravailablemargintotrade.
+Scope
+AuditedCommit: 36ece93f76fc324515e5c9666523e22f607cbffe
+FinalCommit: a3fd22029ebbdd1ac830d1ad3bc0ab32cb015894
+Findings
+All issues have been addressed, resolved, and their
+fixes verified by the team of Security Researchers.
+Issues Found
+High Medium Low/Info
+6 12 5
+Eachissuehasanassignedseverity:
+•Highissuesaredirectlyexploitablesecurityvulnerabilitiesthatneedtobefixed.
+•Mediumissuesaresecurityvulnerabilitiesthatmaynotbedirectlyexploitableor
+mayrequirecertainconditionsinordertobeexploited. Allmajorissuesshouldbe
+addressed.
+•Low/Infoissuesarenon-exploitable,informationalfindingsthatdonotposea
+securityriskorimpactthesystem’sintegrity. Theseissuesaretypicallycosmeticor
+relatedtocompliancerequirements,andarenotconsideredapriorityfor
+remediation.
+2
+Issue H-1: Unexpected cancellation leads to loss of
+funds [RESOLVED]
+Summary
+Inthespot/perporderbook,itincorrectlycalculatesthebalanceofsellnode.
+Vulnerability Detail
+InthecheckSellBalancefunction,itcalculatesthebalanceofthesellnode. Whenit
+calculatesthebalanceofthenode,itshoulddividebyconfig.fromVaultPdDiff()rather
+thantoVaultPdDiff().
+(uint128bal,,)=vault.getBalance(sellNodeData.client(),config.fromTokenId());
+uint64maxQuantity=uint64(bal/10**(config.toVaultPdDiff()));
+if(maxQuantity==0){
+return0;
+}
+Impact
+•Userordersarecancelledunexpectedly.
+•Inthespotmarket,itaffectsuser'spositionanduserscan'tclosetheirpositionas
+theywant. Itleadstolossoffundstotheusers.
+•DoSoffillingorder.
+Tool Used
+ManualReview
+Recommendation
+(uint128 bal,, ) = vault.getBalance(sellNodeData.client(),
+config.fromTokenId());↪→
+- uint64 maxQuantity = uint64(bal / 10**(config.toVaultPdDiff()));
++ uint64 maxQuantity = uint64(bal / 10**(config.fromVaultPdDiff()));
+Discussion
+moh-eulith
+3
+2ndpointunder”Impact”isincorrect. ThiscodeonlyappliestoSpot.
+moh-eulith
+Commit3842ffc
+4
+Issue H-2: Utilizing set Instead of increase [RESOLVED]
+Vulnerability Detail
+'set'operationisusedinsteadofan'increase'. Asaresult,lendHoursDurationcannot
+exceed10days. Additionally,sincehoursPaidcanbegreaterthanlendHoursDuration,
+thismayleadtoanunderflow,resultinginaDoSandcausingseveralfunctions,including
+liquidation,tofail.
+56: if(extendPeriod){
+57: lendMatch=lendMatch.setLendHoursDuration(240-
+(lendMatch.lendHoursDuration()-lendMatch.hoursPaid()));↪→
+58: }
+Impact
+Thecorefunctionalityofthecontractisbroken: theborrowperiodcannotbeextended.
+Thisissuemayleadtoalossoffunds,asliquidationmightnotworkforsomeusers,
+potentiallyresultinginbaddebt.
+Tool Used
+ManualReview
+Recommendation
+- lendMatch = lendMatch.setLendHoursDuration(240 -
+(lendMatch.lendHoursDuration() - lendMatch.hoursPaid()));↪→
++ lendMatch = lendMatch.setLendHoursDuration(240 + lendMatch.hoursPaid());
+Discussion
+moh-eulith
+Commita5c3c21
+5
+Issue H-3: Original interest rate is passed on to the
+borrower [RESOLVED]
+Vulnerability Detail
+Inthedoc:
+Iftheinterestrateislowerthanthepositiontheyhad,thelowerinterestrateispassed
+to the borrower. However, in this case, the original interest rate is passed on to the
+borrower.
+662:functionlenderReplacedMatch(LendMatchexisting,LendMatchnewLender,
+uint64_quantity)internalpurereturns(LendMatch){↪→
+675: returnLendMatch.wrap(v);
+676:}
+Impact
+Borrowerspaymoreinterestthantheyshould. Lendersreceivemoreinterestthantheir
+request.
+Discussion
+moh-eulith
+Commita5c3c21
+6
+Issue H-4: borrowerQuantity and spotBalance [RE-
+SOLVED]
+Vulnerability Detail
+The comparisonisincorrect. Duetothis,
+ExchangeExt.sol#L258couldbeunderflow. And
+ExchangeExt.sol#L314canbeskiped.
+323:functionprocessPayableBorrowsAtLossSellExtraForToken(uint64userId,
+uint32tokenId,Ratio64lossMult)internal{↪→
+324:
+325:
+326:
+327:
+tokenCon↪→
+328:
+333:
+334:
+335:
+336:
+337:
+338:
+339:
+...
+252: LendAggPositionagg=readLendAgg(userId,tokenId);
+253: if(agg.borrowerQuantity()>0){
+254: VaultTokenConfigtokenConfig=internalReadTokenConfig(tokenId);
+255: VaultTokenConfigbaseConfig=
+internalReadTokenConfig(BASE_TOKEN_ID);↪→
+256: VaultLedgerledger=internalReadLedger(userId,tokenId);
+257: uint64spot=
+tokenConfig.convertVaultToPosition(ledger.userBalance());↪→
+258: ;
+Impact
+Amalicioususercanmakeaaddresswhichcan'tbeliquidated.
+Discussion
+moh-eulith
+7
+Commitf375cb5
+8
+Issue H-5: internalPayInterestAndFees() may revert
+unreasonably. [RESOLVED]
+Summary
+Whenpayinginterestandprinciple,newlendordercanbebecreated. So,payingcan
+revertifthelenderhasnoenoughbalance.
+Vulnerability Detail
+TheapplicationofthesequestrationMultiplierisnotsuitable. Ifalenderconsumesallof
+itsmaxSequestersandthenmatchessomeofthem,themaxSequestersdecreases
+significantlyby(delta*sequestrationMultiplier),whilethespotLendSeqBalance
+decreasesonlyslightlyby(delta). Thiscanleadtoexceedingthelimitandcreatinga
+vulnerability.
+functionsequester(uint64user,uint32token,uint64amount)external
+@
+↪
+}
+9
+internalPayInterestAndFees()cancreateanewlendorderwhenreducingborrowed
+amount.
+if(lendMatch.returnLenderToBookAsBit()==1&&reduceQuantity>0){
+addressorderBook=internalGetLendBook(tokenId);
+ILendBookForExchbook=ILendBookForExch(orderBook);
+LendOrderorderData=
+LendOrderLib.newLendOrder(lendMatch.lenderAccountId(),
+reduceQuantity,lendMatch.lenderInterestRate());
+↪→
+↪→
+@> book.newLendSellOrder(orderData);
+}
+However,thenewLendSellOrder()functioncanrevertduetosomereasons,forexample,
+inthesequester()function.
+Considerthefollowingscenario:
+1.Alice'sbalanceis100.
+2.Alicemade20(=sequestrationMultiplier)lendorderswhoseamountsare100. So,
+Alice'sspotLendSeqBalanceis2000.
+3.TwolendordersarematchedbyBobandCharlie. Eachoftheiramountsare50. So,
+Alice'sbalanceis0. Alice'sspotLendSeqBalanceis1900.
+4.Bobisgoingtopay50.
+Intheabovescenario,Bob'spaywillfailbecause: 1900+50>50*20
+Impact
+Usersmaybeunabletopayfortheirpositions.
+Tool Used
+ManualReview
+Recommendation
+try/catchmechanismshouldbeusedforcreatingnewlendorder.
+Discussion
+moh-eulith
+Commit5355ecb
+10
+Issue H-6: A malicious user can avoid intereset pay-
+ment by using lifoLenderSwap [RESOLVED]
+Summary
+DuringtheswapLendersprocess,thependinginterestinboththetoSwapBorrowed
+positionandtheexistingLentpositionisnotsettled. ThetoSwapBorrowedpositionis
+replacedwiththestartTimeandhoursPaidoftheexistingLentposition.
+Inotherwords,theswapperdoesnotreceivetheinteresttheyshouldreceiveanddoes
+notpaytheinteresttheyshouldpay. Asaresult,swappercanexploitthisvulnerabilityto
+avoidpayingborrowinginterestofoldposition.
+Vulnerability Detail
+lifoLenderSwapisusedtocancellendingandborrowingatthesametime. However,the
+newposition'shoursPaidissetastheoriginalhoursPaid. So,amalicioususercanavoid
+interesetpayment.
+functionlenderReplacedMatch(LendMatchexisting,LendMatchnewLender,uint64
+_quantity)internalpurereturns(LendMatch){↪→
+@>
+returnLendMatch.wrap(v);
+}
+Considerthefollowingscenario:
+1.Aliceborrows100fromBobandlends100toCharlie.
+2.Charliepaysinterest.
+3.Alicecancelslendingandborrowingatthesametime.
+4.Aliceearnsinterestforfree.
+11
+Impact
+AmalicioususercanavoidinteresetpaymentbyusinglifoLenderSwap.
+Tool Used
+ManualReview
+Recommendation
+Thenewpositionshouldbemadeusingconsideringbothoforiginalpositions.
+Discussion
+moh-eulith
+Commit29c1ee4andtypofixedinCommita799a5b
+(it'snolongerpossibletoswapinoldpositions)
+12
+Issue M-1: setMinOrderQuantity function removes
+fee information [RESOLVED]
+Summary
+WheneverthesetMinOrderQuantityiscalled,feescheduleinformationisremoved.
+Vulnerability Detail
+Foralendorderbookconfig,theinformationofthetokenIDisstoredinthe config.toTok
+enID().
+functionnewConfigForLending(uint32tokenId)internalpurereturns(OrderBookConfig)
+{↪→
+So,config.fromTokenID()willalwaysreturn0forthelendorderbooktype.
+functionfromTokenId(OrderBookConfigobc)internalpurereturns(uint32){
+returnuint32(OrderBookConfig. );
+}
+Asaresult,whenevertheadmincallsthesetMinOrderQuantityfunction,feeschedule
+informationisremoved.
+Impact
+Lossoffees.
+Tool Used
+ManualReview
+Recommendation
+- LendFeeSchedule fees = internalGetLendFeeSchedule(config.fromTokenId());
++ LendFeeSchedule fees = internalGetLendFeeSchedule(config.toTokenId());
+Discussion
+moh-eulith
+13
+Commit3842ffc
+14
+Issue M-2: When it cancels order, it does not write
+updated list meta data [RESOLVED]
+Summary
+Whenitcancelsorder,itdoesnotupdatethelistmetadata.
+Vulnerability Detail
+IntheinternalCancelSpotBuyOrderandinternalCancelSpotSellOrderfunctions,itfirst
+removesthenodefromcorrespondingarea. However,itdoesnotwritetheupdated
+informationtothestorage.
+Impact
+Itisimpossibletocreateorderssincethelengthoflistneverdecreases.
+Tool Used
+ManualReview
+Recommendation
+// free the node:
+- updateListMetaDataForFreedNode(ListMetaLib.read(area), area, pos);
++ ListMeta listMeta = updateListMetaDataForFreedNode(ListMetaLib.read(area),
+area, pos);↪→
++ StorageUtils.writeStorage(area, 0, listMeta.raw());
+}
+Discussion
+moh-eulith
+Commit3842ffc
+15
+Issue M-3: Reconfiguration does not update the mi-
+nOrderQuantity of the order book [RESOLVED]
+Summary
+Whenitreconfiguresthesettingoflendorderbook,itdoesnotsyncwiththeparameter
+oftheorderbook.
+Vulnerability Detail
+InthereconfigureLendBook,itcansetanewminOrderQuantityoftheorderbookconfig.
+However,itdoesnotupdatetheparameteroftheorderbook. Itcanusethestaled
+parameter.
+Impact
+TheminOrderQuantityparameteroftheorderbookisnotsyncedwiththemainconfig.
+Tool Used
+ManualReview
+Recommendation
+function reconfigureLendBook(address orderBook, LendFeeSchedule fees) external
+onlyAdmin {↪→
+OrderBookConfig old = OrderBookConfig.wrap(StorageUtils64.readStorageForAd⌋
+dress(AREA_ORDERBOOK_TO_CONFIG, orderBook));↪→
+require(!old.isBlank() && old.bookType() == LEND_BOOK_TYPE,
+ExchangeErrors.NoOrderBookRegistered());↪→
++ fees = setMinOrderQuantityFromBook(orderBook, fees);
+StorageUtils64.writeStorageForAddress(AREA_LENDBOOK_TO_FEE_SCHEDULE,
+orderBook, fees.raw());↪→
+}
+Discussion
+moh-eulith
+Commit3842ffc
+16
+Issue M-4: DoS of swapByAmountInViaMinOut func-
+tion [RESOLVED]
+Summary
+InthecomputeBuyMarketOrderSpecifyInandcomputeSellMarketOrderSpecifyInfunctions,
+itdoesnotupdatenodedataforthehead.
+Vulnerability Detail
+InthecomputeBuyMarketOrderSpecifyInandcomputeSellMarketOrderSpecifyInfunctions,
+itupdatesthehead,butdoesnotudpatesellNodeDataandbuyNodeData. Itresults
+incorrectestimatedpriceforSwapRouter.
+Impact
+DoSoftheswapByAmountInViaMinOutfunctionforBuy/Selloperation.
+Tool Used
+ManualReview
+Recommendation
+head = buyNodeData.next();
++ if (head != 0) {
++ buyNodeData = SpotNodeLib.read(BUY_ORDER_AREA, head);
++ }
+head = sellNodeData.next(); // head = head.next
++ if (head != 0) {
++ sellNodeData = SpotNodeLib.read(SELL_ORDER_AREA, head);
++ }
+Discussion
+moh-eulith
+Commitb434884
+17
+Issue M-5: DoS of swapByAmountOutViaMaxIn func-
+tion [RESOLVED]
+Summary
+InthecomputeBuyMarketOrderSpecifyOutandcomputeSellMarketOrderSpecifyOut
+functions,itdoesnotupdatenodedataforthehead.
+Vulnerability Detail
+InthecomputeBuyMarketOrderSpecifyOutandcomputeSellMarketOrderSpecifyOut
+functions,itupdatesthehead,butdoesnotudpatesellNodeDataandbuyNodeData. It
+resultsincorrectestimatedpriceforSwapRouter.
+Impact
+DoSoftheswapByAmountOutViaMaxInfunctionforBuy/Selloperation.
+Tool Used
+ManualReview
+Recommendation
+head = buyNodeData.next();
++ if (head != 0) {
++ buyNodeData = SpotNodeLib.read(BUY_ORDER_AREA, head);
++ }
+head = sellNodeData.next(); // head = head.next
++ if (head != 0) {
++ sellNodeData = SpotNodeLib.read(SELL_ORDER_AREA, head);
++ }
+Discussion
+moh-eulith
+Commitb434884
+18
+Issue M-6: No overflow check in the times10 func-
+tion [RESOLVED]
+Summary
+Thereisnooverflowcheckinthetimes10function.
+Vulnerability Detail
+Inthetimes10function,thereisnooverflowcheck. Theexpression(p.mantissa() * 10)
+<< 5couldpotentiallyoverflowauint64. Ifanoverflowoccurs,themantissawillbeclose
+tozero.
+Impact
+Intheswaprouter,buyoperationsviatheswapByAmountOutViaMaxIn()andswapByAmountI
+nViaMinOut()functionswillbeDoSed.
+Tool Used
+ManualReview
+Recommendation
+if (exp == 0) {
+- return Price59EN5.wrap(uint64((p.mantissa() * 10) << 5));
++ uint v = p.mantissa() * 10;
++ require(v < (1 << 59));
++ return Price59EN5.wrap(uint64(v) << 5);
+}
+Discussion
+moh-eulith
+Commit3842ffc
+19
+Issue M-7: Funding Rate calculation can be incor-
+rect [RESOLVED]
+Summary
+Fundingratecalculationcanbeincorrect.
+Vulnerability Detail
+InthedivScaled30function,theratiocanoverflowtheuint128.maxanditcouldreturn
+smallervalue.
+functiondivScaled30(Price59EN5numer,Price59EN5denom)internalpure
+returnsuint128↪→
+@>
+}
+Impact
+Itresultsinincorrectfundingratecalculationandaccouting.
+Tool Used
+ManualReview
+Recommendation
+Addoverflowcheck.
+Discussion
+moh-eulith
+Commita3fd220
+20
+Issue M-8: With sufficient balance, users can't bor-
+row due to overflow [RESOLVED]
+Summary
+Auserwithlargebalancecan'tborrowinthelendmarket.
+Vulnerability Detail
+IntheinvertedBuySequesterAmountfunction,itcalculatesthesequesteramountand
+castsittouint64.
+functioninvertedBuySequesterAmount(uint64availableInterest,uint16
+_interestRate)internalpurereturns(uint64){↪→
+@> returnuint64((availableInterest)*
+(365*3*ConfigConstants.INTEREST_RATE_DIVISOR)/w16(_interestRate));↪→
+}
+Asaresult,itreturnssmalleramountthanexpected.
+Impact
+Userswithlargebalancecan'tborroweffectivelyinthelendmarket.
+Tool Used
+ManualReview
+Recommendation
+Addoverflowcheck.
+Discussion
+moh-eulith
+Commita5c3c21
+21
+Issue M-9: Incorrect cast of user balance [RESOLVED]
+Summary
+Inthelendmarket,itincorrectlycastsuserbalancetouint64.
+Vulnerability Detail
+InthecheckBuyBalanceandcheckSellBalancefunctions,itfirstgetsauserbalancefrom
+theledger. Then,itcastsittouint64. Ifauserhasalargebalance,itreturnsthesmall
+value.
+(uint128bal,,)=vault.getBalance(_buyIterator.userId(),
+tokenConfig.tokenId());↪→
+@> uint64positionBal=uint64(bal/10**(tokenConfig.vaultPdDiff()));
+Impact
+Userswithlargebalancecan'tborroweffectivelyinthelendmarket.
+Tool Used
+ManualReview
+Recommendation
+Addoverflowcheck.
+Discussion
+moh-eulith
+Commita5c3c21
+22
+Issue M-10: The Credit of lossMult Does Not Include
+the Lending Position [RESOLVED]
+Vulnerability Detail
+lossMultconsistsofbothcreditsanddebts. However,creditsdonotincludethe
+liquidatee'slendingpositions. Iftherearenolendingordersintheorderbook,
+undoNonBaseLenderPositionsmaynotcompletelyremovethelenderposition. Ina
+bankruptcyscenario,alldebtscanbeliquidatedbyapplyinglossMult,whichleavesthe
+liquidateewithnodebtsandonlylendingpositionsremaining.
+352:functioncomputeCreditLiability(uint64userId,uint32tokenId,
+VaultTokenConfigbaseConfig)internalviewreturns(uint64,uint64){↪→
+353:
+354:
+355:
+356:
+int8(bas↪→
+357:
+tokenCon↪→
+358:
+359:
+360:
+361:
+362:
+363:
+convertF↪→
+364:
+365:
+mark.inf
+-spotBa
+↪→
+↪→
+366:
+367:
+368:}
+Impact
+Thissituationcouldleadtopotentiallossesforthelendersandprofitsfortheliquidatee.
+Recommendation
+Ifthereareanyoutstandinglendingpositions,Ibelievetheyshouldbedistributed
+appropriatelyamongthelenders. Alternatively,Ithinktheadminshouldaddalending
+ordertopreventthissituation.
+23
+Discussion
+moh-eulith
+Commita3fd220
+24
+Issue M-11: A lending position with the same borrower
+and lender can be created by lifoLenderSwap() [RE-
+SOLVED]
+Summary
+ThelifoLenderSwap()functionisusedtodecreasethelendamountandborrowamount
+forauserandatoken. Atthattime,apositionwiththesamelenderandborrowercanbe
+made.
+Vulnerability Detail
+ThelifoLenderSwap()functionisusedtodecreasethelendamountandborrowamount
+forauserandatoken.
+functionlifoLenderSwap(uint64lentPositionId)external{
+LendMatchlendMatch=readLendMatch(lentPositionId);
+checkTradingPermission(lendMatch.lenderAccountId());
+internalLifoLenderSwap(lendMatch,lentPositionId);
+}
+Thereisnocheckiftheborrowerandthelenderisthesame.
+functionlenderReplacedMatch(LendMatchexisting,LendMatchnewLender,uint64
+_quantity)internalpurereturns(LendMatch){↪→
+}
+Considerthefollowingscenario: initialstate: position1(amount: 100,lender: Alice,
+Borrower: Bob)position2(amount: 100,lender: Bob,Borrower: Alice)IfAlicecallslifoLen
+derSwap()forposition1,anewpositionwithBobastheBorrowerandlendercanbemade.
+25
+Impact
+AlendMatchwiththesamelenderandborrowercanbemade.
+Tool Used
+ManualReview
+Recommendation
+InthelifoLenderSwap(),theabovecaseshouldbeprvented.
+Discussion
+moh-eulith
+Commita3fd220
+moh-eulith
+Iconsiderthis”Medium”becauseaself-lendwouldcauseissueswithliquidation.
+26
+Issue M-12: A malicious user can cause lending posi-
+tion key collision. [RESOLVED]
+Summary
+Thekey(64bit)ofanewlendingpositionismadebycombiningnextLendingSequence()
+(32bit)andnowMinutes()(32bit). However,thefirst32bitcanberesetwhenswapping
+lenders. So,thereisariskofpositionkeycollision.
+Vulnerability Detail
+Thekey(64bit)ofanewlendingpositionismadebycombiningnextLendingSequence()
+(32bit)andnowMinutes()(32bit).
+nextLendingSequence()returnsvaluesbetween1and2^30.
+functionnextLendingSequence()internalreturns(uint32){
+unchecked{
+}
+}
+However,thefirst32bitcanberesetwhenswappinglenders.
+uint64newMatchId=(uint64(nextLendingSequence())<<32)|
+uint64(uint32(existingLentId));↪→
+Considerthefollowingscenario:
+1.Twopositionsaremadeinthesameminute. Position1:nextLendingSequence()=1,n
+owMinutes(): 2000Position2:nextLendingSequence()=2,nowMinutes(): 2000
+2.Aftersometime,theposition1stillexistsandthekeyofposition2isresetas1when
+swappinglenders.
+Thentheposition1willbeerased,whichcanresultinveryseverelossoffundforusers. In
+step2,amalicioususercancausethecollision.
+27
+Impact
+Eraseofalendingposition.
+Tool Used
+ManualReview
+Recommendation
+Ifcollisionoccurs,thenumbershouldbeskipped.
+Discussion
+moh-eulith
+Commit29c1ee4
+Disagreewith”Medium”. SeediscussioninPR.
+dmin
+Iagreethatanattackiscurrentlyimpossible,andIalsoagreethattheprobabilityofan
+accidentoccurringisextremelylow. However,Idonotbelievewecandefinitivelystate
+thatanaccidentisimpossible. Ifthelendingmarketbecomesveryactiveand
+nextLendingSequencereaches1after7years,thepossibilityofanattackoraccident
+couldarise,andthepotentialimpactwouldbehigh. AccordingtotheSherlockguide,I
+thinkit'ssuitableforMedium.
+NoteLikelihoodisnotconsideredwhenidentifyingtheseverityandthevalidityofthe
+report.
+28
+Issue L-1: Incorrect scaling in the divide10 function
+[RESOLVED]
+Summary
+IncorrectscalinginthePrice59EN5.divide10function.
+Vulnerability Detail
+Inthedivide10function,itdividesthevalueby100ratherthanby10.
+Impact
+Itreturnsthelowervaluethanexpected.
+Tool Used
+ManualReview
+Recommendation
+- return newPrice59EN5(uint64(p.mantissa()/10), uint8(p.unsignedExp() +
+1));↪→
++ return newPrice59EN5(uint64(p.mantissa()), uint8(p.unsignedExp() + 1));
+Discussion
+moh-eulith
+Commit3842ffc
+29
+Issue L-2: dust lend position [RESOLVED]
+Vulnerability Detail
+Intheline216,whenquantity()==minOrderQuantity,theloopisskiped.
+206:functioninternalLifoLenderSwap(LendMatchlendMatch,uint64
+lentPositionId)internal{↪→
+207: LendMatchoriginal=lendMatch;
+208: uint64borrowerArea=
+userIdToLendingLists(lendMatch.lenderAccountId());↪→
+209: uint64borrowListId=tokenIdToBorrowerListId(lendMatch.tokenId());
+210: if(StorageUtils64.isListEmpty(borrowerArea,borrowListId)){
+211: return;
+212: }
+213: (LifoIteratorit,uint64lastItem)=
+StorageUtils64.lifoLoop(borrowerArea,borrowListId);↪→
+214: LendFeeSchedulefeeSched=
+internalGetLendFeeSchedule(lendMatch.tokenId());↪→
+215: lendMatch=swapLenders(lendMatch,lentPositionId,lastItem,feeSched);
+216: while(lendMatch.quantity()>feeSched.minOrderQuantity()&&
+it.hasNext()){↪→
+217: (it,lastItem)=it.loopNext(borrowerArea,borrowListId);
+218: lendMatch=swapLenders(lendMatch,lentPositionId,lastItem,
+feeSched);↪→
+219: }
+220: if(StorageUtils64.isListEmpty(borrowerArea,borrowListId)){
+221: checkPerpDebtBitmapForReset(lendMatch.lenderAccountId(),
+lendMatch.tokenId());↪→
+222: }
+223: LendAggPositionp=readLendAgg(lendMatch.lenderAccountId(),
+lendMatch.tokenId()).decrementLenderQuantity(original.quantity()-
+lendMatch.quantity());
+↪→
+↪→
+224: p=p.decrementBorrowerQuantity(original.quantity()-
+lendMatch.quantity());↪→
+225: writeLendAgg(lendMatch.lenderAccountId(),lendMatch.tokenId(),p);
+226:}
+Impact
+Intheliquidationprocess,theircouldberemainlendpositionwhichhas
+minOrderQuantity.
+Discussion
+moh-eulith
+30
+Commita5c3c21
+31
+Issue L-3: noDebt bit should be reset in the close-
+LendPosition() [RESOLVED]
+Summary
+InthecloseLendPosition()function,noDebtbitisnotresetbecausethelenderis
+guaranteedtohavenon-zerotokenbalance. However,insomecases,thelendermay
+havezerobalance.
+Vulnerability Detail
+InthecloseLendPosition()function,noDebtbitisnotresetbecausethelenderis
+guaranteedtohavenon-zerotokenbalance.
+functioncloseLendPosition(uint64positionId,LendMatchlendMatch)internal{
+@>
+↪→
+}
+However,insomecases,thelendermayhavezerobalance. Forexample,iftheposition
+hasthesameborrowerandlender,thepositionmayhavezerobalance. Asaresult,noDeb
+tbitisincorrectlysetforanaccount,whichcanresultincriticalissuebecausethebitis
+usedincalculatingportfoliooftheaccount. Malicioususersdeliberatelycausethisto
+happen.
+Impact
+noDebtbitisincorrectlysetforanaccount.
+32
+Tool Used
+ManualReview
+Recommendation
+noDebtbitshouldbecheckedinthecloseLendPosition().
+Discussion
+moh-eulith
+Asper#50self-lendisnolongerpossible.
+33
+Issue L-4: clienId is unnecessary [RESOLVED]
+Summary
+TheclientIdisunnecessarilyincludedintheoroperationtwice.
+Vulnerability Detail
+IntheTwoTokenOrderBook.internalNewSpotBuyOrder()function,clientIdisincludedin
+theorderData.clientQuantityPrice(),butbothparticipateintheoroperation. Itis
+acceptabletoremoveclientIdfromthisoperation.
+functioninternalNewSpotBuyOrder(SpotOrderorderData)internalreturns
+(BuyOrderResult){↪→
+...
+@>
+↪→
+}
+Tool Used
+ManualReview
+Recommendation
+function internalNewSpotBuyOrder(SpotOrder orderData) internal returns
+(BuyOrderResult){↪→
+...
+- SpotNode nodeData = SpotNode.wrap( ) |
+( ) | orderData.clientQuantityPrice());↪→
++ SpotNode nodeData = SpotNode.wrap( ) |
+orderData.clientQuantityPrice());↪→
+//nodeData = prev 32 | next 32 | order seq 20 | clientId 44 | sellQuantity
+64 | sellPrice 64↪→
+if (pos != 0) {
+34
+insertIntoBuyListFrom(pos, linkedListNodePos, nodeData, buyPrice);
+} else {
+insertIntoBuyList(linkedListNodePos, nodeData, buyPrice);
+}
+return result;
+}
+Discussion
+moh-eulith
+Commit66f01df
+35
+Issue L-5: There is no check for 0 quantity in perp
+order [RESOLVED]
+Summary
+Thereisnocheckfor0quantityinperptradingsoitallowsthe0quantityperporder.
+Vulnerability Detail
+InL26,itonlychecksquantityisthemultipleofminOrderQuantityanddoesn'tcheck
+whetheritis0amount.
+File:contracts\src\main\sol\PerpOrderBook.sol
+25:functioncheckOrderQuantity(SpotOrderorderData)internaloverrideview{
+26: require(orderData.quantity()%readMinOrderQuantity()==0,
+ExchangeErrors.QuantityNotMultipleOfMin());↪→
+27:}
+Tool Used
+ManualReview
+Recommendation
+Addcheckforquantitywith0.
+function checkOrderQuantity(SpotOrder orderData) internal override view {
+require(orderData.quantity() % readMinOrderQuantity() == 0,
+ExchangeErrors.QuantityNotMultipleOfMin());↪→
++ require(orderData.quantity() > 0, "0 quantity is not allowed");
+}
+Discussion
+moh-eulith
+Commit66f01df(alsofixesthesameissueinLendOrderBook)
+moh-eulith
+Note: theimpactisnotright. Azeroquantityordercannotbecreatedbecauseitfailson
+aninternalsequestercheck. Thecommitabovesimplychangestheerrorreturned.
+36
+Disclaimers
+Sherlockdoesnotprovideguaranteesnorwarrantiesrelatingtothesecurityofthe
+project.
+Usageofallsmartcontractsoftwareisattherespectiveusers’soleriskandistheusers’
+responsibility.
+37
