@@ -1,0 +1,35 @@
+{
+  "finding": "ZH4P5-KIPSELI",
+  "title": "Kipseli Base reserve (unverified ERC1967 proxy) — all value paths operator/Safe-gated",
+  "chains": ["base"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 527539.82, "S": 0},
+  "latest_block": 52975943,
+  "block_numbers": {"base": 52975943},
+  "pinned_fork_block": {"base": 52975121},
+  "targets_checked": 5,
+  "live_targets": 1,
+  "closed_reasons": [
+    "withdraw(address,uint256,address) and convertETH(uint256) revert 'caller is not operator' for any external EOA",
+    "emergencyWithdraw/setAllowance/addOperators/removeOperators/transferOwnership/renounceOwnership revert 'Ownable: caller is not the owner'",
+    "proxy upgradeAndCall is gated to the custom ProxyAdmin whose owner() is the operator EOA",
+    "no approved withdrawal destination exists (even the real operator reverts 'destination is not approved')",
+    "all 20 state-changing dispatcher selectors revert for an unprivileged caller (fork-proven)"
+  ],
+  "poc": {"tests_passed": 12, "tests_total": 12, "ci_run_urls": []},
+  "key_facts": [
+    "Reserve 0xBEE3211ab312a8D065c4FeF0247448e17A8da000 is an ERC1967 proxy (impl 0x45A507EB92dDF5ab6F10e0a0d124B247e75992a8, admin 0x8Bb03250fD720A6f2Dc043616532c92bd2D42f6E); both unverified",
+    "Live reserve holds ~440.8k USDC + ~36-41 WETH (~$527.5k-$531.7k) at Base blocks 52,975,121 / 52,975,943",
+    "owner() = Gnosis Safe 1.4.1 0xbBaE617C0b16639896156B5bD7E33cCE492F958a, threshold 2 of 3",
+    "single operator = EOA 0x97F7d4093e5Bdd0776e2Ca90C90124c5e16Ca569 (also a Safe signer and the proxy-admin owner)",
+    "withdraw also requires the destination to be in an allowlist which is currently empty",
+    "no deposit/user-recovery function exists -> H-O = 0"
+  ],
+  "caveats": [
+    "Both the proxy and the implementation are unverified; the gate mapping was recovered by heimdall decompilation + dynamic eth_call, not from source.",
+    "Balances move (the reserve is active): USDC/WETH changed between block 52,975,121 and 52,975,943.",
+    "The value is P-class: a compromised operator EOA key (or 2 Safe signers) could drain; that is privileged, not external-unprivileged."
+  ],
+  "one_liner": "external unprivileged attacker can extract $0 from the Kipseli Base reserve (~$527.5k live): every value-moving selector is gated to the operator EOA 0x97F7d409... or the 2-of-3 Gnosis Safe owner, and the withdrawal destination allowlist is empty."
+}
