@@ -1,0 +1,18 @@
+ZH4-PASS5 P5-03 Spot hook (AEGIS DFM) — Unichain — CI results
+CI: https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39916840187 (success)
+Fork block: 61991016
+forge test: 11 passed / 0 failed / 0 skipped
+Tests:
+  test_pool_ids_match_live                                PASS
+  test_reinvest_hook1_fresh_caller_no_gain                PASS
+  test_reinvest_hook2_fresh_caller_no_gain                PASS  (reinvest returned true; take/burn/re-add executed; attacker gained 0)
+  test_reinvest_position_never_owned_by_caller            PASS
+  test_reinvest_fabricated_key_is_noop                    PASS  (returned false)
+  test_reinvest_wrong_hook_key_is_noop                    PASS
+  test_privileged_functions_revert_for_attacker           PASS
+  test_dynamic_fee_nonzero_and_bounded                    PASS
+  test_swap_applies_fee_and_attacker_cannot_profit        PASS  (ETH in 1000000000000000; hookFee 6909 delta 252000000000)
+  test_reinvest_twap_guard_blocks_after_price_move        PASS  (returned false)
+  test_donate_payin_only                                  PASS
+
+Headline: E-U = $0.00 (HIGH confidence). Pooled ceiling $4,245,629 (not extractable).

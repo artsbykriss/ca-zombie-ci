@@ -1,0 +1,43 @@
+{
+  "finding": "ZH4-PASS5-P5-03",
+  "title": "Spot hook (AEGIS DFM) — permissionless reinvest + custom ERC-6909 accounting — no unprivileged extraction",
+  "chains": ["unichain"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 3400, "S": 0},
+  "latest_block": 61991016,
+  "block_numbers": {"unichain": 61991016},
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "reinvest(PoolKey) is permissionless but only re-adds the FRLM's own fee dust as protocol-owned LP; ERC-6909 shares are minted to the FRLM, never the caller",
+    "fabricated / wrong-hook pool keys short-circuit (pendingFees 0 -> returns false) and move nothing",
+    "all value-out functions (sweepExcessTokens, sweepExcessERC6909, withdrawProtocolLiquidity, withdraw, depositToFRLM) are onlyPolicyOwner / onlySpot / onlyPoolManager and revert for a fresh address",
+    "accountedERC6909Balances == PoolManager.balanceOf on every currency, before and after an attacker-triggered reinvest (no phantom 6909)",
+    "position ownership cannot be hijacked (atomic nextTokenId-1 + ReentrancyLock + single PM lock); fork-verified position owner == FRLM",
+    "dynamic fee is bounded [10,30000] ppm base + surge<=3xbase, never 0, never wraps the override flag; setters are owner-only",
+    "deployed hooks are non-upgradeable (EIP-1967 slots zero) and byte-identical to github.com/labs-solo/AEGIS_DFM main"
+  ],
+  "poc": {
+    "tests_passed": 11,
+    "tests_total": 11,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39916840187"]
+  },
+  "key_facts": [
+    "hooks: 0x88C9fF9FC0B22cCa42265d3f1D1C2C39E41cDACC (flags 0x1acc, $2,412,526 TVL) and 0xA0b0D2d00fD544D8E0887F1a3cEDd6e24Baf10cc (flags 0x10cc, $1,833,103 TVL) on Unichain",
+    "pooled ceiling $4,245,629 (Uniswap Gateway topV4Pools totalLiquidity.value, 2026-10-23) — NOT extractable: the hook cannot touch other LPs' positions",
+    "FRLM#1 0xa7b3e2306a0B46dbdE3B533c4e2C3Be6a24352a3 holds ~$19, 0 positions; FRLM#2 0xA7ce35E886e58926Ad0C149f4cc558e27D458a2c holds ~$3.4k incl. a 0.494 ETH + 0.01457 WBTC protocol-owned position (~$2,375)",
+    "policy owner (all policy/oracle/FRLM value-out) = 0xF0E74f35A5c7e1b6a35877aFE8aC2Ace0C510603 (contract; admin 0x6CB1C9A1A31186170F6e6746640A1D5fCa8cc032)",
+    "swap fee accounting fork-verified: swapper pays exactly amountIn (ethIn == 1e15) and the FRLM 6909 grew by exactly 252000000000 wei = amountIn x 2520ppm x 10% polShare",
+    "reinvest TWAP guard (60s, +/-50 ticks) refused reinvest after a price-moving swap (returned false)",
+    "FRLM#2 accountedBalances[USDC] = 118.07 vs real balance 6.15 after privileged withdrawals -> reinvest on USDC pools can revert (bricked compounding); non-attacker",
+    "project = labs-solo/AEGIS_DFM; no public audit located"
+  ],
+  "caveats": [
+    "point-in-time 2026-10-23; re-read live state before acting",
+    "Uniswap Gateway TVL is a top-100-per-chain sample; complete for these hooks (5/33 and 5/7 funded pools)",
+    "several paired tokens (AG/AGS/XRP/XPL/DOGE on Unichain) are unpriced memecoins -> true USD TVL may be lower than $4.25M; does not change the E-U verdict",
+    "the FRLM protocol-owned-liquidity figure (~$3.4k) is the P category, withdrawable only by the policy owner"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live from the Unichain Spot (AEGIS DFM) hooks: the permissionless reinvest only compounds the protocol's own fee dust into protocol-owned LP (shares go to the FRLM), fabricated keys are inert, all value-out paths are privileged, and the ERC-6909/accountedBalances ledgers stay consistent; the $4.25M pooled TVL is the ceiling, not the prize."
+}
