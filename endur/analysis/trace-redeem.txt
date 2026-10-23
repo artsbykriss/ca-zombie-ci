@@ -1,0 +1,23 @@
+# starknet_traceTransaction 0x627a0b58da8256bd2cc5b6c65d15f549113734c9b18913f5a80bd8c518543da
+# (user 0x6fb76c68... redeems 500000e18 xSTRK -> WQ request 10685)
+EXECUTE_INVOCATION (account 0x6fb76c68..., __execute__)
+ -> 0x28d709c875c0ceac3d redeem calldata=[0x69e10de76676d0800000, 0x0, 0x6fb76c68..., 0x6fb76c68...]
+   -> 0x5be5a5f27a86f0e0bd 0x238d7ea31550fece8f0a calldata=[0x1]                    # common guard
+   -> 0x28d709c875c0ceac3d total_assets []
+     -> 0x29edbca81c979decd6 total_stake calldata=[STRK]                            # VR.total_stake
+       -> 0x4718f5a0fc34cc1af1 balanceOf calldata=[0x29edbca8...]                    # STRK.balanceOf(VR)
+   -> 0x518a66e579f9eb1603 request_withdrawal calldata=[assets=0x7dc9909985f43553bcc8,
+                                                            shares=0x69e10de76676d0800000,
+                                                            receiver=0x6fb76c68...]
+# Conclusion: the LST computes assets from shares itself and passes BOTH to the queue.
+# The queue does NOT re-derive assets; it trusts the LST.  request_withdrawal is gated
+# ("Only LST can call") so an attacker cannot inject mismatched assets/shares.
+#
+# starknet_traceTransaction 0x3fc3c6a3df3c369761049d9641a174a3b3e377d52a182d2ddcdde0e14de4b71
+# (user 0x6829ae22... deposits 2,190,000 STRK)
+ -> approve(STRK, LST, assets)
+ -> LST.deposit(assets, receiver)
+   -> common guard
+   -> total_assets []  -> VR.total_stake(STRK) -> STRK.balanceOf(VR)     # shares minted from PRE-deposit total_assets
+   -> STRK.transferFrom(user, LST, assets)
+   -> VR.receive_funds(validator=0x0, STRK, assets) -> STRK.transferFrom(LST, VR, assets)

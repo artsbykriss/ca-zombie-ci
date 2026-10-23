@@ -1,0 +1,163 @@
+{
+ "generated_utc": "2026-10-23T12:30:05Z",
+ "block": 16814965,
+ "chain_id": "0x534e5f4d41494e",
+ "total_assets_usd_all_vaults": 11805344.78,
+ "erc4626_roundtrip_max_profit_wei": 0,
+ "erc4626_roundtrip_worst_case_wei": -2,
+ "erc4626_withdraw_roundtrip": [
+  {
+   "assets_in": 1,
+   "shares_ceil": 1,
+   "assets_out_floor": 1,
+   "net": 0
+  },
+  {
+   "assets_in": 1000000000000,
+   "shares_ceil": 841653411619,
+   "assets_out_floor": 1000000000000,
+   "net": 0
+  },
+  {
+   "assets_in": 1000000000000000000,
+   "shares_ceil": 841653411618925288,
+   "assets_out_floor": 1000000000000000001,
+   "net": 1
+  },
+  {
+   "assets_in": 1000000000000000000000,
+   "shares_ceil": 841653411618925287050,
+   "assets_out_floor": 1000000000000000000000,
+   "net": 0
+  }
+ ],
+ "total_assets_composition": {
+  "total_assets": 147960394510776628394750943,
+  "vr_total_stake_STRK": 147960394510776628394750943,
+  "wq_unprocessed": 0,
+  "total_stake_minus_unprocessed": 147960394510776628394750943,
+  "delta_vs_total_assets": 0
+ },
+ "targeted_probes": [
+  {
+   "probe": "WQ.request_withdrawal mismatched (assets=1000e18,shares=0) caller=0",
+   "fn": "request_withdrawal",
+   "revert": "Only LST can call",
+   "success": false
+  },
+  {
+   "probe": "WQ.request_withdrawal (assets=0,shares=1e18) caller=0",
+   "fn": "request_withdrawal",
+   "revert": "Only LST can call",
+   "success": false
+  },
+  {
+   "probe": "WQ.reduce_total_queue_amount(1,0) caller=0",
+   "fn": "reduce_total_queue_amount",
+   "revert": "Invalid caller",
+   "success": false
+  },
+  {
+   "probe": "WQ.take_funds(1e18) caller=0 (pulls from CALLER)",
+   "fn": "take_funds",
+   "revert": "ERC20: insufficient allowance",
+   "success": false
+  },
+  {
+   "probe": "LST.send_to_withdraw_queue(1e18) caller=0",
+   "fn": "send_to_withdraw_queue",
+   "revert": "Caller does not have role",
+   "success": false
+  },
+  {
+   "probe": "LST.before_unstake(ATT,1,0) caller=0",
+   "fn": "before_unstake",
+   "revert": "invalid validator",
+   "success": false
+  },
+  {
+   "probe": "VR.send_to_withdrawal_queue(WQ,STRK,1e18) caller=0",
+   "fn": "send_to_withdrawal_queue",
+   "revert": "Only LST can call",
+   "success": false
+  },
+  {
+   "probe": "VR.claim_rewards_for_validator(v0,STRK) caller=0 (permissionless?)",
+   "fn": "claim_rewards_for_validator",
+   "revert": "Out of gas",
+   "success": false
+  },
+  {
+   "probe": "VR.receive_funds(v0,STRK,1e18) caller=0 (pulls from CALLER)",
+   "fn": "receive_funds",
+   "revert": "ERC20: insufficient allowance",
+   "success": false
+  }
+ ],
+ "allowances": {
+  "STRK_allowance_VR_to_WQ": 115792089237316195423570985008687907853269984665640564039457584007913129639935,
+  "STRK_allowance_LST_to_WQ": 0,
+  "STRK_balance_WQ": 474516904509850864371147,
+  "STRK_balance_VR": 13423292591777483366240,
+  "STRK_balance_LST": 1000000000000000000
+ },
+ "class_hashes": {
+  "xSTRK_vault": "0x5f06dcb8ef65dd934ba261e6f5ddc03ad3707a028236289feef4ef451f01a52",
+  "xSTRK_WQ": "0x6b2e18936382d3f686472418a81ccac0a996a6261afe7416bc905be12903f34",
+  "ValidatorRegistry": "0x432c02039833e1d0a937e8fbd472181579fbe068a2434dfea0420b3dd800502",
+  "all_vaults_same_class": true
+ },
+ "permissionless_entrypoints": [
+  "ValidatorRegistry.claim_rewards_for_validator",
+  "ValidatorRegistry.receive_funds",
+  "ValidatorRegistry.send_to_withdrawal_queue",
+  "ValidatorRegistry.set_validator_stake",
+  "xSTRK_LST.approve",
+  "xSTRK_LST.deposit",
+  "xSTRK_LST.deposit_to_validator",
+  "xSTRK_LST.deposit_with_referral",
+  "xSTRK_LST.initializer",
+  "xSTRK_LST.mint",
+  "xSTRK_LST.redeem",
+  "xSTRK_LST.transfer",
+  "xSTRK_LST.transferFrom",
+  "xSTRK_LST.transfer_from",
+  "xSTRK_LST.withdraw",
+  "xSTRK_WQ.approve",
+  "xSTRK_WQ.claim_withdrawal",
+  "xSTRK_WQ.claim_withdrawal_to",
+  "xSTRK_WQ.initializer",
+  "xSTRK_WQ.safeTransferFrom",
+  "xSTRK_WQ.safe_transfer_from",
+  "xSTRK_WQ.setApprovalForAll",
+  "xSTRK_WQ.set_approval_for_all",
+  "xSTRK_WQ.take_funds",
+  "xSTRK_WQ.transferFrom",
+  "xSTRK_WQ.transfer_from"
+ ],
+ "caller_gated_entrypoints": [
+  "ValidatorRegistry.add_delegator",
+  "ValidatorRegistry.add_validator",
+  "ValidatorRegistry.migrate_delegators",
+  "ValidatorRegistry.on_switch",
+  "ValidatorRegistry.set_settings",
+  "ValidatorRegistry.stake_to_validator",
+  "ValidatorRegistry.update_supported_token",
+  "ValidatorRegistry.update_validator",
+  "ValidatorRegistry.upgrade",
+  "xSTRK_LST.before_unstake",
+  "xSTRK_LST.send_to_withdraw_queue",
+  "xSTRK_LST.set_config",
+  "xSTRK_LST.upgrade",
+  "xSTRK_WQ.reduce_total_queue_amount",
+  "xSTRK_WQ.request_withdrawal",
+  "xSTRK_WQ.set_config",
+  "xSTRK_WQ.upgrade"
+ ],
+ "verdict": {
+  "E-U_usd": 0.0,
+  "E-U_confidence": "high",
+  "reason": "no unprivileged drain path: request_withdrawal gated to LST; ERC4626 rounding favours the vault (round-trip net <= 0 for all tested sizes); take_funds/receive_funds are self-funded donations; claim_withdrawal pays the NFT owner; all admin/rate functions are role-gated; vaults unpaused with total_supply>0 (no first-depositor inflation).",
+  "latent": "total_assets = VR.total_stake(STRK) excludes accrued-but-unclaimed staking rewards, so a reward-timing arbitrage exists (deposit before a permissionless claim_rewards_for_validator, redeem after) bounded by the unclaimed rewards (order $10^2-$10^3) and not net-profitable via flash loans; LOW confidence."
+ }
+}

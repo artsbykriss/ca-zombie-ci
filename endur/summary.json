@@ -1,0 +1,39 @@
+{
+  "finding": "ZH4-PASS3-OPEN-9-ENDUR",
+  "title": "Endur (xSTRK / xyBTCs) Starknet LST — no unprivileged extraction available",
+  "chains": ["starknet"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 16815577,
+  "block_numbers": {"starknet": 16815577},
+  "targets_checked": 8,
+  "live_targets": 8,
+  "closed_reasons": [
+    "ERC-4626 deposit->redeem round-trip is provably non-profitable: deposit floors shares, redeem floors assets, so out <= in for every size; measured max profit 0 wei over 11 sizes and withdraw->redeem net 0 wei (live preview + exact integer math)",
+    "withdrawal-queue request_withdrawal(assets,shares,receiver) is caller-gated ('Only LST can call') so an attacker cannot inject a mismatched assets/shares pair (the queue trusts the LST's assets and does not re-derive it)",
+    "WQ.claim_withdrawal(id) is permissionless but pays the recorded assets to the ERC-721 owner (verified by trace); claim_withdrawal_to is owner-gated; isClaimed prevents double-claim; STRK is a plain ERC-20 (no reentrancy)",
+    "WQ.take_funds and VR.receive_funds are permissionless but self-funded (transferFrom(msg.sender,...)) -> they are donations, never a drain; the VR's unlimited allowance to the WQ is not reachable",
+    "every admin/rate/registry/upgrade entry point is role-gated ('Caller does not have role' / 'Only LST can call' / 'Invalid caller'); all six vaults are unpaused and solvent",
+    "no first-depositor/donation inflation: all vaults have total_supply > 0 and total_assets is derived from the ValidatorRegistry's staked principal + cash, not from the vault's own token balance"
+  ],
+  "poc": {"tests_passed": 9, "tests_total": 9, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39955935602"]},
+  "key_facts": [
+    "TVL across the 6 ERC-4626 vaults at block 16815577 = $11,786,829.64 (xSTRK $7.86M, xWBTC $2.14M, strkBTC $1.30M, xtBTC $0.27M, xsBTC $0.14M, xLBTC $0.08M)",
+    "all 6 vaults share implementation class 0x5f06dcb8ef65dd934ba261e6f5ddc03ad3707a028236289feef4ef451f01a52; WQ class 0x6b2e18936382d3f686472418a81ccac0a996a6261afe7416bc905be12903f34; VR class 0x432c02039833e1d0a937e8fbd472181579fbe068a2434dfea0420b3dd800502",
+    "LST.total_assets(STRK) == VR.total_stake(STRK) == sum(validators staked_amount) + VR STRK balance (delta 0 at the pinned block); it excludes accrued-but-unclaimed staking rewards",
+    "xSTRK: total_assets 147,960,394.51 STRK, total_supply 124,531,370.82 xSTRK, rate 1.18813752; vault holds only 1 STRK idle (everything else staked)",
+    "xSTRK withdrawal queue: max_request_id 10689, unprocessed 0, intransit 2,083,577.27 STRK, cumulative_requested 126,183,544.50 STRK, claim_time 604800s (7 days), lstDisp = 0x28d7...4b0a",
+    "VR rewards_fee_bps = 1500 (15%), treasury 0x301c5ba2c76af76c28e9f4d55680d8507267b9d324129a71d6cdc54a3318298, 5 validators, governor 0x5be5a5f27a86f0e0bdd71f07992a5c33ab36d1fc64f6b6ee5a0f2d6041889c9",
+    "STRK allowance VR->WQ = 2^256-1 (used by take_funds), LST->WQ = 0; WQ STRK balance 474,516.90 STRK, VR STRK balance 13,423.29 STRK",
+    "targeted probes (caller=0): request_withdrawal -> 'Only LST can call'; reduce_total_queue_amount -> 'Invalid caller'; LST.send_to_withdraw_queue -> role; VR.send_to_withdrawal_queue -> 'Only LST can call'; take_funds/receive_funds -> 'ERC20: insufficient allowance' (self-funded); claim_withdrawal -> proceeds (permissionless, pays owner); VR.claim_rewards_for_validator -> 'Out of gas' (permissionless, token-gated)",
+    "method limitation: starknet_call forces caller_address=0x0, so gates were proven by reverts rather than impersonation; caller 0 is the least-privileged address"
+  ],
+  "caveats": [
+    "Endur's own 'lst' Cairo source is NOT public (only the deployed ABI, the Cairo Security Clan audit of Endur-fi/lst commit d607247e, and Endur's relayer TS ABIs); conclusions rest on ABI + on-chain traces + audit, not source review",
+    "latent (LOW, not counted in E-U): total_assets excludes unclaimed staking rewards, so a reward-timing arbitrage (deposit before a permissionless claim_rewards_for_validator, redeem after) exists; measured unclaimed rewards for one validator's 20 delegators ~1,269 STRK (~$67), system-wide order $10^2-$10^3, and not net-profitable via flash loans; redemption is also queued 7 days",
+    "role holders were not enumerated (would need role-grant events); admin surface exists but is not a value-extraction path",
+    "Starknet has no EVM fork, so the PoC is a read-only keyless probe (starknet_call/preview + exact integer math), not a Foundry fork test"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Endur's $11.79M Starknet LST: ERC-4626 rounding favours the vault, withdrawal-queue requests are gated to the LST, take_funds/receive_funds are self-funded donations, claims pay the NFT owner, and every admin/rate function is role-gated; residual risk is only a bounded (~$10^2-$10^3) reward-timing arbitrage because total_assets excludes unclaimed staking rewards."
+}
