@@ -1,0 +1,39 @@
+{
+  "finding": "P5-02",
+  "title": "AGLHook — v4 hook deployed despite 'must not be deployed' (Ethereum, ~$1.45M pooled)",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 26253656,
+  "block_numbers": {"ethereum": 26253656},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "fee/delta math correct in all 4 swap shapes on the live v4 PoolManager; fee is exactly 10% of the gross ETH leg",
+    "feeBps is a pure function of a write-once launchTs (2026-10-01) and block.timestamp; no setter -> cannot skew to 0% or otherwise",
+    "sole feeExempt address (AGLBuyback) reaches PoolManager.swap only via operator-gated buyAndBurn, which burns the AGL it buys",
+    "int128 casts unreachable: _collect -> poolManager.mint SafeCast.toInt128 reverts for fee >= 2**127",
+    "owed() == ERC-6909 ETH claim exactly -> no unbacked mint",
+    "all callbacks onlyPoolManager; beforeInitialize gated by openTrading state; hook not rebindable",
+    "claim() pays only the immutable xautFundWallet (0x06fbfb28...)",
+    "no owner/admin/proxy/setters on the hook; AGL owner cannot mint/pause/re-open; launch LP locked in the token"
+  ],
+  "poc": {"tests_passed": 19, "tests_total": 19, "ci_run_urls": []},
+  "key_facts": [
+    "hook 0xA61d74D6362699B76b21ef3016649A58D27bE0CC, flags 0x20CC = bI+bS+bSD+aS+aSD, matches address bits and constructor check",
+    "poolKey (ETH, AGL 0x63401cDd..., fee=0, tickSpacing=60, hook), poolId 0x02a13b05...93bf, launchTs 1790852411 (2026-10-01 11:00:11 UTC)",
+    "pool reserves ~282.44 ETH + ~115.95M AGL; ETH $2402.65 (DefiLlama) => TVL ~ $1.45M",
+    "feeExempt = {0x8CCf65a2d5edFF1AAF865e6D75e70077a0e0bce5 = AGLBuyback}; buyback operator is EOA 0x6979...e119; buyAndBurn isOperator-gated",
+    "owed == PoolManager.balanceOf(hook, id=0) at the same block; hook native ETH balance 0",
+    "xautFundWallet 0x06fbfb283bCA0d109bFB5Fd9CFb02B974D705998 is an EOA (immutable); 285 FeeClaimed events totalling 212.115 ETH",
+    "no owner()/admin()/paused(), EIP-1967 impl slot 0x0 (not a proxy)"
+  ],
+  "caveats": [
+    "the deployed code is the post-fix version; the 'not finished' header is a stale doc comment",
+    "the ~21k AGL split off the PoolManager's AGL balance to other AGL pools opened at launch is inferred; does not affect any conclusion",
+    "ETH price is point-in-time DefiLlama 2026-10-23; the 99%->10% buy-fee decay window is historical (launch 2026-10-01)",
+    "generic MEV around the fee-exempt AGLBuyback buys exists but is not a protocol drain"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from AGLHook's ~$1.45M ETH/AGL pool: the two-callback 10% fee and its int128 deltas are correct on the live PoolManager, every callback is PoolManager-only, the only fee-exempt address is operator-gated and burns its output, and claim() pays only an immutable wallet."
+}
