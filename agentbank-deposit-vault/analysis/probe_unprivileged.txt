@@ -1,0 +1,44 @@
+probe_from=0x1111111111111111111111111111111111111111  block=36703793  rpc=https://worldchain-mainnet.g.alchemy.com/public
+--- value-moving entry points ---
+deposit(uint256,address)                             Error: execution reverted: TransferFromReverted  
+mint(uint256,address)                                Error: execution reverted: TransferFromReverted  
+withdraw(uint256,address,address)                    Error: execution reverted: panic: arithmetic underflow or overflow (0x11)  
+redeem(uint256,address,address)                      Error: execution reverted: panic: arithmetic underflow or overflow (0x11)  
+transfer(address,uint256)                            Error: execution reverted: panic: arithmetic underflow or overflow (0x11)  
+transferFrom(address,address,uint256)                Error: execution reverted: panic: arithmetic underflow or overflow (0x11)  
+approve(address,uint256)                             0x0000000000000000000000000000000000000000000000000000000000000001 
+allocate(address,bytes,uint256)                      Error: execution reverted: Unauthorized  
+deallocate(address,bytes,uint256)                    Error: execution reverted: Unauthorized  
+forceDeallocate(address,bytes,uint256,address)       Error: execution reverted: NotAdapter  
+setLiquidityAdapterAndData(address,bytes)            Error: execution reverted: Unauthorized  
+setMaxRate(uint256)                                  Error: execution reverted: Unauthorized  
+accrueInterest()                                     0x 
+--- owner-only ---
+setOwner(address)                                    Error: execution reverted: Unauthorized  
+setCurator(address)                                  Error: execution reverted: Unauthorized  
+setIsSentinel(address,bool)                          Error: execution reverted: Unauthorized  
+setName(string)                                      Error: execution reverted: Unauthorized  
+setSymbol(string)                                    Error: execution reverted: Unauthorized  
+--- curator timelocked ---
+setIsAllocator(address,bool)                         Error: execution reverted: DataNotTimelocked  
+setReceiveSharesGate(address)                        Error: execution reverted: DataNotTimelocked  
+setSendSharesGate(address)                           Error: execution reverted: DataNotTimelocked  
+setReceiveAssetsGate(address)                        Error: execution reverted: DataNotTimelocked  
+setSendAssetsGate(address)                           Error: execution reverted: DataNotTimelocked  
+setAdapterRegistry(address)                          Error: execution reverted: DataNotTimelocked  
+addAdapter(address)                                  Error: execution reverted: DataNotTimelocked  
+removeAdapter(address)                               Error: execution reverted: DataNotTimelocked  
+increaseTimelock(bytes4,uint256)                     Error: execution reverted: DataNotTimelocked  
+decreaseTimelock(bytes4,uint256)                     Error: execution reverted: DataNotTimelocked  
+abdicate(bytes4)                                     Error: execution reverted: DataNotTimelocked  
+setPerformanceFee(uint256)                           Error: execution reverted: DataNotTimelocked  
+setManagementFee(uint256)                            Error: execution reverted: DataNotTimelocked  
+setPerformanceFeeRecipient(address)                  Error: execution reverted: DataNotTimelocked  
+setManagementFeeRecipient(address)                   Error: execution reverted: DataNotTimelocked  
+increaseAbsoluteCap(bytes,uint256)                   Error: execution reverted: DataNotTimelocked  
+increaseRelativeCap(bytes,uint256)                   Error: execution reverted: DataNotTimelocked  
+setForceDeallocatePenalty(address,uint256)           Error: execution reverted: DataNotTimelocked  
+decreaseAbsoluteCap(bytes,uint256)                   Error: execution reverted: Unauthorized  
+decreaseRelativeCap(bytes,uint256)                   Error: execution reverted: Unauthorized  
+submit(bytes)                                        Error: execution reverted: Unauthorized  
+revoke(bytes)                                        Error: execution reverted: Unauthorized  
