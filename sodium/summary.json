@@ -1,0 +1,59 @@
+{
+  "finding": "P5-01",
+  "title": "Sodium smart-account ERC-1271 signer bypass (Arbitrum) — unpatched, $0, zero-capital re-arm",
+  "chains": ["arbitrum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 517549529,
+  "block_numbers": {"arbitrum": 517549529, "bypass_reverify_block": 517458210},
+  "targets_checked": 8645,
+  "live_targets": 8302,
+  "impl": "0xb5BC46dF04dEe31D219E7664122e29EEd9506b8b",
+  "impl_codehash": "0xdb623ea308ecc67d39239d5c89b2e529c5969161863b7521fa8a675e3ddf8994",
+  "factory": "0x5Eb4bcAEB78a7a765FA3F7285eE6B3E08CCB2c09",
+  "entrypoint_v06": "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
+  "other_impl_patched": "0x46516e846ccba95fefc8da6a3cbab875367e5c46",
+  "other_impl_accounts": 207,
+  "closed_reasons": [
+    "every one of the 8,302 accounts pointing at the vulnerable impl is empty to dust",
+    "native ETH across all 8,302 accounts = 0.00247846 ETH (max single 0.00010636 ETH)",
+    "EntryPoint v0.6 deposits across 2,561 accounts = 0.00152372 ETH (max single 0.00001081 ETH)",
+    "ERC-20 dust across 1,021 accounts: USDT0 3.829086 + USDC 0.071867 + USDC.e 0.304477 (12-token basket)",
+    "gross residual dust ~$13.79 spread over 8,302 accounts; per-account value is at or below one handleOps gas cost, so net extractable is $0",
+    "no new accounts created by the factory since 2026-01-25 (account set static)",
+    "the second Sodium impl 0x46516e84... (207 accounts) does not reproduce the bypass (patched)"
+  ],
+  "gross_dust_usd": 13.79,
+  "dust_breakdown": {
+    "native_eth": 0.002478460601917614,
+    "entrypoint_v06_deposit_eth": 0.001523718753072196,
+    "usdt0": 3.829086,
+    "usdc": 0.071867,
+    "usdc_e": 0.304477
+  },
+  "poc": {
+    "tests_passed": 3,
+    "tests_total": 3,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39956233457",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39963115529"
+    ]
+  },
+  "key_facts": [
+    "live impl codehash matches Sourcify exact_match source (compiler 0.8.17) — the deployed code IS the vulnerable source",
+    "checkValidSodiumSignature(hash, 0x01||attacker||0x00) returns valid=true, signer=attacker on the live proxy 0x0209d8fc... (eth_call + state override, block 517458210); an EOA signer returns valid=false",
+    "validateUserOp -> _approvePaymasterToken unconditionally approves an attacker paymaster for type(uint256).max when validationData=0; the allowance survives the failed (callGasLimit=0) execution",
+    "gas-prefund drain: no-paymaster handleOps with inflated maxFeePerGas and beneficiary=attacker pays the attacker from the victim's prefund; fork PoC: 10-ETH victim pays attacker 0.269068 ETH in one op",
+    "historical: 11.761122 ETH / ~300 wallets (2026-07-12, anomly.rs) + ~$270k tokens (2026-07-13, Verichains/DeFiHackLabs)",
+    "re-arm: any ETH/ERC-20 arriving at any of the 8,302 accounts is drainable by anyone with zero capital"
+  ],
+  "caveats": [
+    "token census uses a 12-token basket; the primitive works for any ERC-20",
+    "account list derived from the factory's CREATE2 internal-tx history (Etherscan V2); a node-level scan could in principle find a differently-created account",
+    "prices from DefiLlama 2026-10-23 (ETH $2,397.73, USDT0 $0.9986, USDC/USDC.e ~$1.00)",
+    "net-of-gas assumes ~$0.01-0.05 per handleOps on Arbitrum; even the single largest account ($0.25) nets only ~$0.20"
+  ],
+  "monitor": "analysis/monitor.py — checks all 8,302 accounts for native ETH / EntryPoint deposits above dust and exits non-zero on re-arm",
+  "one_liner": "External unprivileged attacker can extract ~$0.00 net live (gross dust $13.79 over 8,302 accounts, at/below gas cost); the ERC-1271 signer bypass + validation-phase token approval are unpatched and live, so any future funding of any Sodium proxy is drainable by anyone with zero capital — a HIGH-severity E-U-conditional re-arm."
+}
