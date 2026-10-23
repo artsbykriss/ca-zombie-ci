@@ -1,0 +1,213 @@
+================================================================================
+child1 EVIDENCE — pin deployed anchor-lang family for named Solana programs
+Advisory: GHSA-c6rc-8jpp-2fgc / CVE-2026-45137 / RUSTSEC-2026-0144
+Vulnerable: anchor-lang 1.0.0 / 1.0.1 only. Fixed in 1.0.2 (released 2026-05-02).
+1.0.0 released 2026-04-02.
+Working dir: /home/heisenberg/CA/anchor-lang-pin/analysis/child1
+Date of run: 2026-10-23
+================================================================================
+
+--------------------------------------------------------------------------------
+0. RPC endpoints (read-only; no signing, no tx sent)
+--------------------------------------------------------------------------------
+https://api.mainnet-beta.solana.com      (primary)
+https://solana-rpc.publicnode.com        (fallback)
+Only methods used: getAccountInfo, getSlot, getBlockTime,
+getSignaturesForAddress, getProgramAccounts.
+
+--------------------------------------------------------------------------------
+1. Tooling in this folder (self-contained copies of the parent methodology)
+--------------------------------------------------------------------------------
+- fetch_all.py <candidates.json> <elfdir>
+    getAccountInfo -> programdata -> last deploy slot -> blockTime -> upgrade
+    authority -> upgrade history -> save ELF (trimmed to true ELF size) ->
+    classify anchor family from marker strings -> run
+    `strings -n 6 | grep -iE "anchor|discriminator|Pinocchio|entrypoint"`.
+- enumerate_auth.py <auths.json> <out.json>
+    getProgramAccounts on BPFLoaderUpgradeab1e... filtered by memcmp at offset 13
+    (programdata upgrade-authority field) -> all programs controlled by an authority.
+- resolve3.py <todo.json> <out.json>
+    getProgramAccounts memcmp offset 4, dataSize 36 -> map programdata -> program id.
+- build_table_child1.py -> program_table.json / program_table.md
+
+Marker sets used by classify (identical to analysis/classify_anchor.py):
+  1.0.x only : "A duplicate mutable account constraint was violated",
+               "Account is already migrated",
+               "Account must be migrated before exiting",
+               "Cannot deref to From: account is already migrated.",
+               "Use `UncheckedAccount` instead of `AccountInfo` ..."
+  <=0.32     : "IDL account must be empty in order to resize, try closing first",
+               "The program was compiled without idl instructions",
+               "interface-instructions", "Use `solana-sdk-ids` crate instead",
+               "Use `solana-sysvar` crate instead"
+  0.31+      : "Instruction discriminator not provided"
+  <=0.30     : "8 byte instruction identifier not provided"
+
+--------------------------------------------------------------------------------
+2. Commands actually run (chronological)
+--------------------------------------------------------------------------------
+$ mkdir -p analysis/child1/elf
+$ python3 fetch_all.py candidates.json elf        | tee fetch_run.log     # 54 ids
+$ python3 fetch_all.py candidates2.json elf       | tee fetch_run2.log    # 12 ids
+$ python3 enumerate_auth.py auth_map.json ...     # helium/light/chainlink auths
+$ python3 resolve_unknown.py auth_map.json known_pd.json
+$ python3 enumerate_auth.py auth_others.json auth_others_out.json | tee auth_others.log
+$ python3 resolve3.py todo_unknown2.json candidates3.json | tee resolve3.log
+$ python3 fetch_all.py candidates3.json elf       | tee fetch_run3.log    # 19 ids
+$ python3 fetch_all.py candidates4.json elf       | tee fetch_run4.log    # 1 id
+$ python3 build_table_child1.py                   # -> program_table.json/.md
+
+--------------------------------------------------------------------------------
+3. Real program ids resolved from source (GitHub HEAD raw files)
+--------------------------------------------------------------------------------
+chainlink-solana contracts/programs/*/src/lib.rs declare_id!():
+  ocr_2                = E3j24rx12SyVsG6quKuZPbQqZPkhAUCh8Uek4XrKYD2x   (NOT deployed)
+  store                = 9kRNTZmoZSiTBuXC62dzK9E7gC7huYgcmRRhYv3i4osC   (NOT deployed)
+  access-controller    = 2ckhep7Mvy1dExenBqpcdevhRu7CLuuctMcx7G9mWEvo   (NOT deployed)
+  keystone-forwarder   = whV7Q5pi17hPPyaPksToDw1nMx6Lh8qmNWKFaLRQ4wz    (NOT deployed)
+  data-feeds-cache     = 3kX63udXtYcsdj2737Wi2KGd2PhqiKPgAFAxstrjtRUa   (NOT deployed)
+  ... all other repo declare_id! values are NOT deployed on mainnet.
+  scripts/lib.sh (deploy-time sed) reveals the HISTORIC REAL mainnet ids:
+    store            = HEvSKofvBgfaexv23kMabbYqxasxU3mQ4ibBMEmJWHny   (DEPLOYED)
+    ocr2             = cjg3oHmg9uuPsP8D6g29NWvhySJkdYdAo9D25PRbKXJ   (DEPLOYED)
+    access-controller= 9xi644bRR8birboDGdTiwBq3C7VEeR7VuamRYYXCubUW   (DEPLOYED)
+  Chainlink docs call HEvSKofv... the OCR2 / data-feeds program.
+
+light-protocol programs/*/src/lib.rs:
+  system               = SySTEM1eSU2p4BGQfQpimFEWWSC1XDFeun3Nqzz3rT7  (Pinocchio)
+  registry             = Lighton6oQpVkeewmo2mcPTQQp7kYHr4fWpAgJyEmDX
+  account-compression  = compr6CUsB5m2jS4Y3831ztGSTnDpnKJTKS95d64XVq
+  compressed-token     = cTokenmWW8bLPjZEBAUgYy3zKxQZW6VKi7bqNFEVv3m
+
+helium-program-library programs/*/src/lib.rs: (19 ids, all deployed except tuktuk-dca)
+  sub-daos, data-credits, lazy-distributor, treasury-management,
+  mobile-entity-manager, fanout, mini-fanout, price-oracle, rewards-oracle,
+  hexboosting, circuit-breaker, dc-auto-top, helium-entity-manager,
+  voter-stake-registry, welcome-pack, lazy-transactions, no-emit,
+  tuktuk-dca(alt id tdcam4m5... deployed; repo id tdcaokt... absent), hpl-crons
+
+raydium-clmm programs/amm/src/lib.rs:
+  #[cfg(feature="devnet")] declare_id!("DRayAUgENGQBKVaX8owNhgzkEDyoHTGVEGHVJT1E9pfH")  <- devnet id, NOT on mainnet
+  else                     declare_id!("CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK")  <- mainnet
+
+marginfi-v2 id-crate/src/lib.rs:
+  mainnet-beta = MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA
+  (devnet/staging ids are NOT on mainnet; the only other mainnet program under
+   the same authority is the mocks/test program HfCg2Re4...)
+
+manifest programs/*/src/lib.rs:
+  manifest   = MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms   (custom entrypoint)
+  wrapper    = wMNFSTkir3HgyZTsB7uqu3i7FA73grFCptPXgrZjksL   (custom entrypoint)
+  ui-wrapper = UMnFStVeG1ecZFc2gc5K3vFy3sMpotq8C91mXBQDGwh   (custom entrypoint)
+
+--------------------------------------------------------------------------------
+4. Authority enumeration (getProgramAccounts memcmp@13) — completeness sweep
+--------------------------------------------------------------------------------
+helium   authority pULUgsYtKvT7qhsL8QJ2oJXYQUeCCdjtfawPnBqEr3U  -> 25 programdata
+  19 known + 6 resolved:
+    propFYxqmVcufMhk5esNMrexq2ogHbbC2kP9PU1qxKs  (proposal)
+    nprx42sXf5rpVnwBWEdRg1d8tuCWsTuVLys1pRWwE6p  (nft_proxy)
+    tuktukUrfhXT6ZT77QTU8RQtvgL967uRuVagWF57zVA (tuktuk)
+    cronAjRZnJn3MTP3B9kE62NWDrjSuAPVXf9c4hu4grM  (cron)
+    stcfiqW3fwD9QCd8Bqr1NBLrs7dftZHBQe7RiMMA4aM  (stc)
+    orgdXvHVLkWgBYerptASkAwkZAE563CJUu717dMNX5f  -> program account CLOSED (orphan programdata)
+light    authority 7PeqkcCXeqgsp5Mi15gjJh8qvSLk7n3dgNuyfPhJJgqY  -> 6 programdata
+  4 known + 2 resolved:
+    NFLx5WGPrTHHvdRNsidcrNcLxRruMC92E4yv7zhZBoT (create-nullifier)
+    Dcc5vv836DzrDrvY8rB7TZD2bhtfXLMCWCHdoJCtQnxy (test-batch-transactions)
+chainlink authority BMKk78WEmZCQPptNYET8jdwf4EnsXY4WS74TBWjiSAbb -> 6 programdata
+  2 known (HEvSKofv, cjg3oHmg) + 4 resolved (all old 2022 anchor):
+    CaH12fwNTKJAG8PxEvo9R96Zc2j8qNHZaFj8ZW49yZNT
+    HW3ipKzeeduJq6f1NqRCw4doknMeWkfrM4WxobtG3o5v
+    DzzjdPWNfwHZmzPVxnmqkkMJraYQQRCpgFZajqkqmU6G
+    7zr352snXaLm2uwgP8kJcckh5nBij2m2oLiGjuXGVKWg
+chainlink authority EzbKFFP5yWXVCjRGk6KGK5rnZtSVCJSPrZHkurgtFN4d -> 1 (9xi644)
+chainlink authority Av3xZHYnFoW7wW4FEApAtHf8JeYauwaNm5cVLqk6MLfk -> 2
+    (mock-forwarder + cre-simulate-receiver EJwYCKxQ826qEUoFeGVyQLmBDGw6DY1hdg1QP5QcwhXa)
+marginfi authority J3oBkTkDXU3TcAggJEa3YeBZE5om5yNAdTtLVNXFD47 -> 2
+    (marginfi main + mocks HfCg2Re4BnZmQ7SzUcw3fhBtf1fqWmtMY1wov59VFrYs)
+raydium  authority FytDrVzDybM1TwFQPGb8qaxZR7dBCzNeqT3vtQsceZQK -> 12
+    clmm + 11 more Raydium programs (see table; incl. launchpad + cp-swap = 1.0.x)
+openbook-v2 authority CZoAmQErbMwhSNA5WtbWLcwGE1mhXEv4hTvyvvHXGkrr -> 1
+openbook-v1 authority 8xYs2tGXPayMtgsqs4NuMy7bnWr7DM9tnnkbY2SHVbys -> 1
+mpl-bubblegum authority bfQVv6niKVgEURYqQ1beJmiEQQN7MrvLRvk3mZGFubb -> 4
+    bubblegum + mpl-core(CoREEN...) + genesis(GNS1S5...) + auth9Sig... (other Metaplex repos)
+manifest authority CDFU8tEWsVU2ZMiek57Sgk3Huha2yBNcSHLAts3V3Cbf -> 4
+    manifest + dawn(DSTNyV...) + fate(FATEX7...) + destiny/fortune(FoRTUq...)
+manifest authority B6dmr2UAn2wgjdm3T4N1Vjd8oPYRRTguByW7AEngkeL6 -> 2 (wrapper + ui-wrapper)
+
+--------------------------------------------------------------------------------
+5. Classification result summary (full table in program_table.md / .json)
+--------------------------------------------------------------------------------
+ANCHOR_1_0_X (1.0.0-1.0.3; vulnerable family is a subset) — 4 programs:
+  CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK  raydium-clmm     last 2026-10-22
+  MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA   marginfi         last 2026-10-12
+  LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj   raydium-launchpad last 2026-09-11
+  CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C  raydium-cp-swap  last 2026-10-01
+  markers found: "A duplicate mutable account constraint was violated",
+                 "Account is already migrated",
+                 "Account must be migrated before exiting"
+
+ANCHOR_0_30_0_32 (<=0.32, NOT affected) — most chainlink/light/helium/openbook/mpl
+  Sub-era refinement (extra markers):
+    0.31-0.32 : marker "Instruction discriminator not provided" present
+    <=0.30    : marker "8 byte instruction identifier not provided" present
+  e.g. helium/light/raydium-route -> 0.31-0.32; openbook-v2/mpl-bubblegum/
+       chainlink 2022 deploys -> <=0.30 (pre-0.31)
+
+INDETERMINATE but PROVEN NON-1.0.x:
+  - light system (SySTEM1e...)          : Pinocchio entrypoint (strings: pinocchio)
+  - openbook-v1 (srmqPvym...)           : native Serum entrypoint (src/entrypoint.rs)
+  - manifest main/wrapper/ui-wrapper    : custom entrypoint (src/entrypoint/mod.rs)
+  - manifest dawn/fate/destiny-fortune  : custom entrypoint
+  - raydium amm-v4/farm/unknown         : native (src/encode.rs, src/entrypoint.rs)
+  - mpl-core / mpl-genesis / auth9Sig   : non-anchor (solana-program based)
+  - chainlink 4 old 2022 programs       : anchor-lang 0.20.1 / 0.18.2 (embedded
+                                          registry paths), i.e. pre-0.30
+
+ABSENT on mainnet (repo declare_id not deployed):
+  chainlink store/ocr2/access-controller/keystone-forwarder/data-feeds-cache,
+  helium tuktuk-dca(repo id), raydium-clmm DRayAUg... (devnet id)
+
+--------------------------------------------------------------------------------
+6. 1.0.0/1.0.1 vs 1.0.2/1.0.3 discrimination — honest limitation
+--------------------------------------------------------------------------------
+The 1.0.x family markers are present in 1.0.0, 1.0.1, 1.0.2, 1.0.3 alike, so the
+deployed ELF cannot be narrowed to the vulnerable 1.0.0/1.0.1 subset from strings.
+Candidate patch discriminators were checked against anchor-lang crate sources
+(/tmp/opencode/anchor-src/anchor-lang-1.0.0..1.0.3):
+  strings only in 1.0.2+ (not 1.0.0/1.0.1):
+    "non-system key must be rejected"
+    "system program account must be accepted"
+    "non-executable account must be rejected"
+    "any executable account must be accepted"
+    "unexpected error variant: {other:?}"
+    "init-if-needed"
+  -> ALL of these live inside #[cfg(test)] mod tests (src/accounts/program.rs
+     lines 251-326) or tests/seeds_compile.rs, i.e. NOT compiled into a release
+     (cargo build-sbf) binary. They are NOT usable as deployed discriminators.
+  The 1.0.2 fix itself (removing the `T::id()==Pubkey::default()` special case in
+  TryFrom<&AccountInfo> for Program<T>) adds no unique non-test string, so the
+  deployed ELF carries no reliable 1.0.1-vs-1.0.2 marker.
+Conclusion: report the family ANCHOR_1_0_X. Subset inference only via deploy
+timing: all four 1.0.x programs were last deployed AFTER the 2026-05-02 1.0.2
+release (2026-09-11 .. 2026-10-22), which is consistent with a rebuild on
+>=1.0.2 (fixed), but this is INFERENCE, not proof from the binary.
+
+Marker presence verification (source-level, /tmp/opencode/anchor-src):
+  "IDL account must be empty in order to resize, try closing first": 0.29 YES,
+     0.30 YES, 1.0.1 NO
+  "The program was compiled without idl instructions": 0.29 YES(2), 0.30 YES(2),
+     1.0.1 NO
+  "interface-instructions": 0.29 NO, 0.30 YES, 1.0.1 NO
+  -> "<=0.32" bucket is correct as "not 1.0.x" but includes pre-0.30 versions
+     (2022 chainlink deploys are actually ~0.24-0.29).
+
+--------------------------------------------------------------------------------
+7. Files
+--------------------------------------------------------------------------------
+program_table.md   markdown table (72 rows)
+program_table.json machine-readable (same rows + markers + kind + verdict)
+all_programs.json  merged raw fetch/classify records (80 unique programs)
+elf/*.so           raw deployed ELFs (80 files)
+fetch_run*.log, auth_others.log, resolve3.log  command outputs

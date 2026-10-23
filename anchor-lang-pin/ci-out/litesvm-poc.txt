@@ -1,0 +1,14 @@
+--- victim 1.0.1 (expect vulnerable) ---
+tx_status=OK
+detail=TransactionMetadata { signature: aVZ9sKZTrtBTBJPcA9pxK9orPJhrGWKGCuDTJsRgbKiiwfDf2aiEZPn1BrYPKHFMaNdDUAFexxVqjJwPjHCYWuh, logs: ["Program 2X5QMM3RqSfonKwgDntLRm5g4oeQGtVsMouoVkwsiEM1 invoke [1]", "Program log: Instruction: Initialize", "Program J8tFbKk83zpMgQpQkSe51J1cJA6wZScq8DoB5iZASQUN invoke [2]", "Program J8tFbKk83zpMgQpQkSe51J1cJA6wZScq8DoB5iZASQUN consumed 2 of 197415 compute units", "Program J8tFbKk83zpMgQpQkSe51J1cJA6wZScq8DoB5iZASQUN success", "Program log: victim: invoked 'system program' = J8tFbKk83zpMgQpQkSe51J1cJA6wZScq8DoB5iZASQUN", "Program 2X5QMM3RqSfonKwgDntLRm5g4oeQGtVsMouoVkwsiEM1 consumed 9492 of 200000 compute units", "Program 2X5QMM3RqSfonKwgDntLRm5g4oeQGtVsMouoVkwsiEM1 success"], inner_instructions: [[InnerInstruction { instruction: CompiledInstruction { program_id_index: 3, accounts: [0, 1], data: [2, 0, 0, 0, 32, 161, 7, 0, 0, 0, 0, 0] }, stack_height: 2 }]], compute_units_consumed: 9492, return_data: TransactionReturnData { program_id: J8tFbKk83zpMgQpQkSe51J1cJA6wZScq8DoB5iZASQUN, data: [] }, fee: 5000, loaded_accounts_data_size: 117138 }
+sender 1000000000 -> 999995000
+recipient 1000000 -> 1000000 (moved 0)
+observed=vulnerable (expected=vulnerable)
+RESULT victim_elf=/home/runner/work/ca-zombie-ci/ca-zombie-ci/anchor-lang-pin/ci-out/victim-1.0.1.so expected=vulnerable observed=vulnerable bypass=true rejected=false
+--- victim 1.0.2 (expect patched) ---
+tx_status=ERR
+detail=FailedTransactionMetadata { err: InstructionError(0, Custom(3008)), meta: TransactionMetadata { signature: 59MxhPr8tfoVFGYf81qpRiYEnDV4d49N2sAWQrXfHNzcPUsWnPokJjTsFpUYqc22p8EHouT4Zu39wRZ6xrWprqHm, logs: ["Program 2X5QMM3RqSfonKwgDntLRm5g4oeQGtVsMouoVkwsiEM1 invoke [1]", "Program log: Instruction: Initialize", "Program log: AnchorError caused by account: system_program. Error Code: InvalidProgramId. Error Number: 3008. Error Message: Program ID was not as expected.", "Program log: Left:", "Program log: J8tFbKk83zpMgQpQkSe51J1cJA6wZScq8DoB5iZASQUN", "Program log: Right:", "Program log: 11111111111111111111111111111111", "Program 2X5QMM3RqSfonKwgDntLRm5g4oeQGtVsMouoVkwsiEM1 consumed 3147 of 200000 compute units", "Program 2X5QMM3RqSfonKwgDntLRm5g4oeQGtVsMouoVkwsiEM1 failed: custom program error: 0xbc0"], inner_instructions: [[]], compute_units_consumed: 3147, return_data: TransactionReturnData { program_id: 2X5QMM3RqSfonKwgDntLRm5g4oeQGtVsMouoVkwsiEM1, data: [] }, fee: 5000, loaded_accounts_data_size: 117802 } }
+sender 1000000000 -> 999995000
+recipient 1000000 -> 1000000 (moved 0)
+observed=patched (expected=patched)
+RESULT victim_elf=/home/runner/work/ca-zombie-ci/ca-zombie-ci/anchor-lang-pin/ci-out/victim-1.0.2.so expected=patched observed=patched bypass=false rejected=true

@@ -1,0 +1,45 @@
+{
+  "finding": "P5-08",
+  "title": "anchor-lang 1.0.0/1.0.1 Program<'info, System> validation bypass (CVE-2026-45137) — deployed-version pin",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 460352006,
+  "block_numbers": {"solana": 460352006},
+  "targets_checked": 655,
+  "live_targets": 10,
+  "closed_reasons": [
+    "marginfi MFv2hWf31... is anchor-lang 1.0.2 (OtterSec verified build @ commit c5d440f6, Anchor.toml anchor_version=1.0.2, Cargo.lock anchor-lang 1.0.2) — patched",
+    "raydium-clmm CAMMCzo5... / cp-swap CPMMoo8... pin anchor-lang =1.0.2 and were deployed after the 2026-05-02 fix — patched",
+    "mpl-bubblegum, openbook-v2, chainlink-solana: deployed ELFs carry the <=0.30 anchor markers (8-byte discriminator), not the 1.0.x family",
+    "helium (19 programs), light-protocol registry/account-compression/compressed-token: 0.31-0.32 family markers (not 1.0.x)",
+    "light-protocol system program is Pinocchio; manifest uses a custom entrypoint; openbook-v1 is native Serum — not anchor programs at all",
+    "all 10 verified programs that DO pin anchor-lang 1.0.0/1.0.1 (tidex6 x2, axelar x5, workflow-tutorial) use only anchor's system_program::* helpers or system_instruction::* (hard-coded system program id) — no program forwards the caller-supplied system-program key into a CPI, so the advisory precondition is unmet (pattern_scan: 0 hits)"
+  ],
+  "poc": {
+    "tests_passed": 2,
+    "tests_total": 2,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39921938138"],
+    "host_poc": "anchor-lang 1.0.0/1.0.1 accept a fake executable program as Program<System>; 1.0.2/1.0.3 reject with AnchorError InvalidProgramId (3008).",
+    "litesvm_poc": "SBF victim built at 1.0.1 -> tx OK, inner CPI redirected to the attacker's noop program (log 'victim: invoked system program = J8tFbKk8...'), recipient moved 0 lamports (payment bypass). Same victim built at 1.0.2 -> tx fails InstructionError(0, Custom(3008)) 'InvalidProgramId ... Left J8tFbKk8... Right 11111111111111111111111111111111'."
+  },
+  "key_facts": [
+    "GHSA-c6rc-8jpp-2fgc / CVE-2026-45137 / RUSTSEC-2026-0144: anchor-lang >=1.0.0,<1.0.2. 1.0.0 released 2026-04-02, 1.0.1 2026-04-21, fixed 1.0.2 2026-05-02 (commit 3eb1fb0427d4fed0e944b627aef76db651a93aab).",
+    "Root cause: Program<T>::try_from computed is_unit_type = T::id()==Pubkey::default(); System::id() IS Pubkey::default(), so Program<System> accepted any executable account.",
+    "Host PoC: anchor-lang 1.0.0 and 1.0.1 accept a fake executable program as Program<System>; 1.0.2 and 1.0.3 reject with AnchorError InvalidProgramId (3008) 'Program ID was not as expected'.",
+    "Exploit requires the victim to hand-build a CPI Instruction whose program_id is the caller-supplied system_program key. Anchor's system_program::* helpers and #[account(init)] use system_instruction::* (hard-coded id) and CpiContext.program_id is Debug-only in 1.0.x, so the common patterns are immune.",
+    "Deployed-version pinning method: ELF .rodata version-discriminating markers (1.0.x-only vs <=0.32-only, validated against every crate version 0.29.0..2.0.0-rc.2) + OtterSec verified-build attestations + repo Anchor.toml/Cargo.lock history + last-deploy blockTime.",
+    "Broader sweep: 655 OtterSec-verified programs -> 329 anchor -> exactly 10 program ids pin anchor-lang 1.0.0/1.0.1.",
+    "pass-5's 'Cargo hits' are explained: marginfi/manifest literal '1.0.1' are caret reqs in fuzz/crucible resolving to 1.1.2/1.2.0; mpl-bubblegum's real 1.0.0 is the off-chain Rust client crate (on-chain program is 0.29.0); light-protocol's 1.0.0-rc.5 is a pre-release outside the affected range. No named repo's on-chain program ever used a released 1.0.0/1.0.1.",
+    "The 1.0.x markers are identical across 1.0.0-1.0.3, so an ELF alone cannot separate vulnerable 1.0.0/1.0.1 from fixed 1.0.2/1.0.3; exact versions are resolved by verified-build/repo evidence.",
+    "tidex6 verifier 2qEmhLEn... is 1.0.0 AND immutable (upgrade authority removed), but its pool vaults hold only 890,880 lamports (~$0.15 rent dust) and it uses the safe transfer helper."
+  ],
+  "caveats": [
+    "The global claim covers only OtterSec-verified programs (655); a non-verified program built with anchor-lang 1.0.0/1.0.1 would not be caught (no global on-chain program registry exists).",
+    "Exact 1.0.0/1.0.1 vs 1.0.2/1.0.3 cannot be proven from the ELF byte markers alone; marginfi is proven by reproducible verified build, raydium by repo pin + deploy date.",
+    "Point-in-time 2026-10-23; re-read live state before acting. Nothing here is an instruction to transact.",
+    "pass-5's 'Cargo hits' for the eight named repos are imprecise (caret requirements in fuzz/client crates, pre-release pins on feature branches); none corresponds to a deployed program."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live: the anchor-lang 1.0.0/1.0.1 Program<System> bug is real and reproduced, but none of the pass-5 named programs is on an affected version (marginfi/raydium are on the patched 1.0.2; the rest are <=0.32/Pinocchio/native/custom), and none of the 10 verified programs that do pin 1.0.0/1.0.1 forwards the system-program key into a CPI."
+}

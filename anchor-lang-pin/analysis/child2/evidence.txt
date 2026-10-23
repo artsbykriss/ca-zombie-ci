@@ -1,0 +1,243 @@
+================================================================================
+anchor-lang pin — raw evidence transcript
+GHSA-c6rc-8jpp-2fgc / CVE-2026-45137 / RUSTSEC-2026-0144
+child2, generated 2026-10-23
+================================================================================
+
+REDACTION: every GitHub API call below used
+    Authorization: Bearer $CHRIS_GITHUB_API_KEY
+The token value is read from /home/heisenberg/CA/.env, NEVER printed, and is
+shown below only as $GH_TOKEN / $CHRIS_GITHUB_API_KEY.
+
+NOTE: in /home/heisenberg/CA/.env the value is QUOTED (CHRIS_GITHUB_API_KEY="ghp_..."),
+so it must be stripped of quotes before use, otherwise the API returns 401
+"Bad credentials". The working form is:
+    GH_TOKEN=$(grep '^CHRIS_GITHUB_API_KEY=' /home/heisenberg/CA/.env | cut -d= -f2- | tr -d '"')
+
+--------------------------------------------------------------------------------
+0. AUTH / RATE LIMIT
+--------------------------------------------------------------------------------
+$ export GH_TOKEN=$(grep '^CHRIS_GITHUB_API_KEY=' /home/heisenberg/CA/.env | cut -d= -f2- | tr -d '"')
+$ echo "len=${#GH_TOKEN} prefix=${GH_TOKEN:0:4}"
+len=40 prefix=ghp_
+
+$ curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+    https://api.github.com/rate_limit | jq '{core:.resources.core,search:.resources.search}'
+{
+  "core": { "limit": 5000, "used": 32, "remaining": 4968, "reset": 1792740645 },
+  "search": { "limit": 30, "used": 0, "remaining": 30, "reset": 1792738858 }
+}
+
+$ curl -s -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/user | jq '{login,id}'
+{ "login": "artsbykriss", "id": 198447610 }
+
+--------------------------------------------------------------------------------
+1. REPO METADATA  (GET /repos/{owner}/{repo})
+--------------------------------------------------------------------------------
+mrgnlabs/marginfi-v2            | id=574986155 | default=main   | archived=false | pushed=2026-10-22T15:48:18Z
+raydium-io/raydium-clmm         | id=493956473 | default=master | archived=false | pushed=2026-10-21T09:26:21Z
+Lightprotocol/light-protocol    | id=429237278 | default=main   | archived=false | pushed=2026-10-14T19:44:16Z
+smartcontractkit/chainlink-solana | id=399216773 | default=develop | archived=false | pushed=2026-10-22T18:49:52Z
+metaplex-foundation/mpl-bubblegum | id=651611079 | default=main   | archived=false | pushed=2026-09-22T19:33:07Z
+Bonasa-Tech/manifest            | id=845595897 | default=main   | archived=false | pushed=2026-10-22T19:36:03Z
+CKS-Systems/manifest            | id=845595897 | default=main   | archived=false | pushed=2026-10-22T19:36:03Z   <-- SAME id (redirect/rename)
+helium/helium-program-library   | id=528358675 | default=master | archived=false | pushed=2026-10-22T18:39:02Z
+openbook-dex/openbook-v2        | id=632311168 | default=master | archived=false | pushed=2024-07-15T22:16:49Z
+
+--------------------------------------------------------------------------------
+2. LOCAL CLONES (full history; blobs present so history scans are exact)
+--------------------------------------------------------------------------------
+$ git clone https://x-access-token:$TOKEN@github.com/<owner>/<repo>.git full/<name>
+  (repos: marginfi-v2, raydium-clmm, chainlink-solana, mpl-bubblegum, manifest,
+   openbook-v2, helium-program-library, light-protocol)
+
+--------------------------------------------------------------------------------
+3. HISTORY SCANNER (scan2.py) — exhaustive per-file value transitions
+--------------------------------------------------------------------------------
+Method:
+  - enumerate every path ever named Anchor.toml / Cargo.lock / Cargo.toml across ALL refs
+    (git log --all --format= --name-only --no-merges  +  git ls-tree -r HEAD)
+  - for each such path, list every commit touching it (git log --all --format=@@%H|%cI|%s -- <path>)
+  - read the value at the commit and at its FIRST PARENT; record a transition when it changes
+  - record every observation whose extracted value is exactly 1.0.0 or 1.0.1
+  - extractor:
+      Anchor.toml : anchor_version = "X"
+      Cargo.lock  : [[package]] name = "anchor-lang" / version = "X"
+      Cargo.toml  : ^\s*anchor-lang\s*=\s*(...)   (version "X" or "X" or {version="X"})
+
+$ python3 scan2.py full/<name> <name> > raw/<name>.json
+
+files scanned / literal 1.0.0|1.0.1 observations:
+  marginfi-v2              files=32   vuln=1
+  raydium-clmm             files=7    vuln=0
+  light-protocol           files=215  vuln=0
+  chainlink-solana         files=32   vuln=0
+  mpl-bubblegum            files=9    vuln=8
+  manifest                 files=5    vuln=1
+  helium-program-library   files=55   vuln=0
+  openbook-v2              files=13   vuln=0
+
+--- literal 1.0.0/1.0.1 observations (all refs) ---
+marginfi-v2:
+  2026-09-23 | 907ec85183c9 | fuzz/crucible/Cargo.toml | 1.0.1 | Add crucible invariant fuzz harness + FuzzCorp CI Internal (#675)
+mpl-bubblegum:
+  2026-04-21 | 6d95fd0b17be | clients/rust/Cargo.lock | 1.0.0 | Update mpl-bubblegum Rust client to Solana 3.0 (#157)
+  2026-04-21 | e9fde975e730 | clients/rust/Cargo.lock | 1.0.0 | chore: Release mpl-bubblegum version 3.0.0
+  2026-09-22 | 5530ec5d0eda | clients/rust/Cargo.lock | 1.0.0 | chore: Release mpl-bubblegum version 4.0.0
+  2026-09-22 | da5fcbfef208 | clients/rust/Cargo.lock | 1.0.0 | chore: Release mpl-bubblegum version 4.0.0 (#180)
+  2026-04-21 | 6d95fd0b17be | clients/rust/Cargo.toml | 1.0.0 | Update mpl-bubblegum Rust client to Solana 3.0 (#157)
+  2026-04-21 | e9fde975e730 | clients/rust/Cargo.toml | 1.0.0 | chore: Release mpl-bubblegum version 3.0.0
+  2026-09-22 | 5530ec5d0eda | clients/rust/Cargo.toml | 1.0.0 | chore: Release mpl-bubblegum version 4.0.0
+  2026-09-22 | da5fcbfef208 | clients/rust/Cargo.toml | 1.0.0 | chore: Release mpl-bubblegum version 4.0.0 (#180)
+manifest:
+  2026-10-05 | f1875a0f8e6d | fuzz/crucible/Cargo.toml | 1.0.1 | Init crucible fuzzing (#745)
+
+--------------------------------------------------------------------------------
+4. DEFAULT-BRANCH ANCESTRY CHECK (is the vulnerable observation on the default branch?)
+--------------------------------------------------------------------------------
+$ git -C full/<name> merge-base --is-ancestor <sha> origin/<default> && echo ON-DEFAULT || echo not-on-default
+
+marginfi-v2 (origin/main):
+  ON-DEFAULT     | 2026-09-23 | 907ec85183c9 | 1.0.1 | fuzz/crucible/Cargo.toml
+mpl-bubblegum (origin/main):
+  ON-DEFAULT     | 2026-04-21 | 6d95fd0b17be | 1.0.0 | clients/rust
+  ON-DEFAULT     | 2026-04-21 | e9fde975e730 | 1.0.0 | clients/rust
+  ON-DEFAULT     | 2026-09-22 | da5fcbfef208 | 1.0.0 | clients/rust
+  not-on-default | 2026-09-22 | 5530ec5d0eda | 1.0.0 | clients/rust
+manifest (origin/main):
+  ON-DEFAULT     | 2026-10-05 | f1875a0f8e6d | 1.0.1 | fuzz/crucible/Cargo.toml
+raydium-clmm / chainlink-solana / openbook-v2 / helium-program-library / light-protocol:
+  (no 1.0.0/1.0.1 observations anywhere)
+
+--------------------------------------------------------------------------------
+5. RESOLVED-VERSION CHECKS (literal string vs. what the lockfile actually pins)
+--------------------------------------------------------------------------------
+marginfi fuzz/crucible @ 907ec85183c9:
+  Cargo.toml : anchor-lang = "1.0.1"           (caret ^1.0.1)
+  Cargo.lock : name = "anchor-lang" / version = "1.1.2"   <-- NOT 1.0.1
+manifest fuzz/crucible @ f1875a0f8e6d / HEAD:
+  Cargo.toml : anchor-lang = "1.0.1"           (caret ^1.0.1)
+  Cargo.lock : name = "anchor-lang" / version = "1.2.0"   <-- NOT 1.0.1
+mpl-bubblegum clients/rust @ 6d95fd0b17be / HEAD:
+  Cargo.toml : anchor-lang = { version = "1.0.0", optional = true }
+  Cargo.lock : name = "anchor-lang" / version = "1.0.0"  checksum = 8de9dce227fa0c08be20fef008c5b04681e1e0a15cb396e9619a9a1f800ff6cd
+               <-- RESOLVED 1.0.0 (real)
+
+--------------------------------------------------------------------------------
+6. KEY FILE CONTENTS AT KEY COMMITS (local git; corroborated by raw.githubusercontent)
+--------------------------------------------------------------------------------
+marginfi-v2:
+  $ git show fd1e96cc8235:Anchor.toml | grep anchor_version      -> anchor_version = "0.31.1"
+  $ git show 1eaaac5eb4ee:Anchor.toml | grep anchor_version      -> anchor_version = "1.0.2"
+  $ git show 1eaaac5eb4ee:Cargo.toml | grep anchor-lang          -> anchor-lang = { version = "1.0.2" }
+  $ git show fd1e96cc8235:Cargo.toml | grep anchor-lang          -> anchor-lang = { version = "0.31.1" }
+  $ git show HEAD:Cargo.lock | grep -A1 'name = "anchor-lang"'   -> version = "1.0.2"
+  $ git show 907ec85183c9:fuzz/crucible/Cargo.toml               -> anchor-lang = "1.0.1"
+  $ git show 907ec85183c9:fuzz/crucible/Cargo.lock               -> anchor-lang 1.1.2
+
+raydium-clmm:
+  $ git show a5a46ff5cc76:Anchor.toml | grep anchor_version      -> anchor_version = "0.32.1"
+  $ git show ed1eb41519d5:Anchor.toml | grep anchor_version      -> anchor_version = "1.0.2"
+  $ git show HEAD:programs/amm/Cargo.toml | grep anchor-lang     -> anchor-lang = { version = "=1.0.2", ... }
+
+light-protocol:
+  $ git show HEAD:Cargo.toml | grep anchor-lang                  -> anchor-lang = { version = "0.31.1" }   (main still 0.31.1)
+  $ git show 953063ebe8e7:Cargo.toml ... (branch sergey/solana3) -> 1.0.0-rc.5
+  $ git show e41f2e41f48d:Cargo.toml ... (branch sergey/solana3) -> 1.0.2
+  $ git branch -a --contains 953063ebe8e7                       -> remotes/origin/sergey/solana3   (NOT main)
+  $ git branch -a --contains e41f2e41f48d                       -> remotes/origin/sergey/solana3   (NOT main)
+
+mpl-bubblegum:
+  $ git show HEAD:clients/rust/Cargo.toml | grep anchor          -> anchor-lang = { version = "1.0.0", optional = true }
+  $ git show HEAD:clients/rust/Cargo.lock | grep -A2 '^name = "anchor-lang"$'
+        name = "anchor-lang"
+        version = "1.0.0"
+  $ git show HEAD:programs/bubblegum/program/Cargo.toml | grep anchor-lang -> anchor-lang = { version = "0.29.0", ... }
+  $ git show HEAD:programs/bubblegum/Cargo.lock | grep -A1 'name = "anchor-lang"' -> version = "0.29.0"
+  $ (Anchor.toml has no anchor_version in any revision; programs/bubblegum/Anchor.toml checked)
+
+manifest:
+  $ git log --all --format= --name-only | sort -u | grep -i Anchor.toml   -> (empty: repo has NO Anchor.toml ever)
+  $ git show HEAD:Cargo.lock | grep -A1 'name = "anchor-lang"'            -> version = "0.31.1"
+  $ git show f1875a0f8e6d:fuzz/crucible/Cargo.lock | grep -A2 '^name = "anchor-lang"$'
+        name = "anchor-lang"
+        version = "1.2.0"
+
+helium-program-library:
+  $ git show HEAD:Cargo.toml | grep anchor-lang                  -> anchor-lang = { version = "0.31.2", features = ["init-if-needed"] }
+  $ git show HEAD:Cargo.lock | grep -A1 'name = "anchor-lang"'   -> version = "0.31.2"
+  $ Anchor.toml has no anchor_version field in any revision
+
+openbook-v2:
+  $ git show HEAD:Cargo.toml | grep anchor-lang                  -> anchor-lang = "0.29.0"
+  $ Anchor.toml has no anchor_version field in any revision
+
+chainlink-solana:
+  $ contracts/Anchor.toml max anchor_version = "0.31.0"
+  $ contracts/Cargo.lock max anchor-lang = "0.31.1"
+
+--------------------------------------------------------------------------------
+7. GitHub API CROSS-CHECKS
+--------------------------------------------------------------------------------
+(a) per-path commit history (GET /repos/{owner}/{repo}/commits?path=...&per_page=100):
+  mrgnlabs/marginfi-v2  Anchor.toml                     -> 45 commits
+  raydium-io/raydium-clmm Anchor.toml                   -> 24 commits
+  Lightprotocol/light-protocol Cargo.toml               -> 100 commits
+  smartcontractkit/chainlink-solana contracts/Anchor.toml -> 22 commits
+  metaplex-foundation/mpl-bubblegum clients/rust/Cargo.toml -> 19 commits
+  Bonasa-Tech/manifest Cargo.lock                       -> 41 commits
+  helium/helium-program-library Cargo.toml              -> 45 commits
+  openbook-dex/openbook-v2 Cargo.toml                   -> 12 commits
+
+(b) commit search (GET /search/commits?q=repo:{owner}/{repo}+anchor+upgrade):
+  raydium:  total_count=6   (latest: 2026-09-29 ed1eb41519d5 "Chore/upgrade anchor (#202)")
+  light:    total_count=1
+  chainlink:total_count=4
+  bubblegum:total_count=1
+  manifest: total_count=0
+  helium:   total_count=14  (latest anchor-upgrade: 2025-03-20 f913854bd729 "Feat/anchor 30 upgrade (#881)")
+  openbook: total_count=2   (latest: 2024-04-16 6ba26edd2734 "program: update to anchor 0.29 and solana 1.17 (#249)")
+  marginfi: /search/commits?q=repo:mrgnlabs/marginfi-v2+... returns
+            {"message":"Validation Failed", ... "The listed users and repositories cannot be
+             searched either because the resources do not exist or you do not have permission"}
+            (token/search-index quirk; the local clone was used instead — more complete)
+
+(c) raw.githubusercontent.com fetches at key SHAs:
+  mrgnlabs/marginfi-v2 @ 1eaaac5eb4ee  Anchor.toml                 -> anchor_version = "1.0.2"
+  mrgnlabs/marginfi-v2 @ fd1e96cc8235  Anchor.toml                 -> anchor_version = "0.31.1"
+  mrgnlabs/marginfi-v2 @ 907ec85183c9  fuzz/crucible/Cargo.toml    -> anchor-lang = "1.0.1"
+  raydium-io/raydium-clmm @ ed1eb41519d5 Anchor.toml               -> anchor_version = "1.0.2"
+  raydium-io/raydium-clmm @ a5a46ff5cc76 Anchor.toml               -> anchor_version = "0.32.1"
+  metaplex-foundation/mpl-bubblegum @ 6d95fd0b17be clients/rust/Cargo.toml -> anchor-lang = { version = "1.0.0", optional = true }
+  metaplex-foundation/mpl-bubblegum @ 6d95fd0b17be clients/rust/Cargo.lock -> anchor-lang version = "1.0.0"
+  Bonasa-Tech/manifest @ f1875a0f8e6d  fuzz/crucible/Cargo.toml    -> anchor-lang = "1.0.1"
+  Bonasa-Tech/manifest @ f1875a0f8e6d  fuzz/crucible/Cargo.lock    -> anchor-lang version = "1.2.0"
+
+--------------------------------------------------------------------------------
+8. FALSE-POSITIVE / GAP CHECKS
+--------------------------------------------------------------------------------
+- alternate dependency table syntax (would be missed by line-regex):
+  $ git log --all --oneline -G '\[dependencies\.anchor-lang\]' -- '*Cargo.toml'
+  -> 0 hits in ALL 8 repos (no [dependencies.anchor-lang] table ever used)
+
+- Cargo.toml files at HEAD declaring anchor-lang more than once (dev-dependency drift):
+  light-protocol sdk-libs/sdk/Cargo.toml and sdk-libs/token-sdk/Cargo.toml each have 2 anchor-lang
+  lines, BOTH of the form { workspace = true ... } (version inherited from the root workspace Cargo.toml,
+  which the scanner tracks). No divergent explicit version.
+
+- The 1.0.0/1.0.1 "Cargo hits" flagged by code search are explained:
+  * marginfi  -> fuzz/crucible/Cargo.toml  anchor-lang = "1.0.1"  (caret; lock resolves 1.1.2)
+  * manifest  -> fuzz/crucible/Cargo.toml  anchor-lang = "1.0.1"  (caret; lock resolves 1.2.0)
+  * bubblegum -> clients/rust/Cargo.toml   anchor-lang = "1.0.0"  (RESOLVED 1.0.0; Rust client crate only)
+
+- Lightprotocol note: 1.0.0-rc.5 is a PRE-RELEASE. Advisory range is ">= 1.0.0, < 1.0.2";
+  semver orders 1.0.0-rc.5 < 1.0.0, so it is formally outside the range. It also only ever
+  existed on branch sergey/solana3, never on main.
+
+- Limitation: GitHub clones include all live branches and tags but NOT deleted branches / PR refs,
+  so a 1.0.0/1.0.1 pin that lived only on a deleted branch would be unobservable; no such pin is
+  suggested by any commit search result.
+
+================================================================================
+END OF TRANSCRIPT
+================================================================================
