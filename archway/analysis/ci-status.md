@@ -838,3 +838,47 @@ Burner holds 551.7 ARCH gas reserve. Scripts: `fund_inbound.js`, `cctp_deposit.j
 - `archway/wasmer-lab/` — engine labs + variant generator + CI campaign.
 - `archway/analysis/escape-techniques.md` — Hexens summary + exploitation model.
 - CI repo `kingmariano/ca-zombie-ci` branch `archway`: `archway-wasmer-lab/`, `archway-harness/`.
+
+## 2026-10-23 update #24 — WEAPONIZATION CAMPAIGN: source-derived control slot + the depth hypothesis DISPROVEN (CI 40025548777)
+
+**New artefact:** `analysis/WEAPONIZATION.md` (source-derived stack model, M1–M4 status, blocker proof).
+
+**Source model (Wasmer 4.2.2 + corosensei 0.1.2):**
+- drift site confirmed: `codegen.rs:363 release_locations_value` → `:409 adjust_stack` (`sub rsp`),
+  reached from `Operator::Else` (`:2993`); locals/spills are RBP-relative (`machine_x64.rs:2224`)
+  so **only** `emit_call_native`'s `push_used_gpr` batch + call RA drift.
+- the holder's host import runs via `on_host_stack` → `Yielder::on_parent_stack` → `on_stack` →
+  `stack_call_trampoline` (`corosensei x86_64.rs:244-275`): `push rbp; mov rbp,rsp; mov rsp,rsi;
+  call rdx; mov rsp,rbp; pop rbp; ret`. So **`[X]` = return address into `on_stack`** is the
+  directed-control-transfer slot, and `[X-8]` = saved RBP. The `ret` at `[X]` is reached only if
+  the nested query returns **Ok** (a failed query → wasmvm unwinds the holder, and libgcc's DWARF
+  unwinder *validates* the restored RIP instead of jumping to it).
+
+**New harness flag `-scanchain`** (`harness/main.go`): dumps, while the holder is suspended in its
+host import, every qword on each ~1 MiB corosensei fibre that points into an exec mapping (return
+addresses) or a fibre (saved RBP), with its offset from the fibre top.
+
+**CI 40025548777 — https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40025548777 (SUCCESS)**
+- `archway/ci/run.sh` now runs `harness/campaign_wpn.sh`: measurement + **deep-drift sweep**
+  (`iters = 65536+R+1+512·K`, markers `K∈{0,1,2,4,8,16,32}` × 512 phases; ud2 `K∈{0,1,2,4}`;
+  fixed control).
+- **Measurement:** the holder's live frame chain is only **~0x320 bytes deep** (all pointer-class
+  qwords on the suspended fibre are in `[top-0x320, top]`); the coroutine setup at `[top-8]`
+  (initial func) / `[top-0x10]` (parent link) is visible, as are the JIT trampoline RAs.
+- **Sweep totals (5 632 runs: 3 584 marker + 2 048 ud2):** HIJACKS **0** · SIGILL **0** · marker-reads **15** · holder-side
+  crashes **656** · trigger-side **0** · wasm OOB errors **153** · clean **4 808**. Fixed: clean.
+- **Decisive:** the 15 marker reads are at **exactly `R=237/238/239` for *every* `K`** → deeper
+  batches add nothing → **the "depth gap" hypothesis is disproven** (the live frame chain is inside
+  the first crossing window).
+- **Consumer disassembled** (`mk-K1-R238`): `mov 0x98(%r12),%rax; cmpb $0x48,(%rax)` = libgcc
+  `_Unwind` **signal-frame detection** reading our marker as the **saved RIP** → the marker *does*
+  land on a control slot, but it is **read, not jumped to** (FDE lookup / sigreturn check).
+- **Blocker (proven):** the drift's write is a **~6-qword batch**; the same batch that lands a plant
+  on a saved RIP also corrupts an adjacent **data** slot, which faults first; the crossing is
+  co-requisite with a trap; wasmvm then unwinds the holder through libgcc. No `PC=0x4141…`, no
+  aimed `SIGILL`. M1/M3/M4 not achieved; M2 partial (plant reaches a saved-RIP slot).
+
+**One remaining lever (not attempted):** shrink the batch toward 1 qword so a plant can land on a
+saved RIP without collateral data corruption — requires a trigger shape that keeps the `if`-then-
+result memory-backed (register pressure) while having only 1–2 live GPRs at the host call; must be
+derived against `codegen.rs`/`machine_x64.rs` before another sweep.

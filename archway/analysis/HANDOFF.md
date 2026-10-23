@@ -1,5 +1,17 @@
 # C2-09 / CWA-2026-006 — HANDOFF (for the next agent)
 
+> **2026-10-23 update — see `analysis/WEAPONIZATION.md` + `analysis/ci-status.md` §update #24.**
+> A source-derived weaponization campaign ran the **real wasmvm v1.5.5 / Wasmer 4.2.2** engine
+> (CI **40025548777**, SUCCESS). It identified the exact directed-control-transfer slot
+> (corosensei `stack_call_trampoline` `[X]` = return address into `on_stack`), **disproved** the
+> "aiming-depth gap" hypothesis (marker reads at identical phases for every depth `K`; the holder's
+> live frame chain is only ~0x320 B deep), and pinned the blocker to a mechanism: the drift's
+> ~6-qword batch lands a plant on a **saved RIP** but also corrupts an adjacent **data** slot that
+> faults first; the crossing is co-requisite with a trap and wasmvm unwinds the holder through the
+> libgcc DWARF unwinder, which **reads/validates** the RIP instead of jumping to it. **0 hijacks,
+> 0 aimed SIGILL** in 5 120 runs. M3/M4 remain unachieved; M2 partial. The one remaining lever
+> (shrink the batch to 1 qword) is documented in `WEAPONIZATION.md` §7.
+
 **Status:** research/weaponization ~60%. Trigger through the real wasmvm stack is proven; the
 control-flow hijack and controlled pivot are proven in the lab; the nested pair through real
 wasmvm and the info leak are in flight (M1/M2); the mint path is **not built** (M3/M4); nothing

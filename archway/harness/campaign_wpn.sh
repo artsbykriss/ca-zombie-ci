@@ -153,7 +153,7 @@ for f in sorted(glob.glob(os.path.join(OUT, "sw-*.stderr"))):
     tag = os.path.basename(f)[3:-7]
     txt = open(f, errors="replace").read()
     j = f[:-7] + ".json"
-    mp = re.search(r'PC=0x([0-9a-f]+)', txt)
+    mp = re.search(r'(?:PC|RIP)=0x([0-9a-f]+)', txt)
     ma = re.search(r'addr=0x([0-9a-f]+)', txt)
     pc = mp.group(1) if mp else ""
     ad = ma.group(1) if ma else ""
