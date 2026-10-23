@@ -1,0 +1,36 @@
+{
+  "finding": "ZH4-PASS5 Tier-3 #2 — Cardboard Trade (Solana perp DEX)",
+  "title": "Cardboard Trade exchange+oracle: price-settle caller-gated to oracle; oracle sources owner-allowlisted -> no E-U path",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 0,
+  "block_numbers": {"solana_slot": 460345410},
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "exchange settle tag 0x1f is gated on the immediate caller being the oracle program (direct call -> ORCLSKIP no-op, 1361 CU; bypass probes all bail)",
+    "oracle push tag 0x07 is permissionless but validates every price-source account by hardcoded program-id allowlist AND specific account keys (bad source -> ORCLSKIP)",
+    "oracle instruction data is only 2 bytes (0x071f) -> no price can be supplied by the caller",
+    "source-program price accounts are written by authorised updater signers, not permissionlessly"
+  ],
+  "poc": {"tests_passed": 3, "tests_total": 3, "ci_run_urls": []},
+  "key_facts": [
+    "exchange J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A, oracle 5g3PW7gtfnM3QYsGPaPGLiCxtous4arSugCct9KPHHWo; both upgrade authority 9XuzmXiPydjjvBNcSabfF8HC8hgzjTW3wdMNSfXPSTdf",
+    "USDC vault DSnqZ6ctTToaCMoCwULqdfkXGTTXfQ9oiv3qH98NR4hv holds 1,037,944.751058 USDC; config PDA HrW16vpyqURMvR4CeRf1QYMucEGKusHuzPVz1V3h7R7B (disc CTCFG005)",
+    "ELF: pinocchio 0.11.2, stripped; exchange 199,056 B, oracle 101,992 B; disassembled with sbpf",
+    "exchange instruction tags observed live: inner 0x1f (settle) and 0x43 (CTEVNT event); oracle top-level 0x07; no top-level user exchange tag observed in 200 recent txs",
+    "settle payload: [0x1f][u16 market][u64 price][u64 price][u64 ts][u64 seq]",
+    "gate fn_05d0 (exchange.asm:230) compares caller program id to hardcoded oracle id (returns 0x1a); gate fails -> ORCLSKIP exchange.asm:20020",
+    "oracle fn_8480 (oracle.asm:4733) validates source owner program-id allowlist (BiSo/Tess/goon/ojh/AQU/ALPHAQ/dijk/fast) plus exact keys DmocjvFX../8mZVRgrr..",
+    "sim: direct exchange 0x1f -> ORCLSKIP 1361 CU; oracle push real -> no ORCLSKIP; oracle push swapped source owner -> ORCLSKIP"
+  ],
+  "caveats": [
+    "Residual: a push with ALL sources invalid still refreshes the feed from last-known prices (stale, not attacker-chosen)",
+    "oracle_learning.rs aggregation/TWAP and the exact sysvar caller-read not fully reversed",
+    "No top-level user instruction (deposit 0x05 / withdraw / margin) observed live -> those auth paths not exercised",
+    "No source/IDL published (upstream repo empty); disassembly-only analysis"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 from Cardboard Trade: the exchange price-settle (0x1f) is caller-gated to the oracle program, and the permissionless oracle push (0x07) assembles prices only from owner-allowlisted, signer-updated source accounts with no caller-supplied price, so the ~$1.04M USDC vault is not reachable."
+}

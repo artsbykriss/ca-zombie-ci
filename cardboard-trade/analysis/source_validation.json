@@ -1,0 +1,7 @@
+{
+  "test": "oracle push (tag 071f) with price-source accounts swapped, simulateTransaction sigVerify=false",
+  "control_real_accounts": {"err": null, "cu": 16877, "orclskip_logged": false, "exchange_cpi": "success"},
+  "swap_tessera_9NkuAWB_to_SystemProgram": {"err": null, "cu": 16250, "orclskip_logged": true, "orclskip_args": "0x50494b534c43524f, 0x1, 0xb, 0x0, 0x2", "note": "oracle detected the bad source (code 0xb), skipped it, and still CPId the exchange which succeeded"},
+  "swap_goonfi_8TxrtAx_to_keeper_EOA": {"err": null, "cu": 18103, "orclskip_logged": true, "orclskip_args": "0x50494b534c43524f, 0x1, 0xc, 0x0, 0x2", "note": "code 0xc for the second source"},
+  "conclusion": "The oracle DOES validate each price-source account's owner program id (a non-DEX owner is rejected/skipped -> ORCLSKIP). An unprivileged attacker cannot substitute a self-owned fake source account (its owner is not an allowlisted DEX program), so the 'fake source -> fake price' drain is blocked at the source-validation step. Residual question: behaviour when a source is skipped (does the price degrade to a subset / stale value, and can that be exploited?) - deferred to disassembly in analysis/oracle-re/."
+}

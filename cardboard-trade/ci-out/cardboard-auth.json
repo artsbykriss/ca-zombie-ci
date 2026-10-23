@@ -1,0 +1,48 @@
+{
+ "target": "Cardboard Trade",
+ "exchange": "J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A",
+ "oracle": "5g3PW7gtfnM3QYsGPaPGLiCxtous4arSugCct9KPHHWo",
+ "usdc_vault": "DSnqZ6ctTToaCMoCwULqdfkXGTTXfQ9oiv3qH98NR4hv",
+ "usdc_vault_amount": 1037944.751058,
+ "method": "simulateTransaction sigVerify=false",
+ "tests": {
+  "direct_exchange_settle_0x1f": {
+   "err": null,
+   "cu": 1361,
+   "orclskip": true,
+   "logs": [
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A invoke [1]",
+    "Program log: 0x50494b534c43524f, 0x1, 0x1f, 0x0, 0x3",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A consumed 1361 of 200000 compute units",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A success"
+   ]
+  },
+  "reference_tx": "5hXVpotp6rx9aMR6Z4Lu85PA9mf4PTzS8nSDLL9mL2Fz4eTpfku3ani3cDtPrjHAt5v27GJVY9WKEmJXDJzBiB8i",
+  "oracle_push_real_accounts": {
+   "err": null,
+   "cu": 18595,
+   "orclskip": false,
+   "logs": [
+    "Program 5g3PW7gtfnM3QYsGPaPGLiCxtous4arSugCct9KPHHWo invoke [1]",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A invoke [2]",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A invoke [3]",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A consumed 1198 of 183668 compute units",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A success"
+   ]
+  },
+  "oracle_push_swapped_source_owner": {
+   "err": null,
+   "cu": 16871,
+   "orclskip": true,
+   "logs": [
+    "Program 5g3PW7gtfnM3QYsGPaPGLiCxtous4arSugCct9KPHHWo invoke [1]",
+    "Program log: 0x50494b534c43524f, 0x1, 0xa, 0x0, 0x2",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A invoke [2]",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A invoke [3]",
+    "Program J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A consumed 1198 of 185392 compute units"
+   ]
+  }
+ },
+ "verdict": "no E-U path \u2014 exchange 0x1f caller-gated to the oracle (ORCLSKIP, no settle); oracle price-source accounts owner-allowlisted (wrong owner -> ORCLSKIP)",
+ "pass": true
+}

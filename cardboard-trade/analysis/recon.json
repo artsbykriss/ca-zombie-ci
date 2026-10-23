@@ -1,0 +1,65 @@
+{
+  "finding": "ZH4-PASS5 Tier-3 #2 — Cardboard Trade (Solana)",
+  "programs": {
+    "exchange": "J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A",
+    "oracle": "5g3PW7gtfnM3QYsGPaPGLiCxtous4arSugCct9KPHHWo",
+    "exchange_programdata": "4YTB3LjQ7Fk9acK5kYk24oTxHE7MPJCSHtMZsKFGmob1",
+    "oracle_programdata": "7s4ytn7NPXnpwwsp6w9ZtRMgqMfui38aGx6zmmUkAXvF",
+    "exchange_upgrade_authority": "9XuzmXiPydjjvBNcSabfF8HC8hgzjTW3wdMNSfXPSTdf",
+    "oracle_upgrade_authority": "9XuzmXiPydjjvBNcSabfF8HC8hgzjTW3wdMNSfXPSTdf",
+    "exchange_last_deploy_slot": 459756763,
+    "oracle_last_deploy_slot": 459759659,
+    "exchange_elf_bytes": 199056,
+    "oracle_elf_bytes": 101992,
+    "build": "pinocchio 0.11.2 + solana-account-view 2.1.0 + solana-address 2.9.0; stripped; custom 1-byte-tag dispatch",
+    "source_files_in_strings": ["crates/protocol/src/{state,math,payout,referral,oracle,oracle_learning}.rs", "programs/exchange/src/{events,metadata}.rs", "programs/oracle/src/lib.rs", "crates/oracle-sources/src/lib.rs"]
+  },
+  "config_pda": {
+    "address": "HrW16vpyqURMvR4CeRf1QYMucEGKusHuzPVz1V3h7R7B",
+    "owner": "J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A",
+    "size": 347,
+    "discriminator": "CTCFG005",
+    "decoded_pubkeys": {
+      "0": "5CRhPBLGttfCHCezRbAnX9ZAJeLxsXse9XcuVkjYVJPj",
+      "1": "AsVbkLq1W8Q7MHTyL1ADkhjLJFj8LMJ3tMjWTjMdeFF2",
+      "2": "6MK66chxLF75mYuAk2vs1DAPnvzq4y3fB2x6ktKUtpKs",
+      "3": "3Kmfgp4ue8eRg48as6rzgPtkFvnbZhEnRmn8ESdbiAPC (stored, but account does not exist on-chain)",
+      "4": "2SkmwgPPF6pEgp78JffCWnDUqFw1rL9brSvA8xhVNTz7",
+      "5": "F3GRSuWfjTdwc58izh6Zvbqe4aMHytef1GnveL7QoV31",
+      "6": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v (USDC mint)",
+      "7": "DSnqZ6ctTToaCMoCwULqdfkXGTTXfQ9oiv3qH98NR4hv (USDC vault token acct)",
+      "8": "9Dmbnc5Ewhe9YvihuPu5G6kakBR4NftCKU2cUKPDF4jR (reward mint)",
+      "9": "BGffX12ZXv7AudjDQXRy1nftPMWJjzeatE7Xb2Um21T2 (reward vault)"
+    }
+  },
+  "live_value": {
+    "usdc_vault_DSnqZ6ct": {"mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "amount": "1037944.751058", "decimals": 6},
+    "reward_vault_BGffX12Z": {"mint": "9Dmbnc5Ewhe9YvihuPu5G6kakBR4NftCKU2cUKPDF4jR", "amount": "728044042.0677", "decimals": 6},
+    "reward_vault_5Pf4KgH4": {"mint": "9Dmbnc5Ewhe9YvihuPu5G6kakBR4NftCKU2cUKPDF4jR", "amount": "548615.4922", "decimals": 6},
+    "config_owned_token_accounts_total": 1355,
+    "config_owned_nonzero": 3,
+    "defillama_tvl_usd": 1081481.93
+  },
+  "instruction_surface_observed": {
+    "oracle_top_level_push": {"data_hex": "071f", "note": "3x per keeper tx; permissionless (simulated success with fresh payer, no keeper sig)"},
+    "exchange_settle_inner_cpi": {"data_hex_prefix": "1f", "example": "1f00007bc6860a130000007bc6860a130000003e50701b00000000a14e160000000000", "tag": "0x1f"},
+    "exchange_self_cpi": {"data_hex_prefix": "0e", "len": 59, "tag": "0x0e"},
+    "exchange_deposit_reported_by_pass5": {"tag": "0x05"}
+  },
+  "pda_seed_ascii_constants_found": ["CTCFG003", "CTCFG005", "CTCPOL003", "CTCPOL004", "CTMKT005", "prices", "config", "weights", "oracle-authority", "oracle", "market"],
+  "price_source_owners": {
+    "goonuddtQRrWqqn5nFyczVKaie28f3kDkHWkHtURSLE": "GoonFi",
+    "TessVdML9pBGgG9yGks7o4HewRaXVAMuoVj4x83GLQH": "Tessera",
+    "AQU1FRd7papthgdrwPTTq5JacJh8YtwEXaBfKU3bTz45": "unknown DEX",
+    "fastC7gqs2WUXgcyNna2BZAe9mte4zcTGprv3mv18N3": "unknown DEX",
+    "dijkbkCAKfFTCxQg3u1pg82gVU1jJGHBBRcteD11mBu": "unknown DEX",
+    "BiSoNHVpsVZW2F7rx2eQ59yQwKxzU5NvBcmKshCSUypi": "unknown DEX",
+    "ojh19ojaKduoJZuaJADhcVGp4xt1TcdAvZmpVsCorch": "unknown DEX"
+  },
+  "parent_simulations": {
+    "oracle_push_fresh_payer": "SUCCESS (err None, 9696 CU) — permissionless",
+    "direct_exchange_settle_tag_0x1f": "err None but log 'ORCLSKIP' (0x50494b534c43524f) + 1361 CU — appears to skip when caller is not the oracle"
+  },
+  "reference_tx": "4ZVhgQXvnc5tGWqJGrEKTsJKfa1Tb5nxf9nuUr8Ke2tmgyHL5srxMTkdN5MCKRnLCZ65DpjSnynZh7ZZbdro2yoR",
+  "reference_slot": 460345410
+}

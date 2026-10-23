@@ -1,0 +1,89 @@
+{
+  "finding": "Cardboard Trade (Solana) — oracle price path / exchange settle auth",
+  "targets": {
+    "exchange": "J7vt5nGQd7YggFTV6GPwmWycfxzLjnHoGX6GRUKo9M7A",
+    "oracle": "5g3PW7gtfnM3QYsGPaPGLiCxtous4arSugCct9KPHHWo",
+    "usdc_vault": "DSnqZ6ctTToaCMoCwULqdfkXGTTXfQ9oiv3qH98NR4hv",
+    "usdc_vault_amount": 1037944.75
+  },
+  "verdict": "no E-U path",
+  "attack_path": "None found. The exchange's price-settle instruction (tag 0x1f) takes the settlement price DIRECTLY in its instruction data, so the whole system reduces to: (a) can an unprivileged caller invoke exchange tag 0x1f, and (b) can an unprivileged caller make the oracle compute a chosen price. (a) NO: exchange 0x1f is caller-gated to the oracle program — a top-level call carrying the exact same 35-byte payload and the exact same account list the oracle's CPI uses returns err=None but logs 'ORCLSKIP' and consumes only ~1361 CU (no-op); prepending an oracle push, appending/prepending the oracle program account, the oracle PDAs, or the Instructions sysvar account does not change that. (b) NO: the oracle push (top-level data 0x071f) is permissionless, but it validates every price-source account against a HARDCODED allowlist of program ids (BiSoNHVp.., TessVdML.., goonuddt.., ojh19oja.., AQU1FRd7.., ALPHAQmeA.., dijkbkCA.., fastC7gqs..) plus specific account keys (DmocjvFXp75.. owned by ojh, 8mZVRgrr.. owned by fast); any non-matching source is rejected and skipped (ORCLSKIP) — verified by a swap matrix in which every source-account substitution (same-owner or wrong-owner) produced ORCLSKIP. The source programs' price accounts are written by authorised updater signers (dijk<-FTp1BybZ51NiZKbnZH6MsrV3tUZNauhpQMbBcqYUEr5f, fast<-AK9U2FvVU12TjCoaGAnuvzNfZkuny4NiQZEkUBVK1Swz, BiSo<-7RrqWam5ri2Yu6fUtiCp2dwqaydjJYMXz6HtCnQPGbDY), not permissionlessly, so a fake price cannot be injected into a source. Net: no unprivileged path to an attacker-chosen settlement price; the ~$1.04M USDC vault is not reachable this way.",
+  "evidence": [
+    {"file": "analysis/oracle.asm", "line": 18108, "detail": "exchange.asm:18108 is the exchange entrypoint; oracle entrypoint is at 0xa2c8. Oracle top-level push tag is 0x07 (data bytes 0x07 0x1f = base58 'YS'), 60 occurrences in 20 recent oracle txs."},
+    {"file": "analysis/oracle.asm", "line": 5579, "detail": "fn_8480 loop: for each enabled source group, call fn_8480; if its return low-byte != 0x1a the group is SKIPPED and ORCLSKIP (0x50494b534c43524f) is logged via sol_log_64_. Loop index mask 'jge r3,0x6' => up to 6 source groups."},
+    {"file": "analysis/oracle.asm", "line": 4768, "detail": "Source-group validation: for group index r8, compares 4 words of the candidate account's owner against a HARDCODED program-id allowlist taken from data_03c8|data_0488|data_04b8 / data_03f8 / data_0428 / data_0458 (6 entries, base58-decoded = BiSoNHVpsVZW2F7rx2eQ59yQwKxzU5NvBcmKshCSUypi, TessVdML9pBGgG9yGks7o4HewRaXVAMuoVj4x83GLQH, goonuddtQRrWqqn5nFyczVKaie28f3kDkHWkHtURSLE, ojh19ojaKduoJZuaJADhcVGp4xt1TcdAvZmpVsCorch, AQU1FRd7papthgdrwPTTq5JacJh8YtwEXaBfKU3bTz45, ALPHAQmeA7bjrVuccPsYPiCvsi428SNwte66Srvs4pHA). data tables at oracle.asm:13424-13429."},
+    {"file": "analysis/oracle.asm", "line": 4950, "detail": "dijkbkCAKfFTCxQg3u1pg82gVU1jJGHBBRcteD11mBu (lines 4952-4955), ojh19oja.. (5000-5003) and fastC7gqs2WUXgcyNna2BZAe9mte4zcTGprv3mv18N3 (5007-5010) are compared as OWNER program ids of specific source groups (branch on r8==2/3/else)."},
+    {"file": "analysis/oracle.asm", "line": 4838, "detail": "Specific source ACCOUNT keys are hardcoded: account 37 must equal DmocjvFXp75asezCDKVNH2qaXbjrV7VeQk4aLZaPF88E (owner ojh) [lines 4840-4866], account 31 must equal 8mZVRgrrDjbhGdb6TSfHbhwoB4FoGDfo6D231PM7GDfW (owner fast) [lines 5032-5055]."},
+    {"file": "analysis/oracle-re/source_swap_summary.txt", "line": 1, "detail": "Swap matrix (simulateTransaction, sigVerify=false): BASELINE=0 ORCLSKIP; EVERY source-account substitution (same-owner e.g. Tess32->35, dijk15->18; wrong-owner e.g. ->exchange-owned) produced >=1 ORCLSKIP. => source accounts are validated by exact key+owner, not merely by owner."},
+    {"file": "analysis/oracle-re/all_sources_invalid.txt", "line": 1, "detail": "With ALL 10 source accounts replaced by non-source accounts: 5 ORCLSKIP logged, yet err=None and the oracle still writes the CTFEED01 feed (1338B) and CTWGHT02 weights (191B) and still CPIs the exchange successfully (cu ~7036 vs 16915 baseline). => a push with no valid sources falls back to the registry's last-known prices (stale refresh), it does not produce an attacker-chosen value."},
+    {"file": "analysis/exchange.asm", "line": 20543, "detail": "Exchange instruction dispatch: first 8 bytes == 0x544e56455443 ('CTEVNT') => event instruction; else 1-byte tag dispatch over 0x00..0x2d. Tag 0x1f -> jmp_208d8 -> jmp_21290 (requires data_len==0x23=35) -> jmp_21f90 with handler-id r6=0x4."},
+    {"file": "analysis/exchange.asm", "line": 19662, "detail": "Handler-id r6=0x4 (tag 0x1f) selects r3=0 -> jmp_22dc8, the caller/authority gate; other handler ids take a different branch. jmp_22dc8 calls fn_05d0 with r4=[r10-0xca8] (program id) and requires return 0x1a."},
+    {"file": "analysis/exchange.asm", "line": 230, "detail": "fn_05d0 compares the passed 32-byte program id against the HARDCODED oracle id (lines 236-243) and exchange id (lines 273-280), derives the PDA for the seed and compares to the passed account key; returns 0x1a on match. Gate fails => ORCLSKIP at exchange.asm:20020."},
+    {"file": "analysis/oracle-re/sim_exchange_direct.py", "line": 1, "detail": "DIRECT exchange 0x1f with the exact oracle-CPI account list [20,41,3,8,42] and exact 35-byte payload: err=None, log 'ORCLSKIP, 0x1, 0x1f, 0x0, 0x3', 1361 CU (no settle). The oracle's own CPI of the SAME instruction succeeds (oracle push cu ~17000, exchange inner consumes ~4200 CU)."},
+    {"file": "analysis/oracle-re/sim_gate_probe.py", "line": 1, "detail": "Bypass probes all bail: (1) +oracle program account appended, (2) +oracle PDA appended, (3) +weights appended, (4) oracle program prepended to account list, (5) a real oracle 0x071f push as instruction 0 followed by the direct exchange 0x1f, (7) Instructions sysvar first in account list => all ORCLSKIP, ~470-1361 CU. Only the oracle's own CPI settles."},
+    {"file": "analysis/oracle-re/tx1_account_data.json", "line": 1, "detail": "Decoded CPI payloads: exchange tag 0x1f = [0x1f][u16 market_idx][u64 price][u64 price][u64 timestamp][u64 seq]; e.g. ix0 '1f00007bc6860a130000007bc6860a130000003e50701b00000000a14e160000000000' (market 0, price 0x130ac6867b). The self-CPI is the CTEVNT event, 140 bytes, discriminator 0x435445564e540000 ('CTEVNT'), NOT tag 0x0e."},
+    {"file": "analysis/oracle-re/hardcoded_keys.json", "line": 1, "detail": "On-chain identity: DmocjvFX.. (624B) and 8mZVRgrr.. (128B) are data accounts owned by the ojh / fast programs respectively; ojh, fast, dijk are executable (BPFLoaderUpgradeable). 5AVyF6qJ.. (8552B) owned by AQU1FRd7..."}
+  ],
+  "simulated": true,
+  "attacker_usd": 0,
+  "confidence": "high",
+  "blockers": [
+    "Exchange tag 0x1f settle is gated on the immediate caller being the oracle program; no unprivileged caller can satisfy it (verified by direct-call + bypass probes).",
+    "Oracle price sources are validated against a hardcoded program-id allowlist AND specific account keys; invalid sources are skipped (ORCLSKIP), so a fake source cannot be injected.",
+    "Source-program price accounts are updated by authorised signer accounts, not permissionlessly, so source data cannot be forged.",
+    "Oracle instruction data is only 2 bytes (0x071f) — no price can be supplied by the caller.",
+    "Residual (not fully quantified): a permissionless push with ALL sources invalid still writes a feed and settles using the registry's last-known prices (stale refresh). Impact is bounded by the last valid price and the keeper's constant pushes; not an arbitrary-price primitive.",
+    "Not reversed/verified: the exact caller-check instruction in the exchange (empirically only the oracle's CPI passes; the exchange imports sol_get_sysvar and contains the Instructions-sysvar id, so a sysvar-based caller read is the likely mechanism), the oracle_learning.rs deviation/TWAP logic, and the exact aggregation across the 5 source groups.",
+    "Not observed/tested: no top-level (user) exchange instructions appeared in 200 recent exchange signatures (all 571 invocations were inner 0x1f/CTEVNT from the oracle), so deposit (0x05)/withdraw/margin auth was not exercised."
+  ],
+  "instruction_tags": {
+    "oracle_top_level": {
+      "0x07": "push/update prices (data 0x07 0x1f = base58 'YS'); permissionless; 3x per keeper tx"
+    },
+    "exchange_inner_cpi_from_oracle": {
+      "0x1f": "settle/apply oracle price — data [0x1f][u16 market_idx][u64 price][u64 price][u64 ts][u64 seq]; caller-gated to oracle program",
+      "0x43 (CTEVNT)": "event emit — 140 bytes, discriminator 0x544e56455443 'CTEVNT'"
+    },
+    "exchange_dispatch_table": {
+      "note": "1-byte tag dispatch over 0x00..0x2d (exchange.asm:20572-20605) plus the 6-byte 'CTEVNT' event instruction; no top-level exchange tags observed live",
+      "observed_live_top_level": [],
+      "observed_live_inner": ["0x1f", "0x43"],
+      "dispatch_targets": {
+        "0x00": "jmp_215e8", "0x01": "jmp_211e0", "0x02": "jmp_212a0 (needs 0x23 bytes)",
+        "0x03": "jmp_21af8", "0x04": "jmp_213c0", "0x05": "jmp_21c30 (deposit, reported)",
+        "0x06": "jmp_21a48", "0x07": "jmp_21278", "0x08": "jmp_21f58", "0x09": "jmp_21f28",
+        "0x0a": "jmp_21498", "0x0b": "jmp_21f58", "0x0c": "jmp_21960", "0x0d": "jmp_21240",
+        "0x0e": "inline parse (>=0x31 data bytes)", "0x0f": "jmp_21c20", "0x10": "jmp_21410", "0x11": "jmp_21f58",
+        "0x12": "jmp_21ad0", "0x13": "jmp_21358", "0x14": "jmp_21f58", "0x15": "jmp_21f50",
+        "0x16": "jmp_21588", "0x17": "inline parse (>=0x21 data bytes)", "0x18": "jmp_218d8", "0x19": "jmp_21230",
+        "0x1a": "jmp_21f58", "0x1b": "jmp_21c08", "0x1c": "jmp_213d8", "0x1d": "jmp_21388",
+        "0x1e": "jmp_21ab8", "0x1f": "jmp_21290 (settle)", "0x20": "jmp_219a8", "0x21": "jmp_21f38",
+        "0x22": "jmp_22978", "0x23": "jmp_21570", "0x24": "jmp_21c30", "0x25": "jmp_219e8",
+        "0x26": "jmp_21250", "0x27": "jmp_21c30", "0x28": "jmp_21c90", "0x29": "jmp_21428",
+        "0x2a": "jmp_22900", "0x2b": "jmp_21ae0", "0x2c": "jmp_21368", "0x2d": "jmp_21f90"
+      }
+    }
+  },
+  "method": "sbpf disassemble on both ELFs; lddw->pubkey decoding; simulateTransaction (solders, sigVerify=false, replaceRecentBlockhash=true) against live mainnet state; getSignaturesForAddress/getTransaction tag census. Read-only; no transaction signed or sent. Public RPC api.mainnet-beta.solana.com.",
+  "artifacts": [
+    "analysis/oracle-re/oracle_source_validation.asm.txt",
+    "analysis/oracle-re/exchange_settle_auth.asm.txt",
+    "analysis/oracle-re/sim_transcript.txt",
+    "analysis/oracle-re/source_swap_summary.txt",
+    "analysis/oracle-re/all_sources_invalid.txt",
+    "analysis/oracle-re/stale_fallback_test.txt",
+    "analysis/oracle-re/hardcoded_keys.json",
+    "analysis/oracle-re/tx1_accounts.json",
+    "analysis/oracle-re/tx1_account_data.json",
+    "analysis/oracle-re/recent_tags.json",
+    "analysis/oracle-re/exchange_history.log",
+    "analysis/oracle-re/sim_oracle.py",
+    "analysis/oracle-re/sim_push_diff.py",
+    "analysis/oracle-re/sim_source_swap.py",
+    "analysis/oracle-re/sim_swap_diff.py",
+    "analysis/oracle-re/sim_exchange_direct.py",
+    "analysis/oracle-re/sim_gate_probe.py",
+    "analysis/oracle-re/recent_tags.py",
+    "analysis/oracle-re/exchange_history.py"
+  ]
+}

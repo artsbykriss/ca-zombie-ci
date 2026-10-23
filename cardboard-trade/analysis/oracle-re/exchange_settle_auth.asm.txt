@@ -1,0 +1,350 @@
+### exchange entrypoint tag dispatch (20535-20605) ###
+  jlt r8, 0x80, jmp_23da8
+  mov64 r1, 0x6
+  stxdw [r10-0xd70], r1
+  mov64 r9, 0x80
+  ldxdw r1, [r7+0x80]
+  stxdw [r10-0xd78], r1
+  ldxh r1, [r7+0x7e]
+  stxdw [r10-0xdc8], r1
+  ldxh r1, [r7+0x7c]
+  stxdw [r10-0xdb8], r1
+  rsh64 r1, 0x8
+  stxdw [r10-0xdc0], r1
+  mov64 r2, 0x1
+  mov64 r1, 0x0
+  jne r9, r8, jmp_22a28
+  ja jmp_23f18
+
+jmp_23be0:
+  ldxdw r1, [r10-0xc78]
+  jeq r1, 0x1f, jmp_23ce8
+  ldxdw r1, [r10-0xc78]
+  jeq r1, 0x21, jmp_23c28
+  ja jmp_23da8
+
+jmp_23c08:
+  ldxdw r1, [r10-0xc78]
+  jeq r1, 0x2a, jmp_23c28
+  ldxdw r1, [r10-0xc78]
+  jne r1, 0x2e, jmp_23da8
+
+jmp_23c28:
+  jlt r8, 0xb4, jmp_23da8
+  mov64 r1, 0x3
+  stxdw [r10-0xd70], r1
+  mov64 r9, 0xb4
+  ldxdw r1, [r7+0x7c]
+  stxdw [r10-0xda0], r1
+  ldxdw r1, [r7+0xb4]
+  stxdw [r10-0xd90], r1
+  ldxdw r1, [r7+0xac]
+  stxdw [r10-0xd88], r1
+  ldxdw r1, [r7+0xa4]
+  stxdw [r10-0xd80], r1
+  ldxdw r1, [r7+0x9c]
+  stxdw [r10-0xd78], r1
+  ldxdw r1, [r7+0x84]
+  stxdw [r10-0xda8], r1
+  ldxdw r1, [r7+0x8c]
+  stxdw [r10-0xd98], r1
+  ldxdw r1, [r7+0x94]
+  stxdw [r10-0xdb0], r1
+  mov64 r2, 0x1
+  mov64 r1, 0x0
+  jne r9, r8, jmp_22a28
+  ja jmp_23f18
+
+jmp_23ce8:
+  jlt r8, 0x8c, jmp_23da8
+  mov64 r1, 0x1
+  stxdw [r10-0xd70], r1
+  mov64 r9, 0x8c
+  ldxdw r1, [r7+0x8c]
+  stxdw [r10-0xd88], r1
+  ldxdw r1, [r7+0x84]
+  stxdw [r10-0xd80], r1
+  ldxdw r1, [r7+0x7c]
+  stxdw [r10-0xd78], r1
+  ja jmp_23d80
+
+jmp_23d40:
+  jlt r8, 0x76, jmp_23da8
+
+### tag 0x1f handler (19032-19059) ###
+jmp_21290:
+  jlt r8, 0x23, jmp_22978
+  mov64 r6, 0x4
+
+jmp_212a0:
+  mov64 r5, 0x0
+  mov64 r2, 0x23
+  ldxdw r4, [r1+0x23]
+  stxdw [r10-0xcd0], r4
+  ldxdw r4, [r1+0x1b]
+  stxdw [r10-0xcc8], r4
+  ldxdw r4, [r1+0x13]
+  stxdw [r10-0xcb0], r4
+  rsh64 r4, 0x20
+  stxdw [r10-0xcb8], r4
+  ldxdw r4, [r1+0xb]
+  mov64 r0, r4
+  rsh64 r0, 0x20
+  stxdw [r10-0xca0], r0
+  ldxh r0, [r1+0x9]
+  stxdw [r10-0xcc0], r0
+  rsh64 r0, 0x8
+  mov64 r1, 0x0
+  stxdw [r10-0xc88], r1
+  stxdw [r10-0xc80], r4
+  stxdw [r10-0xc90], r4
+  jne r2, r8, jmp_22978
+  ja jmp_21f90
+
+### tag 0x1f -> handler-id/jmp_21f90 -> jmp_22dc8 caller/PDA gate (19525-19740, 20016-20090) ###
+jmp_21f90:
+  stxdw [r10-0xca8], r3
+  ldxw r1, [r10-0x8]
+  stxw [r10-0x410], r1
+  ldxdw r1, [r10-0x10]
+  stxdw [r10-0x418], r1
+  ldxdw r1, [r10-0x120]
+  stxdw [r10-0x438], r1
+  ldxdw r1, [r10-0x118]
+  stxdw [r10-0x430], r1
+  ldxdw r1, [r10-0x110]
+  stxdw [r10-0x428], r1
+  ldxb r1, [r10-0x108]
+  stxb [r10-0x420], r1
+  ldxh r1, [r10-0x14]
+  stxh [r10-0x43c], r1
+  or64 r2, r1
+  stxw [r10-0x400], r2
+  stxw [r10-0x404], r3
+  stxb [r10-0x408], r6
+  ldxdw r1, [r10-0xc98]
+  ldxb r9, [r1+0x0]
+  ldxdw r7, [r10-0xc78]
+  jgt r6, 0x2d, jmp_22bc0
+  mov64 r4, 0x0
+  mov64 r1, 0x1
+  lsh64 r1, r6
+  mov64 r2, r1
+  and64 r2, 0xce00c0
+  jne r2, 0x0, jmp_22460
+  lddw r2, 0x240030008004
+  and64 r1, r2
+  jeq r1, 0x0, jmp_22490
+  mov64 r3, 0x1
+  mov64 r8, 0x2
+  mov64 r1, 0x0
+  mov64 r2, 0x2
+  jne r7, 0x0, jmp_224d8
+  ja jmp_22990
+
+jmp_22460:
+  mov64 r3, 0x1
+  mov64 r8, 0x5
+  mov64 r1, 0x0
+  mov64 r2, 0x2
+  jne r7, 0x0, jmp_224d8
+  ja jmp_22990
+
+jmp_22490:
+  mov64 r4, 0x1
+  mov64 r1, 0x1
+  lsh64 r1, r6
+  and64 r1, 0x18
+  jeq r1, 0x0, jmp_22bc0
+  mov64 r3, 0x0
+  mov64 r1, 0x0
+  mov64 r2, 0x2
+  jeq r7, 0x0, jmp_22990
+
+jmp_224d8:
+  stxdw [r10-0xc88], r4
+  mov64 r4, r7
+  add64 r4, -0x1
+  stxdw [r10-0xc80], r4
+  lsh64 r4, 0x3
+  mov64 r5, r10
+  add64 r5, -0xc70
+  add64 r5, r4
+  ldxdw r4, [r5+0x0]
+  ldxdw r5, [r4+0x8]
+  ldxdw r6, [r10-0xca8]
+  ldxdw r0, [r6+0x0]
+  jne r5, r0, jmp_22990
+  ldxdw r5, [r6+0x8]
+  ldxdw r0, [r4+0x10]
+  jne r0, r5, jmp_22990
+  ldxdw r5, [r6+0x10]
+  ldxdw r0, [r4+0x18]
+  jne r0, r5, jmp_22990
+  ldxdw r5, [r6+0x18]
+  ldxdw r0, [r4+0x20]
+  jne r0, r5, jmp_22990
+  ldxb r4, [r4+0x3]
+  jeq r4, 0x0, jmp_22990
+  jeq r3, 0x0, jmp_22dc8
+  mov64 r2, r10
+  add64 r2, -0xc70
+  mov64 r4, r10
+  add64 r4, -0x408
+  ldxdw r1, [r10-0xca8]
+  ldxdw r6, [r10-0xc80]
+  mov64 r3, r6
+  call fn_9f58
+  mov64 r2, r0
+  lsh64 r2, 0x20
+  rsh64 r2, 0x20
+  jne r2, 0x1a, jmp_22bf8
+  mov64 r7, r10
+  add64 r7, -0xc70
+  mov64 r1, 0x0
+  mov64 r2, 0x2
+  jge r8, r6, jmp_22990
+jmp_22bc0:
+  mov64 r2, r10
+  add64 r2, -0xc70
+  mov64 r4, r10
+  add64 r4, -0x408
+  ldxdw r1, [r10-0xca8]
+  mov64 r3, r7
+  call fn_9f58
+
+jmp_22bf8:
+  mov64 r2, r1
+  mov64 r1, r0
+  ja jmp_22990
+
+jmp_22d78:
+  lddw r2, 0x1300000000
+
+jmp_22d88:
+  lddw r1, 0x50494b534c43524f
+  mov64 r5, r2
+  mov64 r2, 0x1
+  mov64 r4, 0x0
+  call sol_log_64_
+
+jmp_22db8:
+  mov64 r0, 0x0
+
+jmp_22dc0:
+  exit
+
+jmp_22dc8:
+  ldxdw r1, [r10-0xc80]
+  jeq r1, 0x0, jmp_22f10
+  add64 r7, -0x2
+  mov64 r1, r10
+  add64 r1, -0x1e0
+  stxdw [r10-0x328], r1
+  lddw r1, str_0378
+  stxdw [r10-0x338], r1
+  ldxdw r1, [r10-0xca0]
+  stxh [r10-0x1e0], r1
+  mov64 r1, r7
+  lsh64 r1, 0x3
+  mov64 r8, r10
+  add64 r8, -0xc70
+  add64 r8, r1
+  stdw [r10-0x320], 0x2
+  stdw [r10-0x330], 0x6
+  ldxdw r1, [r8+0x0]
+  mov64 r2, r10
+  add64 r2, -0x338
+  mov64 r3, 0x2
+  ldxdw r6, [r10-0xca8]
+  mov64 r4, r6
+  call fn_05d0
+  mov64 r1, r0
+  lsh64 r1, 0x20
+  rsh64 r1, 0x20
+  jne r1, 0x1a, jmp_22f20
+  stxdw [r10-0xc78], r8
+  ldxdw r2, [r8+0x0]
+  mov64 r1, r10
+  add64 r1, -0x338
+  mov64 r3, r6
+  call fn_1918
+  ldxw r2, [r10-0x334]
+  ldxw r6, [r10-0x338]
+  ldxb r8, [r10-0x280]
+  jne r8, 0x2, jmp_22f40
+  mov64 r1, r6
+  ja jmp_22990
+
+jmp_22f10:
+  mov64 r1, 0x0
+  ja jmp_22990
+
+jmp_22f20:
+  mov64 r2, r0
+  rsh64 r2, 0x20
+  mov64 r1, r0
+  ja jmp_22990
+
+jmp_22f40:
+  stxdw [r10-0xc90], r2
+  mov64 r1, r10
+  add64 r1, -0x120
+  mov64 r2, r10
+  add64 r2, -0x330
+  mov64 r3, 0xa0
+
+### fn_05d0 PDA validator head (230-280) ###
+fn_05d0:
+  mov64 r6, r1
+  ldxdw r1, [r4+0x18]
+  ldxdw r5, [r4+0x10]
+  ldxdw r0, [r4+0x8]
+  ldxdw r7, [r4+0x0]
+  lddw r8, -0x42bcf8a191e690bb
+  jne r7, r8, jmp_0768
+  lddw r8, 0x61fb6bd0dbe5a208
+  jne r0, r8, jmp_0768
+  lddw r8, 0x72b19992c23bfdc4
+  jne r5, r8, jmp_0768
+  lddw r8, -0x5f6978a92e5eeea3
+  jne r1, r8, jmp_0768
+  jeq r3, 0x1, jmp_0880
+  jne r3, 0x2, jmp_0e88
+  ldxdw r1, [r2+0x8]
+  jeq r1, 0x7, jmp_0a50
+  jne r1, 0x6, jmp_0e88
+  ldxdw r1, [r2+0x0]
+  ldxw r5, [r1+0x0]
+  ldxh r1, [r1+0x4]
+  lsh64 r1, 0x20
+  or64 r5, r1
+  lddw r1, 0x736563697270
+  jne r5, r1, jmp_0e88
+  ldxdw r1, [r2+0x18]
+  jne r1, 0x2, jmp_0e88
+  lddw r1, 0xfe0000001a
+  ldxdw r5, [r2+0x10]
+  ldxh r5, [r5+0x0]
+  jeq r5, 0x0, jmp_0bd8
+  ldxdw r5, [r2+0x10]
+  ldxh r5, [r5+0x0]
+  jne r5, 0x1, jmp_0c68
+  lddw r1, 0xfd0000001a
+  lddw r2, 0x7aa80c7bd9b32db0
+  lddw r3, -0x4953a499653cb8ce
+  lddw r4, 0x389ad8f340cf22c7
+  lddw r5, 0x7f2063ee78df879e
+  ja jmp_0f18
+
+jmp_0768:
+  lddw r8, 0x17fee008f3155dfe
+  jne r7, r8, jmp_0e88
+  lddw r7, -0x70c6ba182ecb4d4d
+  jne r0, r7, jmp_0e88
+  lddw r0, 0x2d2cf27ef4b22b67
+  jne r5, r0, jmp_0e88
+  lddw r5, 0x553de8c6eda0600a
+  jne r1, r5, jmp_0e88
+  jeq r3, 0x2, jmp_0940
+  jne r3, 0x1, jmp_0e88
