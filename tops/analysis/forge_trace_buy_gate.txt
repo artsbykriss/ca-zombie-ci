@@ -1,0 +1,25 @@
+No files changed, compilation skipped
+
+Ran 1 test for test/Tops.t.sol:TopsTest
+[PASS] test_02b_buy_gate_exact_reason() (gas: 78675)
+Traces:
+  [78675] TopsTest::test_02b_buy_gate_exact_reason()
+    ├─ [0] VM::prank(0x00000000000000000000000000000000000A11cE)
+    │   └─ ← [Return]
+    ├─ [0] VM::expectRevert(Buy is disabled)
+    │   └─ ← [Return]
+    ├─ [67646] TOPS::transferFrom(TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29], PancakeRouter: [0x10ED43C718714eb63d5aA57B78B54704E256024E], 1)
+    │   ├─ [2893] TOPS/USDT pair::getReserves() [staticcall]
+    │   │   └─ ← [Return] 96379620011969867575726 [9.637e22], 779740163185866451959983 [7.797e23], 1792739789 [1.792e9]
+    │   ├─ [2531] USDT::balanceOf(TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29]) [staticcall]
+    │   │   └─ ← [Return] 96379620011969867575726 [9.637e22]
+    │   ├─ [5151] PancakeRouter::getAmountsOut(1000000000000000000 [1e18], [0x842B1BFa825Cf6673fD2D98E573FdD267C3Fd588, 0x55d398326f99059fF775485246999027B3197955]) [staticcall]
+    │   │   ├─ [893] TOPS/USDT pair::getReserves() [staticcall]
+    │   │   │   └─ ← [Return] 96379620011969867575726 [9.637e22], 779740163185866451959983 [7.797e23], 1792739789 [1.792e9]
+    │   │   └─ ← [Return] [1000000000000000000 [1e18], 123295621430803540 [1.232e17]]
+    │   └─ ← [Revert] Buy is disabled
+    └─ ← [Stop]
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.90s (5.35ms CPU time)
+
+Ran 1 test suite in 2.96s (2.90s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

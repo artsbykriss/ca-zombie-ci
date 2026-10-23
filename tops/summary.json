@@ -1,0 +1,48 @@
+{
+  "finding": "ZH4P5-TOPS",
+  "title": "TOPS (BSC) NEM-class burn-from-pair + sync() gate resolved: closed price-state gate, self-defeating fee re-swap, $0 external-unprivileged",
+  "chains": ["binance"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 129280478,
+  "block_numbers": {"binance": 129280478},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Recycle gate CLOSED live: priceTracker.currentPrice=118773020285185430, getTokenPrice()=123295621430803540, threshold=tracked*1.02=121148480690889138 -> priceRose2Percent=true -> _handleSellRecycle returns early (no burn)",
+    "No outsider entry: blockConfig.buyEnabled=false blocks every pair-outbound TOPS transfer - router buy reverts 'Buy is disabled' (masked 'Pancake: TRANSFER_FAILED'), direct pair.swap reverts, and even pair.skim() reverts, so no unprivileged party can acquire TOPS",
+    "Burn is self-defeating: _swapTokenForCake() re-swaps the 20% sell fee into the SAME pair, so for any fee-bearing sell d(reserve1) = -burn + fee >= 0 (fork: 100000 TOPS sell -> burn 10000 but reserve1 INCREASES by 10000)",
+    "Best-case drain cost ~$96427 (burn reserve1 at fee/burn ~1) > reward reserve0 $96379 -> net negative before gas",
+    "Only unopposed burn is the amount<10000 rounding hole (fee = floor(amount/1e4)*rate = 0), capped at 999 wei/call, and the sender's deposit is trapped (skim blocked) -> ~10:1 loss; 1.56e19 calls needed for 2% of reserve1",
+    "LP exit is also blocked while buyEnabled=false: router.removeLiquidity reverts 'not allow to remove' (masked) because the pair pays USDT first, flipping _isRemoveLiquidity()>0 into require(feeWhiteList[recipient])"
+  ],
+  "poc": {
+    "tests_passed": 11,
+    "tests_total": 11,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39956158843",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39957212863"
+    ]
+  },
+  "key_facts": [
+    "Token 0x842B1BFa825Cf6673fD2D98E573FdD267C3Fd588 is VERIFIED on Etherscan V2 (name 'Token', solc 0.8.28, optimizer runs=1, viaIR=true); Sourcify has no match",
+    "Pair 0xbeDebAC3788171DC769893242a53b881041EDf29 (PancakeV2, token0=USDT, token1=TOPS) holds 96379.620011969867575726 USDT / 779740.163185866451959983 TOPS at block 129280478 (TVL ~$192759); pair balances exactly equal reserves (no excess)",
+    "Runtime bytecode contains exactly one 0xfff6cae9 (sync()) immediate - the external ISwapPair(mainPair).sync() inside _handleSellRecycle (token.sol:744); no skim/getReserves/flushLpSellRecycle/burnFromPool/recycle/flush immediate",
+    "The gate is NOT a privilege gate: _handleSellRecycle is a sell hook (recipient=mainPair, takeFee), reachable by any unprivileged seller; there is NO external function for the burn (fork-proven: TokensRecycled emitted once the day rolls over and trackedPrice resets to spot)",
+    "owner() == tradeController() == 0xf6370D9F937c59b00938CBFB8efa5b617D260D6d (an EIP-7702 delegated EOA); setBuyEnabled/setSellEnabled revert 'Not authorized' for outsiders",
+    "liquidityProvider 0x302E512867ce3Fa3599976AadA4dEA645F607F51 holds 0 USDT -> _executeBuyback is dead",
+    "liquidityRemover 0x4aC4Dcc85895c762dF28726f52484dDE83789CD1 is feeWhiteListed but holds 0 LP -> cannot pull liquidity itself; its owner is 0x39488c631c037f30AaFA0111293A3216BC5cB8cc",
+    "TOPS token and pair both first have code at block 128614640 (ts 1792440094) - a ~3.5-day-old fresh fee-token; feeConfig = 30% buy, 20% sell (300+300+400+200+800)",
+    "Frozen value at this block: the pair's $96379.62 USDT + 779740.16 TOPS are unreachable by LP holders (removal blocked) and by outsiders (buys blocked); owner-reversible via setBuyEnabled(true) -> classified P-gated freeze, not permanent S"
+  ],
+  "caveats": [
+    "E-U is $0 by three independent barriers (closed price gate, buyEnabled=false entry block, self-defeating fee re-swap); the finding is a negative result with fork proof",
+    "Pair._safeTransfer masks the token revert reason, so exact reasons were obtained via a to==router probe ('Buy is disabled') and -vvvv traces ('not allow to remove')",
+    "miner 0x55fdB9628F090D3b5bb6D5978A6b6CDbdB0135a0 and node 0x0b36FFA55f097E6225cc98f0e0627995F4435d29 were stubbed in the fork tests; they are irrelevant to the recycle (they only pay out to their own registries)",
+    "LP holders were enumerated only partially (5 of 274195 LP found); the largest holder was used for the exit test",
+    "CI secret BSC_RPC_URL was empty, so the fork used the in-test keyed fallback (ANKR_API_KEY -> DRPC_API_KEY -> public); no keyed URL is committed",
+    "If the owner re-enables buys the picture changes for LP holders (they could redeem at NAV) but the recycle still cannot be made profitable"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live from the TOPS NEM-class candidate: the burn-from-pair + sync() is a sell hook behind a price-state gate that is closed at block 129280478, buys are disabled so no outsider can obtain TOPS (and even skim() is blocked), and the burn is self-defeating because the sell fee is re-swapped into the same pair so reserve1 never collapses; fork-verified 11/11."
+}

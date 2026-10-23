@@ -1,0 +1,40 @@
+TOPS runtime bytecode selector scan (block 129280478)
+=====================================================
+token  0x842b1bfa825cf6673fd2d98e573fdd267c3fd588
+code   19,713 bytes
+compiler v0.8.28+commit.7893614a, optimizer runs=1, viaIR=true, evmVersion=cancun
+verified on Etherscan V2 (chainid=56) as contract name "Token"
+NOT verified on Sourcify (v2 /v2/contract/56/... -> match: null)
+
+Method: scan PUSH4 (0x63) immediates in runtime bytecode, 92 distinct constants.
+
+Confirmed present (relevant):
+  0xfff6cae9  sync()                 x1   <-- the NEM-class primitive
+  0x70a08231  balanceOf(address)     x8
+  0x18160ddd  totalSupply()          x5
+  0x095ea7b3  approve(address,uint256) x1
+  0x23b872dd  transferFrom(...)      x1
+  0xa9059cbb  transfer(address,uint256) x1
+  0x8da5cb5b  owner()                x1
+  0xc45a0155  factory()              x1
+
+Confirmed ABSENT:
+  0xbc25cf77  skim(address)          absent
+  0x0902f1ac  getReserves()          absent as a PUSH4 immediate
+              (viaIR builds the getReserves calldata without a PUSH4 literal;
+               the verified source proves ISwapPair.getReserves() is used in
+               __getReserves() -> _getReserves())
+  0xbbafc98c  flushLpSellRecycle()   absent (NEM's own function)
+  0x87ed238a  burnFromPool(uint256)  absent
+  0xdd1c35bc  recycle(uint256)       absent
+  0x0f23cbaa  recycle()              absent
+  0x6b9f96ea  flush()                absent
+
+Interpretation
+--------------
+The single 0xfff6cae9 (sync()) immediate is the external call
+    ISwapPair(mainPair).sync();
+inside _handleSellRecycle() (contracts/v2/token.sol:744). It is the ONLY
+sync()/skim()/burn-from-pair primitive in the token. No other NEM-class
+selector is present. The gate is therefore the reachability of
+_handleSellRecycle(), which is a sell-transfer hook (see README).
