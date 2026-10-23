@@ -1,0 +1,38 @@
+{
+  "finding": "ZH4 residual OPEN #2 — shMonad (FastLane Labs LST)",
+  "title": "shMonad LST deep-dive: share math / validator accounting / permissionless surface",
+  "chains": ["monad"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium",
+  "categories": {"E-U": 0, "E-U-conditional": "D*A/E (capital D, reward pool A realised during the window)", "H-O": 99900, "P": 7261182, "S": 0},
+  "latest_block": 115899665,
+  "block_numbers": {"monad": 115800000},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "cbPooledShareRate circuit breaker enforces a non-decreasing pooled share rate on every value path (FLERC4626.sol:383, CircuitBreakerLib.isNonDecreasingRate)",
+    "deposit prices on full equity and exits on smoothed (lower) equity, so atomic mint->redeem and deposit->redeem round trips are always lossy (fork tests 01/04/05)",
+    "Guardian H-01 RR1/RR2 permissionless protocol-freeze DoS FIXED in the deployed impl (dust rounding mirrored at StakeTracker.sol:2254 and :2486)",
+    "Guardian MR1 H-01/H-02 turnover DoS FIXED (StakeTracker.sol:1538 caps by validatorUnstakableAmount; :846 uses pre-advance N(0) denominator)",
+    "Guardian MR1 L-06 atomic-fee JIT capture FIXED (StakeTracker.sol:3455 books fee into earnedRevenue)",
+    "Guardian MR1 L-07 UNKNOWN-proposer boost-yield JIT capture FIXED (StakeTracker.sol:2729-2735)",
+    "policy-agent surface cannot reach a victim's uncommitted balance without the victim opting into top-up (fork test 07)",
+    "no unprivileged value-moving external without a role/hold gate (modifier sweep over the whole external surface)"
+  ],
+  "poc": {"tests_passed": 8, "tests_total": 8, "ci_run_urls": []},
+  "key_facts": [
+    "proxy 0x1B68626dCa36c7fE922fD2d55E4f631d962dE19c -> impl 0x8Ee4FF5FF50198dcbB7B882A0781F42724Dd095f (ShMonad v1.2), set at Monad block 108,665,496 (2026-09-28)",
+    "block 115,800,000: totalAssets 333,801,143.43 MON ($7.26M), totalSupply 203,383,957.22 shMON, share rate 1.6412, frozen=false closed=false",
+    "rewardsPayable (the JIT-dilution escrow pool) 315-10,255 MON ($7-$223) sampled over 30 recent blocks; redemptionsPayable 4,593,274 MON; totalZeroYieldPayable 17,439,408 MON",
+    "atomic instant-exit liquidity ~3.06M MON ($66.6k); fee curve r(u)=0.05%+1.00%*u, live fee ~0.55%",
+    "JIT-deposit underpricing of un-booked reward escrow is LIVE and Acknowledged by Guardian (M-09 / M-01-RR4 / M-19) but profit = D*A/E ~ 3e-5 * attacker capital at current escrow",
+    "owner 0x48a3267BCc4Cf230e9Bc4cae0c11EEbDb9a6A687 (single EOA); code-upgrade authority 0x4B7f4A4316c44B6928FB449B14Bd21b9718932F3"
+  ],
+  "caveats": [
+    "Monad public RPC keeps only recent state: deploy block 108,665,496 is unreadable, so no live read at the deploy commit",
+    "the Monad staking precompile is absent in an anvil fork, so crank()/reward-settlement paths cannot be executed; test_03 reaches the post-settlement state via layout-independent slot writes",
+    "E-U-conditional depends on an escrow spike not observed above ~$223 in a 30-block sample",
+    "point-in-time reads 2026-10-23; MON priced $0.0217534 (DefiLlama coingecko:monad)"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from shMonad ($7.26M): the deployed v1.2 ships fixes for all four published Guardian Highs and the MR1 JIT-fee findings; the only live mispricing (acknowledged escrow-underpricing, M-09/M-01-RR4) has an exploitable pool of only $7-$223 at current state"
+}
