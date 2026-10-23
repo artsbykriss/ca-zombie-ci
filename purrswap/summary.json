@@ -1,0 +1,36 @@
+{
+  "finding": "A2",
+  "title": "PurrSwap (Abracadabra) — Factory oracle validation / stale _I_ (Guardian C-06, C-07, H-02, M-06)",
+  "chains": ["hyperevm"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0.08, "P": 0, "S": 0},
+  "latest_block": 49292001,
+  "block_numbers": {"hyperevm": 49292001},
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "No live victim funds: the only 2 PurrSwap pools hold dust (~$0 and ~$0.078)",
+    "Factory.create is permissionless by design (Guardian M-03 acknowledged); C-06/C-07 harm is opt-in to a pool the attacker themselves creates/seeds",
+    "No protocol-owned liquidity and no router that forces users into attacker-created pools",
+    "Pool 1 was never seeded by a real LP (totalSupply == 1001 dead shares)",
+    "Pool 2's sole LP is a self-service holder (H-O), not an external victim"
+  ],
+  "poc": {"tests_passed": 5, "tests_total": 5, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39923651312"]},
+  "key_facts": [
+    "HyperEVM chainid 999; Factory 0x802762e604CE08a79DA2BA809281D727A690Fa0d (owner = Abracadabra safe 0xfB3485c2e209A5cfBDC1447674256578f1A80eE3); PurrLP impl 0x76DA31D7C9CbEAE102aff34D3398bC450c8374c1",
+    "Factory.create(base,quote,lpFeeRate,i,k,oracle) has NO oracle validation (no whitelist, no require) — fork-proven: attacker created pools with a mock oracle and with a bare EOA oracle",
+    "Global LogCreated scan == exactly 2 pools: 0x4E90767E92E58170F6732a7Fa652e03B82e5bb44 (WHYPE/KEI) and 0x7B3959da5d74648Af48B8D69e19ea6a9812cdFDB (wstHYPE/WHYPE)",
+    "Both live pools have _ORACLE_ == address(0) so getEffectiveI() returns the frozen _I_ (15e18 and 1e18); PurrLP has no _I_/oracle setter -> permanent",
+    "Pool 2 frozen i=1.0 vs market i~1.02635 (DefiLlama) -> ~2.64% permanent mispricing; querySellBase(1e12) frozen 1000375559624 vs market 1026738686015",
+    "Pool 1 USD ~$0 (639 wei WHYPE + 20535 wei KEI; only 1001 dead shares); pool 2 USD ~$0.0782 (2.0589e-4 wstHYPE + 7.8447e-4 WHYPE), held by EOA 0x1453Acb73B4c13BCE00496Ae00DdC7E4cF484C6c who can self-withdraw it",
+    "Separate Abracadabra MIMSwap/MagicLP factory 0xc8f5eb8a632f9600d1c7bc91e97dad5f8b1e3748 (impl 0xD6b8bd85A9593cb47c8C15C95bbF3e593c5Dc591) is a distinct product, empty, not counted"
+  ],
+  "caveats": [
+    "KEI is unpriced; pool 1 uses a generous $1/KEI upper bound and is still < $1e-12",
+    "Values are a snapshot at block 49,292,001 (2026-10-23); USD moves only with HYPE price",
+    "PoC is fork-only (no mainnet transactions); run against the keyless public HyperEVM RPC",
+    "Latent risk: any future real-liquidity pool created with oracle=0 is permanently mispriced and arbitrageable at the full market/frozen deviation"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from PurrSwap on HyperEVM: the C-06 (no oracle validation) and H-02/M-06 (stale frozen _I_) mechanisms are live and fork-proven, but the only 2 pools hold dust (~$0.078 total, holder-only recoverable) and pool creation harm is opt-in, so E-U = $0."
+}

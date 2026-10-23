@@ -1,0 +1,84 @@
+{
+  "finding": "A2",
+  "title": "PurrSwap (Abracadabra) — Factory oracle validation / stale-I (Guardian C-06, C-07, H-02, M-06)",
+  "chain": "hyperevm",
+  "chain_id": 999,
+  "rpc": "https://rpc.hyperliquid.xyz/evm (keyless public)",
+  "observed_at_utc": "2026-10-23",
+  "pinned_block": 49292001,
+  "prices": {
+    "source": "coins.llama.fi/prices/current/hyperevm:<addr>",
+    "timestamp": 1792741317,
+    "WHYPE": {"address": "0x5555555555555555555555555555555555555555", "decimals": 18, "usd": 78.51652367235857},
+    "wstHYPE": {"address": "0x94e8396e0869c9F2200760aF0621aFd240E1CF38", "decimals": 18, "usd": 80.58568761532177},
+    "KEI": {"address": "0xB5fE77d323d69eB352A02006eA8ecC38D882620C", "decimals": 18, "usd": null}
+  },
+  "factory": {
+    "address": "0x802762e604CE08a79DA2BA809281D727A690Fa0d",
+    "verified_name": "Factory",
+    "compiler": "v0.8.28+commit.7893614a",
+    "implementation": "0x76DA31D7C9CbEAE102aff34D3398bC450c8374c1",
+    "owner": "0xfB3485c2e209A5cfBDC1447674256578f1A80eE3",
+    "log_created_count": 2,
+    "log_created_topic0": "0x2a0061010fb5b7e6e088a3620e135d443c2188ff8a04a2a630c4d6b478835991",
+    "log_created_events": [
+      {"block": 2470922, "tx": "0x10d101885295cb90e1c506ba3882a4839a034076c1c84e1e6cd2d5fb3255b4a3", "base": "0x5555555555555555555555555555555555555555", "quote": "0xB5fE77d323d69eB352A02006eA8ecC38D882620C", "creator": "0x3de60ff9031f9c8e5d361e4d1611042a050e4198"},
+      {"block": 2552557, "tx": "0x5aa0c08f0d2b9cad786406f2c9eea49da0954e550d44027f6ceaa0ca9aa8276a", "base": "0x94e8396e0869c9F2200760aF0621aFd240E1CF38", "quote": "0x5555555555555555555555555555555555555555", "creator": "0x3de60ff9031f9c8e5d361e4d1611042a050e4198"}
+    ],
+    "all_events": {"LogCreated": 2, "LogPoolAdded": 2, "OwnershipTransferred": 2},
+    "create_signature": "create(address baseToken_, address quoteToken_, uint256 lpFeeRate_, uint256 i_, uint256 k_, address oracle_)",
+    "oracle_validation": "NONE (no whitelist, no require on oracle_)"
+  },
+  "pools": [
+    {
+      "address": "0x4E90767E92E58170F6732a7Fa652e03B82e5bb44",
+      "name": "PurrLP WHYPE/KEI",
+      "version": "PurrLp 1.0.0",
+      "base_token": "0x5555555555555555555555555555555555555555",
+      "quote_token": "0xB5fE77d323d69eB352A02006eA8ecC38D882620C",
+      "oracle": "0x0000000000000000000000000000000000000000",
+      "I": "15000000000000000000",
+      "getEffectiveI": "15000000000000000000",
+      "K": "100000000000000",
+      "getReserves": ["639", "20535"],
+      "totalSupply": "1001",
+      "balanceOf_0x0": "1001",
+      "balanceOf_creator": "0",
+      "usd_estimate": 0.0,
+      "note": "Never seeded by a real LP: totalSupply == 1001 dead shares minted to 0x0. 639 wei WHYPE + 20535 wei KEI (~$5e-14) are stuck reserves with no redeemable shares."
+    },
+    {
+      "address": "0x7B3959da5d74648Af48B8D69e19ea6a9812cdFDB",
+      "name": "PurrLP wstHYPE/WHYPE",
+      "version": "PurrLp 1.0.0",
+      "base_token": "0x94e8396e0869c9F2200760aF0621aFd240E1CF38",
+      "quote_token": "0x5555555555555555555555555555555555555555",
+      "oracle": "0x0000000000000000000000000000000000000000",
+      "I": "1000000000000000000",
+      "getEffectiveI": "1000000000000000000",
+      "K": "100000000000000",
+      "getReserves": ["205894732490150", "784470920903961"],
+      "totalSupply": "495147544163278",
+      "balanceOf_0x0": "1001",
+      "lp_holder": "0x1453Acb73B4c13BCE00496Ae00DdC7E4cF484C6c",
+      "lp_holder_balance": "495147544162277",
+      "usd_estimate": 0.07818609822552425,
+      "note": "Single EOA LP (0x1453Acb7...) holds all real shares; can self-withdraw ~$0.078 (H-O)."
+    }
+  ],
+  "market_i_pool2": 1026353229182657408,
+  "stale_price_demo": {
+    "frozen_i": 1000000000000000000,
+    "market_i": 1026353229182657408,
+    "querySellBase_1e12_at_frozen_i": 1000375559624,
+    "querySellBase_1e12_at_market_i": 1026738686015,
+    "mispricing_bps_approx": 264
+  },
+  "separate_product_not_counted": {
+    "name": "Abracadabra MIMSwap / MagicLP factory (distinct product)",
+    "factory": "0xc8f5eb8a632f9600d1c7bc91e97dad5f8b1e3748",
+    "implementation": "0xD6b8bd85A9593cb47c8C15C95bbF3e593c5Dc591",
+    "owner": "0xfB3485c2e209A5cfBDC1447674256578f1A80eE3",
+    "note": "Different factory + implementation (MagicLP 1.0.0 pools). Its pools are empty (totalSupply 1001). Not part of this finding; do not conflate."
+  }
+}
