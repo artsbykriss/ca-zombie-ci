@@ -1,0 +1,26 @@
+=== C4 H-01 audit PoC replay (audited arithmetic) ===
+  B (50 shares) got 50  (fair 50)
+  A (50 shares) got 75  (fair 50)   <-- audit PoC: '75'
+  over-claim by A = 25 LP, taken from remaining holders (pending=50)
+  -> REPRODUCED: audited code over-pays when unstaked_pending_amounts > 0
+
+=== inverse: audited process_lp_stake under-mints while pending>0 ===
+  stake 50 with supply=100, pending=50, real=150 -> minted 33.33 (fair 50.00)
+  -> REPRODUCED (users receive too few shares; pending term missing)
+
+RESULT: {'audited_A_payout': Fraction(75, 1), 'fair_A_payout': 50, 'over_claim': Fraction(25, 1)}
+=== (1) deployed-formula model on the audit PoC scenario ===
+  B (50 shares) got 50 (fair 50);  A (50 shares) got 50 (fair 50)
+  -> deployed code pays 50/50: H-01 over-claim GONE
+  stake-side: deployed mint 50.00 (correct), audited mint 33.33 (under-mint)
+
+=== (2) live oracle (Initia mainnet, public REST) ===
+  supply=2726911250625  pending=63778039  real_total_stakes=4737924767617
+  live get_estimate_unstake_amount(1,1e6) = 1737428
+    deployed formula (supply+pending)     = 1737428   MATCH
+    audited  formula (supply)             = 1737469   NO MATCH
+  live price_rel_to_underlying = 1.7374287325022573
+    deployed = 1.737428732502257267  audited = 1.737469368147233073
+  -> live chain returns the DEPLOYED (fixed) formula
+
+VERDICT: H-01 FIXED in deployed code

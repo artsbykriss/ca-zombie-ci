@@ -1,0 +1,40 @@
+{
+  "finding": "Cabal LST (ZH4 residual OPEN #1)",
+  "title": "Deployed Cabal LST Move package is a post-audit build in which Code4rena H-01 is fixed",
+  "chains": ["initia"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 23352892,
+  "block_numbers": {"initia": 23352892},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Live package 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28 on Initia mainnet (interwoven-1) is a different, post-audit 16-module build; the audited address 0xe472ba1c... has 0 modules on mainnet.",
+    "The audited function process_lp_unstake is ABSENT from the live cabal module; its successor process_lp_undelegate adds the burned shares back into the supply denominator (s_eff = supply_after_burn + unstake_amount).",
+    "Live process_lp_stake, get_estimate_unstake_amount and get_cabal_stake_token_price_rel_to_underlying add unstaked_pending_amounts to the denominator -- exactly the audit's recommended H-01 mitigation.",
+    "Live integer oracle: get_estimate_unstake_amount(1,1000000) = 1737428 = real/(supply+pending) (deployed/fixed), NOT 1737469 = real/supply (audited/buggy)."
+  ],
+  "poc": {
+    "tests_passed": 2,
+    "tests_total": 2,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39958247850"]
+  },
+  "key_facts": [
+    "Audited: code4n4/2025-04-cabal @ 5b5f92ab4f95e5f9f405bbfa252860472d164705; H-01 in sources/cabal.move process_lp_unstake L1043-L1085 (no mitigation review in the report).",
+    "Live package: 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28 (Initia interwoven-1), 16 modules, all upgrade_policy=COMPATIBLE.",
+    "cabal module sha256 36379fa2e72e6ff81ab3487e9552be9c59b995254bca1002cc18c088387c90a5 (18207 bytes), disassembled with aptos-cli 9.6.0 from the REST raw_bytes.",
+    "Audited cabal.move declares ~53 public/entry fns (incl. test helpers), live cabal module ABI exposes 67; process_lp_unstake renamed to process_lp_undelegate.",
+    "Live state height 23352892: supply(cabal_token[1])=2726911250625, unstaked_pending_amounts[1]=63778039 (63.778 LP, nonzero), get_real_total_stakes(LP)=4737924767617.",
+    "emergency::paused=false; batch_undelegate_pending_lps is permissionless (3-day rate limit), so no privileged gate hides a latent H-01.",
+    "The audited H-01 over-claim is a transfer from other holders bounded by the pending amount (63.78 LP ~ $15 today), not a full-pool drain."
+  ],
+  "caveats": [
+    "Read-only: no transaction signed/sent, so the verdict rests on bytecode disassembly + a permissionless view-function oracle, not a signed round-trip.",
+    "The live package is upgradeable (COMPATIBLE); ci/run.sh re-checks module sha256 and flags any upgrade.",
+    "This 16-module revision has no published audit covering it; only the H-01 question was assessed, not the newer unstaked_release_amount / whale-voting mechanisms.",
+    "cabal-1 vaults (~$128k) and strat-1 xSLP (~$503k) are separate products, not the audited LST; not assessed.",
+    "TVL is DefiLlama point-in-time."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 from Cabal LST today: the live Initia Move package is a post-audit rewrite (process_lp_unstake gone; process_lp_undelegate and all price/stake paths add unstaked_pending_amounts back into the denominator), confirmed by bytecode disassembly and a live view oracle returning the fixed formula (1737428) rather than the audited buggy one (1737469)."
+}

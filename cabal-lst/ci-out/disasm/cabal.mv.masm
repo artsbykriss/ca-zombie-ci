@@ -1,0 +1,4734 @@
+// Bytecode version v7
+module 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28::cabal
+use 0x1::object
+use 0x1::fungible_asset
+use 0x1::simple_map
+use 0x1::table
+use 0x1::coin
+use 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28::cabal_token
+use 0x1::string
+use 0x1::bigdecimal
+use 0x1::signer
+use 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28::package
+use 0x1::option
+use 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28::pool_router
+use 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28::emergency
+use 0x1::error
+use 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28::utils
+use 0x3a886b32a802582f2e446e74d4a24d1d7ed01adf46d2a8f65c5723887e708789::weight_vote
+use 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28::manager
+use 0x1::block
+use 0x1::bcs
+use 0x1::cosmos
+use 0x1::vector
+use 0x1::primary_fungible_store
+use 0x1::event
+use 0x1::dex
+use 0x1::math64
+friend 0x53c3f5d8e11844ba3747ebaec1b2d25051574ffbeedc69d72068395991e3ea28::voting_reward
+struct ModuleStore has key
+  stake_xinit_fee_bps: u64
+  xinit_stake_reward_fee_bps: u64
+  minimum_stake: u64
+  minimum_stake_usd: u64
+  x_init_metadata: object::Object<fungible_asset::Metadata>
+  x_init_caps: CoinCapabilities
+  unbond_period: vector<u64>
+  stake_token_metadata: vector<object::Object<fungible_asset::Metadata>>
+  cabal_stake_token_metadata: vector<object::Object<fungible_asset::Metadata>>
+  cabal_stake_token_caps: vector<Capabilities>
+  x_init_staked_amounts: u64
+  stake_reward_amounts: vector<u64>
+  unstaked_pending_amounts: vector<u64>
+  unstaked_release_amount: vector<u64>
+  last_undelegate_time: u64
+  stake_token_cabal_token_map: simple_map::SimpleMap<object::Object<fungible_asset::Metadata>, object::Object<fungible_asset::Metadata>>
+  voting_power_history: table::Table<u64, u64>
+
+struct CoinCapabilities has drop + store
+  burn_cap: coin::BurnCapability
+  freeze_cap: coin::FreezeCapability
+  mint_cap: coin::MintCapability
+
+struct Capabilities has store
+  burn_cap: cabal_token::BurnCapability
+  freeze_cap: cabal_token::FreezeCapability
+  mint_cap: cabal_token::MintCapability
+
+struct ClaimedVotingRewardResponse has drop
+  metadata: object::Object<fungible_asset::Metadata>
+  amount: u64
+
+struct SupportTokenResponse has drop
+  name: string::String
+  symbol: string::String
+  metadata: object::Object<fungible_asset::Metadata>
+  denom: string::String
+  decimals: u8
+  icon_uri: string::String
+
+struct BalanceRecord has drop + store
+  balances: simple_map::SimpleMap<string::String, u64>
+
+struct CabalStore has key
+  unbonding_entries: vector<UnbondingEntry>
+  voting_reward_claimed_amount: simple_map::SimpleMap<string::String, u64>
+  points_collected: u64
+
+struct DepositSwapEvent has drop + store
+  init_in: u64
+  xinit_mint: u64
+  xinit_swap_sim: u64
+  xinit_swap_actual: u64
+
+struct ExternalVoteEvent has drop + store
+  cycle: u64
+  voting_power: u64
+  bridge_ids: vector<u64>
+  weights: vector<bigdecimal::BigDecimal>
+
+struct LockExempt has key
+  addresses: vector<address>
+
+struct StakeEstimateResponse has drop
+  fee_amount: u64
+  exchange_rate: bigdecimal::BigDecimal
+  net_converted_amount: u64
+
+struct StakePoolResponse has drop
+  stake_id: u64
+  unbonding_period: u64
+  staked_amount: u64
+  reward_amount: u64
+  price_in_usd: bigdecimal::BigDecimal
+  deposit_token: SupportTokenResponse
+  receipt_token: SupportTokenResponse
+
+struct StakedResponse has drop
+  init_amount: u64
+  xinit_amount: u64
+  sxinit_amount: u64
+
+struct TokenActionEvent has drop + store
+  pool_id: u64
+  in_amount: u64
+  out_amount: u64
+  action: u64
+
+struct UnbondingEntry has store
+  pool_index: u64
+  metadata: object::Object<fungible_asset::Metadata>
+  amount: u64
+  release_time: u64
+
+struct UnbondingEntryResponse has drop
+  metadata: object::Object<fungible_asset::Metadata>
+  amount: u64
+  release_time: u64
+
+struct UserStakePoolResponse has drop
+  stake_id: u64
+  unbonding_period: u64
+  staked_amount: u64
+  user_staked_amount: u64
+  reward_amount: u64
+  price_in_usd: bigdecimal::BigDecimal
+  deposit_token: SupportTokenResponse
+  receipt_token: SupportTokenResponse
+
+// Function definition at index 0
+entry public fun initialize(l0: &signer, l1: string::String, l2: address) acquires ModuleStore
+    local l3: signer
+    local l4: coin::FreezeCapability
+    local l5: coin::BurnCapability
+    local l6: coin::MintCapability
+    local l7: CoinCapabilities
+    local l8: object::Object<fungible_asset::Metadata>
+    local l9: object::Object<fungible_asset::Metadata>
+    copy_loc l0
+    call signer::address_of
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    eq
+    br_false l0
+    // @5
+    call package::get_assets_store_signer
+    st_loc l3
+    borrow_loc l3
+    call option::none<u128>
+    ld_const<vector<u8>> [120, 73, 78, 73, 84]
+    // @10
+    call string::utf8
+    ld_const<vector<u8>> [120, 73, 78, 73, 84]
+    call string::utf8
+    ld_u8 6
+    ld_const<vector<u8>> []
+    // @15
+    call string::utf8
+    ld_const<vector<u8>> []
+    call string::utf8
+    call coin::initialize
+    st_loc l4
+    // @20
+    st_loc l5
+    st_loc l6
+    move_loc l5
+    move_loc l4
+    move_loc l6
+    // @25
+    pack CoinCapabilities
+    st_loc l7
+    ld_const<address> 1
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    call string::utf8
+    // @30
+    call coin::metadata
+    st_loc l8
+    call package::get_assets_store_address
+    ld_const<vector<u8>> [120, 73, 78, 73, 84]
+    call string::utf8
+    // @35
+    call coin::metadata
+    st_loc l9
+    copy_loc l0
+    ld_u64 0
+    ld_u64 0
+    // @40
+    ld_u64 0
+    ld_u64 0
+    copy_loc l9
+    move_loc l7
+    vec_pack <u64>, 0
+    // @45
+    vec_pack <object::Object<fungible_asset::Metadata>>, 0
+    vec_pack <object::Object<fungible_asset::Metadata>>, 0
+    vec_pack <Capabilities>, 0
+    ld_u64 0
+    vec_pack <u64>, 0
+    // @50
+    vec_pack <u64>, 0
+    vec_pack <u64>, 0
+    ld_u64 0
+    call simple_map::new<object::Object<fungible_asset::Metadata>, object::Object<fungible_asset::Metadata>>
+    call table::new<u64, u64>
+    // @55
+    pack ModuleStore
+    move_to ModuleStore
+    copy_loc l0
+    copy_loc l8
+    move_loc l1
+    // @60
+    call pool_router::add_pool
+    copy_loc l0
+    ld_false
+    call emergency::set_pause
+    copy_loc l0
+    // @65
+    move_loc l2
+    call package::set_commission_fee_store_addr
+    copy_loc l0
+    ld_u64 10100000
+    call deposit_init_for_xinit
+    // @70
+    move_loc l0
+    ld_u64 1814400
+    move_loc l8
+    move_loc l9
+    ld_const<vector<u8>> [115, 120, 73, 78, 73, 84]
+    // @75
+    call string::utf8
+    ld_const<vector<u8>> [115, 120, 73, 78, 73, 84]
+    call string::utf8
+    ld_const<vector<u8>> []
+    call string::utf8
+    // @80
+    ld_const<vector<u8>> []
+    call string::utf8
+    call config_stake_token
+    ret
+l0: move_loc l0
+    // @85
+    pop
+    ld_u64 6
+    call error::unauthenticated
+    abort
+
+// Function definition at index 1
+public fun get_pools(): vector<StakePoolResponse> acquires ModuleStore
+    local l0: &ModuleStore
+    local l1: vector<StakePoolResponse>
+    local l2: u64
+    local l3: bool
+    local l4: u64
+    local l5: u64
+    local l6: SupportTokenResponse
+    local l7: SupportTokenResponse
+    local l8: &mut vector<StakePoolResponse>
+    local l9: u64
+    local l10: u64
+    local l11: u64
+    local l12: u64
+    local l13: bigdecimal::BigDecimal
+    local l14: SupportTokenResponse
+    local l15: StakePoolResponse
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l0
+    vec_pack <StakePoolResponse>, 0
+    st_loc l1
+    // @5
+    ld_u64 0
+    st_loc l2
+    ld_false
+    st_loc l3
+    copy_loc l0
+    // @10
+    borrow_field ModuleStore, unbond_period
+    vec_len <u64>
+    st_loc l4
+l4: copy_loc l3
+    br_false l0
+    // @15
+    move_loc l2
+    ld_u64 1
+    add
+    st_loc l2
+l7: copy_loc l2
+    // @20
+    copy_loc l4
+    lt
+    br_false l1
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    // @25
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l0
+    borrow_field ModuleStore, x_init_metadata
+    // @30
+    read_ref
+    neq
+    br_false l2
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    // @35
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call pool_router::get_real_total_stakes
+    st_loc l5
+    // @40
+l6: copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @45
+    call fungible_asset::name<fungible_asset::Metadata>
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @50
+    read_ref
+    call fungible_asset::symbol<fungible_asset::Metadata>
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    // @55
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    // @60
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call coin::metadata_to_denom
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    // @65
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    copy_loc l0
+    // @70
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::icon_uri<fungible_asset::Metadata>
+    // @75
+    pack SupportTokenResponse
+    st_loc l6
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l2
+    // @80
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::name<fungible_asset::Metadata>
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    // @85
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::symbol<fungible_asset::Metadata>
+    copy_loc l0
+    // @90
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l0
+    // @95
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call coin::metadata_to_denom
+    // @100
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @105
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @110
+    read_ref
+    call fungible_asset::icon_uri<fungible_asset::Metadata>
+    pack SupportTokenResponse
+    st_loc l7
+    mut_borrow_loc l1
+    // @115
+    st_loc l8
+    copy_loc l2
+    st_loc l9
+    copy_loc l0
+    borrow_field ModuleStore, unbond_period
+    // @120
+    copy_loc l2
+    vec_borrow <u64>
+    read_ref
+    st_loc l10
+    move_loc l5
+    // @125
+    st_loc l11
+    copy_loc l0
+    borrow_field ModuleStore, stake_reward_amounts
+    copy_loc l2
+    vec_borrow <u64>
+    // @130
+    read_ref
+    st_loc l12
+    copy_loc l2
+    ld_u64 0
+    eq
+    // @135
+    br_false l3
+    call utils::get_init_metadata
+    call utils::get_token_price_in_usd
+    st_loc l13
+l5: move_loc l6
+    // @140
+    st_loc l14
+    move_loc l9
+    move_loc l10
+    move_loc l11
+    move_loc l12
+    // @145
+    move_loc l13
+    move_loc l14
+    move_loc l7
+    pack StakePoolResponse
+    st_loc l15
+    // @150
+    move_loc l8
+    move_loc l15
+    vec_push_back <StakePoolResponse>
+    branch l4
+l3: copy_loc l0
+    // @155
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    ld_u64 1000000
+    // @160
+    call utils::get_lp_token_value_in_usd
+    st_loc l13
+    branch l5
+l2: call utils::get_init_metadata
+    call pool_router::get_real_total_stakes
+    // @165
+    st_loc l5
+    branch l6
+l1: move_loc l0
+    pop
+l8: move_loc l1
+    // @170
+    ret
+l0: ld_true
+    st_loc l3
+    branch l7
+    move_loc l0
+    // @175
+    pop
+    branch l8
+
+// Function definition at index 2
+entry public fun vote(l0: &signer, l1: u64, l2: vector<u64>, l3: vector<bigdecimal::BigDecimal>)
+    ld_u64 101
+    move_loc l0
+    pop
+    abort
+
+// Function definition at index 3
+entry public fun register(l0: &signer)
+    copy_loc l0
+    call signer::address_of
+    exists CabalStore
+    br_true l0
+    move_loc l0
+    // @5
+    vec_pack <UnbondingEntry>, 0
+    call simple_map::create<string::String, u64>
+    ld_u64 0
+    pack CabalStore
+    move_to CabalStore
+    // @10
+    ret
+l0: move_loc l0
+    pop
+    ld_u64 5
+    call error::already_exists
+    // @15
+    abort
+
+// Function definition at index 4
+public fun get_voting_power(): u64
+    local l0: u64
+    local l1: vector<address>
+    local l2: u64
+    local l3: bool
+    local l4: u64
+    call package::get_assets_store_address
+    call weight_vote::get_voting_power
+    st_loc l0
+    call pool_router::get_all_pool_address
+    st_loc l1
+    // @5
+    ld_u64 0
+    st_loc l2
+    ld_false
+    st_loc l3
+    borrow_loc l1
+    // @10
+    vec_len <address>
+    st_loc l4
+l4: branch l0
+    branch l1
+l0: copy_loc l3
+    // @15
+    br_false l2
+    move_loc l2
+    ld_u64 1
+    add
+    st_loc l2
+    // @20
+l5: copy_loc l2
+    copy_loc l4
+    lt
+    br_true l3
+    branch l1
+    // @25
+l3: move_loc l0
+    borrow_loc l1
+    copy_loc l2
+    vec_borrow <address>
+    read_ref
+    // @30
+    call weight_vote::get_voting_power
+    add
+    st_loc l0
+    branch l4
+l1: move_loc l0
+    // @35
+    ret
+l2: ld_true
+    st_loc l3
+    branch l5
+
+// Function definition at index 5
+public fun get_xinit_metadata(): object::Object<fungible_asset::Metadata> acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    ret
+
+// Function definition at index 6
+public fun get_voting_power_weight(): simple_map::SimpleMap<object::Object<fungible_asset::Metadata>, bigdecimal::BigDecimal> acquires ModuleStore
+    local l0: simple_map::SimpleMap<object::Object<fungible_asset::Metadata>, bigdecimal::BigDecimal>
+    local l1: simple_map::SimpleMap<object::Object<fungible_asset::Metadata>, bigdecimal::BigDecimal>
+    local l2: vector<object::Object<fungible_asset::Metadata>>
+    local l3: u64
+    local l4: bool
+    local l5: u64
+    call simple_map::new<object::Object<fungible_asset::Metadata>, bigdecimal::BigDecimal>
+    st_loc l0
+    call pool_router::get_voting_power_weight
+    st_loc l1
+    borrow_loc l1
+    // @5
+    call simple_map::keys<object::Object<fungible_asset::Metadata>, bigdecimal::BigDecimal>
+    st_loc l2
+    ld_u64 0
+    st_loc l3
+    ld_false
+    // @10
+    st_loc l4
+    borrow_loc l2
+    vec_len <object::Object<fungible_asset::Metadata>>
+    st_loc l5
+l4: branch l0
+    // @15
+    branch l1
+l0: copy_loc l4
+    br_false l2
+    move_loc l3
+    ld_u64 1
+    // @20
+    add
+    st_loc l3
+l5: copy_loc l3
+    copy_loc l5
+    lt
+    // @25
+    br_true l3
+    branch l1
+l3: mut_borrow_loc l0
+    borrow_loc l2
+    copy_loc l3
+    // @30
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call convert_to_cabal_token
+    borrow_loc l1
+    borrow_loc l2
+    // @35
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    call simple_map::borrow<object::Object<fungible_asset::Metadata>, bigdecimal::BigDecimal>
+    read_ref
+    call simple_map::add<object::Object<fungible_asset::Metadata>, bigdecimal::BigDecimal>
+    // @40
+    branch l4
+l1: move_loc l0
+    ret
+l2: ld_true
+    st_loc l4
+    // @45
+    branch l5
+
+// Function definition at index 7
+entry public fun admin_overwrite_voting_power_history(l0: &signer, l1: u64, l2: u64) acquires ModuleStore
+    local l3: &mut ModuleStore
+    local l4: &mut u64
+    move_loc l0
+    call manager::is_authorized
+    br_false l0
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    // @5
+    st_loc l3
+    copy_loc l3
+    borrow_field ModuleStore, voting_power_history
+    copy_loc l1
+    call table::contains<u64, u64>
+    // @10
+    br_false l1
+    move_loc l3
+    mut_borrow_field ModuleStore, voting_power_history
+    move_loc l1
+    call table::borrow_mut<u64, u64>
+    // @15
+    st_loc l4
+    move_loc l2
+    move_loc l4
+    write_ref
+l2: ret
+    // @20
+l1: move_loc l3
+    mut_borrow_field ModuleStore, voting_power_history
+    move_loc l1
+    move_loc l2
+    call table::add<u64, u64>
+    // @25
+    branch l2
+l0: ld_u64 7
+    call error::permission_denied
+    abort
+
+// Function definition at index 8
+entry public fun batch_undelegate_pending_lps() acquires ModuleStore
+    local l0: &mut ModuleStore
+    local l1: u64
+    local l2: &mut u64
+    local l3: u64
+    local l4: bool
+    local l5: u64
+    local l6: signer
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    st_loc l0
+    call block::get_block_info
+    st_loc l1
+    // @5
+    pop
+    copy_loc l1
+    copy_loc l0
+    borrow_field ModuleStore, last_undelegate_time
+    read_ref
+    // @10
+    ld_u64 259200
+    add
+    gt
+    br_false l0
+    copy_loc l0
+    // @15
+    mut_borrow_field ModuleStore, last_undelegate_time
+    st_loc l2
+    move_loc l1
+    move_loc l2
+    write_ref
+    // @20
+    ld_u64 0
+    st_loc l3
+    ld_false
+    st_loc l4
+    copy_loc l0
+    // @25
+    borrow_field ModuleStore, unbond_period
+    vec_len <u64>
+    st_loc l5
+l4: copy_loc l4
+    br_false l1
+    // @30
+    move_loc l3
+    ld_u64 1
+    add
+    st_loc l3
+l5: copy_loc l3
+    // @35
+    copy_loc l5
+    lt
+    br_false l2
+    copy_loc l0
+    borrow_field ModuleStore, unstaked_pending_amounts
+    // @40
+    copy_loc l3
+    vec_borrow <u64>
+    read_ref
+    ld_u64 0
+    eq
+    // @45
+    br_false l3
+    branch l4
+l3: copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l3
+    // @50
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call pool_router::request_claim_rewards
+    call package::get_assets_store_signer
+    st_loc l6
+    // @55
+    borrow_loc l6
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    ld_const<vector<u8>> [99, 97, 98, 97, 108]
+    call string::utf8
+    ld_const<vector<u8>> [112, 114, 111, 99, 101, 115, 115, 95, 108, 112, 95, 117, 110, 100, 101, 108, 101, 103, 97, 116, 101]
+    // @60
+    call string::utf8
+    vec_pack <string::String>, 0
+    borrow_loc l3
+    call bcs::to_bytes<u64>
+    copy_loc l0
+    // @65
+    borrow_field ModuleStore, unstaked_pending_amounts
+    copy_loc l3
+    vec_borrow <u64>
+    call bcs::to_bytes<u64>
+    vec_pack <vector<u8>>, 2
+    // @70
+    call cosmos::move_execute
+    copy_loc l0
+    borrow_field ModuleStore, unstaked_release_amount
+    copy_loc l3
+    vec_borrow <u64>
+    // @75
+    read_ref
+    copy_loc l0
+    borrow_field ModuleStore, unstaked_pending_amounts
+    copy_loc l3
+    vec_borrow <u64>
+    // @80
+    read_ref
+    add
+    copy_loc l0
+    mut_borrow_field ModuleStore, unstaked_release_amount
+    copy_loc l3
+    // @85
+    vec_mut_borrow <u64>
+    write_ref
+    ld_u64 0
+    copy_loc l0
+    mut_borrow_field ModuleStore, unstaked_pending_amounts
+    // @90
+    copy_loc l3
+    vec_mut_borrow <u64>
+    write_ref
+    branch l4
+l2: move_loc l0
+    // @95
+    pop
+l6: ret
+l1: ld_true
+    st_loc l4
+    branch l5
+    // @100
+    move_loc l0
+    pop
+    branch l6
+l0: move_loc l0
+    pop
+    // @105
+    ld_u64 14
+    call error::invalid_state
+    abort
+
+// Function definition at index 9
+entry public fun claim_all_unbonded_assets(l0: &signer) acquires CabalStore
+    local l1: address
+    local l2: &CabalStore
+    local l3: u64
+    local l4: vector<u64>
+    local l5: u64
+    local l6: bool
+    local l7: u64
+    local l8: &UnbondingEntry
+    call emergency::assert_no_paused
+    copy_loc l0
+    call signer::address_of
+    st_loc l1
+    copy_loc l1
+    // @5
+    exists CabalStore
+    br_false l0
+    move_loc l1
+    borrow_global CabalStore
+    st_loc l2
+    // @10
+    call block::get_block_info
+    st_loc l3
+    pop
+    vec_pack <u64>, 0
+    st_loc l4
+    // @15
+    ld_u64 0
+    st_loc l5
+    ld_false
+    st_loc l6
+    copy_loc l2
+    // @20
+    borrow_field CabalStore, unbonding_entries
+    vec_len <UnbondingEntry>
+    st_loc l7
+l4: copy_loc l6
+    br_false l1
+    // @25
+    move_loc l5
+    ld_u64 1
+    add
+    st_loc l5
+l7: copy_loc l5
+    // @30
+    copy_loc l7
+    lt
+    br_false l2
+    copy_loc l2
+    borrow_field CabalStore, unbonding_entries
+    // @35
+    copy_loc l5
+    vec_borrow <UnbondingEntry>
+    st_loc l8
+    copy_loc l3
+    move_loc l8
+    // @40
+    borrow_field UnbondingEntry, release_time
+    read_ref
+    gt
+    br_true l3
+    branch l4
+    // @45
+l3: mut_borrow_loc l4
+    copy_loc l5
+    vec_push_back <u64>
+    branch l4
+l2: move_loc l2
+    // @50
+    pop
+l8: borrow_loc l4
+    vec_len <u64>
+    ld_u64 0
+    gt
+    // @55
+    br_false l5
+    move_loc l0
+    move_loc l4
+    call claim_unbonded_assets
+l6: ret
+    // @60
+l5: move_loc l0
+    pop
+    branch l6
+l1: ld_true
+    st_loc l6
+    // @65
+    branch l7
+    move_loc l2
+    pop
+    branch l8
+l0: move_loc l0
+    // @70
+    pop
+    ld_u64 4
+    call error::not_found
+    abort
+
+// Function definition at index 10
+entry public fun claim_unbonded_assets(l0: &signer, l1: vector<u64>) acquires CabalStore
+    local l2: address
+    local l3: &mut CabalStore
+    local l4: u64
+    local l5: bool
+    local l6: u64
+    call emergency::assert_no_paused
+    copy_loc l0
+    call signer::address_of
+    st_loc l2
+    copy_loc l2
+    // @5
+    exists CabalStore
+    br_false l0
+    move_loc l2
+    mut_borrow_global CabalStore
+    st_loc l3
+    // @10
+    ld_u64 0
+    st_loc l4
+    ld_false
+    st_loc l5
+    copy_loc l3
+    // @15
+    borrow_field CabalStore, unbonding_entries
+    vec_len <UnbondingEntry>
+    st_loc l6
+l4: copy_loc l5
+    br_false l1
+    // @20
+    move_loc l4
+    ld_u64 1
+    add
+    st_loc l4
+l5: copy_loc l4
+    // @25
+    copy_loc l6
+    lt
+    br_false l2
+    borrow_loc l1
+    borrow_loc l4
+    // @30
+    call vector::contains<u64>
+    br_true l3
+    branch l4
+l3: copy_loc l3
+    borrow_field CabalStore, unbonding_entries
+    // @35
+    copy_loc l4
+    vec_borrow <UnbondingEntry>
+    borrow_field UnbondingEntry, metadata
+    read_ref
+    call pool_router::update_all_unbonding_delegation_cache
+    // @40
+    branch l4
+l2: move_loc l3
+    pop
+l6: move_loc l0
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    // @45
+    ld_const<vector<u8>> [99, 97, 98, 97, 108]
+    call string::utf8
+    ld_const<vector<u8>> [99, 108, 97, 105, 109, 95, 117, 110, 98, 111, 110, 100, 101, 100, 95, 97, 115, 115, 101, 116, 115, 95, 105, 110, 116, 101, 114, 110, 97, 108]
+    call string::utf8
+    vec_pack <string::String>, 0
+    // @50
+    borrow_loc l1
+    call bcs::to_bytes<vector<u64>>
+    vec_pack <vector<u8>>, 1
+    call cosmos::move_execute
+    ret
+    // @55
+l1: ld_true
+    st_loc l5
+    branch l5
+    move_loc l3
+    pop
+    // @60
+    branch l6
+l0: move_loc l0
+    pop
+    ld_u64 4
+    call error::not_found
+    // @65
+    abort
+
+// Function definition at index 11
+entry fun claim_unbonded_assets_internal(l0: &signer, l1: vector<u64>) acquires ModuleStore, CabalStore
+    local l2: address
+    local l3: &mut CabalStore
+    local l4: u64
+    local l5: vector<u64>
+    local l6: u64
+    local l7: bool
+    local l8: u64
+    local l9: &mut ModuleStore
+    local l10: u64
+    local l11: bool
+    local l12: u64
+    local l13: u64
+    local l14: u64
+    local l15: object::Object<fungible_asset::Metadata>
+    local l16: u64
+    local l17: fungible_asset::FungibleAsset
+    local l18: u64
+    local l19: signer
+    call emergency::assert_no_paused
+    copy_loc l0
+    call signer::address_of
+    st_loc l2
+    copy_loc l2
+    // @5
+    exists CabalStore
+    br_false l0
+    copy_loc l2
+    mut_borrow_global CabalStore
+    st_loc l3
+    // @10
+    call block::get_block_info
+    st_loc l4
+    pop
+    vec_pack <u64>, 0
+    st_loc l5
+    // @15
+    ld_u64 0
+    st_loc l6
+    ld_false
+    st_loc l7
+    copy_loc l3
+    // @20
+    borrow_field CabalStore, unbonding_entries
+    vec_len <UnbondingEntry>
+    st_loc l8
+l6: branch l1
+    branch l2
+    // @25
+l1: copy_loc l7
+    br_false l3
+    move_loc l6
+    ld_u64 1
+    add
+    // @30
+    st_loc l6
+l16: copy_loc l6
+    copy_loc l8
+    lt
+    br_true l4
+    // @35
+    branch l2
+l4: borrow_loc l1
+    borrow_loc l6
+    call vector::contains<u64>
+    br_true l5
+    // @40
+    branch l6
+l5: mut_borrow_loc l5
+    copy_loc l6
+    vec_push_back <u64>
+    branch l6
+    // @45
+l2: mut_borrow_loc l5
+    call vector::reverse<u64>
+    borrow_loc l1
+    vec_len <u64>
+    borrow_loc l5
+    // @50
+    vec_len <u64>
+    eq
+    br_false l7
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    // @55
+    st_loc l9
+    ld_u64 0
+    st_loc l10
+    ld_false
+    st_loc l11
+    // @60
+    borrow_loc l5
+    vec_len <u64>
+    st_loc l12
+l12: copy_loc l11
+    br_false l8
+    // @65
+    move_loc l10
+    ld_u64 1
+    add
+    st_loc l10
+l14: copy_loc l10
+    // @70
+    copy_loc l12
+    lt
+    br_false l9
+    copy_loc l3
+    mut_borrow_field CabalStore, unbonding_entries
+    // @75
+    borrow_loc l5
+    copy_loc l10
+    vec_borrow <u64>
+    read_ref
+    call vector::remove<UnbondingEntry>
+    // @80
+    unpack UnbondingEntry
+    st_loc l13
+    st_loc l14
+    st_loc l15
+    st_loc l16
+    // @85
+    copy_loc l4
+    move_loc l13
+    gt
+    br_false l10
+    copy_loc l15
+    // @90
+    copy_loc l9
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    neq
+    br_false l11
+    // @95
+    copy_loc l15
+    call pool_router::withdraw_assets
+    st_loc l17
+    call package::get_assets_store_address
+    move_loc l17
+    // @100
+    call primary_fungible_store::deposit
+    copy_loc l15
+    call pool_router::get_real_total_unbonding
+    st_loc l13
+    call package::get_assets_store_address
+    // @105
+    copy_loc l15
+    call coin::balance
+    move_loc l13
+    add
+    st_loc l13
+    // @110
+    copy_loc l9
+    borrow_field ModuleStore, unstaked_release_amount
+    copy_loc l16
+    vec_borrow <u64>
+    read_ref
+    // @115
+    st_loc l18
+    copy_loc l14
+    move_loc l18
+    call bigdecimal::from_ratio_u64
+    move_loc l13
+    // @120
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l13
+    copy_loc l9
+    borrow_field ModuleStore, unstaked_release_amount
+    copy_loc l16
+    // @125
+    vec_borrow <u64>
+    read_ref
+    move_loc l14
+    sub
+    copy_loc l9
+    // @130
+    mut_borrow_field ModuleStore, unstaked_release_amount
+    copy_loc l16
+    vec_mut_borrow <u64>
+    write_ref
+l13: call package::get_assets_store_signer
+    // @135
+    st_loc l19
+    borrow_loc l19
+    move_loc l15
+    copy_loc l2
+    copy_loc l13
+    // @140
+    call primary_fungible_store::transfer<fungible_asset::Metadata>
+    move_loc l16
+    ld_u64 0
+    move_loc l13
+    ld_u64 4
+    // @145
+    pack TokenActionEvent
+    call event::emit<TokenActionEvent>
+    branch l12
+l11: move_loc l14
+    st_loc l13
+    // @150
+    branch l13
+l10: move_loc l0
+    pop
+    move_loc l3
+    pop
+    // @155
+    move_loc l9
+    pop
+    ld_u64 9
+    call error::unavailable
+    abort
+    // @160
+l9: move_loc l3
+    pop
+    move_loc l9
+    pop
+l15: move_loc l0
+    // @165
+    call signer::address_of
+    call emit_balances
+    ret
+l8: ld_true
+    st_loc l11
+    // @170
+    branch l14
+    move_loc l3
+    pop
+    move_loc l9
+    pop
+    // @175
+    branch l15
+l7: move_loc l0
+    pop
+    move_loc l3
+    pop
+    // @180
+    ld_u64 8
+    call error::out_of_range
+    abort
+l3: ld_true
+    st_loc l7
+    // @185
+    branch l16
+l0: move_loc l0
+    pop
+    ld_u64 4
+    call error::not_found
+    // @190
+    abort
+
+// Function definition at index 12
+fun compound_lp_pool_rewards(l0: &mut ModuleStore, l1: u64): fungible_asset::FungibleAsset
+    local l2: fungible_asset::FungibleAsset
+    local l3: u64
+    local l4: u64
+    local l5: fungible_asset::FungibleAsset
+    local l6: fungible_asset::FungibleAsset
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l1
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @5
+    call pool_router::withdraw_rewards
+    st_loc l2
+    borrow_loc l2
+    call fungible_asset::amount
+    st_loc l3
+    // @10
+    copy_loc l3
+    ld_u64 0
+    gt
+    br_false l0
+    ld_u64 600
+    // @15
+    ld_u64 10000
+    call bigdecimal::from_ratio_u64
+    move_loc l3
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l4
+    // @20
+    mut_borrow_loc l2
+    move_loc l4
+    call fungible_asset::extract
+    st_loc l5
+    call package::get_commission_fee_store_address
+    // @25
+    move_loc l5
+    call primary_fungible_store::deposit
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l1
+    // @30
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call object::convert<fungible_asset::Metadata, dex::Config>
+    move_loc l2
+    ld_u64 1
+    // @35
+    call option::some<u64>
+    call dex::single_asset_provide_liquidity
+    st_loc l6
+    borrow_loc l6
+    call fungible_asset::amount
+    // @40
+    st_loc l4
+    copy_loc l0
+    borrow_field ModuleStore, stake_reward_amounts
+    copy_loc l1
+    vec_borrow <u64>
+    // @45
+    read_ref
+    move_loc l4
+    add
+    move_loc l0
+    mut_borrow_field ModuleStore, stake_reward_amounts
+    // @50
+    move_loc l1
+    vec_mut_borrow <u64>
+    write_ref
+    move_loc l6
+    ret
+    // @55
+l0: move_loc l2
+    call fungible_asset::destroy_zero
+    move_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    move_loc l1
+    // @60
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::zero<fungible_asset::Metadata>
+    ret
+
+// Function definition at index 13
+fun compound_xinit_pool_rewards(l0: &mut ModuleStore, l1: u64)
+    local l2: fungible_asset::FungibleAsset
+    local l3: u64
+    local l4: u64
+    local l5: fungible_asset::FungibleAsset
+    ld_const<address> 1
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    call string::utf8
+    call coin::metadata
+    call pool_router::withdraw_rewards
+    // @5
+    st_loc l2
+    borrow_loc l2
+    call fungible_asset::amount
+    st_loc l3
+    copy_loc l3
+    // @10
+    ld_u64 0
+    gt
+    br_false l0
+    copy_loc l0
+    borrow_field ModuleStore, xinit_stake_reward_fee_bps
+    // @15
+    read_ref
+    ld_u64 10000
+    call bigdecimal::from_ratio_u64
+    copy_loc l3
+    call bigdecimal::mul_by_u64_truncate
+    // @20
+    st_loc l4
+    mut_borrow_loc l2
+    copy_loc l4
+    call fungible_asset::extract
+    st_loc l5
+    // @25
+    move_loc l3
+    move_loc l4
+    sub
+    st_loc l4
+    call package::get_commission_fee_store_address
+    // @30
+    move_loc l5
+    call primary_fungible_store::deposit
+    copy_loc l0
+    borrow_field ModuleStore, stake_reward_amounts
+    copy_loc l1
+    // @35
+    vec_borrow <u64>
+    read_ref
+    copy_loc l4
+    add
+    copy_loc l0
+    // @40
+    mut_borrow_field ModuleStore, stake_reward_amounts
+    move_loc l1
+    vec_mut_borrow <u64>
+    write_ref
+    move_loc l2
+    // @45
+    call pool_router::add_stake
+    copy_loc l0
+    borrow_field ModuleStore, x_init_staked_amounts
+    read_ref
+    copy_loc l4
+    // @50
+    add
+    copy_loc l0
+    mut_borrow_field ModuleStore, x_init_staked_amounts
+    write_ref
+    move_loc l0
+    // @55
+    borrow_field ModuleStore, x_init_caps
+    borrow_field CoinCapabilities, mint_cap
+    call package::get_assets_store_address
+    move_loc l4
+    call coin::mint_to
+    // @60
+l1: ret
+l0: move_loc l0
+    pop
+    move_loc l2
+    call fungible_asset::destroy_zero
+    // @65
+    branch l1
+
+// Function definition at index 14
+entry public fun config_stake_token(l0: &signer, l1: u64, l2: object::Object<fungible_asset::Metadata>, l3: object::Object<fungible_asset::Metadata>, l4: string::String, l5: string::String, l6: string::String, l7: string::String) acquires ModuleStore
+    local l8: &mut ModuleStore
+    local l9: u8
+    local l10: signer
+    local l11: cabal_token::FreezeCapability
+    local l12: cabal_token::BurnCapability
+    local l13: cabal_token::MintCapability
+    local l14: Capabilities
+    local l15: object::Object<fungible_asset::Metadata>
+    local l16: u64
+    copy_loc l0
+    call manager::is_authorized
+    br_false l0
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    // @5
+    st_loc l8
+    copy_loc l8
+    mut_borrow_field ModuleStore, unbond_period
+    move_loc l1
+    vec_push_back <u64>
+    // @10
+    copy_loc l8
+    mut_borrow_field ModuleStore, stake_token_metadata
+    copy_loc l3
+    vec_push_back <object::Object<fungible_asset::Metadata>>
+    move_loc l3
+    // @15
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    st_loc l9
+    call package::get_assets_store_signer
+    st_loc l10
+    borrow_loc l10
+    // @20
+    copy_loc l0
+    call option::none<u128>
+    move_loc l4
+    copy_loc l5
+    copy_loc l9
+    // @25
+    move_loc l6
+    move_loc l7
+    call cabal_token::initialize
+    st_loc l11
+    st_loc l12
+    // @30
+    st_loc l13
+    move_loc l12
+    move_loc l11
+    move_loc l13
+    pack Capabilities
+    // @35
+    st_loc l14
+    call package::get_assets_store_address
+    move_loc l5
+    call cabal_token::metadata
+    st_loc l15
+    // @40
+    copy_loc l8
+    mut_borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l15
+    vec_push_back <object::Object<fungible_asset::Metadata>>
+    copy_loc l8
+    // @45
+    mut_borrow_field ModuleStore, cabal_stake_token_caps
+    move_loc l14
+    vec_push_back <Capabilities>
+    copy_loc l8
+    mut_borrow_field ModuleStore, stake_reward_amounts
+    // @50
+    ld_u64 0
+    vec_push_back <u64>
+    copy_loc l8
+    mut_borrow_field ModuleStore, unstaked_pending_amounts
+    ld_u64 0
+    // @55
+    vec_push_back <u64>
+    copy_loc l8
+    mut_borrow_field ModuleStore, unstaked_release_amount
+    ld_u64 0
+    vec_push_back <u64>
+    // @60
+    ld_u64 10100000
+    ld_u64 10
+    ld_u64 6
+    call math64::pow
+    call bigdecimal::from_ratio_u64
+    // @65
+    ld_u64 10
+    move_loc l9
+    cast_u64
+    call math64::pow
+    call bigdecimal::mul_by_u64_truncate
+    // @70
+    st_loc l16
+    move_loc l0
+    move_loc l8
+    borrow_field ModuleStore, unbond_period
+    vec_len <u64>
+    // @75
+    ld_u64 1
+    sub
+    move_loc l16
+    call stake_asset
+    move_loc l2
+    // @80
+    move_loc l15
+    call link_stake_token2cabal_token
+    ret
+l0: move_loc l0
+    pop
+    // @85
+    ld_u64 7
+    call error::permission_denied
+    abort
+
+// Function definition at index 15
+fun convert_to_cabal_token(l0: object::Object<fungible_asset::Metadata>): object::Object<fungible_asset::Metadata> acquires ModuleStore
+    local l1: &ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l1
+    copy_loc l1
+    borrow_field ModuleStore, stake_token_cabal_token_map
+    // @5
+    borrow_loc l0
+    call simple_map::contains_key<object::Object<fungible_asset::Metadata>, object::Object<fungible_asset::Metadata>>
+    br_false l0
+    move_loc l1
+    borrow_field ModuleStore, stake_token_cabal_token_map
+    // @10
+    borrow_loc l0
+    call simple_map::borrow<object::Object<fungible_asset::Metadata>, object::Object<fungible_asset::Metadata>>
+    read_ref
+    ret
+l0: move_loc l1
+    // @15
+    pop
+    ld_u64 11
+    call error::invalid_argument
+    abort
+
+// Function definition at index 16
+entry public fun deposit_bribe_and_vote(l0: &signer, l1: object::Object<fungible_asset::Metadata>, l2: u64, l3: u64, l4: u64) acquires ModuleStore
+    local l5: &ModuleStore
+    call emergency::assert_no_paused
+    move_loc l0
+    pop
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    // @5
+    pop
+    ld_u64 101
+    abort
+
+// Function definition at index 17
+entry public fun deposit_init_and_stake(l0: &signer, l1: u64) acquires ModuleStore
+    local l2: &mut ModuleStore
+    local l3: object::Object<fungible_asset::Metadata>
+    local l4: u64
+    local l5: option::Option<u128>
+    local l6: u128
+    local l7: u64
+    local l8: fungible_asset::FungibleAsset
+    local l9: u64
+    local l10: u64
+    local l11: fungible_asset::FungibleAsset
+    local l12: address
+    call emergency::assert_no_paused
+    copy_loc l1
+    ld_u64 0
+    gt
+    br_false l0
+    // @5
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    st_loc l2
+    ld_const<address> 1
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    // @10
+    call string::utf8
+    call coin::metadata
+    st_loc l3
+    copy_loc l3
+    call pool_router::get_real_total_stakes
+    // @15
+    st_loc l4
+    copy_loc l2
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    // @20
+    st_loc l5
+    mut_borrow_loc l5
+    call option::extract<u128>
+    st_loc l6
+    copy_loc l6
+    // @25
+    ld_u128 0
+    eq
+    br_false l1
+    copy_loc l1
+    st_loc l7
+    // @30
+l7: copy_loc l7
+    ld_u64 0
+    gt
+    br_false l2
+    copy_loc l0
+    // @35
+    move_loc l3
+    copy_loc l1
+    call primary_fungible_store::withdraw<fungible_asset::Metadata>
+    st_loc l8
+    copy_loc l1
+    // @40
+    call utils::xinit_out_swap
+    st_loc l9
+    ld_u64 10200
+    ld_u64 10000
+    call bigdecimal::from_ratio_u64
+    // @45
+    copy_loc l7
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l10
+    copy_loc l9
+    move_loc l10
+    // @50
+    gt
+    br_false l3
+    move_loc l8
+    copy_loc l7
+    call utils::execute_init_xinit_swap
+    // @55
+    st_loc l11
+    borrow_loc l11
+    call fungible_asset::amount
+    st_loc l10
+    copy_loc l0
+    // @60
+    call signer::address_of
+    move_loc l11
+    call primary_fungible_store::deposit
+    copy_loc l1
+    move_loc l7
+    // @65
+    move_loc l9
+    copy_loc l10
+    pack DepositSwapEvent
+    call event::emit<DepositSwapEvent>
+    ld_u64 0
+    // @70
+    move_loc l1
+    copy_loc l10
+    ld_u64 1
+    pack TokenActionEvent
+    call event::emit<TokenActionEvent>
+    // @75
+l6: copy_loc l0
+    call signer::address_of
+    st_loc l12
+    copy_loc l10
+    ld_u64 10
+    // @80
+    copy_loc l2
+    borrow_field ModuleStore, stake_token_metadata
+    ld_u64 0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @85
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    cast_u64
+    call math64::pow
+    div
+    copy_loc l2
+    // @90
+    borrow_field ModuleStore, minimum_stake
+    read_ref
+    ge
+    br_false l4
+    copy_loc l2
+    // @95
+    borrow_field ModuleStore, unbond_period
+    vec_len <u64>
+    ld_u64 0
+    gt
+    br_false l5
+    // @100
+    move_loc l0
+    move_loc l2
+    borrow_field ModuleStore, stake_token_metadata
+    ld_u64 0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @105
+    read_ref
+    call package::get_assets_store_address
+    copy_loc l10
+    call primary_fungible_store::transfer<fungible_asset::Metadata>
+    move_loc l12
+    // @110
+    ld_u64 0
+    move_loc l10
+    call stake_xinit
+    ret
+l5: move_loc l0
+    // @115
+    pop
+    move_loc l2
+    pop
+    ld_u64 8
+    call error::out_of_range
+    // @120
+    abort
+l4: move_loc l0
+    pop
+    move_loc l2
+    pop
+    // @125
+    ld_u64 13
+    call error::invalid_argument
+    abort
+l3: move_loc l8
+    call pool_router::add_stake
+    // @130
+    copy_loc l2
+    borrow_field ModuleStore, x_init_caps
+    borrow_field CoinCapabilities, mint_cap
+    copy_loc l0
+    call signer::address_of
+    // @135
+    copy_loc l7
+    call coin::mint_to
+    copy_loc l7
+    st_loc l10
+    ld_u64 0
+    // @140
+    move_loc l1
+    move_loc l7
+    ld_u64 0
+    pack TokenActionEvent
+    call event::emit<TokenActionEvent>
+    // @145
+    branch l6
+l2: move_loc l0
+    pop
+    move_loc l2
+    pop
+    // @150
+    ld_u64 13
+    call error::invalid_argument
+    abort
+l1: copy_loc l1
+    move_loc l4
+    // @155
+    call bigdecimal::from_ratio_u64
+    move_loc l6
+    call bigdecimal::mul_by_u128_ceil
+    cast_u64
+    st_loc l7
+    // @160
+    branch l7
+l0: move_loc l0
+    pop
+    ld_u64 1
+    call error::invalid_argument
+    // @165
+    abort
+
+// Function definition at index 18
+entry public fun deposit_init_for_xinit(l0: &signer, l1: u64) acquires ModuleStore
+    local l2: &ModuleStore
+    local l3: object::Object<fungible_asset::Metadata>
+    local l4: u64
+    local l5: option::Option<u128>
+    local l6: u128
+    local l7: u64
+    local l8: fungible_asset::FungibleAsset
+    local l9: u64
+    local l10: u64
+    local l11: fungible_asset::FungibleAsset
+    call emergency::assert_no_paused
+    copy_loc l1
+    ld_u64 0
+    gt
+    br_false l0
+    // @5
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l2
+    ld_const<address> 1
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    // @10
+    call string::utf8
+    call coin::metadata
+    st_loc l3
+    copy_loc l3
+    call pool_router::get_real_total_stakes
+    // @15
+    st_loc l4
+    copy_loc l2
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    // @20
+    st_loc l5
+    mut_borrow_loc l5
+    call option::extract<u128>
+    st_loc l6
+    copy_loc l6
+    // @25
+    ld_u128 0
+    eq
+    br_false l1
+    copy_loc l1
+    st_loc l7
+    // @30
+l5: copy_loc l7
+    ld_u64 0
+    gt
+    br_false l2
+    copy_loc l0
+    // @35
+    move_loc l3
+    copy_loc l1
+    call primary_fungible_store::withdraw<fungible_asset::Metadata>
+    st_loc l8
+    copy_loc l1
+    // @40
+    call utils::xinit_out_swap
+    st_loc l9
+    ld_u64 10200
+    ld_u64 10000
+    call bigdecimal::from_ratio_u64
+    // @45
+    copy_loc l7
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l10
+    copy_loc l9
+    move_loc l10
+    // @50
+    gt
+    br_false l3
+    move_loc l2
+    pop
+    move_loc l8
+    // @55
+    copy_loc l7
+    call utils::execute_init_xinit_swap
+    st_loc l11
+    borrow_loc l11
+    call fungible_asset::amount
+    // @60
+    st_loc l10
+    copy_loc l0
+    call signer::address_of
+    move_loc l11
+    call primary_fungible_store::deposit
+    // @65
+    copy_loc l1
+    move_loc l7
+    move_loc l9
+    copy_loc l10
+    pack DepositSwapEvent
+    // @70
+    call event::emit<DepositSwapEvent>
+    ld_u64 0
+    move_loc l1
+    move_loc l10
+    ld_u64 1
+    // @75
+    pack TokenActionEvent
+    call event::emit<TokenActionEvent>
+l4: move_loc l0
+    call signer::address_of
+    call emit_balances
+    // @80
+    ret
+l3: move_loc l8
+    call pool_router::add_stake
+    move_loc l2
+    borrow_field ModuleStore, x_init_caps
+    // @85
+    borrow_field CoinCapabilities, mint_cap
+    copy_loc l0
+    call signer::address_of
+    copy_loc l7
+    call coin::mint_to
+    // @90
+    ld_u64 0
+    move_loc l1
+    move_loc l7
+    ld_u64 0
+    pack TokenActionEvent
+    // @95
+    call event::emit<TokenActionEvent>
+    branch l4
+l2: move_loc l0
+    pop
+    move_loc l2
+    // @100
+    pop
+    ld_u64 13
+    call error::invalid_argument
+    abort
+l1: copy_loc l1
+    // @105
+    move_loc l4
+    call bigdecimal::from_ratio_u64
+    move_loc l6
+    call bigdecimal::mul_by_u128_ceil
+    cast_u64
+    // @110
+    st_loc l7
+    branch l5
+l0: move_loc l0
+    pop
+    ld_u64 1
+    // @115
+    call error::invalid_argument
+    abort
+
+// Function definition at index 19
+public fun emit_balances(l0: address) acquires ModuleStore
+    local l1: simple_map::SimpleMap<string::String, u64>
+    local l2: &ModuleStore
+    local l3: object::Object<fungible_asset::Metadata>
+    call simple_map::new<string::String, u64>
+    st_loc l1
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l2
+    // @5
+    copy_loc l2
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    st_loc l3
+    mut_borrow_loc l1
+    // @10
+    ld_const<vector<u8>> [120, 73, 78, 73, 84]
+    call string::utf8
+    copy_loc l0
+    move_loc l3
+    call primary_fungible_store::balance<fungible_asset::Metadata>
+    // @15
+    call simple_map::add<string::String, u64>
+    copy_loc l2
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    vec_len <object::Object<fungible_asset::Metadata>>
+    ld_u64 0
+    // @20
+    gt
+    br_true l0
+    branch l1
+l0: copy_loc l2
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    // @25
+    ld_u64 0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    st_loc l3
+    mut_borrow_loc l1
+    // @30
+    ld_const<vector<u8>> [115, 120, 73, 78, 73, 84]
+    call string::utf8
+    copy_loc l0
+    move_loc l3
+    call primary_fungible_store::balance<fungible_asset::Metadata>
+    // @35
+    call simple_map::add<string::String, u64>
+l1: copy_loc l2
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    vec_len <object::Object<fungible_asset::Metadata>>
+    ld_u64 1
+    // @40
+    gt
+    br_false l2
+    move_loc l2
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    ld_u64 1
+    // @45
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    st_loc l3
+    mut_borrow_loc l1
+    ld_const<vector<u8>> [99, 98, 108, 32, 85, 83, 68, 67, 45, 73, 78, 73, 84, 32, 76, 80]
+    // @50
+    call string::utf8
+    copy_loc l0
+    move_loc l3
+    call primary_fungible_store::balance<fungible_asset::Metadata>
+    call simple_map::add<string::String, u64>
+    // @55
+l5: call utils::is_testnet
+    br_false l3
+    branch l4
+l3: ld_const<address> 90057366526538105415586347594630836671492130260189069814712261022175709307217
+    call object::address_to_object<fungible_asset::Metadata>
+    // @60
+    st_loc l3
+    mut_borrow_loc l1
+    ld_const<vector<u8>> [120, 73, 78, 73, 84, 45, 73, 78, 73, 84, 32, 76, 80]
+    call string::utf8
+    move_loc l0
+    // @65
+    move_loc l3
+    call primary_fungible_store::balance<fungible_asset::Metadata>
+    call simple_map::add<string::String, u64>
+l4: move_loc l1
+    pack BalanceRecord
+    // @70
+    call event::emit<BalanceRecord>
+    ret
+l2: move_loc l2
+    pop
+    branch l5
+
+// Function definition at index 20
+public fun ensure_cabal_store_exists(l0: &signer)
+    copy_loc l0
+    call signer::address_of
+    exists CabalStore
+    br_true l0
+    move_loc l0
+    // @5
+    call register
+l1: ret
+l0: move_loc l0
+    pop
+    branch l1
+
+// Function definition at index 21
+public fun get_cabal_stake_token_price_rel_to_underlying(l0: u64): bigdecimal::BigDecimal acquires ModuleStore
+    local l1: &ModuleStore
+    local l2: option::Option<u128>
+    local l3: u128
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l1
+    copy_loc l0
+    ld_u64 0
+    // @5
+    eq
+    br_false l0
+    move_loc l1
+    pop
+    call get_sxinit_to_init_price
+    // @10
+    ret
+l0: copy_loc l1
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @15
+    read_ref
+    call pool_router::get_real_total_stakes
+    copy_loc l1
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l0
+    // @20
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l2
+    mut_borrow_loc l2
+    // @25
+    call option::extract<u128>
+    move_loc l1
+    borrow_field ModuleStore, unstaked_pending_amounts
+    move_loc l0
+    vec_borrow <u64>
+    // @30
+    read_ref
+    cast_u128
+    add
+    st_loc l3
+    cast_u128
+    // @35
+    move_loc l3
+    call bigdecimal::from_ratio_u128
+    ret
+
+// Function definition at index 22
+public fun get_cabal_stake_token_price_to_usd(l0: u64): bigdecimal::BigDecimal acquires ModuleStore
+    local l1: bigdecimal::BigDecimal
+    local l2: bigdecimal::BigDecimal
+    copy_loc l0
+    ld_u64 0
+    eq
+    br_false l0
+    call get_sxinit_to_init_price
+    // @5
+    call utils::get_init_metadata
+    call utils::get_token_price_in_usd
+    call bigdecimal::mul
+    ret
+l0: copy_loc l0
+    // @10
+    call get_cabal_stake_token_price_rel_to_underlying
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, stake_token_metadata
+    move_loc l0
+    // @15
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    ld_u64 1000000
+    call utils::get_lp_token_value_in_usd
+    call bigdecimal::mul
+    // @20
+    ret
+
+// Function definition at index 23
+public fun get_cabal_token_metadata(l0: u64): object::Object<fungible_asset::Metadata> acquires ModuleStore
+    local l1: &ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l1
+    copy_loc l1
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    // @5
+    vec_len <object::Object<fungible_asset::Metadata>>
+    ld_u64 0
+    gt
+    br_false l0
+    move_loc l1
+    // @10
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    move_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    ret
+    // @15
+l0: move_loc l1
+    pop
+    ld_u64 8
+    abort
+
+// Function definition at index 24
+public fun get_cabal_token_total_supply(l0: u64): u128 acquires ModuleStore
+    local l1: option::Option<u128>
+    move_loc l0
+    call get_cabal_token_metadata
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l1
+    borrow_loc l1
+    // @5
+    ld_u128 0
+    call option::get_with_default<u128>
+    ret
+
+// Function definition at index 25
+public fun get_cabal_tvl(): bigdecimal::BigDecimal acquires ModuleStore
+    local l0: vector<object::Object<fungible_asset::Metadata>>
+    local l1: bigdecimal::BigDecimal
+    local l2: u64
+    local l3: bool
+    local l4: u64
+    local l5: u64
+    local l6: bigdecimal::BigDecimal
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, stake_token_cabal_token_map
+    call simple_map::keys<object::Object<fungible_asset::Metadata>, object::Object<fungible_asset::Metadata>>
+    st_loc l0
+    // @5
+    call bigdecimal::zero
+    st_loc l1
+    ld_u64 0
+    st_loc l2
+    ld_false
+    // @10
+    st_loc l3
+    borrow_loc l0
+    vec_len <object::Object<fungible_asset::Metadata>>
+    st_loc l4
+l5: branch l0
+    // @15
+    branch l1
+l0: copy_loc l3
+    br_false l2
+    move_loc l2
+    ld_u64 1
+    // @20
+    add
+    st_loc l2
+l7: copy_loc l2
+    copy_loc l4
+    lt
+    // @25
+    br_true l3
+    branch l1
+l3: borrow_loc l0
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @30
+    read_ref
+    call pool_router::get_real_total_stakes
+    st_loc l5
+    borrow_loc l0
+    copy_loc l2
+    // @35
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call utils::get_init_metadata
+    eq
+    br_false l4
+    // @40
+    borrow_loc l0
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    move_loc l5
+    // @45
+    call utils::get_token_value_in_usd
+    st_loc l6
+l6: move_loc l1
+    move_loc l6
+    call bigdecimal::add
+    // @50
+    st_loc l1
+    branch l5
+l4: borrow_loc l0
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @55
+    read_ref
+    move_loc l5
+    call utils::get_lp_token_value_in_usd
+    st_loc l6
+    branch l6
+    // @60
+l1: move_loc l1
+    ret
+l2: ld_true
+    st_loc l3
+    branch l7
+
+// Function definition at index 26
+public fun get_cabal_tvl_for_pool(l0: u64): bigdecimal::BigDecimal acquires ModuleStore
+    local l1: &ModuleStore
+    local l2: object::Object<fungible_asset::Metadata>
+    local l3: u64
+    local l4: bigdecimal::BigDecimal
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l1
+    copy_loc l1
+    borrow_field ModuleStore, unbond_period
+    // @5
+    vec_len <u64>
+    copy_loc l0
+    gt
+    br_false l0
+    copy_loc l1
+    // @10
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l1
+    // @15
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    eq
+    br_false l1
+    move_loc l1
+    // @20
+    pop
+    call utils::get_init_metadata
+    st_loc l2
+l4: copy_loc l2
+    call pool_router::get_real_total_stakes
+    // @25
+    st_loc l3
+    copy_loc l2
+    call utils::get_init_metadata
+    eq
+    br_false l2
+    // @30
+    move_loc l2
+    move_loc l3
+    call utils::get_token_value_in_usd
+    st_loc l4
+l3: move_loc l4
+    // @35
+    ret
+l2: move_loc l2
+    move_loc l3
+    call utils::get_lp_token_value_in_usd
+    st_loc l4
+    // @40
+    branch l3
+l1: move_loc l1
+    borrow_field ModuleStore, stake_token_metadata
+    move_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @45
+    read_ref
+    st_loc l2
+    branch l4
+l0: move_loc l1
+    pop
+    // @50
+    ld_u64 8
+    call error::out_of_range
+    abort
+
+// Function definition at index 27
+public fun get_claimed_voting_reward(l0: address, l1: object::Object<fungible_asset::Metadata>): u64 acquires CabalStore
+    local l2: &CabalStore
+    local l3: string::String
+    local l4: u64
+    copy_loc l0
+    exists CabalStore
+    br_true l0
+    ld_u64 0
+    ret
+    // @5
+l0: move_loc l0
+    borrow_global CabalStore
+    st_loc l2
+    move_loc l1
+    call coin::metadata_to_denom
+    // @10
+    st_loc l3
+    copy_loc l2
+    borrow_field CabalStore, voting_reward_claimed_amount
+    borrow_loc l3
+    call simple_map::contains_key<string::String, u64>
+    // @15
+    br_false l1
+    move_loc l2
+    borrow_field CabalStore, voting_reward_claimed_amount
+    borrow_loc l3
+    call simple_map::borrow<string::String, u64>
+    // @20
+    read_ref
+    st_loc l4
+l2: move_loc l4
+    ret
+l1: move_loc l2
+    // @25
+    pop
+    ld_u64 0
+    st_loc l4
+    branch l2
+
+// Function definition at index 28
+public fun get_claimed_voting_reward_amount(l0: address, l1: object::Object<fungible_asset::Metadata>): u64 acquires CabalStore
+    local l2: &CabalStore
+    local l3: string::String
+    local l4: u64
+    copy_loc l0
+    exists CabalStore
+    br_true l0
+    ld_u64 0
+    ret
+    // @5
+l0: move_loc l0
+    borrow_global CabalStore
+    st_loc l2
+    move_loc l1
+    call coin::metadata_to_denom
+    // @10
+    st_loc l3
+    copy_loc l2
+    borrow_field CabalStore, voting_reward_claimed_amount
+    borrow_loc l3
+    call simple_map::contains_key<string::String, u64>
+    // @15
+    br_false l1
+    move_loc l2
+    borrow_field CabalStore, voting_reward_claimed_amount
+    borrow_loc l3
+    call simple_map::borrow<string::String, u64>
+    // @20
+    read_ref
+    st_loc l4
+l2: move_loc l4
+    ret
+l1: move_loc l2
+    // @25
+    pop
+    ld_u64 0
+    st_loc l4
+    branch l2
+
+// Function definition at index 29
+public fun get_claimed_voting_rewards(l0: address): vector<ClaimedVotingRewardResponse> acquires CabalStore
+    local l1: vector<ClaimedVotingRewardResponse>
+    local l2: simple_map::SimpleMap<string::String, u64>
+    local l3: vector<string::String>
+    local l4: u64
+    local l5: bool
+    local l6: u64
+    local l7: string::String
+    local l8: u64
+    vec_pack <ClaimedVotingRewardResponse>, 0
+    st_loc l1
+    copy_loc l0
+    exists CabalStore
+    br_true l0
+    // @5
+    call simple_map::create<string::String, u64>
+    st_loc l2
+l9: borrow_loc l2
+    call simple_map::keys<string::String, u64>
+    st_loc l3
+    // @10
+    ld_u64 0
+    st_loc l4
+    ld_false
+    st_loc l5
+    borrow_loc l3
+    // @15
+    vec_len <string::String>
+    st_loc l6
+l6: branch l1
+    branch l2
+l1: copy_loc l5
+    // @20
+    br_false l3
+    move_loc l4
+    ld_u64 1
+    add
+    st_loc l4
+    // @25
+l8: copy_loc l4
+    copy_loc l6
+    lt
+    br_true l4
+    branch l2
+    // @30
+l4: borrow_loc l3
+    copy_loc l4
+    vec_borrow <string::String>
+    read_ref
+    st_loc l7
+    // @35
+    borrow_loc l2
+    borrow_loc l7
+    call simple_map::contains_key<string::String, u64>
+    br_false l5
+    borrow_loc l2
+    // @40
+    borrow_loc l7
+    call simple_map::borrow<string::String, u64>
+    read_ref
+    st_loc l8
+l7: mut_borrow_loc l1
+    // @45
+    move_loc l7
+    call coin::denom_to_metadata
+    move_loc l8
+    pack ClaimedVotingRewardResponse
+    vec_push_back <ClaimedVotingRewardResponse>
+    // @50
+    branch l6
+l5: ld_u64 0
+    st_loc l8
+    branch l7
+l2: move_loc l1
+    // @55
+    ret
+l3: ld_true
+    st_loc l5
+    branch l8
+l0: move_loc l0
+    // @60
+    borrow_global CabalStore
+    borrow_field CabalStore, voting_reward_claimed_amount
+    read_ref
+    st_loc l2
+    branch l9
+
+// Function definition at index 30
+public fun get_claimed_voting_rewards_in_usd(l0: address): bigdecimal::BigDecimal acquires CabalStore
+    local l1: bigdecimal::BigDecimal
+    local l2: simple_map::SimpleMap<string::String, u64>
+    local l3: vector<string::String>
+    local l4: u64
+    local l5: bool
+    local l6: u64
+    local l7: string::String
+    local l8: u64
+    local l9: bigdecimal::BigDecimal
+    call bigdecimal::zero
+    st_loc l1
+    copy_loc l0
+    exists CabalStore
+    br_true l0
+    // @5
+    call simple_map::create<string::String, u64>
+    st_loc l2
+l9: borrow_loc l2
+    call simple_map::keys<string::String, u64>
+    st_loc l3
+    // @10
+    ld_u64 0
+    st_loc l4
+    ld_false
+    st_loc l5
+    borrow_loc l3
+    // @15
+    vec_len <string::String>
+    st_loc l6
+l6: branch l1
+    branch l2
+l1: copy_loc l5
+    // @20
+    br_false l3
+    move_loc l4
+    ld_u64 1
+    add
+    st_loc l4
+    // @25
+l8: copy_loc l4
+    copy_loc l6
+    lt
+    br_true l4
+    branch l2
+    // @30
+l4: borrow_loc l3
+    copy_loc l4
+    vec_borrow <string::String>
+    read_ref
+    st_loc l7
+    // @35
+    borrow_loc l2
+    borrow_loc l7
+    call simple_map::contains_key<string::String, u64>
+    br_false l5
+    borrow_loc l2
+    // @40
+    borrow_loc l7
+    call simple_map::borrow<string::String, u64>
+    read_ref
+    st_loc l8
+l7: move_loc l7
+    // @45
+    call coin::denom_to_metadata
+    move_loc l8
+    call utils::get_token_value_in_usd
+    st_loc l9
+    move_loc l1
+    // @50
+    move_loc l9
+    call bigdecimal::add
+    st_loc l1
+    branch l6
+l5: ld_u64 0
+    // @55
+    st_loc l8
+    branch l7
+l2: move_loc l1
+    ret
+l3: ld_true
+    // @60
+    st_loc l5
+    branch l8
+l0: move_loc l0
+    borrow_global CabalStore
+    borrow_field CabalStore, voting_reward_claimed_amount
+    // @65
+    read_ref
+    st_loc l2
+    branch l9
+
+// Function definition at index 31
+public fun get_estimate_unstake_amount(l0: u64, l1: u64): u64 acquires ModuleStore
+    local l2: &ModuleStore
+    local l3: u64
+    local l4: option::Option<u128>
+    local l5: u128
+    local l6: u64
+    local l7: option::Option<u128>
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l2
+    copy_loc l2
+    borrow_field ModuleStore, unbond_period
+    // @5
+    vec_len <u64>
+    copy_loc l0
+    gt
+    br_false l0
+    copy_loc l2
+    // @10
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l2
+    // @15
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    neq
+    br_false l1
+    copy_loc l2
+    // @20
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call pool_router::get_real_total_stakes
+    // @25
+    st_loc l3
+    copy_loc l2
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @30
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l4
+    mut_borrow_loc l4
+    call option::extract<u128>
+    // @35
+    move_loc l2
+    borrow_field ModuleStore, unstaked_pending_amounts
+    move_loc l0
+    vec_borrow <u64>
+    read_ref
+    // @40
+    cast_u128
+    add
+    st_loc l5
+    move_loc l1
+    cast_u128
+    // @45
+    move_loc l5
+    call bigdecimal::from_ratio_u128
+    move_loc l3
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l3
+    // @50
+l2: move_loc l3
+    ret
+l1: copy_loc l2
+    borrow_field ModuleStore, x_init_staked_amounts
+    read_ref
+    // @55
+    st_loc l6
+    move_loc l2
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    move_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @60
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l7
+    mut_borrow_loc l7
+    call option::extract<u128>
+    // @65
+    st_loc l5
+    move_loc l1
+    cast_u128
+    move_loc l5
+    call bigdecimal::from_ratio_u128
+    // @70
+    move_loc l6
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l3
+    branch l2
+l0: move_loc l2
+    // @75
+    pop
+    ld_u64 8
+    call error::out_of_range
+    abort
+
+// Function definition at index 32
+public fun get_init_staked_amounts(l0: address): StakedResponse acquires ModuleStore
+    local l1: object::Object<fungible_asset::Metadata>
+    local l2: &ModuleStore
+    local l3: u64
+    local l4: u64
+    local l5: option::Option<u128>
+    local l6: u128
+    local l7: u64
+    local l8: option::Option<u128>
+    call utils::get_init_metadata
+    call convert_to_cabal_token
+    st_loc l1
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    // @5
+    st_loc l2
+    copy_loc l0
+    copy_loc l1
+    call coin::balance
+    st_loc l3
+    // @10
+    copy_loc l2
+    borrow_field ModuleStore, x_init_staked_amounts
+    read_ref
+    st_loc l4
+    move_loc l1
+    // @15
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l5
+    mut_borrow_loc l5
+    call option::extract<u128>
+    st_loc l6
+    // @20
+    copy_loc l3
+    cast_u128
+    move_loc l6
+    call bigdecimal::from_ratio_u128
+    move_loc l4
+    // @25
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l4
+    move_loc l0
+    copy_loc l2
+    borrow_field ModuleStore, x_init_metadata
+    // @30
+    read_ref
+    call coin::balance
+    move_loc l4
+    add
+    st_loc l4
+    // @35
+    call utils::get_init_metadata
+    call pool_router::get_real_total_stakes
+    st_loc l7
+    move_loc l2
+    borrow_field ModuleStore, x_init_metadata
+    // @40
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l8
+    mut_borrow_loc l8
+    call option::extract<u128>
+    // @45
+    st_loc l6
+    copy_loc l4
+    cast_u128
+    move_loc l6
+    call bigdecimal::from_ratio_u128
+    // @50
+    move_loc l7
+    call bigdecimal::mul_by_u64_truncate
+    move_loc l4
+    move_loc l3
+    pack StakedResponse
+    // @55
+    ret
+
+// Function definition at index 33
+public fun get_lp_pool_staked_amount(l0: u64): u64 acquires ModuleStore
+    local l1: &ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l1
+    copy_loc l1
+    borrow_field ModuleStore, unbond_period
+    // @5
+    vec_len <u64>
+    ld_u64 0
+    gt
+    br_false l0
+    move_loc l1
+    // @10
+    borrow_field ModuleStore, stake_token_metadata
+    move_loc l0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call pool_router::get_real_total_stakes
+    // @15
+    ret
+l0: move_loc l1
+    pop
+    ld_u64 8
+    abort
+
+// Function definition at index 34
+public fun get_lp_pool_unstaked_pending_amount(l0: u64): u64 acquires ModuleStore
+    local l1: &ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l1
+    copy_loc l1
+    borrow_field ModuleStore, unstaked_pending_amounts
+    // @5
+    vec_len <u64>
+    ld_u64 0
+    gt
+    br_false l0
+    move_loc l1
+    // @10
+    borrow_field ModuleStore, unstaked_pending_amounts
+    move_loc l0
+    vec_borrow <u64>
+    read_ref
+    ret
+    // @15
+l0: move_loc l1
+    pop
+    ld_u64 8
+    abort
+
+// Function definition at index 35
+public fun get_minimum_stake(): u64 acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, minimum_stake
+    read_ref
+    ret
+
+// Function definition at index 36
+public fun get_pool_router_total_init(): u64
+    ld_const<address> 1
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    call string::utf8
+    call coin::metadata
+    call pool_router::get_total_stakes
+    // @5
+    ret
+
+// Function definition at index 37
+public fun get_pools_with_staked_by_address(l0: address): vector<UserStakePoolResponse> acquires ModuleStore
+    local l1: bigdecimal::BigDecimal
+    local l2: bigdecimal::BigDecimal
+    local l3: &ModuleStore
+    local l4: vector<UserStakePoolResponse>
+    local l5: u64
+    local l6: bool
+    local l7: u64
+    local l8: u64
+    local l9: SupportTokenResponse
+    local l10: SupportTokenResponse
+    local l11: u64
+    local l12: u64
+    local l13: &mut vector<UserStakePoolResponse>
+    local l14: u64
+    local l15: u64
+    local l16: u64
+    local l17: u64
+    local l18: u64
+    local l19: bigdecimal::BigDecimal
+    local l20: SupportTokenResponse
+    local l21: UserStakePoolResponse
+    ld_u64 0
+    call get_cabal_stake_token_price_rel_to_underlying
+    st_loc l1
+    ld_u64 1
+    call get_cabal_stake_token_price_rel_to_underlying
+    // @5
+    st_loc l2
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l3
+    vec_pack <UserStakePoolResponse>, 0
+    // @10
+    st_loc l4
+    ld_u64 0
+    st_loc l5
+    ld_false
+    st_loc l6
+    // @15
+    copy_loc l3
+    borrow_field ModuleStore, unbond_period
+    vec_len <u64>
+    st_loc l7
+l5: copy_loc l6
+    // @20
+    br_false l0
+    move_loc l5
+    ld_u64 1
+    add
+    st_loc l5
+    // @25
+l9: copy_loc l5
+    copy_loc l7
+    lt
+    br_false l1
+    copy_loc l3
+    // @30
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l3
+    // @35
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    neq
+    br_false l2
+    copy_loc l3
+    // @40
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call pool_router::get_real_total_stakes
+    // @45
+    st_loc l8
+l8: copy_loc l3
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @50
+    read_ref
+    call fungible_asset::name<fungible_asset::Metadata>
+    copy_loc l3
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l5
+    // @55
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::symbol<fungible_asset::Metadata>
+    copy_loc l3
+    borrow_field ModuleStore, stake_token_metadata
+    // @60
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l3
+    borrow_field ModuleStore, stake_token_metadata
+    // @65
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call coin::metadata_to_denom
+    copy_loc l3
+    // @70
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    // @75
+    copy_loc l3
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @80
+    call fungible_asset::icon_uri<fungible_asset::Metadata>
+    pack SupportTokenResponse
+    st_loc l9
+    copy_loc l3
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    // @85
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::name<fungible_asset::Metadata>
+    copy_loc l3
+    // @90
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::symbol<fungible_asset::Metadata>
+    // @95
+    copy_loc l3
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @100
+    copy_loc l3
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @105
+    call coin::metadata_to_denom
+    copy_loc l3
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @110
+    read_ref
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    copy_loc l3
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l5
+    // @115
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::icon_uri<fungible_asset::Metadata>
+    pack SupportTokenResponse
+    st_loc l10
+    // @120
+    copy_loc l0
+    copy_loc l3
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @125
+    read_ref
+    call coin::balance
+    st_loc l11
+    copy_loc l5
+    ld_u64 0
+    // @130
+    eq
+    br_false l3
+    copy_loc l1
+    move_loc l11
+    call bigdecimal::mul_by_u64_truncate
+    // @135
+    st_loc l12
+l7: mut_borrow_loc l4
+    st_loc l13
+    copy_loc l5
+    st_loc l14
+    // @140
+    copy_loc l3
+    borrow_field ModuleStore, unbond_period
+    copy_loc l5
+    vec_borrow <u64>
+    read_ref
+    // @145
+    st_loc l15
+    move_loc l8
+    st_loc l16
+    move_loc l12
+    st_loc l17
+    // @150
+    copy_loc l3
+    borrow_field ModuleStore, stake_reward_amounts
+    copy_loc l5
+    vec_borrow <u64>
+    read_ref
+    // @155
+    st_loc l18
+    copy_loc l5
+    ld_u64 0
+    eq
+    br_false l4
+    // @160
+    call utils::get_init_metadata
+    call utils::get_token_price_in_usd
+    st_loc l19
+l6: move_loc l9
+    st_loc l20
+    // @165
+    move_loc l14
+    move_loc l15
+    move_loc l16
+    move_loc l17
+    move_loc l18
+    // @170
+    move_loc l19
+    move_loc l20
+    move_loc l10
+    pack UserStakePoolResponse
+    st_loc l21
+    // @175
+    move_loc l13
+    move_loc l21
+    vec_push_back <UserStakePoolResponse>
+    branch l5
+l4: copy_loc l3
+    // @180
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l5
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    ld_u64 1000000
+    // @185
+    call utils::get_lp_token_value_in_usd
+    st_loc l19
+    branch l6
+l3: copy_loc l2
+    move_loc l11
+    // @190
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l12
+    branch l7
+l2: call utils::get_init_metadata
+    call pool_router::get_real_total_stakes
+    // @195
+    st_loc l8
+    branch l8
+l1: move_loc l3
+    pop
+l10: move_loc l4
+    // @200
+    ret
+l0: ld_true
+    st_loc l6
+    branch l9
+    move_loc l3
+    // @205
+    pop
+    branch l10
+
+// Function definition at index 38
+public fun get_stake_estimate(l0: u64, l1: u64): StakeEstimateResponse acquires ModuleStore
+    local l2: &ModuleStore
+    local l3: bigdecimal::BigDecimal
+    local l4: u64
+    local l5: u64
+    local l6: bigdecimal::BigDecimal
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l2
+    copy_loc l2
+    borrow_field ModuleStore, unbond_period
+    // @5
+    vec_len <u64>
+    copy_loc l0
+    gt
+    br_false l0
+    move_loc l2
+    // @10
+    borrow_field ModuleStore, stake_xinit_fee_bps
+    read_ref
+    ld_u64 10000
+    call bigdecimal::from_ratio_u64
+    st_loc l3
+    // @15
+    copy_loc l0
+    ld_u64 0
+    eq
+    br_false l1
+    move_loc l3
+    // @20
+    copy_loc l1
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l4
+l2: move_loc l1
+    copy_loc l4
+    // @25
+    sub
+    st_loc l5
+    move_loc l0
+    call get_cabal_stake_token_price_rel_to_underlying
+    st_loc l6
+    // @30
+    call bigdecimal::one
+    copy_loc l6
+    call bigdecimal::div
+    move_loc l5
+    call bigdecimal::mul_by_u64_truncate
+    // @35
+    st_loc l5
+    move_loc l4
+    move_loc l6
+    move_loc l5
+    pack StakeEstimateResponse
+    // @40
+    ret
+l1: ld_u64 0
+    st_loc l4
+    branch l2
+l0: move_loc l2
+    // @45
+    pop
+    ld_u64 8
+    call error::out_of_range
+    abort
+
+// Function definition at index 39
+public fun get_stake_token_cabal_token_map(): simple_map::SimpleMap<object::Object<fungible_asset::Metadata>, object::Object<fungible_asset::Metadata>> acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, stake_token_cabal_token_map
+    read_ref
+    ret
+
+// Function definition at index 40
+public fun get_support_tokens(): vector<SupportTokenResponse> acquires ModuleStore
+    local l0: &ModuleStore
+    local l1: object::Object<fungible_asset::Metadata>
+    local l2: vector<SupportTokenResponse>
+    local l3: u64
+    local l4: bool
+    local l5: u64
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l0
+    ld_const<address> 1
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    // @5
+    call string::utf8
+    call coin::metadata
+    st_loc l1
+    vec_pack <SupportTokenResponse>, 0
+    st_loc l2
+    // @10
+    mut_borrow_loc l2
+    copy_loc l1
+    call fungible_asset::name<fungible_asset::Metadata>
+    copy_loc l1
+    call fungible_asset::symbol<fungible_asset::Metadata>
+    // @15
+    copy_loc l1
+    copy_loc l1
+    call coin::metadata_to_denom
+    copy_loc l1
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    // @20
+    move_loc l1
+    call fungible_asset::icon_uri<fungible_asset::Metadata>
+    pack SupportTokenResponse
+    vec_push_back <SupportTokenResponse>
+    ld_u64 0
+    // @25
+    st_loc l3
+    ld_false
+    st_loc l4
+    copy_loc l0
+    borrow_field ModuleStore, unbond_period
+    // @30
+    vec_len <u64>
+    st_loc l5
+l2: copy_loc l4
+    br_false l0
+    move_loc l3
+    // @35
+    ld_u64 1
+    add
+    st_loc l3
+l3: copy_loc l3
+    copy_loc l5
+    // @40
+    lt
+    br_false l1
+    mut_borrow_loc l2
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    // @45
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::name<fungible_asset::Metadata>
+    copy_loc l0
+    // @50
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::symbol<fungible_asset::Metadata>
+    // @55
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @60
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @65
+    call coin::metadata_to_denom
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @70
+    read_ref
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    copy_loc l0
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l3
+    // @75
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::icon_uri<fungible_asset::Metadata>
+    pack SupportTokenResponse
+    vec_push_back <SupportTokenResponse>
+    // @80
+    mut_borrow_loc l2
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @85
+    read_ref
+    call fungible_asset::name<fungible_asset::Metadata>
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l3
+    // @90
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::symbol<fungible_asset::Metadata>
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    // @95
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    // @100
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call coin::metadata_to_denom
+    copy_loc l0
+    // @105
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    // @110
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l3
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @115
+    call fungible_asset::icon_uri<fungible_asset::Metadata>
+    pack SupportTokenResponse
+    vec_push_back <SupportTokenResponse>
+    branch l2
+l1: move_loc l0
+    // @120
+    pop
+l4: move_loc l2
+    ret
+l0: ld_true
+    st_loc l4
+    // @125
+    branch l3
+    move_loc l0
+    pop
+    branch l4
+
+// Function definition at index 41
+public fun get_sxinit_metadata(): object::Object<fungible_asset::Metadata> acquires ModuleStore
+    local l0: &ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l0
+    copy_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    // @5
+    vec_len <object::Object<fungible_asset::Metadata>>
+    ld_u64 0
+    gt
+    br_false l0
+    move_loc l0
+    // @10
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    ld_u64 0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    ret
+    // @15
+l0: move_loc l0
+    pop
+    ld_u64 8
+    abort
+
+// Function definition at index 42
+public fun get_sxinit_to_init_price(): bigdecimal::BigDecimal acquires ModuleStore
+    local l0: bigdecimal::BigDecimal
+    local l1: bigdecimal::BigDecimal
+    call get_sxinit_to_xinit_price
+    call get_xinit_to_init_price
+    call bigdecimal::mul
+    ret
+
+// Function definition at index 43
+public fun get_sxinit_to_xinit_price(): bigdecimal::BigDecimal acquires ModuleStore
+    local l0: &ModuleStore
+    local l1: option::Option<u128>
+    local l2: u128
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l0
+    copy_loc l0
+    borrow_field ModuleStore, x_init_staked_amounts
+    // @5
+    read_ref
+    move_loc l0
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    ld_u64 0
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @10
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l1
+    mut_borrow_loc l1
+    call option::extract<u128>
+    // @15
+    st_loc l2
+    cast_u128
+    move_loc l2
+    call bigdecimal::from_ratio_u128
+    ret
+
+// Function definition at index 44
+public fun get_sxinit_total_supply(): u128 acquires ModuleStore
+    local l0: option::Option<u128>
+    call get_sxinit_metadata
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l0
+    borrow_loc l0
+    ld_u128 0
+    // @5
+    call option::get_with_default<u128>
+    ret
+
+// Function definition at index 45
+public fun get_unbonding_list(l0: address): vector<UnbondingEntryResponse> acquires CabalStore
+    local l1: &CabalStore
+    local l2: vector<UnbondingEntryResponse>
+    local l3: u64
+    local l4: u64
+    local l5: &UnbondingEntry
+    copy_loc l0
+    exists CabalStore
+    br_true l0
+    vec_pack <UnbondingEntryResponse>, 0
+    ret
+    // @5
+l0: move_loc l0
+    borrow_global CabalStore
+    st_loc l1
+    vec_pack <UnbondingEntryResponse>, 0
+    st_loc l2
+    // @10
+    copy_loc l1
+    borrow_field CabalStore, unbonding_entries
+    vec_len <UnbondingEntry>
+    st_loc l3
+    ld_u64 0
+    // @15
+    st_loc l4
+l2: copy_loc l4
+    copy_loc l3
+    lt
+    br_false l1
+    // @20
+    copy_loc l1
+    borrow_field CabalStore, unbonding_entries
+    copy_loc l4
+    vec_borrow <UnbondingEntry>
+    st_loc l5
+    // @25
+    mut_borrow_loc l2
+    copy_loc l5
+    borrow_field UnbondingEntry, metadata
+    read_ref
+    copy_loc l5
+    // @30
+    borrow_field UnbondingEntry, amount
+    read_ref
+    move_loc l5
+    borrow_field UnbondingEntry, release_time
+    read_ref
+    // @35
+    pack UnbondingEntryResponse
+    vec_push_back <UnbondingEntryResponse>
+    move_loc l4
+    ld_u64 1
+    add
+    // @40
+    st_loc l4
+    branch l2
+l1: move_loc l1
+    pop
+    move_loc l2
+    // @45
+    ret
+
+// Function definition at index 46
+public fun get_voting_power_by_block_height(l0: u64): u64 acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, voting_power_history
+    move_loc l0
+    call table::borrow<u64, u64>
+    // @5
+    read_ref
+    ret
+
+// Function definition at index 47
+public fun get_xinit_pool_staked_amount(): u64 acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, x_init_staked_amounts
+    read_ref
+    ret
+
+// Function definition at index 48
+public fun get_xinit_pool_unbonding_period(): u64 acquires ModuleStore
+    local l0: &ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l0
+    copy_loc l0
+    borrow_field ModuleStore, unbond_period
+    // @5
+    vec_len <u64>
+    ld_u64 0
+    gt
+    br_false l0
+    move_loc l0
+    // @10
+    borrow_field ModuleStore, unbond_period
+    ld_u64 0
+    vec_borrow <u64>
+    read_ref
+    ret
+    // @15
+l0: move_loc l0
+    pop
+    ld_u64 8
+    abort
+
+// Function definition at index 49
+public fun get_xinit_staked_percent(): bigdecimal::BigDecimal acquires ModuleStore
+    local l0: &ModuleStore
+    local l1: u64
+    local l2: option::Option<u128>
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    st_loc l0
+    call package::get_assets_store_address
+    copy_loc l0
+    // @5
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    call coin::balance
+    st_loc l1
+    move_loc l0
+    // @10
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    call coin::supply
+    st_loc l2
+    borrow_loc l2
+    // @15
+    ld_u128 0
+    call option::get_with_default<u128>
+    ld_u128 0
+    eq
+    br_false l0
+    // @20
+    call bigdecimal::zero
+    ret
+l0: move_loc l1
+    cast_u128
+    mut_borrow_loc l2
+    // @25
+    call option::extract<u128>
+    call bigdecimal::from_ratio_u128
+    ret
+
+// Function definition at index 50
+public fun get_xinit_to_init_price(): bigdecimal::BigDecimal acquires ModuleStore
+    local l0: option::Option<u128>
+    local l1: u128
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    // @5
+    st_loc l0
+    mut_borrow_loc l0
+    call option::extract<u128>
+    st_loc l1
+    ld_const<address> 1
+    // @10
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    call string::utf8
+    call coin::metadata
+    call pool_router::get_real_total_stakes
+    cast_u128
+    // @15
+    move_loc l1
+    call bigdecimal::from_ratio_u128
+    ret
+
+// Function definition at index 51
+public fun get_xinit_total_supply(): u128 acquires ModuleStore
+    local l0: option::Option<u128>
+    call get_xinit_metadata
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l0
+    borrow_loc l0
+    ld_u128 0
+    // @5
+    call option::get_with_default<u128>
+    ret
+
+// Function definition at index 52
+entry public fun init_fees_exempt(l0: &signer)
+    local l1: signer
+    move_loc l0
+    call manager::is_authorized
+    br_false l0
+    call package::resource_account_signer
+    st_loc l1
+    // @5
+    borrow_loc l1
+    vec_pack <address>, 0
+    pack LockExempt
+    move_to LockExempt
+    ret
+    // @10
+l0: ld_u64 7
+    call error::permission_denied
+    abort
+
+// Function definition at index 53
+entry public fun initiate_unstake(l0: &signer, l1: u64, l2: u64) acquires ModuleStore, CabalStore
+    local l3: address
+    local l4: &mut ModuleStore
+    local l5: fungible_asset::FungibleAsset
+    call emergency::assert_no_paused
+    copy_loc l2
+    ld_u64 0
+    gt
+    br_false l0
+    // @5
+    copy_loc l0
+    call signer::address_of
+    st_loc l3
+    copy_loc l0
+    call ensure_cabal_store_exists
+    // @10
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    st_loc l4
+    copy_loc l4
+    borrow_field ModuleStore, unbond_period
+    // @15
+    vec_len <u64>
+    copy_loc l1
+    gt
+    br_false l1
+    copy_loc l4
+    // @20
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l1
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l4
+    // @25
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    neq
+    br_false l2
+    move_loc l3
+    // @30
+    copy_loc l4
+    copy_loc l1
+    copy_loc l2
+    call unstake_lp
+    ld_u64 1
+    // @35
+    copy_loc l2
+    ld_u64 0
+    ld_u64 3
+    pack TokenActionEvent
+    call event::emit<TokenActionEvent>
+    // @40
+l3: copy_loc l0
+    copy_loc l4
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l1
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @45
+    read_ref
+    move_loc l2
+    call primary_fungible_store::withdraw<fungible_asset::Metadata>
+    st_loc l5
+    move_loc l4
+    // @50
+    borrow_field ModuleStore, cabal_stake_token_caps
+    move_loc l1
+    vec_borrow <Capabilities>
+    borrow_field Capabilities, burn_cap
+    move_loc l5
+    // @55
+    call cabal_token::burn
+    move_loc l0
+    call signer::address_of
+    call emit_balances
+    ret
+    // @60
+l2: move_loc l3
+    copy_loc l1
+    copy_loc l2
+    call unstake_xinit
+    ld_u64 0
+    // @65
+    copy_loc l2
+    ld_u64 0
+    ld_u64 3
+    pack TokenActionEvent
+    call event::emit<TokenActionEvent>
+    // @70
+    branch l3
+l1: move_loc l0
+    pop
+    move_loc l4
+    pop
+    // @75
+    ld_u64 8
+    call error::out_of_range
+    abort
+l0: move_loc l0
+    pop
+    // @80
+    ld_u64 1
+    call error::invalid_argument
+    abort
+
+// Function definition at index 54
+fun link_stake_token2cabal_token(l0: object::Object<fungible_asset::Metadata>, l1: object::Object<fungible_asset::Metadata>) acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    mut_borrow_field ModuleStore, stake_token_cabal_token_map
+    move_loc l0
+    move_loc l1
+    // @5
+    call simple_map::upsert<object::Object<fungible_asset::Metadata>, object::Object<fungible_asset::Metadata>>
+    pop
+    pop
+    ret
+
+// Function definition at index 55
+entry fun process_lp_stake(l0: &signer, l1: address, l2: u64, l3: u64) acquires ModuleStore
+    local l4: &mut ModuleStore
+    local l5: address
+    local l6: fungible_asset::FungibleAsset
+    local l7: u64
+    local l8: option::Option<u128>
+    local l9: u128
+    local l10: u64
+    local l11: signer
+    local l12: fungible_asset::FungibleAsset
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    st_loc l4
+    call package::get_assets_store_address
+    st_loc l5
+    // @5
+    move_loc l0
+    call signer::address_of
+    move_loc l5
+    eq
+    br_false l0
+    // @10
+    copy_loc l4
+    copy_loc l2
+    call compound_lp_pool_rewards
+    st_loc l6
+    borrow_loc l6
+    // @15
+    call fungible_asset::amount
+    copy_loc l4
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @20
+    read_ref
+    call pool_router::get_real_total_stakes
+    add
+    st_loc l7
+    copy_loc l4
+    // @25
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    // @30
+    st_loc l8
+    mut_borrow_loc l8
+    call option::extract<u128>
+    copy_loc l4
+    borrow_field ModuleStore, unstaked_pending_amounts
+    // @35
+    copy_loc l2
+    vec_borrow <u64>
+    read_ref
+    cast_u128
+    add
+    // @40
+    st_loc l9
+    copy_loc l9
+    ld_u128 0
+    eq
+    br_false l1
+    // @45
+    copy_loc l3
+    st_loc l10
+l3: copy_loc l10
+    ld_u64 0
+    gt
+    // @50
+    br_false l2
+    call package::get_assets_store_signer
+    st_loc l11
+    borrow_loc l11
+    copy_loc l4
+    // @55
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l3
+    // @60
+    call primary_fungible_store::withdraw<fungible_asset::Metadata>
+    st_loc l12
+    mut_borrow_loc l12
+    move_loc l6
+    call fungible_asset::merge
+    // @65
+    move_loc l12
+    call pool_router::add_stake
+    move_loc l4
+    borrow_field ModuleStore, cabal_stake_token_caps
+    move_loc l2
+    // @70
+    vec_borrow <Capabilities>
+    borrow_field Capabilities, mint_cap
+    copy_loc l1
+    copy_loc l10
+    call cabal_token::mint_to
+    // @75
+    move_loc l1
+    call emit_balances
+    ld_u64 1
+    move_loc l3
+    move_loc l10
+    // @80
+    ld_u64 2
+    pack TokenActionEvent
+    call event::emit<TokenActionEvent>
+    ret
+l2: move_loc l4
+    // @85
+    pop
+    ld_u64 13
+    call error::invalid_argument
+    abort
+l1: copy_loc l3
+    // @90
+    move_loc l7
+    call bigdecimal::from_ratio_u64
+    move_loc l9
+    call bigdecimal::mul_by_u128_truncate
+    cast_u64
+    // @95
+    st_loc l10
+    branch l3
+l0: move_loc l4
+    pop
+    ld_u64 7
+    // @100
+    call error::permission_denied
+    abort
+
+// Function definition at index 56
+entry fun process_lp_undelegate(l0: &signer, l1: u64, l2: u64) acquires ModuleStore
+    local l3: &mut ModuleStore
+    local l4: address
+    local l5: fungible_asset::FungibleAsset
+    local l6: u64
+    local l7: option::Option<u128>
+    local l8: u128
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    st_loc l3
+    call package::get_assets_store_address
+    st_loc l4
+    // @5
+    move_loc l0
+    call signer::address_of
+    move_loc l4
+    eq
+    br_false l0
+    // @10
+    copy_loc l3
+    copy_loc l1
+    call compound_lp_pool_rewards
+    st_loc l5
+    borrow_loc l5
+    // @15
+    call fungible_asset::amount
+    move_loc l5
+    call pool_router::add_stake
+    copy_loc l3
+    borrow_field ModuleStore, stake_token_metadata
+    // @20
+    copy_loc l1
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call pool_router::get_real_total_stakes
+    add
+    // @25
+    st_loc l6
+    copy_loc l3
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l1
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @30
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l7
+    mut_borrow_loc l7
+    call option::extract<u128>
+    // @35
+    copy_loc l2
+    cast_u128
+    add
+    st_loc l8
+    move_loc l2
+    // @40
+    cast_u128
+    move_loc l8
+    call bigdecimal::from_ratio_u128
+    move_loc l6
+    call bigdecimal::mul_by_u64_truncate
+    // @45
+    st_loc l6
+    move_loc l3
+    borrow_field ModuleStore, stake_token_metadata
+    move_loc l1
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    // @50
+    read_ref
+    move_loc l6
+    call pool_router::unlock
+    ret
+l0: move_loc l3
+    // @55
+    pop
+    ld_u64 7
+    call error::permission_denied
+    abort
+
+// Function definition at index 57
+entry fun process_xinit_stake(l0: &signer, l1: address, l2: u64, l3: u64) acquires ModuleStore
+    local l4: &mut ModuleStore
+    local l5: address
+    local l6: u64
+    local l7: u64
+    local l8: option::Option<u128>
+    local l9: u128
+    local l10: u64
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    st_loc l4
+    call package::get_assets_store_address
+    st_loc l5
+    // @5
+    move_loc l0
+    call signer::address_of
+    move_loc l5
+    eq
+    br_false l0
+    // @10
+    copy_loc l4
+    copy_loc l2
+    call compound_xinit_pool_rewards
+    copy_loc l4
+    borrow_field ModuleStore, stake_xinit_fee_bps
+    // @15
+    read_ref
+    ld_u64 10000
+    call bigdecimal::from_ratio_u64
+    copy_loc l3
+    call bigdecimal::mul_by_u64_truncate
+    // @20
+    st_loc l6
+    copy_loc l4
+    borrow_field ModuleStore, x_init_staked_amounts
+    read_ref
+    st_loc l7
+    // @25
+    copy_loc l4
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @30
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l8
+    mut_borrow_loc l8
+    call option::extract<u128>
+    st_loc l9
+    // @35
+    copy_loc l3
+    move_loc l6
+    sub
+    st_loc l6
+    copy_loc l9
+    // @40
+    ld_u128 0
+    eq
+    br_false l1
+    move_loc l6
+    st_loc l10
+    // @45
+l3: copy_loc l10
+    ld_u64 0
+    gt
+    br_false l2
+    copy_loc l4
+    // @50
+    borrow_field ModuleStore, x_init_staked_amounts
+    read_ref
+    copy_loc l3
+    add
+    copy_loc l4
+    // @55
+    mut_borrow_field ModuleStore, x_init_staked_amounts
+    write_ref
+    move_loc l4
+    borrow_field ModuleStore, cabal_stake_token_caps
+    move_loc l2
+    // @60
+    vec_borrow <Capabilities>
+    borrow_field Capabilities, mint_cap
+    copy_loc l1
+    copy_loc l10
+    call cabal_token::mint_to
+    // @65
+    move_loc l1
+    call emit_balances
+    ld_u64 0
+    move_loc l3
+    move_loc l10
+    // @70
+    ld_u64 2
+    pack TokenActionEvent
+    call event::emit<TokenActionEvent>
+    ret
+l2: move_loc l4
+    // @75
+    pop
+    ld_u64 13
+    call error::invalid_argument
+    abort
+l1: move_loc l6
+    // @80
+    move_loc l7
+    call bigdecimal::from_ratio_u64
+    move_loc l9
+    call bigdecimal::mul_by_u128_truncate
+    cast_u64
+    // @85
+    st_loc l10
+    branch l3
+l0: move_loc l4
+    pop
+    ld_u64 7
+    // @90
+    call error::permission_denied
+    abort
+
+// Function definition at index 58
+entry fun process_xinit_unstake(l0: &signer, l1: address, l2: u64, l3: u64) acquires ModuleStore, CabalStore, LockExempt
+    local l4: &mut ModuleStore
+    local l5: address
+    local l6: u64
+    local l7: option::Option<u128>
+    local l8: u128
+    local l9: signer
+    local l10: object::Object<fungible_asset::Metadata>
+    local l11: u64
+    local l12: &mut vector<UnbondingEntry>
+    local l13: u64
+    local l14: UnbondingEntry
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    st_loc l4
+    call package::get_assets_store_address
+    st_loc l5
+    // @5
+    move_loc l0
+    call signer::address_of
+    move_loc l5
+    eq
+    br_false l0
+    // @10
+    copy_loc l4
+    copy_loc l2
+    call compound_xinit_pool_rewards
+    copy_loc l4
+    borrow_field ModuleStore, x_init_staked_amounts
+    // @15
+    read_ref
+    st_loc l6
+    copy_loc l4
+    borrow_field ModuleStore, cabal_stake_token_metadata
+    copy_loc l2
+    // @20
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::supply<fungible_asset::Metadata>
+    st_loc l7
+    mut_borrow_loc l7
+    // @25
+    call option::extract<u128>
+    copy_loc l3
+    cast_u128
+    add
+    st_loc l8
+    // @30
+    move_loc l3
+    cast_u128
+    move_loc l8
+    call bigdecimal::from_ratio_u128
+    move_loc l6
+    // @35
+    call bigdecimal::mul_by_u64_truncate
+    st_loc l6
+    copy_loc l4
+    borrow_field ModuleStore, x_init_staked_amounts
+    read_ref
+    // @40
+    copy_loc l6
+    sub
+    copy_loc l4
+    mut_borrow_field ModuleStore, x_init_staked_amounts
+    write_ref
+    // @45
+    call package::resource_account_address
+    borrow_global LockExempt
+    borrow_field LockExempt, addresses
+    borrow_loc l1
+    call vector::contains<address>
+    // @50
+    br_false l1
+    call package::get_assets_store_signer
+    st_loc l9
+    borrow_loc l9
+    move_loc l4
+    // @55
+    borrow_field ModuleStore, stake_token_metadata
+    move_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    move_loc l1
+    // @60
+    move_loc l6
+    call primary_fungible_store::transfer<fungible_asset::Metadata>
+l2: ret
+l1: call block::get_block_info
+    move_loc l1
+    // @65
+    mut_borrow_global CabalStore
+    mut_borrow_field CabalStore, unbonding_entries
+    copy_loc l2
+    copy_loc l4
+    borrow_field ModuleStore, stake_token_metadata
+    // @70
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    st_loc l10
+    st_loc l11
+    // @75
+    st_loc l12
+    move_loc l4
+    borrow_field ModuleStore, unbond_period
+    move_loc l2
+    vec_borrow <u64>
+    // @80
+    read_ref
+    add
+    st_loc l13
+    move_loc l11
+    move_loc l10
+    // @85
+    move_loc l6
+    move_loc l13
+    pack UnbondingEntry
+    st_loc l14
+    move_loc l12
+    // @90
+    move_loc l14
+    vec_push_back <UnbondingEntry>
+    pop
+    branch l2
+l0: move_loc l4
+    // @95
+    pop
+    ld_u64 7
+    call error::permission_denied
+    abort
+
+// Function definition at index 59
+entry public fun set_fees_exempt(l0: &signer, l1: vector<address>) acquires LockExempt
+    local l2: &mut vector<address>
+    move_loc l0
+    call manager::is_authorized
+    br_false l0
+    call package::resource_account_address
+    mut_borrow_global LockExempt
+    // @5
+    mut_borrow_field LockExempt, addresses
+    st_loc l2
+    move_loc l1
+    move_loc l2
+    write_ref
+    // @10
+    ret
+l0: ld_u64 7
+    call error::permission_denied
+    abort
+
+// Function definition at index 60
+entry public fun set_minimum_stake(l0: &signer, l1: u64) acquires ModuleStore
+    local l2: &mut u64
+    move_loc l0
+    call manager::is_authorized
+    br_false l0
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    // @5
+    mut_borrow_field ModuleStore, minimum_stake
+    st_loc l2
+    move_loc l1
+    move_loc l2
+    write_ref
+    // @10
+    ret
+l0: ld_u64 7
+    call error::permission_denied
+    abort
+
+// Function definition at index 61
+entry public fun set_stake_xinit_fee_bps(l0: &signer, l1: u64) acquires ModuleStore
+    local l2: &mut u64
+    move_loc l0
+    call manager::is_authorized
+    br_false l0
+    copy_loc l1
+    ld_u64 10000
+    // @5
+    le
+    br_false l1
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    mut_borrow_field ModuleStore, stake_xinit_fee_bps
+    // @10
+    st_loc l2
+    move_loc l1
+    move_loc l2
+    write_ref
+    ret
+    // @15
+l1: ld_u64 2
+    call error::invalid_argument
+    abort
+l0: ld_u64 7
+    call error::permission_denied
+    // @20
+    abort
+
+// Function definition at index 62
+entry public fun set_unbond_period(l0: &signer, l1: u64, l2: u64) acquires ModuleStore
+    local l3: &mut ModuleStore
+    local l4: &mut u64
+    move_loc l0
+    call manager::is_authorized
+    br_false l0
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    // @5
+    st_loc l3
+    copy_loc l3
+    borrow_field ModuleStore, unbond_period
+    vec_len <u64>
+    copy_loc l1
+    // @10
+    gt
+    br_false l1
+    move_loc l3
+    mut_borrow_field ModuleStore, unbond_period
+    move_loc l1
+    // @15
+    vec_mut_borrow <u64>
+    st_loc l4
+    move_loc l2
+    move_loc l4
+    write_ref
+    // @20
+    ret
+l1: move_loc l3
+    pop
+    ld_u64 8
+    call error::out_of_range
+    // @25
+    abort
+l0: ld_u64 7
+    call error::permission_denied
+    abort
+
+// Function definition at index 63
+entry public fun set_xinit_stake_reward_fee_bps(l0: &signer, l1: u64) acquires ModuleStore
+    local l2: &mut u64
+    move_loc l0
+    call manager::is_authorized
+    br_false l0
+    copy_loc l1
+    ld_u64 10000
+    // @5
+    le
+    br_false l1
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    mut_borrow_field ModuleStore, xinit_stake_reward_fee_bps
+    // @10
+    st_loc l2
+    move_loc l1
+    move_loc l2
+    write_ref
+    ret
+    // @15
+l1: ld_u64 2
+    call error::invalid_argument
+    abort
+l0: ld_u64 7
+    call error::permission_denied
+    // @20
+    abort
+
+// Function definition at index 64
+entry public fun stake_asset(l0: &signer, l1: u64, l2: u64) acquires ModuleStore
+    local l3: address
+    local l4: &mut ModuleStore
+    call emergency::assert_no_paused
+    copy_loc l2
+    ld_u64 0
+    gt
+    br_false l0
+    // @5
+    copy_loc l0
+    call signer::address_of
+    st_loc l3
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    // @10
+    st_loc l4
+    copy_loc l2
+    ld_u64 10
+    copy_loc l4
+    borrow_field ModuleStore, stake_token_metadata
+    // @15
+    copy_loc l1
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call fungible_asset::decimals<fungible_asset::Metadata>
+    cast_u64
+    // @20
+    call math64::pow
+    div
+    copy_loc l4
+    borrow_field ModuleStore, minimum_stake
+    read_ref
+    // @25
+    ge
+    br_false l1
+    copy_loc l4
+    borrow_field ModuleStore, unbond_period
+    vec_len <u64>
+    // @30
+    copy_loc l1
+    gt
+    br_false l2
+    move_loc l0
+    copy_loc l4
+    // @35
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l1
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    call package::get_assets_store_address
+    // @40
+    copy_loc l2
+    call primary_fungible_store::transfer<fungible_asset::Metadata>
+    copy_loc l4
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l1
+    // @45
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    copy_loc l4
+    borrow_field ModuleStore, x_init_metadata
+    read_ref
+    // @50
+    neq
+    br_false l3
+    move_loc l3
+    move_loc l4
+    move_loc l1
+    // @55
+    move_loc l2
+    call stake_lp
+l4: ret
+l3: move_loc l4
+    pop
+    // @60
+    move_loc l3
+    move_loc l1
+    move_loc l2
+    call stake_xinit
+    branch l4
+    // @65
+l2: move_loc l0
+    pop
+    move_loc l4
+    pop
+    ld_u64 8
+    // @70
+    call error::out_of_range
+    abort
+l1: move_loc l0
+    pop
+    move_loc l4
+    // @75
+    pop
+    ld_u64 13
+    call error::invalid_argument
+    abort
+l0: move_loc l0
+    // @80
+    pop
+    ld_u64 1
+    call error::invalid_argument
+    abort
+
+// Function definition at index 65
+fun stake_lp(l0: address, l1: &mut ModuleStore, l2: u64, l3: u64)
+    local l4: signer
+    move_loc l1
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    // @5
+    call pool_router::request_claim_rewards
+    call package::get_assets_store_signer
+    st_loc l4
+    borrow_loc l4
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    // @10
+    ld_const<vector<u8>> [99, 97, 98, 97, 108]
+    call string::utf8
+    ld_const<vector<u8>> [112, 114, 111, 99, 101, 115, 115, 95, 108, 112, 95, 115, 116, 97, 107, 101]
+    call string::utf8
+    vec_pack <string::String>, 0
+    // @15
+    borrow_loc l0
+    call bcs::to_bytes<address>
+    borrow_loc l2
+    call bcs::to_bytes<u64>
+    borrow_loc l3
+    // @20
+    call bcs::to_bytes<u64>
+    vec_pack <vector<u8>>, 3
+    call cosmos::move_execute
+    ret
+
+// Function definition at index 66
+fun stake_xinit(l0: address, l1: u64, l2: u64)
+    local l3: signer
+    call package::get_assets_store_signer
+    st_loc l3
+    ld_const<address> 1
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    call string::utf8
+    // @5
+    call coin::metadata
+    call pool_router::request_claim_rewards
+    borrow_loc l3
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    ld_const<vector<u8>> [99, 97, 98, 97, 108]
+    // @10
+    call string::utf8
+    ld_const<vector<u8>> [112, 114, 111, 99, 101, 115, 115, 95, 120, 105, 110, 105, 116, 95, 115, 116, 97, 107, 101]
+    call string::utf8
+    vec_pack <string::String>, 0
+    borrow_loc l0
+    // @15
+    call bcs::to_bytes<address>
+    borrow_loc l1
+    call bcs::to_bytes<u64>
+    borrow_loc l2
+    call bcs::to_bytes<u64>
+    // @20
+    vec_pack <vector<u8>>, 3
+    call cosmos::move_execute
+    ret
+
+// Function definition at index 67
+public fun stake_xinit_fee_bps(): u64 acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, stake_xinit_fee_bps
+    read_ref
+    ret
+
+// Function definition at index 68
+fun unstake_lp(l0: address, l1: &mut ModuleStore, l2: u64, l3: u64) acquires CabalStore
+    local l4: object::Object<fungible_asset::Metadata>
+    local l5: u64
+    local l6: &mut vector<UnbondingEntry>
+    local l7: u64
+    local l8: UnbondingEntry
+    copy_loc l1
+    borrow_field ModuleStore, unstaked_pending_amounts
+    copy_loc l2
+    vec_borrow <u64>
+    read_ref
+    // @5
+    copy_loc l3
+    add
+    copy_loc l1
+    mut_borrow_field ModuleStore, unstaked_pending_amounts
+    copy_loc l2
+    // @10
+    vec_mut_borrow <u64>
+    write_ref
+    call block::get_block_info
+    move_loc l0
+    mut_borrow_global CabalStore
+    // @15
+    mut_borrow_field CabalStore, unbonding_entries
+    copy_loc l2
+    copy_loc l1
+    borrow_field ModuleStore, stake_token_metadata
+    copy_loc l2
+    // @20
+    vec_borrow <object::Object<fungible_asset::Metadata>>
+    read_ref
+    st_loc l4
+    st_loc l5
+    st_loc l6
+    // @25
+    move_loc l1
+    borrow_field ModuleStore, unbond_period
+    move_loc l2
+    vec_borrow <u64>
+    read_ref
+    // @30
+    add
+    st_loc l2
+    move_loc l5
+    move_loc l4
+    move_loc l3
+    // @35
+    move_loc l2
+    pack UnbondingEntry
+    st_loc l8
+    move_loc l6
+    move_loc l8
+    // @40
+    vec_push_back <UnbondingEntry>
+    pop
+    ret
+
+// Function definition at index 69
+fun unstake_xinit(l0: address, l1: u64, l2: u64)
+    local l3: signer
+    call package::get_assets_store_signer
+    st_loc l3
+    ld_const<address> 1
+    ld_const<vector<u8>> [117, 105, 110, 105, 116]
+    call string::utf8
+    // @5
+    call coin::metadata
+    call pool_router::request_claim_rewards
+    borrow_loc l3
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    ld_const<vector<u8>> [99, 97, 98, 97, 108]
+    // @10
+    call string::utf8
+    ld_const<vector<u8>> [112, 114, 111, 99, 101, 115, 115, 95, 120, 105, 110, 105, 116, 95, 117, 110, 115, 116, 97, 107, 101]
+    call string::utf8
+    vec_pack <string::String>, 0
+    borrow_loc l0
+    // @15
+    call bcs::to_bytes<address>
+    borrow_loc l1
+    call bcs::to_bytes<u64>
+    borrow_loc l2
+    call bcs::to_bytes<u64>
+    // @20
+    vec_pack <vector<u8>>, 3
+    call cosmos::move_execute
+    ret
+
+// Function definition at index 70
+friend fun update_claimed_voting_reward_amount(l0: address, l1: object::Object<fungible_asset::Metadata>, l2: u64) acquires CabalStore
+    local l3: string::String
+    copy_loc l0
+    exists CabalStore
+    br_false l0
+    move_loc l0
+    mut_borrow_global CabalStore
+    // @5
+    move_loc l1
+    call coin::metadata_to_denom
+    st_loc l3
+    mut_borrow_field CabalStore, voting_reward_claimed_amount
+    move_loc l3
+    // @10
+    move_loc l2
+    call simple_map::upsert<string::String, u64>
+    pop
+    pop
+    ret
+    // @15
+l0: ld_u64 4
+    call error::not_found
+    abort
+
+// Function definition at index 71
+friend fun update_voting_power_history(l0: u64, l1: u64) acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    mut_borrow_global ModuleStore
+    mut_borrow_field ModuleStore, voting_power_history
+    move_loc l0
+    move_loc l1
+    // @5
+    call table::add<u64, u64>
+    ret
+
+// Function definition at index 72
+entry public fun vote_external_using_bribe_weights(l0: &signer)
+    local l1: address
+    local l2: weight_vote::ModuleStoreResponse
+    local l3: u64
+    local l4: u64
+    local l5: vector<bigdecimal::BigDecimal>
+    call emergency::assert_no_paused
+    copy_loc l0
+    call signer::address_of
+    st_loc l1
+    copy_loc l1
+    // @5
+    call pool_router::is_whale
+    br_false l0
+    call weight_vote::get_module_store
+    st_loc l2
+    borrow_loc l2
+    // @10
+    call weight_vote::unpack_module_store_response
+    pop
+    pop
+    pop
+    pop
+    // @15
+    pop
+    pop
+    pop
+    st_loc l3
+    copy_loc l1
+    // @20
+    call weight_vote::get_voting_power
+    st_loc l4
+    move_loc l1
+    copy_loc l3
+    copy_loc l4
+    // @25
+    call pool_router::record_external_whale_voting_power
+    call bigdecimal::one
+    vec_pack <bigdecimal::BigDecimal>, 1
+    st_loc l5
+    move_loc l0
+    // @30
+    copy_loc l3
+    ld_const<vector<u64>> [42]
+    copy_loc l5
+    call weight_vote::vote
+    move_loc l3
+    // @35
+    move_loc l4
+    ld_const<vector<u64>> [42]
+    move_loc l5
+    pack ExternalVoteEvent
+    call event::emit<ExternalVoteEvent>
+    // @40
+    ret
+l0: move_loc l0
+    pop
+    ld_u64 7
+    call error::permission_denied
+    // @45
+    abort
+
+// Function definition at index 73
+entry public fun vote_using_bribe_weights(l0: &signer, l1: u64)
+    ld_u64 101
+    move_loc l0
+    pop
+    abort
+
+// Function definition at index 74
+public fun xinit_stake_reward_fee_bps(): u64 acquires ModuleStore
+    ld_const<address> 37888198384951588065373476812507947745351189290614325885899090160476550851112
+    borrow_global ModuleStore
+    borrow_field ModuleStore, xinit_stake_reward_fee_bps
+    read_ref
+    ret
+
