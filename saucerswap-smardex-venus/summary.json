@@ -1,0 +1,26 @@
+{
+  "finding": "ZH4-residual OPEN #3/#4/#5 (SaucerSwap V2 / SMARDEX USDN / Venus Flux)",
+  "title": "Deep-dive: SaucerSwap V2 (Hedera), SMARDEX USDN (Ethereum), Venus Flux (BSC)",
+  "chains": ["hedera", "ethereum", "bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "pending",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 0,
+  "block_numbers": {"ethereum": 26253680, "bsc": 129277882, "hedera": 101459790},
+  "targets_checked": 3,
+  "live_targets": 3,
+  "closed_reasons": [],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": []},
+  "key_facts": [
+    "SMARDEX USDN protocol proxy 0x656cB8C6d154Aad29d8771384089be5B5141f01a -> impl 0x271df5517a4daacb7cab988aa64d23debda4c498 (matches repo broadcast); vault+long = 453.485 wstETH = ~$1.36M at $3001.10; 29 long positions; protocol usdnPrice 1.00007 ~= par.",
+    "Venus Flux = flux.venus.io/lending/56 on BSC, Fluid Liquidity 0x52Aa899454998Be5b000Ad077a46Bbe360F4e497; DL $2.169M supply / $1.287M borrowed (2026-10-23).",
+    "CORRECTION: Venus Flux listed tokens 0x8E9d../0x4254../0xcE24../0x7773.. are NOT Venus wrappers but third-party tokens syrupUSDT (Maple), wstUSR (Resolv), U (United Stables), asBNB (Astherus); risk is Fluid oracle path for exotic collateral.",
+    "SaucerSwap V2 Hedera factory 0.0.3946833 (0x..003c3951) live, UniV3-shaped (feeAmountTickSpacing(3000)=60); position NFT appears to be an HTS token (name()/totalSupply() revert via relay)."
+  ],
+  "caveats": [
+    "Per-target verdicts produced by child deep-dive folders; this umbrella only independently re-verifies live state.",
+    "Hedera HTS precompiles may prevent Foundry forking of SaucerSwap pools.",
+    "USD figures use DefiLlama prices at the stated timestamps."
+  ],
+  "one_liner": "In progress: three deep-dives (SaucerSwap V2 Hedera ~$16.8M, SMARDEX USDN Ethereum ~$1.36M, Venus Flux BSC ~$2.17M/$1.29M) - verdicts pending; live state independently confirmed."
+}

@@ -1,0 +1,91 @@
+{
+  "note": "Independent (parent-level) live-state verification for the three ZH4-residual deep-dive targets. Read-only, keyless public RPCs only. No secrets, no keyed URLs.",
+  "date_utc": "2026-10-23",
+  "blocks": {
+    "ethereum": 26253680,
+    "bsc": 129277882,
+    "hedera": 101459790
+  },
+  "prices_usd": {
+    "wstETH": 3001.10,
+    "WETH_bsc": 2406.55,
+    "WHBAR": 0.0806063,
+    "source": "DefiLlama coins.llama.fi 2026-10-23"
+  },
+  "targets": {
+    "saucerswap-v2": {
+      "chain": "hedera",
+      "chain_id": 295,
+      "rpc": "https://mainnet.hashio.io/api (keyless)",
+      "contracts": {
+        "factory_0.0.3946833": "0x00000000000000000000000000000000003c3951",
+        "swapRouter_0.0.3949434": "0x00000000000000000000000000000000003c437a",
+        "quoterV2_0.0.3949424": "0x00000000000000000000000000000000003c4370",
+        "nonfungiblePositionManagerV2_0.0.4053945": "0x00000000000000000000000000000000003ddbb9",
+        "lpNft_0.0.4054027": "0x00000000000000000000000000000000003ddc0b"
+      },
+      "codesize_bytes": {
+        "factory": 24535,
+        "swapRouter": 13831,
+        "nonfungiblePositionManagerV2": 21218
+      },
+      "factory_owner": "0x0000000000000000000000000000000000103179",
+      "feeAmountTickSpacing_3000": 60,
+      "notes": "UniV3-shaped (feeAmountTickSpacing(3000)=60 matches canonical UniV3). NFT name()/totalSupply() eth_call reverted via hashio - expected if position NFT is an HTS token (Hedera Token Service) rather than a pure ERC721. DL TVL $16.78M (2026-10-20)."
+    },
+    "smardex-usdn": {
+      "chain": "ethereum",
+      "chain_id": 1,
+      "rpc": "https://ethereum-rpc.publicnode.com (keyless)",
+      "usdn_token": "0xde17a000BA631c5d7c2Bd9FB692EFEa52D90DEE2",
+      "protocol_proxy": "0x656cB8C6d154Aad29d8771384089be5B5141f01a",
+      "erc1967_impl_slot_value": "0x000000000000000000000000271df5517a4daacb7cab988aa64d23debda4c498",
+      "impl_matches_repo_broadcast": true,
+      "oracle_middleware": "0xc1459fcfe23d5db9ddb04935ab7a426bd398eab0",
+      "liquidation_rewards_manager": "0x9514d3496f46572e8461da381b200812d5db202c",
+      "live_reads": {
+        "getBalanceVault_wstETH": "266220884744597340923",
+        "getBalanceLong_wstETH": "187264136063961808869",
+        "total_wstETH": "453484 ... (sum of above = 453485020808559149792)",
+        "protocol_wstETH_balance": "453641436938688193409",
+        "getTotalLongPositions": 29,
+        "usdnPrice_1e18": "1000074937019503199",
+        "usdn_totalSupply": "805742535239947534973541"
+      },
+      "usd": {
+        "long_plus_vault_wstETH": 453.48502080855915,
+        "usd_at_3001.10": 1361086.55,
+        "note": "lane 2026-10-20 figure 452.5 wstETH ~= $1.35M; now 453.5 wstETH ~= $1.36M"
+      }
+    },
+    "venus-flux": {
+      "chain": "bsc",
+      "chain_id": 56,
+      "rpc": "https://bsc-rpc.publicnode.com (keyless)",
+      "protocol_identity": "flux.venus.io/lending/56 (DefiLlama slug venus-flux, category Lending, BSC)",
+      "dl_tvl_2026_10_23": {"supply_usd": 2169067.87706, "borrowed_usd": 1287104.3833},
+      "fluid_liquidity_proxy": "0x52Aa899454998Be5b000Ad077a46Bbe360F4e497",
+      "fluid_liquidity_impl": "0x3560a1d1e9f30b61cd0e24349f7a23890f6261d9",
+      "liquidity_resolver": "0xca13A15de31235A37134B4717021C35A3CF25C60",
+      "listedTokens": [
+        "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE (BNB native)",
+        "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d (USDC)",
+        "0x55d398326f99059fF775485246999027B3197955 (USDT)",
+        "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c (BTCB)",
+        "0x2170Ed0880ac9A755fd29B2688956BD959F933F8 (ETH)",
+        "0xa2E3356610840701BDf5611a53974510Ae27E2e1 (wBETH)",
+        "0x8E9d4cEa39299323FE8eda678cAD449718556c4e (syrupUSDT)",
+        "0x4254813524695def4163A169e901f3d7a1a55429 (wstUSR)",
+        "0xcE24439F2D9C6a2289F741120FE202248B666666 (U - United Stables)",
+        "0x77734e70b6E88b4d82fE632a168EDf6e700912b6 (asBNB - Astherus BNB)"
+      ],
+      "CORRECTION_vs_lane": "lane-lending row 8 described the 4 exotic tokens as 'Venus LST/LP wrappers'. On-chain symbols are syrupUSDT (Maple), wstUSR (Resolv staked USR), U (United Stables), asBNB (Astherus) - i.e. THIRD-PARTY yield-bearing/RWA tokens, not Venus wrappers. The audit/risk surface is Fluid's oracle path for these exotic collateral tokens.",
+      "exotic_token_totalSupply": {
+        "syrupUSDT": "712642430347 (6dp = 712,642.43)",
+        "wstUSR": "1933620837000000000000 (18dp = 1,933.62)",
+        "U": "1077493134738467150000000000 (18dp = 1,077,493,134.7)",
+        "asBNB": "80804628356664687977804 (18dp = 80,804.63)"
+      }
+    }
+  }
+}
