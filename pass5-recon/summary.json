@@ -1,0 +1,56 @@
+{
+  "finding": "ZH4-PASS5-RECON",
+  "title": "Pass-5 residual reconciliation — every lane candidate dispositioned + OPEN list",
+  "chains": ["ethereum", "arbitrum", "base", "hyperliquid", "bsc", "avalanche", "solana", "sui", "stellar", "starknet", "injective", "gnosis", "wax", "non-evm"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "headline_note": "Triage only. No new live unprivileged extraction was proven; OPEN list ranks unverified residuals, largest is Saturn sUSDat v2 ($48.13M live, v2 surface unaudited).",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 26253597,
+  "block_numbers": {"ethereum": 26253597, "arbitrum": 517459432, "base": 52974175},
+  "counts": {
+    "lanes_read": 20,
+    "enumerated_rows": 188,
+    "readme_finding_rows": 17,
+    "readme_finding_distinct": 15,
+    "readme_closed_rows": 13,
+    "readme_closed_distinct": 7,
+    "lane_closed": 90,
+    "prior_covered": 30,
+    "not_a_protocol": 15,
+    "open_rows": 23,
+    "open_distinct": 22,
+    "open_a": 5,
+    "open_b": 15
+  },
+  "open_a": [
+    {"rank": 1, "target": "Saturn Protocol — sUSDat v2", "chain": "ethereum", "funds_usd": 48130000, "addr": "0xD166337499E176bbC38a1FBd113Ab144e5bd2Df7 (impl 0x2b7074cf6681382b70e239063931ebe83c0f4e0a)", "why_open": "new v2 impl, v2 surface (buy/sell/migrate/migrationToleranceBps/strcMirrorModule/redemption batches) unaudited-by-us", "next": "read v2 impl source + trace buy/sell/migrate + redemption batches", "confidence": "low"},
+    {"rank": 2, "target": "Abracadabra — PurrSwap Balancer Aggregator", "chain": "hyperliquid", "funds_usd": 0, "addr": "not isolated", "why_open": "Guardian C-06/C-07 (CRIT) Acknowledged; Factory/Router accept unvalidated oracle", "next": "isolate live Factory/Router on Hyperliquid; confirm C-06/C-07; note harm is opt-in-pool LPs only", "confidence": "low"},
+    {"rank": 3, "target": "Unverified delta-returning v4 hooks (3)", "chain": "ethereum,base", "funds_usd": 2969729, "addr": "eth 0xfAaad5B731F52cDc9746F2414c823eca9B06E844; eth 0xd33398d46cB5749c7319AE1FABC498CdeB0F0FC0 (impl 0x521553991534f26b9aea7d3ac6d798ade0508fc0); base 0xC90eddF51569270E06270eA98F7EfFF828dDe0CC", "why_open": "return-delta power + no verified source and no decompile", "next": "decompile the 3 impls; diff delta sign/currency; fork-sim one swap each", "confidence": "low"},
+    {"rank": 4, "target": "Stake DAO — Curator / Morpho-collateral vault", "chain": "ethereum", "funds_usd": 1007815, "addr": "StrategyWrapper (unlocated)", "why_open": "Pashov C-02 CRITICAL Acknowledged (stale checkpoints, missing _update)", "next": "locate live StrategyWrapper/Curator; diff vs audited commit; test reward-claim/liquidation", "confidence": "low-med"},
+    {"rank": 5, "target": "MUX Protocol — Pool (signed makerFee)", "chain": "arbitrum", "funds_usd": 8694601, "addr": "0x45de6f4Ddc91B4353e9e0fF5d714bd1F8C113851", "why_open": "signed makerFee; setters gated but trade-time application never traced", "next": "trace signed makerFee into PositionManager/OrderManager at trade time", "confidence": "low-med"}
+  ],
+  "open_b": ["Twyne ($11.2M)", "Exponent ($27.1M)", "Sushi Stellar ($15.1M)", "Loopscale Curation ($7.49M)", "Reflect Tranches ($2.73M)", "3F Labs ($42.9M)", "DIEM Relay ($584k)", "Crossbow/Arrowfarm ($770k)", "Prosper Alpha ($505k)", "Choice Exchange V1 ($287k)", "Monetrix mxBTC ($265k)", "ArcX.trade ($220k)", "Umbra Privacy V2 ($250k)", "GnoSwap ($318k)", "Paladin — Valkyrie ($0, unlocated)"],
+  "targets_checked": 188,
+  "live_targets": 8,
+  "closed_reasons": [
+    "lane disproved on-chain (patched/gated/dead/drained/dust)",
+    "prior-corpus coverage (trackers / pass1-4 / wave1-2)",
+    "not-a-protocol (metric/class/key/supply-chain/synthetic)"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": [], "note": "triage only; ci/run.sh performs read-only sanity checks, no fork PoC"},
+  "key_facts": [
+    "188 disposition rows; README-FINDING 17 (15 distinct), README-CLOSED 13 (7 distinct), LANE-CLOSED 90, PRIOR-COVERED 30, NOT-A-PROTOCOL 15, OPEN 23 (22 distinct).",
+    "OPEN-A largest: Saturn sUSDat v2 $48.13M live (totalAssets confirmed at eth 26,253,597).",
+    "3 unverified delta v4 hooks ($2.97M) confirmed live with delta bits and no source/decompile.",
+    "PurrSwap is on Hyperliquid, not Berachain; the $4.81M is Abracadabra's general TVL.",
+    "All README/verification-lane closures re-affirmed; no new live E-U proven."
+  ],
+  "caveats": [
+    "Triage only; no fork PoC; OPEN verdicts are the lane's own unproven/unread status.",
+    "Grouped families (83 paymasters, 78 non-EVM, ~50 v4 hooks, ~250 selector families) dispositioned as blocks.",
+    "~19 of 36 fresh >=$250k protocols unlocated; 5 of 8 growth rows unlocated.",
+    "Point-in-time 2026-10-23; re-read live state before acting."
+  ],
+  "one_liner": "Triage of all 20 pass5 lanes: 188 candidates dispositioned; 22 funded candidates have no verdict anywhere (5 OPEN-A with a concrete unprivileged path, 15 OPEN-B unread) — largest is Saturn sUSDat v2 ($48.13M live, v2 surface unaudited); no new live E-U proven."
+}
