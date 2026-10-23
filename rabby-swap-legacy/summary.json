@@ -1,0 +1,65 @@
+{
+ "finding": "ZH4-OPEN-9",
+ "title": "Rabby Swap legacy router (19 chains) — arbitrary-call approval-drain still live, but ~$0 residual value",
+ "chains": ["ethereum","bsc","polygon","avalanche","fantom","optimism","arbitrum","gnosis","cronos","aurora","harmony","metis","moonbeam","arbitrum-nova","klaytn","astar","boba","heco","celo"],
+ "headline_extractable_usd": 0.13,
+ "headline_confidence": "high",
+ "categories": {"E-U": 0.13, "E-U-conditional": 0, "H-O": 0, "P": 0, "S": 0},
+ "latest_block": 26255821,
+ "block_numbers": {
+  "ethereum": 26255821,
+  "bsc": 129335237,
+  "polygon": 96039431,
+  "avalanche": 98339890,
+  "fantom": 123796877,
+  "optimism": 158582916,
+  "arbitrum": 517557238,
+  "gnosis": 48902530,
+  "cronos": 101707761,
+  "aurora": 221249394,
+  "harmony": 93624315,
+  "metis": 23312828,
+  "moonbeam": 16796699,
+  "arbitrum-nova": 85287094,
+  "klaytn": 230566697,
+  "astar": 15194709,
+  "boba": 40880824,
+  "celo": 80865926
+ },
+ "targets_checked": 19,
+ "live_targets": 18,
+ "closed_reasons": [
+  "No material live allowance remains anywhere: 3,940 historical (token,owner) approval pairs across 19 chains, of which only 3 are still live and all are dust",
+  "Ethereum (the main 2022 chain) has 0 live positions across 498 pairs; Arbitrum 0/627; Avalanche 0/123; Gnosis 0/72; Optimism 0/573; Fantom 0/59",
+  "BNB Chain's only live position is 10 WEAR, a token with no DEX pair and no price ($0)",
+  "Polygon's two live positions are AURUM (~$0.00002) and LUNA (~$0.13) dust",
+  "0 ERC-721/1155 ApprovalForAll(operator=router) events on any chain",
+  "The router holds 0 tokens/native on every chain (no 'stuck' bucket)"
+ ],
+ "poc": {
+  "tests_passed": 5,
+  "tests_total": 5,
+  "ci_run_urls": [
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39966961644",
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39957404961",
+   "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39921749857"
+  ]
+ },
+ "key_facts": [
+  "Source of the address list: RevokeCash/approval-exploit-list/exploits/rabby.json (19 chainId+address entries)",
+  "Bug: swap() (selector 0x32854cc2) performs an unvalidated external call dexRouter.functionCallWithValue(data,value) with caller-controlled target+calldata; the router executes token.transferFrom(victim,attacker,amount) as itself, spending the victim's standing allowance",
+  "Ethereum router 0x6eb211CAF6d304A76efE37D9AbDFAdDC2d4363d1 is unverified, immutable, and its runtime code at the 2022 exploit block 15,724,451 (keccak 0xc721ffeb…3895) is byte-identical to the code at the latest block — never patched",
+  "All 18 reachable deployments are 10,402 bytes and paused()==false; the three runtime hashes differ only in the trailing 43-byte Solidity metadata (functional code identical)",
+  "Fork PoC: a fresh caller 0x1111… drains a third party's 1,000,000 USDC standing approval through the live Ethereum router in one tx (gas 123,328); historical replay at block 15,724,451 drains 5,204.918440 USDC from 6 known victims",
+  "Census: 14,156 Approval logs, 3,940 unique (token,owner) pairs, 3 live positions, total extractable $0.13",
+  "Owner of the family is 0x2Cc26F59379832fDe97a6c35Abcd80D672846194 (Boba differs); feeRatio 875 (8.75%); none paused"
+ ],
+ "caveats": [
+  "Long-tail chains (cronos, harmony, moonbeam, astar, arbitrum-nova, celo, klaytn) could only be scanned over a bounded window because their public RPCs cap eth_getLogs ranges; the window always starts at the deployment block, covering the Sept-Oct 2022 approval window first",
+  "HECO (chainId 128) has no reachable RPC — its deployment is unverifiable (chain is effectively dead)",
+  "One Optimism (token,owner) pair could not be read (RPC error) — reported as unread, not as live",
+  "Dust positions are valued at DefiLlama spot and are not worth liquidation; no position reaches $1k",
+  "Point-in-time 2026-10-23; read-only, no mainnet transactions; no secrets stored"
+ ],
+ "one_liner": "External unprivileged attacker can still drain any wallet that holds a standing allowance to the legacy Rabby Swap router (fork-proven, gas ~123k, 18 chains unpaused), but a full 19-chain census finds only $0.13 of live dust remaining — headline E-U ~$0.00; keep as a latent re-arming risk only."
+}
