@@ -1,0 +1,57 @@
+{
+  "finding": "ZH4-PASS3-OPEN-8-BULBASWAP-V3",
+  "title": "BulbaSwap V3 (Morph L2) — byte-identical Uniswap V3 fork; no unprivileged extraction",
+  "chains": ["morph"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.00,
+    "H-O": 8937405.74,
+    "P": 17700.79,
+    "S": 19.05
+  },
+  "latest_block": 28699967,
+  "block_numbers": {"morph": 28699967},
+  "targets_checked": 36,
+  "live_targets": 6,
+  "closed_reasons": [
+    "Factory runtime bytecode differs from canonical Uniswap V3 factory 0x1F98431c8aD98523631AE4a59f267346ea31F984 in exactly 20 bytes, all inside the embedded factory-address literal -> canonical code",
+    "Pool init code embedded in the factory creation bytecode hashes to 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54 == canonical v3-core v1.0.0 POOL_INIT_CODE_HASH -> all 212 pools are byte-identical canonical UniswapV3Pool",
+    "NonfungiblePositionManager / SwapRouter02 / V3Migrator runtime bytecode byte-identical to canonical Ethereum-mainnet deployments except 20-byte immutable address slots",
+    "UniswapV3Staker verified source byte-for-byte identical to Uniswap/v3-staker@main (only optimizer-runs setting differs)",
+    "NPM.collect / decreaseLiquidity / burn all revert 'Not approved' for a foreign position (fork-verified)",
+    "flash() requires full repayment (+fee) and reentrancy from the flash callback is blocked by the pool lock (fork-verified)",
+    "skim() does not exist in v3-core v1.0.0: selector 0xbc25cf77 absent from deployed pool code (fork-verified)",
+    "collectProtocol / setFeeProtocol / factory setOwner / enableFeeAmount all owner-gated (owner = GnosisSafeProxy 0x9876097201662D70A63C935c2f7576B35D6f45e7)",
+    "Public sweep primitives (NPM/Router sweepToken, unwrapWETH9, refundETH) exist but every periphery token+ETH balance is 0",
+    "BulbaSwapPointsRedemption.claim() requires an ECDSA signature from a live globalSigner; all withdrawals are onlyOwner",
+    "observationCardinality == 1 on all 212 pools -> no TWAP oracle; increaseObservationCardinalityNext is permissionless but yields no value"
+  ],
+  "poc": {
+    "tests_passed": 22,
+    "tests_total": 22,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Factory 0xFf8578C2949148A6F19b7958aE86CAAb2779CDDD on Morph L2 (chainId 2818), deployed block 25159 by 0x502dC547576265661a1986c38369a6eb23b17172; owner set to GnosisSafeProxy 0x9876097201662D70A63C935c2f7576B35D6f45e7 at block 217441",
+    "212 PoolCreated events (fee tiers 100/500/3000/10000); measured total reserves $8,937,393.70 vs DefiLlama $8,669,681",
+    "Largest pool 0x5191035D329f481eFf0143e690e0a4e366Dd1e0c (WETH/USDT 0.05%): 524.8931 WETH + 1265163.11 USDT = $2,527,171",
+    "2370 position NFTs, 566 with liquidity, 228 distinct owners (mostly EOAs) -> $8.94M is user-owned LP principal (H-O); only $1.33 of uncollected fees",
+    "13 pools have feeProtocol=0x44; accrued protocolFees = $17,620.63, collectable ONLY by the factory owner via collectProtocol (P)",
+    "No token or ETH balance in NPM, SwapRouter02, V3Migrator, UniswapV3Staker, QuoterV2, all 4 UniversalRouters, Permit2, descriptors, multicalls (exhaustive 36-contract x 123-token sweep)",
+    "UniswapV3Staker 0x192122E28E45923cAbdcC40232a278867a432C2b has never received a single token (0 token transfers) -> unused",
+    "BulbaSwapPointsRedemption 0xdbd064f9E41dB9F08cb9F481C72a2EEb29AFC9A4 holds 10.7104 USDT ($10.70); owner 0xF4a82c4Ab398771C6C7A0c0DedF0B34fc0161192, globalSigner 0xCbE17Abd709A60d9a616a9Ccb290aD4269eBf707, currentEventId 5",
+    "BulbaSwap V2 router 0x81606e6f8aad6c75c2f383ea595c2b9f8ce8ae3a permanently holds 13096433.04 MOOD (stuck, S); canonical UniswapV2Router02 has no sweep/rescue",
+    "82 zero-liquidity pools hold $19.05 of dust that nobody can move (no skim() in v1.0.0) -> S",
+    "All 212 pools have observationCardinality == 1 and observationCardinalityNext == 1; observe([0,3600]) reverts OLD on the busiest pool"
+  ],
+  "caveats": [
+    "MOOD price (~$0.001032) is derived from a V2 pair holding only 0.000756 WETH -> low confidence; the stuck MOOD is therefore NOT included in the S category number",
+    "Prices are DefiLlama spot (coins.llama.fi) at measurement time; block pinned at 28699967",
+    "protocolFees read via eth_getStorageAt slot 3 (canonical UniswapV3Pool layout), cross-checked against slot0.feeProtocol",
+    "Position enumeration is point-in-time; 0 rows were dropped, ids with liquidity 0 are burned/empty positions",
+    "Verdict holds for the CURRENT deployed bytecode; it would change only if the factory owner Safe or the PointsRedemption ProxyAdmin deployed new non-canonical logic",
+    "This finding was assessed read-only; no mainnet transaction was sent; all PoC execution was on a Morph fork at a pinned block"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live: the BulbaSwap V3 factory, all 212 pools, the NPM, SwapRouter02, V3Migrator and the UniswapV3Staker are byte-for-byte canonical Uniswap V3 (pool init-code hash == canonical POOL_INIT_CODE_HASH), so collect/flash/skim/auth paths are all closed; the only live value is $8.94M of user-owned LP principal (H-O), $17.6k of owner-only protocol fees (P) and ~$19 of permanently stuck dust (S)."
+}

@@ -1,0 +1,18 @@
+== UniswapV3Factory.sol : verified Morph source vs Uniswap/v3-core@v1.0.0
+   IDENTICAL (0 differences)
+
+== UniswapV3Pool.sol : pool runtime code
+   Morph factory creation bytecode embeds the pool init code; extracted keccak256 =
+   0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54
+   canonical POOL_INIT_CODE_HASH (v3-core v1.0.0)                     =
+   0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54  -> MATCH
+   (=> every pool created by the factory is a byte-identical canonical UniV3Pool)
+
+== UniswapV3Staker.sol : verified Morph source vs Uniswap/v3-staker@main
+   IDENTICAL (0 differences)
+   (vs v1.0.0 tag the only delta is TransferHelper -> TransferHelperExtended,
+    which is exactly what upstream 'main' does; no auth/accounting change)
+
+== NonfungiblePositionManager / SwapRouter02 / V3Migrator
+   deployed bytecode byte-identical to the canonical Ethereum-mainnet deployments
+   apart from embedded immutable addresses (see bytecode-diffs.txt)
