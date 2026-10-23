@@ -1,0 +1,42 @@
+{
+  "finding": "ZH4-PASS5-T3-UniswapV4Router04",
+  "title": "UniswapV4Router04 swap(bytes,uint256) hardcoded-calldata-offset authorization bypass (Ethereum)",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 2.6,
+  "headline_confidence": "medium",
+  "categories": { "E-U": 2.6, "H-O": 0, "P": 0, "S": 0 },
+  "latest_block": 26255513,
+  "block_numbers": { "ethereum": 26253889 },
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "USDT approval 5.000000 USDT (0x650532b5db628dda2557340e8521b0d11cb240cf) is NOT extractable: USDT.transferFrom returns no data and the router's settle step (IERC20Minimal.transferFrom declared returns(bool)) reverts with empty data",
+    "SPUNK approval 35,746.49 SPUNK (0x64924dddd4bf7ca9659d7d2ceb2ed7618b226dc5) blocked: token transferFrom reverts NotValidRouter() 0x3d04e56e",
+    "TEST approval 626,082,218 TEST (0xf2db99a98b8f36d5a078d43117731f611970faa6) blocked: its only v4 pool (TEST/PENDLE) has 0 liquidity -> 0 output",
+    "DEPHI (2,616.18) and WOWSTR (3.96) blocked: token transferFrom reverts 0x2f352531",
+    "uPEG (1 wei) blocked: v4 pool hook reverts 0x90bfb865",
+    "2026-03-03 historical victim 0x65a8f07bd9a8598e1b5b6c0a88f4779dbc077675 revoked every approval to the router (allowance 0)"
+  ],
+  "poc": { "tests_passed": 7, "tests_total": 7, "ci_run_urls": [] },
+  "key_facts": [
+    "Target 0x00000000000044a361Ae3cAc094c9D1b14Eece97 (Ethereum), 10,474-byte runtime, NOT a proxy (EIP-1967 slots zero), verified UniswapV4Router04 solc 0.8.26 runs 9999999 viaIR cancun, deployed block 22,281,170",
+    "swap(bytes,uint256) 0xaf2b4aba gates the payer with `calldataload(164) == caller()`; runtime byte offset 0x59a is PUSH1 0xa4 / CALLDATALOAD / SUB vs CALLER, reverting at 0x5b2 with PUSH4 0x82b42900 (Unauthorized)",
+    "ABI decoder for the bytes argument validates only bounds (offset<=2^64-1, offset+32+len<=calldatasize), never canonicality -> offset 0xc0 decouples the gate word (164) from the decoded BaseData.payer (292)",
+    "Exhaustive Approval(_,router) scan from deployment to block 26,253,889: 4,256 logs, 3,284 distinct (token,owner), 623 owners, 933 tokens, 0 ERC721/ERC6909; 26 pairs have allowance>0 AND balance>0",
+    "Nominal drainable (sum of min(allowance,balance) priced) = $14.40; actually reachable = $2.60",
+    "Fork-proven drains: PNZI victim 0x7363cc41220d5d298fd74b4db9d53f59c97718c8 (971,401.09 PNZI -> 0.00097515625 ETH = $2.34, 163,039 gas) and FR victim 0x6dc72beb8289db02dc861804d74bcc03eaea280f (97,209.87 FR -> 0.000095481730711751 ETH = $0.229, 149,151 gas)",
+    "Scope-scan reachable dust: DFYT $0.0256, OMPALOMPA $0.0012, PNKSTR $0.0002, MOONSTR $0.00004, Lottery/TST/PNKSTRs/NINTONDO < $0.00001",
+    "Attacker cost is gas only (~$0.05 per leg at 0.1286 gwei); no capital, no flash loan, no privileges; all legs can be batched via the router's public multicall(bytes[])",
+    "Identical runtime code live at the same address on Base, Arbitrum, Optimism, Polygon and Unichain (auth pattern at byte 1433, Unauthorized at byte 282; only immutables differ); 0 drainable approvals on those chains",
+    "Same bug publicly documented by DARKNAVY (2026-03-03, block 24,575,085): 42,606.96 USDC (~21.198 ETH) drained from 0x65a8f07bd9a8598e1b5b6c0a88f4779dbc077675 via the ETH/USDC v4 pool, output to 0xd6b7e831d64e573278f091aa7e68fbf2a8fa9916"
+  ],
+  "caveats": [
+    "Headline is the fork-verified residual, not the $14.40 nominal drainable; $11.80 is blocked by verified token-level behaviour (USDT no-bool $4.99, SPUNK NotValidRouter $3.54, TEST zero-liquidity $3.16, DEPHI/WOWSTR $0.17, uPEG hook $0)",
+    "Micro-cap USD prices (PNZI, FR, OMPALOMPA, ...) are indicative (+/-50%); token amounts are exact on-chain reads and the ETH outputs are exact fork measurements",
+    "Fork tests run at the head block of the run (public fork RPCs are non-archive); pinned-block state was read separately at 26,253,889 via eth_call",
+    "Error selector 0x2f352531 (WOWSTR/DEPHI transferFrom) could not be matched to a public error name",
+    "Permit2 allowances are excluded from the universe (require a victim signature, unusable by an unprivileged attacker); no ERC-6909 approvals exist for this router",
+    "Extractable figures are gross of gas; net at the observed 0.1286 gwei is ~$2.47 and the residual is sub-gas above roughly 6-12 gwei"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$2.60 live from UniswapV4Router04 on Ethereum via the hardcoded calldataload(164) auth bypass (fork-proven $2.34 from one PNZI victim), gas-only cost ~$0.10; the $14.40 nominal drainable is mostly unreachable because USDT returns no bool (router settle reverts), SPUNK/WOWSTR/DEPHI tokens blacklist the router, and TEST has no pool liquidity - but the bug is live, unpatched and re-arms with any new approval."
+}
