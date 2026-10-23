@@ -1,0 +1,51 @@
+fresh signer: GxJhYNTw9uhWK7PMeUwFbytFDWmiMiouhUaWrbs6ATcU | unverified fee payer: 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9
+exponentPrices: ACfqroCCvTQBocSt5DdRuCu5DKbQm7cLDrxKkSzyvFb | eventAuthority: 2y1whUzS3uskfQ3dBqoSCe7L1UdzCugsXmTFf9PumLaP | adminAccount: 8HNzNyJjN5Gyf5EmDjwSnKttvC59347DR6ZG1E4cqBWA
+
+vault EsTx9ToYW2k1DsTw6ccpmP3RrXQriod114hcM7U5ZKaR {
+ "underlying": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+ "mint_lp": "E7gTF1KUtyTPhxgwFqgMNga3k3tKG44PamRtpA49wMLX",
+ "token_lp_escrow": "BmGB12oexU3uLqUBsvywoiYLxUHZQUgPYdVJYzVTu4f4",
+ "cut": 0,
+ "status": 0,
+ "lp_balance": 2012508438505,
+ "aum": 2021087029721,
+ "managers": [
+  "bs1PuRvB9rBBZkryBjADYvxc2qYh51EVW2fsb1uTiBN"
+ ],
+ "curators": [
+  "bs1PuRvB9rBBZkryBjADYvxc2qYh51EVW2fsb1uTiBN"
+ ]
+}
+
+### A) sentinelSetVaultFlags(fresh signer)
+  err = {'InstructionError': [0, {'Custom': 6005}]}
+    Program log: AnchorError thrown in programs/exponent_vaults/src/instructions/admin/sentinel_set_vault_flags.rs:71. Error Code: UnauthorizedRole. Error Number: 6005. Error Message: Signer is not authorized for this role.
+    Program sVau1tXvayVWfotzm9Ahcv2qfnnfRWttt78BCnNC6dD failed: custom program error: 0x1775
+
+### B) manageVaultSettings(fresh signer, [] actions)
+  err = {'InstructionError': [0, {'Custom': 6005}]}
+    Program log: AnchorError thrown in programs/exponent_vaults/src/instructions/wrappers/wrapper_manage_vault_settings.rs:28. Error Code: UnauthorizedRole. Error Number: 6005. Error Message: Signer is not authorized for this role.
+    Program sVau1tXvayVWfotzm9Ahcv2qfnnfRWttt78BCnNC6dD failed: custom program error: 0x1775
+
+### C) executeWithdrawal(fresh signer as owner)
+  err = {'InstructionError': [0, {'Custom': 3012}]}
+    Program log: AnchorError caused by account: withdrawal_account. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.
+    Program sVau1tXvayVWfotzm9Ahcv2qfnnfRWttt78BCnNC6dD failed: custom program error: 0xbc4
+
+### D) depositLiquidity(fresh signer, 1 unit)
+  err = {'InstructionError': [0, {'Custom': 3012}]}
+    Program log: AnchorError caused by account: token_src. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.
+    Program sVau1tXvayVWfotzm9Ahcv2qfnnfRWttt78BCnNC6dD failed: custom program error: 0xbc4
+
+### E) initializePrices(fresh signer)
+  err = {'InstructionError': [0, {'Custom': 6005}]}
+    Program log: AnchorError thrown in programs/exponent_vaults/src/instructions/admin/initialize_prices.rs:34. Error Code: UnauthorizedRole. Error Number: 6005. Error Message: Signer is not authorized for this role.
+    Program sVau1tXvayVWfotzm9Ahcv2qfnnfRWttt78BCnNC6dD failed: custom program error: 0x1775
+
+### F) managePrices(fresh signer, [] actions)
+  err = None
+
+### F2) managePrices(fresh signer, [RemovePrice])
+  err = {'InstructionError': [0, {'Custom': 6068}]}
+    Program log: AnchorError thrown in programs/exponent_vaults/src/instructions/admin/manage_prices.rs:209. Error Code: InvalidPriceManager. Error Number: 6068. Error Message: Invalid price manager.
+    Program sVau1tXvayVWfotzm9Ahcv2qfnnfRWttt78BCnNC6dD failed: custom program error: 0x17b4

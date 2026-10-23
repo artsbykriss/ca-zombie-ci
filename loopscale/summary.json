@@ -1,0 +1,40 @@
+{
+  "finding": "ZH4-OPEN-B-LOOPSCALE-CURATION",
+  "title": "Loopscale Curation (Exponent strategy-vaults program) — unprivileged extraction",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 0, "H-O": 0, "P": 7487668.31, "S": 0},
+  "latest_block": 460363439,
+  "block_numbers": {"solana": 460363439},
+  "targets_checked": 13,
+  "live_targets": 13,
+  "closed_reasons": [
+    "Role checks present and enforced in the deployed binary (fresh-signer simulateTransaction returns UnauthorizedRole 6005 for sentinel_set_vault_flags and manage_vault_settings; InvalidPriceManager 6068 for manage_prices)",
+    "initialize_prices is no longer permissionless (UnauthorizedRole 6005) — ADV-08/09 price-registry takeover closed",
+    "Vault creation is allowlist-gated (ELF marker 'Invalid vault creator' / 'YVault creators capacity exceeded') — ADV-26 closed",
+    "Deployed program upgraded 2026-10-14, after all three audits (Adevar 2026-04-13, Adevar ext 2026-05-25, OtterSec 2026-05-29); all findings Resolved except a few acknowledged LOW",
+    "Deposit/withdraw only move the caller's own funds (fresh signer has no token account / withdrawal account)"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Program sVau1tXvayVWfotzm9Ahcv2qfnnfRWttt78BCnNC6dD, programdata 36EV3EKoArMVsWQNonccP68eEN2jRoQdPxj46JjmC4cA, last upgrade slot 456916574 (2026-10-14T17:11:12Z)",
+    "Upgrade authority 62zLwJ1xBfsUkhLuBtxgdd8xvhrJ19suDBxviXG95baN",
+    "13 Loopscale-curated vaults, manager == curator == bs1PuRvB9rBBZkryBjADYvxc2qYh51EVW2fsb1uTiBN",
+    "Live AUM $7,487,668.31 at slot 460,363,439 (USDC 6,364,080.35; SOL 10,769.68 SOL = $1,123,588.07)",
+    "Fresh-signer probes: UnauthorizedRole 6005 (sentinel, manage_vault_settings, initialize_prices), InvalidPriceManager 6068 (manage_prices)",
+    "Deployed ELF contains audit-fix markers: 'Cannot remove the last price manager', 'Invalid vault creator', 'Live wrapper setup only supports additive strategy position changes'",
+    "refresh_aum and update_price are permissionless cranks by design (oracle-validated, TWAP-divergence bounded)"
+  ],
+  "caveats": [
+    "Vaults program source is private; deployed-vs-audit comparison is by upgrade date + string markers, not a byte-level diff",
+    "No LiteSVM replay — reconstructing the vault account graph plus Loopscale/Kamino CPI accounts was out of budget; read-only simulateTransaction on live state was used instead",
+    "P category = the Loopscale curator/manager key could drive manager-gated actions (by design; not external)",
+    "Acknowledged LOW DoS items remain (pre-funded-PDA seed DoS; zero-mint for allowlisted vault creators)"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from the $7.49M of Loopscale-curated Exponent vaults: every value-moving instruction is role-gated and enforced in the post-audit deployed binary, verified by fresh-signer simulateTransaction on live state."
+}
