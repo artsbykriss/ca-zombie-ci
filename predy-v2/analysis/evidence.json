@@ -1,0 +1,57 @@
+{
+  "finding": "ZH4-PASS5 Tier-3 #1 — Predy V2 registerPair",
+  "chain": "arbitrum",
+  "block_reads": 517457104,
+  "block_fork_poc": 517461834,
+  "proxy": {
+    "address": "0x9215748657319B17fecb2b5D086A3147BFBC8613",
+    "type": "EIP173Proxy",
+    "codesize": 2466,
+    "eip1967_impl_slot_0x360894": "0x818074b77cd95215df23a8402f5e4fdca0ac4d17",
+    "eip1967_admin_slot_0xb53127": "0x4f071924D66BBC71A5254217893CC7D49938B1c4"
+  },
+  "impl": {
+    "address": "0x818074b77cd95215df23a8402f5e4fdca0ac4d17",
+    "name": "PredyPool",
+    "verified": true,
+    "solc": "0.8.19",
+    "codesize": 18973
+  },
+  "operator": "0x4f071924D66BBC71A5254217893CC7D49938B1c4",
+  "operator_equals_proxy_admin": true,
+  "operator_codesize": 0,
+  "calls_from_random_eoa_0x1111": {
+    "registerPair((address,address,address,address,bool,uint8,(uint128,uint128,int24,int24,uint64,uint64),(uint256,uint256,uint256,uint256),(uint256,uint256,uint256,uint256)))": "revert CallerIsNotOperator 0xd0769d8e",
+    "trade((uint256,uint256,int256,int256,bytes),bytes)": "revert CallerIsNotOperator 0xd0769d8e",
+    "supply(uint256,bool,uint256)": "revert CallerIsNotOperator 0xd0769d8e",
+    "withdraw(uint256,bool,uint256)": "revert CallerIsNotOperator 0xd0769d8e",
+    "take(bool,address,uint256)": "revert LockedBy(0x0) 0x4f4b04cc",
+    "reallocate(uint256,bytes)": "success (0x0, no relocation)",
+    "createVault(uint256)": "success (returns 0xba)"
+  },
+  "operator_registerPair_control": "success (returns new pairId 4)",
+  "pairs": {
+    "1": {"margin": "USDC.e 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8", "base": "WETH", "poolOwner": "0x4b748969Ab77C9d09AE07b4282A151B82F96311B", "whitelistEnabled": true, "quote_supply_totalSupply": 8599},
+    "2": {"margin": "USDC 0xaf88d065e77c8cC2239327C5EDb3A432268e5831", "base": "WETH", "poolOwner": "0x4b748969Ab77C9d09AE07b4282A151B82F96311B", "whitelistEnabled": true, "accounting_quote_deposited": 220876709874, "accounting_base_deposited": 83398614203455373932},
+    "3": {"margin": "WETH", "base": "USDC", "poolOwner": "0xb79714634895f52a4f6a75ecEb58C96246370149", "note": "poolOwner is the 2024 exploit contract; pair empty", "lastUpdateTimestamp": 1715672488}
+  },
+  "pool_balances_at_block": {
+    "USDC_native": 0,
+    "USDCe": 8603,
+    "WETH": 0,
+    "ARB": "82829455040000000000",
+    "approx_usd": 15.11,
+    "prices": {"ARB": 0.18226393, "WETH": 2403.7264, "USDC": 0.9994678}
+  },
+  "defillama_predy_v2": {"tvl_usd": 12332.77, "tokens": {"USDC": 12068.50242, "WETH": 0.1128}, "note": "does not match named pool contract (~$15); adapter projects/predy/index.js absent from DefiLlama-Adapters@main"},
+  "historical_exploit": {
+    "date": "2024-05-14",
+    "loss_usd": 464000,
+    "tx": "0xbe163f651d23f0c9e4d4a443c0cc163134a31a1c2761b60188adcfd33178f50f",
+    "attacker": "0x76b02ab483482740248e2ab38b5a879a31c6d008",
+    "attack_contract": "0xb79714634895f52a4f6a75ecEb58C96246370149",
+    "poc": "DeFiHackLabs src/test/2024-05/PredyFinance_exp.sol"
+  },
+  "poc": {"tests_passed": 5, "tests_total": 5, "file": "poc/test/PredyRegisterPair.t.sol"},
+  "verdict": "CLOSED — E-U $0; pass5 empty revert was a mis-probe (correct calldata yields CallerIsNotOperator)"
+}
