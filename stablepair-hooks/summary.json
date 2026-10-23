@@ -1,0 +1,45 @@
+{
+  "finding": "ZH4-PASS5-P5-04",
+  "title": "Uniswap StablePairHook / VolatilePairHook (UUPS v4 hooks) — documented same-block fee-cache 0-fee swap is LP fee-loss, not a drain",
+  "chains": ["ethereum", "arbitrum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 26253709,
+  "block_numbers": {"ethereum": 26253709, "arbitrum": 517464049},
+  "targets_checked": 3,
+  "live_targets": 3,
+  "closed_reasons": [
+    "Hook is fee-only: beforeSwap returns an LP-fee override; all 4 return-delta permission bits are OFF so swap amounts cannot be altered (getHookPermissions flags 0x3cc0 on all 3 targets).",
+    "Direct PoolManager.initialize reverts (_beforeInitialize unconditionally reverts InvalidInitializer); initializePool is onlyRole(POOL_INITIALIZER_ROLE).",
+    "updateFeeConfig/batchUpdateFeeConfig are onlyRole(CONFIG_MANAGER_ROLE).",
+    "Fees are uint24 and toFeeE6 clamps to MAX_FEE_E6=999998 and rounds up: never negative, never >100%, never 0-by-rounding-down.",
+    "The documented stale-cache 0-fee corrective swap is reproduced live, but a 0-fee swap still trades at the AMM curve price; a self round-trip is net-negative (verified -750001 uUSDC on 50000 USDC).",
+    "UUPS upgrade key is _authorizeUpgrade=onlyRole(DEFAULT_ADMIN_ROLE) (Uniswap governance timelock); _validateNewImplementation pins PoolManager + permission flags, so an upgrade cannot enable return-delta or directly move LP principal (privileged DoS/fee-capture only)."
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39916215969"]
+  },
+  "key_facts": [
+    "ETH StablePair proxy 0x0000113dCf4ADd69999Fad8F20F2b63F979bfcC0 -> impl 0x5f216d21b1c81346938eddc1df7e0111a0f64000 (EIP-1967 slot, ETH block 26253709).",
+    "ETH VolatilePair proxy 0x000022Ec4eBD6b12294396E852E4C3876b253Cc0 -> impl 0x1ddbf7215be4f8a7623b9b1b0255c6e1e3f6c000.",
+    "ARB StablePair proxy 0x630e9CaC0ffF557Bd3A01DAa111ed253c771Bcc0 -> impl 0x424e2f8d89eeab51af10669d149fbd4beb090000.",
+    "getHookPermissions() = bI+aI+bAL+aAL+bS+aS (flags 0x3cc0); return-delta flags all OFF on all 3 targets.",
+    "Roles: ETH DEFAULT_ADMIN_ROLE/CONFIG_MANAGER_ROLE = 0x1a9C8182C09F50C8318d769245beA52c32BE35BC (Etherscan 'Timelock'); POOL_INITIALIZER_ROLE = 0xfc43582532e90fa8726fe9cdb5fad48f4e487d27. ARB admin = 0x2bad8182c09f50c8318d769245bea52c32be46cd.",
+    "Live getFee: USDC/USDT (15,0); USDC/USDG (0,100); ETH/USDC (713,87); ARB USDG/USDC (100,0) — all <= 1e6.",
+    "PoC test_10: with the price cache forced to the opposite side of the reference, a same-block corrective swap is charged 0 E6; next block (fresh cache) the same swap pays 835 E6 — the source-documented primitive, reproduced.",
+    "PoC test_7: a fresh unprivileged account executes a real 0-fee swap (Swap event fee=0). PoC test_8: self round-trip net = -750001 uUSDC on 50000 USDC (no profit).",
+    "PoC test_9: toFeeE6 clamps to 999998, 0 stays 0, never negative/over-100% — no negative-fee drain.",
+    "Pooled TVL ceiling re-measured via Uniswap Gateway topV4Pools totalLiquidity.value: ETH stable $9,085,966 + ETH volatile $1,741,865 + ARB stable $1,005,830 = $11,833,661 (ceiling, not the prize)."
+  ],
+  "caveats": [
+    "The stale-cache state was forced with vm.store in the PoC to isolate the documented mechanism; the natural trigger requires a zero-liquidity in-block price crossing, not observed live.",
+    "The 0-fee primitive is LP fee-loss (bounded ~0.0835% observed, clamped <=99.9998% in an extreme depeg) and self-heals next block; it is not attacker principal profit.",
+    "Pooled TVL is an estimate from the Uniswap Gateway indexer (topV4Pools), a ceiling rather than a measured reserve.",
+    "VolatilePairHook fees are always >= the per-side baseline, so the 0-fee cache primitive applies only to StablePairHook.",
+    "Point-in-time 2026-10-23; fork-only PoC, no mainnet transactions."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from the Uniswap StablePair/VolatilePair hook family ($11.83M pooled): the documented same-block fee-cache 0-fee swap is real and fork-reproduced but only avoids LP fees (self round-trip is net-negative, fees never negative, no return-delta), while the UUPS upgrade key is a privileged DoS/fee-capture risk pinned against direct principal theft."
+}

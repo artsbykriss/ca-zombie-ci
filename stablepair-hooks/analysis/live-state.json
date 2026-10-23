@@ -1,0 +1,85 @@
+{
+  "captured_utc": "2026-10-23",
+  "chains": ["ethereum", "arbitrum"],
+  "blocks": {"ethereum": 26253709, "arbitrum": 517464049},
+  "targets": {
+    "ethereum_stablepair": {
+      "proxy": "0x0000113dCf4ADd69999Fad8F20F2b63F979bfcC0",
+      "implementation_eip1967": "0x5f216d21b1c81346938eddc1df7e0111a0f64000",
+      "eip1967_admin_slot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "proxy_code_bytes": 135,
+      "impl_code_bytes": 18263,
+      "contract_name": "StablePairHook (UUPS behind ERC1967Proxy)",
+      "poolManager": "0x000000000004444c5dc75cB358380D2e3dE08A90",
+      "upgrade_interface_version": "5.0.0",
+      "permissions_14bit": "(bI,aI,bAL,aAL,bRL,aRL,bS,aS,bD,aD,bSD,aSD,aALD,aRLD)=(true,true,true,true,false,false,true,true,false,false,false,false,false,false) flags=0x3cc0",
+      "return_delta_flags": "ALL OFF",
+      "roles": {
+        "DEFAULT_ADMIN_ROLE": "0x1a9C8182C09F50C8318d769245beA52c32BE35BC (Etherscan name: Timelock)",
+        "CONFIG_MANAGER_ROLE": "0x1a9C8182C09F50C8318d769245beA52c32BE35BC",
+        "POOL_INITIALIZER_ROLE": "0xfc43582532e90fa8726fe9cdb5fad48f4e487d27",
+        "grant_block": 25947644
+      },
+      "pools": [
+        {"poolId": "0x2b21c65d9a7dc6926ee330a1c6e5a8037fd81774f3dc066536f800128e39f634", "pair": "USDC/USDT", "fee": "dynamic 0x800000", "tickSpacing": 1, "tvl_usd_gateway": 5562348.91, "getFee_zeroForOne_oneForZero": [19, 0]},
+        {"poolId": "0xeda62d2906d0edf26d40c793d581609552a44a87f618a98ff76ebe8dde4b7edb", "pair": "USDC/USDG", "fee": "dynamic 0x800000", "tickSpacing": 1, "tvl_usd_gateway": 3523617.49, "getFee_zeroForOne_oneForZero": [0, 100]}
+      ]
+    },
+    "ethereum_volatilepair": {
+      "proxy": "0x000022Ec4eBD6b12294396E852E4C3876b253Cc0",
+      "implementation_eip1967": "0x1ddbf7215be4f8a7623b9b1b0255c6e1e3f6c000",
+      "impl_code_bytes": 19055,
+      "contract_name": "VolatilePairHook (UUPS behind ERC1967Proxy)",
+      "poolManager": "0x000000000004444c5dc75cB358380D2e3dE08A90",
+      "permissions_14bit": "(true,true,true,true,false,false,true,true,false,false,false,false,false,false) flags=0x3cc0",
+      "return_delta_flags": "ALL OFF",
+      "roles": {
+        "DEFAULT_ADMIN_ROLE": "0x1a9C8182C09F50C8318d769245beA52c32BE35BC",
+        "CONFIG_MANAGER_ROLE": "0x1a9C8182C09F50C8318d769245beA52c32BE35BC",
+        "POOL_INITIALIZER_ROLE": "0xfc43582532e90fa8726fe9cdb5fad48f4e487d27",
+        "grant_block": 26219917
+      },
+      "pools": [
+        {"poolId": "0x98316e8405502774a5d0a0761276b5d26505a8195c1905169864008d5e7a3eea", "pair": "ETH/USDC", "fee": "dynamic 0x800000", "tickSpacing": 4, "tvl_usd_gateway": 1741864.82, "getFee_zeroForOne_oneForZero": [800, 0]}
+      ]
+    },
+    "arbitrum_stablepair": {
+      "proxy": "0x630e9CaC0ffF557Bd3A01DAa111ed253c771Bcc0",
+      "implementation_eip1967": "0x424e2f8d89eeab51af10669d149fbd4beb090000",
+      "impl_code_bytes": 18263,
+      "contract_name": "StablePairHook (UUPS behind ERC1967Proxy)",
+      "poolManager": "0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32",
+      "permissions_14bit": "(true,true,true,true,false,false,true,true,false,false,false,false,false,false) flags=0x3cc0",
+      "return_delta_flags": "ALL OFF",
+      "roles": {
+        "DEFAULT_ADMIN_ROLE": "0x2bad8182c09f50c8318d769245bea52c32be46cd",
+        "CONFIG_MANAGER_ROLE": "0x2bad8182c09f50c8318d769245bea52c32be46cd",
+        "POOL_INITIALIZER_ROLE": "0x3dd872203e8fc405622ddc02a69de3bd9d52c4f8",
+        "grant_block": 51263120
+      },
+      "pools": [
+        {"poolId": "0x52b42d5f1e4a0d4bce86667bb069cf257e512d98ce617f549f6e4fbb0bee41e6", "pair": "USDG/USDC", "fee": "dynamic 0x800000", "tickSpacing": 1, "tvl_usd_gateway": 1005829.64, "getFee_zeroForOne_oneForZero": [100, 0]}
+      ]
+    }
+  },
+  "pooled_tvl_usd_ceiling": {
+    "ethereum_stablepair": 9085966.40,
+    "ethereum_volatilepair": 1741864.82,
+    "arbitrum_stablepair": 1005829.64,
+    "total": 11833660.86,
+    "source": "Uniswap Gateway GraphQL topV4Pools (totalLiquidity.value), 2026-10-23",
+    "note": "This is the pooled LP TVL ceiling, NOT the prize. No attacker path to this principal was found."
+  },
+  "negative_results": [
+    "Direct PoolManager.initialize with the hook reverts: _beforeInitialize unconditionally reverts InvalidInitializer (BaseDynamicFeeHook.sol:80-82).",
+    "initializePool is onlyRole(POOL_INITIALIZER_ROLE); a fresh attacker reverts AccessControlUnauthorizedAccount.",
+    "updateFeeConfig / batchUpdateFeeConfig are onlyRole(CONFIG_MANAGER_ROLE).",
+    "getHookPermissions()/deployed address bits: return-delta flags beforeSwapReturnDelta, afterSwapReturnDelta, afterAddLiquidityReturnDelta, afterRemoveLiquidityReturnDelta are all OFF -> the hook cannot alter swapper amounts.",
+    "toFeeE6 clamps to MAX_FEE_E6 = 999998 (99.9998%) and never returns >1e6 or negative (uint24). No negative-fee primitive.",
+    "_authorizeUpgrade is onlyRole(DEFAULT_ADMIN_ROLE) -> UUPS upgrade key (Uniswap timelock) is a total-loss vector, but privileged (P), not E-U."
+  ],
+  "documented_primitive": {
+    "source": "BaseDynamicFeeHook/StablePairHook.sol _loadPrice comment: 'with zero active liquidity the price moves for free, so the cache can sit on the opposite side of the reference and a same-block corrective swap is charged 0. Needs a same-block mint, and self-heals next block.'",
+    "reproduced": "poc/test/StablePairHook.t.sol::test_10 — same-block corrective swap fee = 0 E6 with a stale cache; next block (fresh cache) the same swap pays 809-814 E6. LP fee-loss only; a self round-trip is net-negative."
+  }
+}
