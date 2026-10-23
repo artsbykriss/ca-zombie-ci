@@ -1,0 +1,45 @@
+{
+  "finding": "ZH4-P3-OPEN#3 (lane-dex-nonevm row 6)",
+  "title": "SaucerSwap V2 CLMM on Hedera — residual unprivileged-value review",
+  "chains": ["hedera"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 171.82, "S": 0},
+  "latest_block": 101461655,
+  "block_numbers": {"hedera": 101461655},
+  "targets_checked": 61,
+  "live_targets": 61,
+  "closed_reasons": [
+    "Pool positions keyed by msg.sender: a stranger's pool.collect/burn on another's tick range returns 0 (PoC test_Pool_stranger_cannot_collect_others_position)",
+    "NFPM decreaseLiquidity/collect/burn are gated by isAuthorizedForToken reading the HTS LP-NFT owner; nft is set once by deployer (onlyOnce) and immutable -> no cross-collection tokenId confusion (PoC non-owner reverts 'not authorized')",
+    "pool.collectProtocol is onlyFactoryOwner; pool native HBAR leaves only to rentPayer via the owner (PoC revert + positive)",
+    "Periphery safeTransferFrom -> HTS transferToken with explicit sender: the Hedera network enforces an owner-granted spender allowance when sender != caller, so it is equivalent to ERC20 transferFrom, not an arbitrary-from drain (docs.hedera.com HSCS security model v2)",
+    "payer in MintCallbackData/SwapCallbackData is always the external caller; multicall uses delegatecall preserving msg.sender -> no victim-as-payer injection",
+    "increaseLiquidity/mint are permissionless (canonical) but only add liquidity",
+    "No EIP-1967 proxy on factory/NFPM/router/quoter (impl slot 0) -> not upgradeable",
+    "LP NFT has supplyKey = NFPM only and no admin/kyc/freeze/wipe/pause keys -> serials cannot desync and no privileged NFT manipulation",
+    "Faithful 0.7.6->0.8.12 port of UniV3 core/periphery; audit UVP-02M addDelta nullification re-checked as valid"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Factory 0x00000000000000000000000000000000003c3951 (0.0.3946833), 24535 B, Sourcify exact; owner=0x...103179 EOA; rentPayer=0x...102556 EOA",
+    "mintFee=500000000 tinycents (~$0.05/mint); poolCreateFee=1e16 tinycents (~$1,000,000) -> pool creation frozen (last pool 2026-07-06)",
+    "NFPM 0x00000000000000000000000000000000003ddbb9 (0.0.4053945); LP NFT HTS 0.0.4054027 supplyKey=NFPM only, totalSupply 3881",
+    "56 pools enumerated via mirror-node PoolCreated logs; measured 2-sided TVL $17,614,148 (DefiLlama $15,888,282); top pools HBARX/HBAR $7.46M, USDC/HBAR $4.15M",
+    "Pool native HBAR from mint fees = 2,132.29 HBAR = $171.82 (P-class, only factory owner via collectProtocol)",
+    "Periphery contracts (router/NFPM/quoter/factory) hold 0 HBAR and 0 tokens at read time",
+    "PoolAddress.POOL_INIT_CODE_HASH recomputation reproduces on-chain USDC/HBAR pool 0xc5b707348da504e9be1bd4e21525459830e7b11d -> deployed pool bytecode == verified source",
+    "No proxies (EIP-1967 impl slot 0); Omniscia core+periphery audits (2023) findings all closed/nullified; Halborn 2026 covers a different (Universal Router/Permit2/UniswapX) stack"
+  ],
+  "caveats": [
+    "PoC is local (non-forked): Hedera HTS/HAS precompiles 0x167/0x168 are system contracts with no EVM bytecode, so a --fork-url fork cannot execute token paths; allowance enforcement is argued from Hedera's documented security model, not reproduced in the mock",
+    "TVL is a point-in-time 2026-10-23 read; DefiLlama vs measured differ by HBARX (staked HBAR) double-count handling",
+    "Protocol-fee accrual across all 56 pools was spot-checked only (e.g. USDC/HBAR feeProtocol=6/6)",
+    "Latent (not E-U today): permissionless refundETH/unwrapWHBAR/sweepToken on router/NFPM take any balance left in those contracts; single-EOA factory owner can change fees/rentPayer and sweep pool HBAR"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from SaucerSwap V2 (Hedera, $17.6M TVL): the CLMM is a faithful UniV3 fork, positions are msg.sender/NFT-owner keyed, collectProtocol is owner-only, and Hedera's network-enforced HTS allowances close the one arbitrary-from-looking path; only privileged surface is $171.82 of pool HBAR."
+}

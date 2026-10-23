@@ -1,0 +1,35 @@
+1,2c1,2
+< pragma solidity >=0.5.0;
+< import './BitMath.sol';
+---
+> pragma solidity ^0.8.0;
+> import {BitMath} from './BitMath.sol';
+4a5
+> unchecked {
+6c7,8
+< bitPos = uint8(tick % 256);
+---
+> bitPos = uint8(int8(tick % 256));
+> }
+13c15,16
+< require(tick % tickSpacing == 0);
+---
+> unchecked {
+> require(tick % tickSpacing == 0, 'TB:FT');
+17a21
+> }
+23a28
+> unchecked {
+32,33c37,38
+< ? (compressed - int24(bitPos - BitMath.mostSignificantBit(masked))) * tickSpacing
+< : (compressed - int24(bitPos)) * tickSpacing;
+---
+> ? (compressed - int24(uint24(bitPos - BitMath.mostSignificantBit(masked)))) * tickSpacing
+> : (compressed - int24(uint24(bitPos))) * tickSpacing;
+40,41c45,47
+< ? (compressed + 1 + int24(BitMath.leastSignificantBit(masked) - bitPos)) * tickSpacing
+< : (compressed + 1 + int24(type(uint8).max - bitPos)) * tickSpacing;
+---
+> ? (compressed + 1 + int24(uint24(BitMath.leastSignificantBit(masked) - bitPos))) * tickSpacing
+> : (compressed + 1 + int24(uint24(type(uint8).max - bitPos))) * tickSpacing;
+> }

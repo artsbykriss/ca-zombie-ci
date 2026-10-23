@@ -1,0 +1,30 @@
+1c1
+< pragma solidity >=0.5.0 <0.8.0;
+---
+> pragma solidity ^0.8.0;
+2a3,4
+> error T();
+> error R();
+7c9,10
+< function getSqrtRatioAtTick(int24 tick) internal pure returns (uint160 sqrtPriceX96) {
+---
+> function getSqrtRatioAtTick(int24 tick) public pure returns (uint160 sqrtPriceX96) {
+> unchecked {
+9,10c12,15
+< require(absTick <= uint256(MAX_TICK), 'T');
+< uint256 ratio = absTick & 0x1 != 0 ? 0xfffcb933bd6fad37aa2d162d1a594001 : 0x100000000000000000000000000000000;
+---
+> if (absTick > uint256(int256(MAX_TICK))) revert T();
+> uint256 ratio = absTick & 0x1 != 0
+> ? 0xfffcb933bd6fad37aa2d162d1a594001
+> : 0x100000000000000000000000000000000;
+33,34c38,41
+< function getTickAtSqrtRatio(uint160 sqrtPriceX96) internal pure returns (int24 tick) {
+< require(sqrtPriceX96 >= MIN_SQRT_RATIO && sqrtPriceX96 < MAX_SQRT_RATIO, 'R');
+---
+> }
+> function getTickAtSqrtRatio(uint160 sqrtPriceX96) public pure returns (int24 tick) {
+> unchecked {
+> if (!(sqrtPriceX96 >= MIN_SQRT_RATIO && sqrtPriceX96 < MAX_SQRT_RATIO)) revert R();
+166a174
+> }

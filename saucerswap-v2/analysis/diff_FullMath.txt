@@ -1,0 +1,28 @@
+1c1
+< pragma solidity >=0.4.0 <0.8.0;
+---
+> pragma solidity ^0.8.0;
+7a8
+> unchecked {
+16c17
+< require(denominator > 0);
+---
+> require(denominator > 0, 'FM:1');
+22c23
+< require(denominator > prod1);
+---
+> require(denominator > prod1, 'FM:2');
+31c32
+< uint256 twos = -denominator & denominator;
+---
+> uint256 twos = (0 - denominator) & denominator;
+51a53
+> }
+56a59
+> unchecked {
+59c62
+< require(result < type(uint256).max);
+---
+> require(result < type(uint256).max, 'FM:3');
+60a64
+> }

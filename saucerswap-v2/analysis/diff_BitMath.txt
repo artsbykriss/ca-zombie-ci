@@ -1,0 +1,21 @@
+1c1
+< pragma solidity >=0.5.0;
+---
+> pragma solidity ^0.8.0;
+3,4c3,5
+< function mostSignificantBit(uint256 x) internal pure returns (uint8 r) {
+< require(x > 0);
+---
+> function mostSignificantBit(uint256 x) public pure returns (uint8 r) {
+> require(x > 0, 'BM:1');
+> unchecked {
+35,36c36,39
+< function leastSignificantBit(uint256 x) internal pure returns (uint8 r) {
+< require(x > 0);
+---
+> }
+> function leastSignificantBit(uint256 x) public pure returns (uint8 r) {
+> require(x > 0, 'BM:2');
+> unchecked {
+73a77
+> }
