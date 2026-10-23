@@ -1,0 +1,37 @@
+{
+  "finding": "StakeDAO-Curator",
+  "title": "Pashov C-02 (missing `_update` override in StrategyWrapper used as Morpho collateral) — live state shows value-bearing markets run patched wrappers; pre-patch wrappers survive only in dust markets and yield $0 to an unprivileged attacker",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.0, "H-O": 19.0, "P": 0.0, "S": 85.47},
+  "latest_block": 26255442,
+  "block_numbers": {"ethereum": 26255442},
+  "targets_checked": 22,
+  "live_targets": 4,
+  "closed_reasons": [
+    "The 4 value-bearing Stake DAO Morpho markets ($629,606 collateral, $540,792 borrowed, backed by the $1.008M curator vaults) use PATCHED StrategyWrappers: transfer/transferFrom gated to the lending protocol; claimLiquidation has `require(liquidator != LENDING_PROTOCOL && liquidator != address(this))` + hole-clamp; reward settle always advances rewardPerTokenPaid. Fork-verified: claimLiquidation(MORPHO,...) reverts.",
+    "`_update` is still not overridden in either generation (C-02 recommendation not followed), but the patched generation removes the attack surface by construction, so C-02 has no reachable impact on live value.",
+    "The pre-patch wrapper code (no guard, no clamp, settle-only-if-nonzero) IS live in 17 dust markets (~$0 collateral). claimLiquidation(MORPHO, victim, amt) executes there, but the unwrapped RewardVault shares are sent to Morpho, so the caller gains 0 RV shares (fork-verified). Effect is griefing/DoS, not theft.",
+    "No unprivileged value-extraction path found; the largest residual (an orphaned 233.74 CRV pot ≈ $85.47 on pre-patch wrapper 0x3B85...) is bounded and conditional (needs a dust deposit before an integral increase + real RewardVault capital + time)."
+  ],
+  "poc": {"tests_passed": 4, "tests_total": 4, "ci_run_urls": []},
+  "key_facts": [
+    "Audit: pashov/audits team/md/StakeDAO-security-review_2025-07-21.md, C-02 CRITICAL 'Checkpoints are almost always outdated due to missing _update override', Acknowledged; review commit 2fc6613..., fixes-review 07874f7...",
+    "DefiLlama stake-dao-curator = $1,007,814 (USDC 359,371 + FRXUSD 648,443); curator vaults: USDC v2 0x8EDCC305E633d29BFB383872e79401c506cE9E6f (359,574.94 USDC), frxUSD v2 owner 0xB0552b6860CE5C0202976Db056b5e3Cc4f9CC765",
+    "22 Morpho Blue markets use a Stake DAO MorphoStrategyWrapper as collateral; 4 hold live value: 0x1f10c0899f (0x62923a64... $375,658.78), 0x4fbdeb7979 (0x12D706F0... $207,376.05), 0x35c92b233f (0x728c3B9E... $30,401.27), 0x328aadb887 (0xA31b5941... $16,170.41); total collateral $629,606.51, borrowed $540,792.99, all loan token frxUSD, LLTV 9.15e17",
+    "Patched wrappers (guard + NothingToClaim clamp + always-advance settle): 0x62923a64..., 0x12D706F0..., 0x728c3B9E..., 0xA31b5941..., 0x2f010444...; pre-patch wrappers: the other 17 (incl. 0x76589A67..., 0x3B855AA8...)",
+    "All wrappers deployed by EOA 0x794addd03889c2b96b16ad230e372b78964d9c76; wrapper owner() = address(0) (renounced); LENDING_PROTOCOL = Morpho Blue 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb; non-upgradeable",
+    "Fork reads @ block 26,255,442: W_FIX 0x6292... totalSupply = balanceOf(MORPHO) = 359,614.566...e18; W_OLD 0x7658... totalSupply 988.586...e18, balanceOf(MORPHO) = 0",
+    "Orphaned reward pot: pre-patch wrapper 0x3B855AA8CC56a3cBd5dBb5456F5A13Ce86AA0fe8 (stakedao-FrxMsUSD) holds 233,744,780,983,111,838,994 CRV at totalSupply = 1 wei (= $85.47 @ CRV $0.365743)",
+    "PoC 4/4 PASS: pre-patch missing-guard path executes but caller gains 0 RV shares; patched wrapper reverts (guard); legit off-track holder path settles fully; orphaned pot quantified"
+  ],
+  "caveats": [
+    "The audited repo stake-dao/contracts-monorepo is now private; stake-dao/lending-contracts-audit (commit da08e86, tree 5f4cb2dd) is the public current-main reference and matches the patched live bytecode. The literal 2025-07-21 audited commit could not be byte-diffed; deployed code is ground truth.",
+    "USD values are DefiLlama/Morpho-API snapshots at block 26,255,442 and move with the market; dust wrapper underlying (~$19) is a rough price-based estimate.",
+    "The orphaned-pot drain is reasoned from the source diff, not executed on-chain (it requires real-time Accountant integral growth).",
+    "Adjacent audit findings M-07/M-08/L-10 (Curve-LP oracle flash-loan manipulation) are out of C-02 scope and were not reduced to a live path here.",
+    "No mainnet transaction was signed or sent; all exploit mechanics ran on local forks."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: the 4 value-bearing Stake DAO Morpho markets ($629.6k collateral / $540.8k borrowed / $1.008M curator vaults) run PATCHED StrategyWrappers (claimLiquidation liquidator-guard + hole-clamp + always-advance reward settle), so Pashov C-02 is unreachable there; the pre-patch wrapper code survives only in 17 dust markets (~$0 collateral) where the missing-guard claimLiquidation(MORPHO,...) path executes but pays the caller $0 (griefing only); residual ~$104 (≈$19 dust underlying + ≈$85 orphaned reward pot) is S/H-O, not attacker-reachable."
+}

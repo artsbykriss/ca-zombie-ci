@@ -1,0 +1,392 @@
+--- StrategyWrapper.sol	2026-10-23 08:37:17.665212500 +0100
++++ /home/heisenberg/CA/stake-dao-curator/analysis/live_src__wrappers__StrategyWrapper.sol	2026-10-23 08:32:30.845212500 +0100
+@@ -7,10 +7,9 @@
+ import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
+ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+-import {IRewardVault} from "@strategies/src/interfaces/IRewardVault.sol";
++import {IRewardVault} from "src/interfaces/IRewardVault.sol";
+ import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
+-import {IStrategyWrapper} from "src/lending/interfaces/IStrategyWrapper.sol";
+-import {IProtocolController} from "@strategies/src/interfaces/IProtocolController.sol";
++import {IStrategyWrapper} from "src/interfaces/IStrategyWrapper.sol";
+ 
+ interface IAccountant {
+     /// @notice Tracks reward and supply data for each vault.
+@@ -48,12 +47,6 @@
+ ///        - While the ERC20 tokens are held (even as collateral in lending markets), users can claim both main protocol rewards and extra rewards
+ ///        - Handles the edge case where the main reward token is also listed as an extra reward
+ ///        - Integrates with Stake DAO's reward and checkpointing logic to ensure users always receive the correct rewards, regardless of the custody
+-///        - Extra reward transfers use a dual-mode failure strategy (TransferFailureMode):
+-///          during user-initiated claims, a failing transfer reverts to protect the user from silent reward loss;
+-///          during liquidation, a failing transfer is silently skipped so that reverting extra reward tokens
+-///          (e.g. blacklisted recipient, paused token) cannot block liquidation resolution and create bad debt.
+-///          As a complementary mitigation, the RewardVault registrar should avoid adding extra reward tokens
+-///          with custom transfer logic (pausable, blacklistable, etc.).
+ /// @dev   CRITICAL SECURITY ASSUMPTION: This contract assumes that no external
+ ///        contract can claim rewards on behalf of this contract. The RewardVault
+ ///        and Accountant must never implement claim-on-behalf-of functionality
+@@ -82,9 +75,6 @@
+     /// @notice Gauge backing the wrapped RewardVault
+     address internal immutable GAUGE;
+ 
+-    /// @notice The address of the protocol controller contract
+-    IProtocolController internal immutable PROTOCOL_CONTROLLER;
+-
+     /// @notice The address of the accountant contract
+     IAccountant internal immutable ACCOUNTANT;
+ 
+@@ -108,14 +98,6 @@
+         mapping(address token => uint256 amount) rewardPerTokenPaid;
+     }
+ 
+-    /// @notice Controls whether extra reward transfer failures revert or are silently skipped.
+-    /// @dev    Revert: used for user-initiated claims where losing rewards is unacceptable.
+-    ///         Silent: used during liquidation where protocol liveness takes priority over extra rewards.
+-    enum TransferFailureMode {
+-        Revert,
+-        Silent
+-    }
+-
+     /// @notice The ID of the lending market this token is expected to interact with
+     bytes32 public lendingMarketId;
+ 
+@@ -128,10 +110,6 @@
+     /// @dev    The main reward token is tracked by fetching the latest value from the Accountant.
+     mapping(address token => uint256 amount) public extraRewardPerToken;
+ 
+-    /// @notice Maps an account to its operator.
+-    /// @dev    The operator is the address that is allowed to deposit or claim on behalf of the account.
+-    mapping(address account => address operator) public operators;
+-
+     /// @dev The purpose of this transient variable is to ensure that this token can only be
+     /// used as collateral in the predefined lending market. When this variable is set to
+     /// false (the default value), transfers to the lending protocol are unauthorized.
+@@ -144,14 +122,14 @@
+     ///////////////////////////////////////////////////////////////
+ 
+     event Claimed(address indexed token, address indexed account, uint256 amount);
+-    event Deposited(address indexed caller, address indexed receiver, uint256 amount, bytes32 marketId);
++    event Deposited(address indexed user, uint256 amount, bytes32 marketId);
+     event Withdrawn(address indexed user, uint256 amount);
+     event Liquidated(address indexed liquidator, address indexed victim, uint256 amount);
+     event MarketAdded(bytes32 marketId);
+-    event OperatorSet(address indexed account, address indexed operator);
+ 
+     error ZeroAmount();
+     error ZeroAddress();
++    error InvalidTokens();
+     error InvalidMarket();
+     error MarketAlreadySet();
+     error WrapperNotInitialized();
+@@ -164,10 +142,6 @@
+     error InvalidDepositFlow();
+     /// @dev The caller must call `setAuthorization` on the lending protocol to authorize this contract to withdraw on behalf of the caller
+     error NotAuthorizedToWithdrawCollateral();
+-    /// @dev The caller is not allowed to deposit or claim on behalf of another account
+-    error Unauthorized();
+-    /// @dev An extra reward token transfer failed (returned false or reverted)
+-    error TransferFailed();
+ 
+     /// @param rewardVault The reward vault contract
+     /// @param lendingProtocol The lending protocol contract
+@@ -180,7 +154,6 @@
+ 
+         // Store the immutable variables
+         GAUGE = rewardVault.gauge();
+-        PROTOCOL_CONTROLLER = rewardVault.PROTOCOL_CONTROLLER();
+         ACCOUNTANT = accountant;
+         REWARD_VAULT = rewardVault;
+         MAIN_REWARD_TOKEN = IERC20(accountant.REWARD_TOKEN());
+@@ -217,23 +190,38 @@
+     // --- DEPOSIT
+     ///////////////////////////////////////////////////////////////
+ 
++    /// @notice Wrap **all** RewardVault shares owned by the caller into wrapper tokens (1:1 ratio)
++    /// @dev Use this when you ALREADY hold RewardVault shares.
++    ///      If you already have wrapped tokens, any pending main and extra rewards will be
++    ///      automatically claimed before the new deposit to prevent reward loss.
++    /// @custom:reverts ZeroAmount If the caller's share balance is zero
++    function depositShares() external {
++        depositShares(REWARD_VAULT.balanceOf(msg.sender));
++    }
++
+     /// @notice Wrap `amount` RewardVault shares into wrapper tokens (1:1 ratio)
+     /// @param amount Number of RewardVault shares the caller wants to wrap
+     /// @dev Use this when you ALREADY hold RewardVault shares and wish to wrap a specific portion of them.
+     ///      If you already have wrapped tokens, any pending main and extra rewards will be
+     ///      automatically claimed before the new deposit to prevent reward loss.
+-    /// @param receiver The address to receive the minted wrapper tokens
+     /// @custom:reverts ZeroAmount If `amount` is zero
+-    /// @custom:reverts Unauthorized if the caller is not allowed to deposit on behalf of the receiver
+-    function depositShares(uint256 amount, address receiver) public nonReentrant onlyInitialized {
++    function depositShares(uint256 amount) public nonReentrant onlyInitialized {
+         require(amount > 0, ZeroAmount());
+-        if (receiver == address(0)) receiver = msg.sender;
+-        require(_isAllowed(receiver), Unauthorized());
+ 
+         // 1. Transfer caller's shares to this contract (checkpoint)
+         IERC20(address(REWARD_VAULT)).safeTransferFrom(msg.sender, address(this), amount);
+ 
+-        _deposit(receiver, amount);
++        _deposit(msg.sender, amount);
++    }
++
++    /// @notice Convert **all** underlying LP tokens owned by the caller into RewardVault
++    ///         shares and immediately wrap those shares into wrapper tokens (LP → share → wrapper)
++    /// @dev Use this when you DO NOT own RewardVault shares yet, only the raw LP tokens.
++    ///      If you already have wrapped tokens, any pending main and extra rewards will be
++    ///      automatically claimed before the new deposit to prevent reward loss.
++    /// @custom:reverts ZeroAmount If the caller's LP balance is zero
++    function depositAssets() external {
++        depositAssets(IERC20(REWARD_VAULT.asset()).balanceOf(msg.sender));
+     }
+ 
+     /// @notice Convert `amount` underlying LP tokens into RewardVault shares and
+@@ -243,34 +231,30 @@
+     ///      and wish to wrap a specific portion of them.
+     ///      If you already have wrapped tokens, any pending main and extra rewards will be
+     ///      automatically claimed before the new deposit to prevent reward loss.
+-    /// @param receiver The address to receive the minted wrapper tokens
+     /// @custom:reverts ZeroAmount If `amount` is zero
+-    /// @custom:reverts Unauthorized if the caller is not allowed to deposit on behalf of the receiver
+-    function depositAssets(uint256 amount, address receiver) public nonReentrant onlyInitialized {
++    function depositAssets(uint256 amount) public nonReentrant onlyInitialized {
+         require(amount > 0, ZeroAmount());
+-        if (receiver == address(0)) receiver = msg.sender;
+-        require(_isAllowed(receiver), Unauthorized());
+ 
+         // 1. Get RewardVault's shares by depositing the underlying protocol LP tokens (checkpoint)
+         IERC20(REWARD_VAULT.asset()).safeTransferFrom(msg.sender, address(this), amount);
+         uint256 shares = REWARD_VAULT.deposit(amount, address(this), address(this));
+ 
+-        _deposit(receiver, shares);
++        _deposit(msg.sender, shares);
+     }
+ 
+-    function _deposit(address receiver, uint256 amount) internal {
++    function _deposit(address account, uint256 amount) internal {
+         // 1. Update the user checkpoint
+-        _updateUserCheckpoint(receiver, amount);
++        _updateUserCheckpoint(account, amount);
+ 
+         // 2. Mint wrapped tokens (1:1)
+         _update(address(0), address(this), amount);
+ 
+         // 3. Supply the minted tokens as collateral to the expected lending market
+         depositUnlocked = true;
+-        _supplyLendingProtocol(receiver, amount);
++        _supplyLendingProtocol(account, amount);
+         depositUnlocked = false;
+ 
+-        emit Deposited(msg.sender, receiver, amount, lendingMarketId);
++        emit Deposited(account, amount, lendingMarketId);
+     }
+ 
+     ///////////////////////////////////////////////////////////////
+@@ -289,6 +273,11 @@
+         withdraw(amount);
+     }
+ 
++    /// @notice Withdraws all the assets and claims pending rewards for the caller
++    function withdraw() external {
++        withdraw(balanceOf(msg.sender));
++    }
++
+     /// @notice Withdraws the given amount of assets and claims main/extra pending rewards
+     /// @param amount Amount of wrapped tokens to burn
+     /// @custom:reverts ZeroAmount if the given amount is zero
+@@ -296,7 +285,7 @@
+         require(amount > 0, ZeroAmount());
+ 
+         // 1. Claim all the pending rewards (main + extra)
+-        _claimAllRewards(msg.sender, TransferFailureMode.Revert);
++        _claimAllRewards(msg.sender);
+ 
+         // 2. Update the internal user checkpoint
+         UserCheckpoint storage checkpoint = userCheckpoints[msg.sender];
+@@ -316,14 +305,9 @@
+     ///////////////////////////////////////////////////////////////
+ 
+     /// @notice Claims the caller's main reward token for himself
+-    /// @param receiver The address to receive the claimed rewards
+-    /// @custom:reverts Unauthorized if the caller is not allowed to claim on behalf of the receiver
+     /// @return amount Amount of main reward tokens claimed
+-    function claim(address receiver) external nonReentrant returns (uint256 amount) {
+-        if (receiver == address(0)) receiver = msg.sender;
+-        require(_isAllowed(receiver), Unauthorized());
+-
+-        return _claim(receiver);
++    function claim() external nonReentrant returns (uint256 amount) {
++        return _claim(msg.sender);
+     }
+ 
+     function _claim(address account) internal returns (uint256 amount) {
+@@ -357,42 +341,20 @@
+     }
+ 
+     /// @notice Claims all the caller's extra reward tokens for himself
+-    /// @param receiver The address to receive the claimed rewards
+-    /// @custom:reverts Unauthorized if the caller is not allowed to claim on behalf of the receiver
+     /// @return amounts Array of claimed amounts
+-    function claimExtraRewards(address receiver) external nonReentrant returns (uint256[] memory amounts) {
+-        if (receiver == address(0)) receiver = msg.sender;
+-        require(_isAllowed(receiver), Unauthorized());
+-
+-        return _claimExtraRewards(REWARD_VAULT.getRewardTokens(), receiver, TransferFailureMode.Revert);
++    function claimExtraRewards() external nonReentrant returns (uint256[] memory amounts) {
++        return _claimExtraRewards(REWARD_VAULT.getRewardTokens(), msg.sender);
+     }
+ 
+     /// @notice Claims the rewards for the given extra reward tokens for the caller
+-    /// @param receiver The address to receive the claimed rewards
+     /// @param tokens Array of extra reward tokens to claim
+-    /// @custom:reverts Unauthorized if the caller is not allowed to claim on behalf of the receiver
+     /// @return amounts Array of claimed amounts
+-    function claimExtraRewards(address receiver, address[] calldata tokens)
+-        external
+-        nonReentrant
+-        returns (uint256[] memory amounts)
+-    {
+-        if (receiver == address(0)) receiver = msg.sender;
+-        require(_isAllowed(receiver), Unauthorized());
+-
+-        return _claimExtraRewards(tokens, receiver, TransferFailureMode.Revert);
++    function claimExtraRewards(address[] calldata tokens) external nonReentrant returns (uint256[] memory amounts) {
++        return _claimExtraRewards(tokens, msg.sender);
+     }
+ 
+-    /// @param failureMode Controls behavior when an extra reward token transfer fails.
+-    ///        Revert: reverts the transaction (user-initiated claims, no silent reward loss).
+-    ///        Silent: skips the failed transfer (liquidation path, protocol liveness over extra rewards).
+-    /// @dev   Extra reward tokens are added by the RewardVault registrar. To mitigate this risk,
+-    ///        avoid registering extra reward tokens with custom transfer logic (pausable, blacklistable, etc.).
+-    function _claimExtraRewards(address[] memory tokens, address account, TransferFailureMode failureMode)
+-        internal
+-        returns (uint256[] memory amounts)
+-    {
+-        if (tokens.length == 0) return amounts;
++    function _claimExtraRewards(address[] memory tokens, address account) internal returns (uint256[] memory amounts) {
++        require(tokens.length > 0, InvalidTokens());
+         require(account != address(0), ZeroAddress());
+ 
+         // 1. Update the reward state for all the extra reward tokens
+@@ -410,17 +372,8 @@
+             if (reward > 0) {
+                 checkpoint.rewardPerTokenPaid[token] = extraRewardPerToken[token];
+                 amounts[i] = reward; // Store the claimed amount
+-
+-                try IERC20(token).transfer(account, reward) returns (bool success) {
+-                    if (!success) {
+-                        if (failureMode == TransferFailureMode.Revert) revert TransferFailed();
+-                        continue;
+-                    }
+-                } catch {
+-                    if (failureMode == TransferFailureMode.Revert) revert TransferFailed();
+-                    continue;
+-                }
+-
++                // ! safeTransfer would allow the account to block liquidation
++                ERC20(token).transfer(account, reward);
+                 emit Claimed(token, account, reward);
+             }
+         }
+@@ -429,10 +382,9 @@
+     }
+ 
+     /// @notice Claims pending main + extra rewards for the account
+-    /// @param failureMode Controls behavior when an extra reward token transfer fails.
+-    function _claimAllRewards(address account, TransferFailureMode failureMode) internal {
++    function _claimAllRewards(address account) internal {
+         _claim(account);
+-        _claimExtraRewards(REWARD_VAULT.getRewardTokens(), account, failureMode);
++        _claimExtraRewards(REWARD_VAULT.getRewardTokens(), account);
+     }
+ 
+     ///////////////////////////////////////////////////////////////
+@@ -446,7 +398,7 @@
+         bool hasExistingBalance = checkpoint.balance != 0;
+ 
+         // 2. For existing users, claim rewards first (this already updates checkpoints)
+-        if (hasExistingBalance) _claimAllRewards(account, TransferFailureMode.Revert);
++        if (hasExistingBalance) _claimAllRewards(account);
+ 
+         checkpoint.balance += amount;
+ 
+@@ -580,11 +532,6 @@
+         require(liquidator != address(0) && victim != address(0), ZeroAddress());
+         require(liquidatedAmount > 0, ZeroAmount());
+ 
+-        // The lending protocol and this contract are never valid liquidators. Both can carry an
+-        // off-track balance that did not originate from a genuine liquidation, so neither must be
+-        // allowed to satisfy the off-track check below.
+-        require(liquidator != LENDING_PROTOCOL && liquidator != address(this), InvalidLiquidation());
+-
+         // 1. Check that the liquidator own the claimed amount and that it's off-track
+         //    Because token is untransferable (except by the lending protocol), the only way
+         //    to have an off-track balance is to get it from liquidation executed by the lending protocol.
+@@ -603,9 +550,7 @@
+         require(internalVictimBalance - victimBalance >= liquidatedAmount, InvalidLiquidation());
+ 
+         // 4. Claim the accrued rewards for the victim and reduce his internal balance
+-        //    Silent: extra reward transfer failures are skipped to prevent reverting tokens
+-        //    (blacklisted, paused) from blocking liquidation resolution.
+-        _claimAllRewards(victim, TransferFailureMode.Silent);
++        _claimAllRewards(victim);
+         userCheckpoints[victim].balance -= liquidatedAmount;
+ 
+         // 5. Burn the liquidated amount and transfer the underlying RewardVault shares back to the liquidator
+@@ -616,41 +561,6 @@
+     }
+ 
+     ///////////////////////////////////////////////////////////////
+-    // --- PERMISSIONS
+-    ///////////////////////////////////////////////////////////////
+-
+-    /// @notice Checks if the caller is allowed to claim on behalf of another account.
+-    /// @param receiver The address of the receiver of the claim.
+-    /// @return True if the caller is allowed; false otherwise.
+-    /// @dev This function is expected to be used during a deposit flow to ensure the caller has permission
+-    ///      for the auto-claiming function that is automatically triggered when the receiver already owns some tokens.
+-    ///      In order to be allowed, the caller must:
+-    ///      - Be the receiver of the deposit or claim
+-    ///      - Be authorized by the receiver to deposit or claim on their behalf,
+-    ///        which is achieved by setting an operator for the receiver
+-    ///      - Be allowed by the protocol controller to claim on behalf of the receiver.
+-    ///        Only specific contracts have this permission, as granted by the Stake DAO's DAO.
+-    ///        Stake DAO's Router is expected to have this permission, allowing any user
+-    ///        to claim rewards from multiple StrategyWrappers at once
+-    function _isAllowed(address receiver) internal view returns (bool) {
+-        if (msg.sender == receiver) return true;
+-        if (operators[receiver] == msg.sender) return true;
+-        if (PROTOCOL_CONTROLLER.allowed(
+-                address(REWARD_VAULT), msg.sender, bytes4(keccak256("claim(address,address[],address)"))
+-            )) return true;
+-
+-        return false;
+-    }
+-
+-    /// @notice Sets the operator for the caller
+-    /// @param operator The address of the operator
+-    /// @dev The operator is the address that is allowed to deposit or claim on behalf of the caller
+-    function setOperator(address operator) external {
+-        operators[msg.sender] = operator;
+-        emit OperatorSet(msg.sender, operator);
+-    }
+-
+-    ///////////////////////////////////////////////////////////////
+     // --- GETTERS
+     ///////////////////////////////////////////////////////////////
+ 
+@@ -696,11 +606,6 @@
+         return REWARD_VAULT.decimals();
+     }
+ 
+-    /// @notice Monotonic wrapper version
+-    function version() external pure returns (uint256) {
+-        return 2;
+-    }
+-
+     ///////////////////////////////////////////////////////////////
+     // --- VIRTUAL FUNCTIONS
+     ///////////////////////////////////////////////////////////////

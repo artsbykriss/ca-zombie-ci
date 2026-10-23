@@ -1,0 +1,53 @@
+{
+  "finding": "StakeDAO-Curator",
+  "audit": "Pashov 2025-07-21 C-02 'Checkpoints are almost always outdated due to missing _update override' (CRITICAL, Acknowledged)",
+  "chain": "ethereum",
+  "snapshot_block": 26255442,
+  "defillama_protocol": {
+    "slug": "stake-dao-curator",
+    "tvl_usd": 1007814,
+    "breakdown": {"USDC": 359371.13, "FRXUSD": 648443.82},
+    "source": "https://api.llama.fi/protocol/stake-dao-curator"
+  },
+  "curator_vaults": {
+    "usdc_v1_metamorpho": "0x13AA4f80AD5F06cE4f1A3a3cA58C37059F0EE4c5",
+    "usdc_v2_morpho_vault_v2": "0x8EDCC305E633d29BFB383872e79401c506cE9E6f",
+    "frxusd_v2_morpho_vault_v2": "see DefiLlama registries/curators.js morphoVaultOwners 0xB0552b6860CE5C0202976Db056b5e3Cc4f9CC765",
+    "usdc_v2_total_assets_usdc": 359574.94
+  },
+  "morpho_blue": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+  "markets_collateralised_by_StrategyWrapper": {
+    "count": 22,
+    "source": "Morpho Blue API search 'stakedao', chainId 1"
+  },
+  "patched_wrappers": {
+    "property": "has liquidator!=LENDING_PROTOCOL guard + hole-clamp (NothingToClaim) + always-advance reward settle; transfers restricted to lending protocol",
+    "list": [
+      {"wrapper": "0x62923a64D7940be920FD5cdc27873Ab8eEc59F9F", "symbol": "stakedao-frxsUSDS", "marketId": "0x1f10c0899fdab5d90b11fd830d52c0c468ba8a7cde67deaa37bebbf512ac47ca", "collateral_usd": 375658.78, "loan": "frxUSD", "lltv": 915000000000000000},
+      {"wrapper": "0x12D706F0aDFF3BE5d9Fa119424A85388FeCD6960", "symbol": "stakedao-frxUsDOLA", "marketId": "0x4fbdeb7979204a25b8dec7e4ed65998d358d32debee19ae738202becc52ec4b8", "collateral_usd": 207376.05, "loan": "frxUSD", "lltv": 915000000000000000},
+      {"wrapper": "0x728c3B9Eb722F7aFC17F0D26A80d625C53059086", "symbol": "stakedao-crvfrxUSD", "marketId": "0x35c92b233f962d894b5558063c926aa44fab0a5178a176211543a63039edd328", "collateral_usd": 30401.27, "loan": "frxUSD", "lltv": 915000000000000000},
+      {"wrapper": "0xA31b5941F2e74d89bDC66632959FE6A152692920", "symbol": "stakedao-FrxMsUSD", "marketId": "0x328aadb887d060f3d03727f6baaee56ed88570a97dc2ab49b2064a9410ccfd06", "collateral_usd": 16170.41, "loan": "frxUSD", "lltv": 915000000000000000}
+    ],
+    "total_collateral_usd": 629606.51
+  },
+  "prepatch_wrappers": {
+    "property": "no liquidator guard, no hole-clamp, checkpoint only advanced when payout != 0",
+    "count": 17,
+    "markets_collateral_usd": "~0 (all dust)",
+    "largest_orphaned_reward_pot": {
+      "wrapper": "0x3B855AA8CC56a3cBd5dBb5456F5A13Ce86AA0fe8",
+      "symbol": "stakedao-FrxMsUSD (old)",
+      "total_supply_wei": 1,
+      "crv_balance": 233744780983111838994,
+      "crv_usd": 85.47,
+      "note": "orphaned CRV pot at dust supply; pre-patch settle can strand it (H-O/S); patched wrapper always advances checkpoint"
+    }
+  },
+  "key_reads": {
+    "W_FIX_0x6292_totalSupply": 359614566358212563354124,
+    "W_FIX_0x6292_Morpho_collateral": 359614566358212563354124,
+    "W_OLD_0x7658_totalSupply": 988586390165966585783,
+    "W_OLD_0x7658_Morpho_collateral": 0
+  },
+  "prices": {"CRV_usd": 0.3657432082664547, "source": "coins.llama.fi 2026-10-23"}
+}
