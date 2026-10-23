@@ -1,0 +1,48 @@
+{
+  "finding": "ZH4-PASS5-T3-CoW-GPv2Settlement",
+  "title": "CoW Protocol GPv2Settlement — GlueX/CIP-55 solver-allowance surface (live but not drainable)",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0.00, "P": 0.00, "S": 0.00},
+  "latest_block": 26253971,
+  "block_numbers": {"ethereum": 26253971},
+  "targets_checked": 105,
+  "live_targets": 1,
+  "closed_reasons": [
+    "All live spenders are msg.sender-bound standard routers/pools (UniswapV2Router02, SwapRouter/SwapRouter02, AggregationRouterV3/V4/V5, ZeroEx, Paraswap TokenTransferProxy/AugustusSwapper, Balancer Vault, DODO, PancakeRouter, DXswapRouter, ~60 Curve/Vyper pools)",
+    "Balancer Vault swap/batchSwap are gated by authenticateFor(funds.sender) (fork-verified revert)",
+    "CowExecutor (0x2FbB05d2, 0xf3fc03f5) value paths are onlyCowSettlementContract (source + fork-verified revert)",
+    "Solver helper 0x1d94BedC validates msg.sender is a genuine Uniswap V3 pool -> reverts 'UNIV3R: bad pool' (fork-verified); payer is the entry msg.sender",
+    "Solver helper 0x0500001f direct uniswapV3SwapCallback call does not move settlement funds (fork-verified)",
+    "RFQ venues (KyberSwapRFQ, BebopSettlement, current HashflowRouter 0x55084ee0, SwapFacade, AirSwap Swap) require a maker/MM signature over the order and use msg.sender as taker",
+    "GPv2Settlement's own fund-moving entries (settle, swap) are onlySolver; setPreSignature/invalidateOrder are owner-bound; freeFilledAmountStorage/freePreSignatureStorage are onlyInteraction; simulateDelegatecall* revert by construction",
+    "Users approve GPv2VaultRelayer, whose transferFromAccounts is onlySettlement",
+    "2023 SwapGuard 0xcd07a769 holds no live allowance for any held token; 0xc0e82c1e (2023 attacker contract) has empty code"
+  ],
+  "poc": {
+    "tests_passed": 17,
+    "tests_total": 17,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39921142500",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39960095505"
+    ]
+  },
+  "key_facts": [
+    "The settlement owns 221,541 Approval logs (owner=GPv2Settlement) across 104 distinct spenders and 2,532 distinct tokens, blocks 12,959,355..15,450,000+ (pass5's claim of 'no settlement-owned approvals found' is WRONG)",
+    "399 (spender, token) pairs are LIVE today across 72 spenders: allowance(settlement, spender) > 0 AND settlement balanceOf(token) > 0",
+    "Settlement buffer at block 26,253,971 = $2,931.92 (DefiLlama prices); excludes unpriced imBTC (0.00132) and SLP (50,142) => ~$3.0k",
+    "Legacy HashflowRouter 0xF6a94dfD0E6ea9ddFdFfE4762Ad4236576136613 is still live/unpaused with a max allowance from the settlement and executes baseToken.transferFrom(quote.trader, ...) from a calldata field BEFORE the MM-signature check (fork-verified: the pull executes; tx reverts without a valid quote)",
+    "The current HashflowRouter 0x55084ee0 uses transferFrom(_msgSender(), ...) - the legacy deployment is the unhardened one; this is the exact 2023 CoW-hack helper/mechanism (trader = settlement)",
+    "Direct attacker transferFrom(settlement, ...) reverts; the approved-spender control test shows an approved spender CAN pull the buffer (latent-risk model)",
+    "17/17 fork tests pass at block 26,253,971; no mainnet transactions"
+  ],
+  "caveats": [
+    "The legacy-Hashflow vector is conditional: it needs an authorised market maker to sign a quote naming the settlement as `trader` (the 2023 attacker did exactly this via the public RFQ API). Not provable read-only => unproven, medium confidence.",
+    "The global approval sweep covered 0-15.5M blocks plus per-token sweeps of every token the settlement holds; the 15.5M->head global sweep was truncated by RPC/DNS flakiness, so an unseen spender could exist in that window (bounded by the per-token sweeps).",
+    "imBTC and SLP are unpriced (illiquid/deprecated); the buffer total is a lower bound by that amount.",
+    "The buffer is volatile block-to-block (observed ~$1.5k and ~$2.9k within hours) due to solver internalisation and daily fee sweeps.",
+    "No transactions were sent; everything is read-only fork/source analysis."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from CoW GPv2Settlement: the settlement owns ~400 live token allowances to ~104 spenders (a far larger surface than pass5 reported) but every one is msg.sender-bound, auth-gated or signature-gated, fork-verified; the only residual is a live max allowance to the legacy Hashflow router 0xF6a94dfD, whose tradeRFQT pulls from the calldata `trader` field before the MM-signature check (conditional on an MM-signed quote naming the settlement)."
+}
