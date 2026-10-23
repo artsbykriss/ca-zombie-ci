@@ -1,0 +1,45 @@
+{
+  "finding": "capyfi-angle",
+  "title": "CapyFi — distinct Apr-2026 access-control disclosure (mint-only whitelist): E-U $0 for the ~$5.1M cash; not additive to ZH2 C2-13",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 5160241, "P": 20301, "S": 2010},
+  "latest_block": 26255377,
+  "block_numbers": {"ethereum": 26255377},
+  "targets_checked": 13,
+  "live_targets": 11,
+  "closed_reasons": [
+    "mint whitelist live and enforced on every mint path (caLAC/caRPC): non-whitelisted mint reverts 'WhitelistAccess: not whitelisted', including via delegateToImplementation",
+    "the disclosed 'required security control' is the mint-only whitelist (borrow/redeem/transfer not gated) — a KYC/AML design gap, not a value-extraction primitive",
+    "extraction of the ~$5.1M cash impossible: zero-collateral borrow reverts BorrowComptrollerRejection(4); borrow capped at CF*collateral (<=85%) => net negative",
+    "oracle + all price feeds owner-gated (Ownable2Step / onlyAuthorized); no permissionless price manipulation",
+    "all admin/parameter functions admin(multisig)-gated; pauseGuardian=0, borrowCapGuardian=0",
+    "only live shortfalls are uncollectible bad debt (~$2,010) with ~$0 seizable collateral"
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39953549604"]
+  },
+  "key_facts": [
+    "Unitroller 0x0b9af1fd73885aD52680A1aeAa7A3f17AC702afA, Comptroller impl 0x00dc4965916e03A734190fA382633657c71f867E (verified)",
+    "Whitelist proxy 0x302a893B1AC44fed29Cdf3e3a0a083d1Df3ce54E isActive()=true; WHITELISTED_ROLE members = 0xBac110FF.., 0x9FB13A7d.., 0xB6E17577.. (the only mint-authorized accounts)",
+    "whitelist set ONLY on caLAC (0x0568..3B50) and caRPC (0xF611..4c32); all other 11 markets have whitelist()==address(0)",
+    "mintInternal(uint) is modifier _checkWhitelist(msg.sender); borrow/redeem/transfer/liquidate are NOT whitelist-gated (Comptroller mintAllowed/borrowAllowed/redeemAllowed have no whitelist logic)",
+    "Apr-2026 disclosure (Reddit r/bugbounty 1s9n881, 2026-04-01, AWX-Houcine): 'complete bypass of a required security control, allowing permissionless access to restricted assets'; team closed as 'intentional design'; no function named",
+    "independent July-2026 audit writeup records the same control as design note I-01 'Mint whitelist does not gate borrow'",
+    "live cash in the 4 real-asset markets = $5,160,241 (1.238M USDT + 0.365M USDC + 1,251.8 ETH + 6.861 WBTC); total protocol cash across all markets = $48,955,771 incl. caRPC $41,991,954",
+    "supplier claims (H-O) across all markets = $56,461,007; admin reserves (P) = $20,301",
+    "bad debt: full scan of 36 borrowers finds 5 shortfall accounts totalling $2,059.87 (largest $2,007.95; then $48.41, $1.89, $1.42, $0.21), all with liquidity $0 and ~$0 seizable collateral => uncollectible dust",
+    "prices (CapyFi oracle @26,255,377): ETH $2,396.35, WBTC $81,428.75, LAC $0.009955, RPC $0.010267, USDT $0.9989, USDC $0.9999",
+    "not additive to ZH2 C2-13: C2-13 already concluded the lending protocol itself is $0 and named the caLAC/caRPC mint whitelist as the reason; C2-13's non-zero E-U (~$105/day) came from the separate stBTC YieldOracle leak, not this surface"
+  ],
+  "caveats": [
+    "the disclosure does not name the affected function; the mapping to the mint-only whitelist is a reconstruction from live code + CapyFi audit-docs + the July-2026 audit (I-01). A mint-whitelist bypass is disproven on-chain today",
+    "the reporter's 5.5B-token / 62% / $55M team redemption could not be pinned to an Ethereum Unitroller Redeem event (caRPC has zero Redeem events in 2026; caLAC/caWARS far smaller) — possibly another CapyFi chain or route; immaterial to the today-E-U verdict",
+    "fork RPC = keyless publicnode; USD at fork time using CapyFi's own oracle",
+    "read-only; fork-only PoC; no mainnet transactions; no secrets in this folder"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 from CapyFi via the Apr-2026 access-control angle: the 'required security control' is a mint-only whitelist that is live and enforced on every mint path, the disclosed gap only lets non-whitelisted users borrow/redeem the KYC-restricted LAC/RPC (a design choice, no free value), the ~$5.1M cash is supplier-owned (H-O) and over-collateralised, the oracle and all admin functions are gated, and the only shortfalls are ~$2.0k uncollectible bad debt — not additive to ZH2 C2-13."
+}

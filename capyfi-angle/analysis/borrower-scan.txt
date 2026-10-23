@@ -1,0 +1,13 @@
+# Complete borrower-health scan — CapyFi Unitroller markets (block 26,255,377, keyless publicnode)
+# Method: collect every distinct borrower from full-history Borrow logs of caUSDT/caUSDC/caETH/caWBTC/caLAC/caRPC,
+#         then read getAccountLiquidity() for each.
+borrowers_checked = 36
+accounts_with_shortfall = 5
+  0x7cca923387a3ce8d1f36354f8385aa9045798d51   shortfall $2,007.95   liquidity $0
+  0xced20c61a72d6ed57eca5afbcaff6f9a5d1e9e77   shortfall $   48.41   liquidity $0
+  0x492d255234c83f2ddc5aa904d8a9db6743e9f046   shortfall $    1.89   liquidity $0
+  0x1e1c8a2bda1ee312a373f9ced6d1037aa1e5918f   shortfall $    1.42   liquidity $0
+  0x54c32309b67e72bd44899e46ec630d14eb96125f   shortfall $    0.21   liquidity $0
+total_shortfall_usd = 2,059.87   (all liquidity 0 => undercollateralised)
+# The 4 cash markets' $5.16M is fully over-collateralised: no account holds borrow power against it
+# that exceeds its own posted collateral (borrow is capped at CF*collateral <= 85%).
