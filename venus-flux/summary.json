@@ -1,0 +1,45 @@
+{
+  "finding": "ZH4-pass3 row 8 (OPEN #5) — Venus Flux",
+  "title": "Venus Flux (Instadapp Fluid) BSC — wstUSR oracle prices a de-pegged redemption rate; market fully paused",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 129326623,
+  "block_numbers": {"bsc": 129287349, "bsc_pause_probe": 129324974, "bsc_oracle_reads": 129326623},
+  "targets_checked": 35,
+  "live_targets": 33,
+  "closed_reasons": [
+    "wstUSR oracle (Fluid GenericOracle_WSTUSR_USDT 0xc0767760.. / CappedRateChainlink_WSTUSR 0x4c38911E..) returns the wstUSR->stUSR REDEMPTION rate 1.13297 USDT/wstUSR (source 0xA40a0dC2 = 'WSTUSR-STUSR Exchange Rate') while USR permanently de-pegged on 2026-03-22 (USR=$0.0734, wstUSR=$0.0831) -> ~13.6x over-valuation",
+    "Every wstUSR vault (T1 wstUSR/USDT 0x3996464c.., wstUSR/USDC 0xeAEf5630.., T2 0xF74cb9D6.., T3/T4) has Liquidity-layer borrowLimit = 1 wei (borrowable = 0)",
+    "Liquidity layer per-user pause bit 255 = 1 for wstUSR supply on every wstUSR vault + the wstUSR/USDT DEX, and for USDT/USDC borrow on those vaults -> UserModule__UserPaused (supply, withdraw, borrow, payback all blocked)",
+    "Fluid DEX wstUSR/USDT 0x3C0441B4.. has maxSupplyShares=0, maxBorrowShares=0 and dexVariables2 bit255 (swap/arbitrage paused)=1; only that pool is paused -> swapIn reverts FluidDexError(51043)",
+    "Existing wstUSR positions are dust (NFT 38: 0.7 wstUSR/0.449 USDT; NFT 37: 0.5 wstUSR/0.263 USDC, both owned by Instadapp multisig 0x4F6F977a..) and frozen (withdraw reverts UserPaused / Vault__PositionAboveCF)",
+    "No other listed token is mis-priced: BNB/ETH/BTCB/wBETH/syrupUSDT/asBNB/U oracles all within ~0.5% of market",
+    "SmartLendingFactory.totalSmartLendings() = 0; no vault has wstUSR as debt token"
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Venus Flux (flux.venus.io/lending/56) is an Instadapp Fluid deployment on BSC, not Venus's own lending code; artefacts in Instadapp/fluid-contracts-public deployments/bnb/",
+    "Live TVL (block 129287349): supply ~$1,849,728 @oracle, borrow ~$1,174,516 (DefiLlama 2026-10-20: $1.88M/$1.22M)",
+    "listedTokens = [BNB, USDC, USDT, BTCB, ETH, wBETH, syrupUSDT(0x8E9d..), wstUSR(0x4254..), U(0xcE24..), asBNB(0x7773..)]",
+    "wstUSR oracle = 1132966158918315225000000000 (1.132966e27) vs market wstUSR $0.0831 -> ~13.6x over-valued; source is CappedRate over rateSource 0xA40a0dC2 ('WSTUSR-STUSR Exchange Rate')",
+    "Resolv USR exploit 2026-03-22 (80M unbacked USR minted via compromised signing key); Fluid had ~$21M bad debt across six wstUSR vaults on Ethereum before pausing the market",
+    "BSC wstUSR market is fully frozen: vault borrowLimit=1, Liquidity user-pause bits set, DEX swap paused, DEX share caps 0",
+    "Global Liquidity-layer borrowable stablecoins: USDT 238,935.66, USDC 26,684.33, U 208.34",
+    "Latent (re-arm) magnitude ~$244k net profit: 1.0197 USDT borrow capacity per wstUSR vs ~$0.083 market cost"
+  ],
+  "caveats": [
+    "E-U is $0 because of an explicit governance lockdown (pause bits + 1-wei borrow limit + DEX pause), not because the oracle is correct; the mis-pricing remains live in the oracle contract",
+    "Re-arm triggers: unpause via Fluid governance/guardians (Liquidity.updateUserSupplyConfigs/updateUserBorrowConfigs), a borrow-limit change, a new wstUSR listing, or any other chain with the same stale redemption-rate oracle and an open market",
+    "wstUSR BSC has no reliable independent market print (DefiLlama returns no bsc wstUSR price); the ~$0.083 value is the Ethereum wstUSR price (DefiLlama/CoinGecko) and wstUSR is a bridged OFT, so arbitrage should keep BSC at the same level",
+    "Existing wstUSR positions are dust (~$0.10 at market, $0.71 debt) and team-owned; the 'stuck' value is economically ~$0",
+    "Verified-source vs deployed-bytecode: the deployed Liquidity operate module 0x3c065142.. reverts FluidLiquidityError(10998) which is UserModule__UserPaused in the deployed build (bytecode contains PUSH2 0x2afa); the repo HEAD renumbers it to 11002",
+    "Reads are point-in-time 2026-10-23; governance can change pause/limit state at any block"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from Venus Flux on BSC: the wstUSR oracle is broken (prices a permanently de-pegged redemption rate at 1.133 vs a ~$0.083 market, ~13.6x too high) but Fluid has fully frozen the wstUSR market (borrow limit 1 wei, user-pause bits, DEX swap paused, DEX share caps 0), so the ~$244k latent over-borrow is not currently reachable"
+}
