@@ -1,0 +1,100 @@
+# Ledgity Yield — deployed impl source vs repo fix
+# deployed impl 0x4D462f5fD60b1E4CB3057856D4fce85B48d80bD9 (verified, solc 0.8.18, optimizer runs=1)
+# repo: LedgityLabs/ledgity-v2-contracts
+# deployed source is byte-identical to commit f7f76d2 (2026-07-05)
+# '---' = repo HEAD (0531f04; == f6ec0e0 for src)  '+++' = DEPLOYED (pre-fix)
+
+########## src/protocol-v2/modules/VaultLiquidityModule.sol  (changed lines: 6)
+@@ -378,8 +378,8 @@
+ 
+     if (0 < feeShares) {
+       _mint(feeRecipient, feeShares);
++      lastFeeTime = block.timestamp;
+     }
+-    lastFeeTime = block.timestamp;
+ 
+     if (highWaterMark < pricePerShare) {
+       highWaterMark = pricePerShare;
+@@ -443,11 +443,6 @@
+       RAY < withdrawalRate_
+     ) revert RateAboveHundredPercent();
+ 
+-    // Start newly-enabled management fees from now instead of retroactively charging a zero-fee period.
+-    if (managementFeeRate == 0 && managementRate_ != 0) {
+-      lastFeeTime = block.timestamp;
+-    }
+-
+     managementFeeRate = managementRate_;
+     performanceFeeRate = performanceRate_;
+     withdrawalFeeRate = withdrawalRate_;
+
+########## src/protocol-v2/LedgityYieldVault.sol  (changed lines: 26)
+@@ -206,16 +206,13 @@
+     address from,
+     address to,
+     uint256 amount
+-  ) internal override(ERC20Upgradeable) whenNotPaused {
+-    //. @dev owner may bypass restrictions in order to burn/mint restricted account holding
+-    if (
+-      msg.sender != owner() &&
+-      (globalRestrict.isRestricted(from) ||
+-        globalRestrict.isRestricted(to))
+-    ) {
+-      revert UserIsRestricted();
+-    }
+-
++  )
++    internal
++    override(ERC20Upgradeable)
++    whenNotPaused
++    notRestricted(from)
++    notRestricted(to)
++  {
+     super._beforeTokenTransfer(from, to, amount);
+   }
+ 
+@@ -702,7 +699,6 @@
+    * @notice Request a withdrawal that will be processed asynchronously
+    * @param shares Amount of vault shares to withdraw
+    * @dev Requires gas fee payment and burns shares immediately
+-   * @dev Sending the full ETH balance is intended behaviour.
+    */
+   function requestWithdrawal(
+     uint256 shares
+@@ -761,8 +757,7 @@
+     address remintTo
+   ) public onlyOwner {
+     uint256 shares_ = balanceOf(burnFrom);
+-    _burn(burnFrom, shares_);
+-    _mint(remintTo, shares_);
++    _transfer(burnFrom, remintTo, shares_);
+   }
+ 
+   /**
+@@ -819,15 +814,13 @@
+     // Take fees before processing
+     harvestFees();
+ 
+-    // Calculate total assets needed for selected requests.
+-    // Mark each request processed here to catch duplicate IDs in the array.
++    // Calculate total assets needed for selected requests
+     uint256 assetsTotal;
+     for (uint256 i; i < requestIds.length; i++) {
+       ILedgityDataProvider.WithdrawalRequest
+         storage request = withdrawalRequests[requestIds[i]];
+ 
+       if (request.processed) revert RequestAlreadyProcessed();
+-      request.processed = true;
+ 
+       assetsTotal += request.amount;
+     }
+@@ -849,6 +842,8 @@
+       ILedgityDataProvider.WithdrawalRequest
+         storage request = withdrawalRequests[requestId];
+ 
++      // Mark as processed
++      request.processed = true;
+       // Transfer assets to user
+       IERC20(asset()).safeTransfer(request.user, request.amount);
+ 
+
