@@ -1,0 +1,47 @@
+{
+  "finding": "ZH4-PASS3-OPEN-10-APEX-OMNI",
+  "title": "ApeX Omni (zkLink X custody) — no unprivileged extraction; $30.28M privileged upgrade risk",
+  "chains": ["ethereum", "bsc", "arbitrum", "base", "mantle"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 30282912.41, "S": 0},
+  "latest_block": 26253751,
+  "block_numbers": {
+    "ethereum": 26253751,
+    "bsc": 129279796,
+    "arbitrum": 517465859,
+    "base": 52975103,
+    "mantle": 102304622
+  },
+  "targets_checked": 5,
+  "live_targets": 5,
+  "closed_reasons": [
+    "withdrawal processing (executeCompressedBlocks / executeBlocks) is onlyValidator and the block state must be SNARK-proven",
+    "proxy upgradeTarget / transferMastership are requireMaster (UpgradeGatekeeper, master = governor Gnosis Safe)",
+    "all periphery governance functions are onlyGovernor",
+    "permissionless withdrawal functions pay the rightful _owner and cannot redirect funds to the caller",
+    "acceptETH/acceptERC20 require the caller to pay the receiver first",
+    "proxy initialize() is intercepted (revert ini11) — no re-initialization"
+  ],
+  "poc": {
+    "tests_passed": 14,
+    "tests_total": 14,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "ApeX Omni custody is the zkLink X ZkLink/ZkLinkPeriphery proxy on each of 5 chains (ApeX-deployed per its force-withdrawal docs)",
+    "Ethereum 0x35D173cdfE4d484BC5985fDa55FABad5892c7B82 holds $17.33M; BSC $2.86M; Arbitrum $5.68M; Base $3.22M; Mantle $1.20M; total $30,282,912",
+    "Arbitrum is the zkLink master chain (chainId 9); totalBlocksProven == totalBlocksExecuted == 211104",
+    "UPGRADE_NOTICE_PERIOD == 0 on all chains; governor is a GnosisSafeProxy (threshold 4); master is an UpgradeGatekeeper contract",
+    "non-validator execute/commit revert '4'; non-master upgradeTarget revert '1c'; non-governor setters revert '3'; proxy initialize revert 'ini11'",
+    "withdrawPendingBalance(victim,...) pays victim (griefing only); acceptERC20 requires real payment",
+    "NEAR Intents $3.8M 'Omni' incident (2026-09-28) is a different protocol — not ApeX Omni"
+  ],
+  "caveats": [
+    "DefiLlama attributes the whole zkLink-X instance balance to ApeX Omni; if third parties share the instance the ApeX-specific share could be lower",
+    "P = privileged risk from the 0s-notice upgrade key (governor Safe), not an unprivileged path",
+    "SNARK verifier/circuit soundness and Safe signer set were not adversarially testable",
+    "USD values use DefiLlama spot prices at capture time (2026-10-23)"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from ApeX Omni; the ~$30.28M custody sits in validator-gated, SNARK-proven zkLink X contracts — the only material risk is the privileged 0-notice upgrade path (governor Safe)."
+}
