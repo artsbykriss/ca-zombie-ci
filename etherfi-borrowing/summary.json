@@ -1,0 +1,49 @@
+{
+  "finding": "ZH4-PASS3-OPEN-2-ETHERFI-BORROWING",
+  "title": "EtherFi Borrowing Market (Optimism, Aave V4 Cash Spoke) — public borrow gated, RWA feeds relay/Chainlink; E-U $0",
+  "chains": ["optimism"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 158580696,
+  "block_numbers": {"optimism": 158580696},
+  "targets_checked": 6,
+  "live_targets": 6,
+  "closed_reasons": [
+    "EtherFiSpokeInstance.borrow requires isEtherFiSafe(onBehalfOf); only the factory admin (ETHERFI_SAFE_FACTORY_ADMIN_ROLE) can create a Cash Safe, so an unprivileged caller can never satisfy the gate (fork-proven: revert OnlyEtherFiSafe 0xe883803e)",
+    "the only active position manager on the Spoke is the LendGateway (single UpdatePositionManager event ever); its borrow/withdraw/supply are onlyDriver (revert OnlyDriver 0xdf95dcac)",
+    "the CashModule signed-borrow path requires an owner-quorum EIP-191 signature and pays the borrowed funds to the Safe, never the caller",
+    "RWA feeds are OracleSinkPriceFeed (LayerZero-relayed from the mainnet PriceRelay, sink peer-gated via OnlyPeer) / ChainlinkPriceFeed (Chainlink aggregator) / ERC4626RatePriceFeed (issuer vault) — no OP-DEX-spot source exists (feed has no slot0())",
+    "liquidationCall requires healthFactor < 1e18; every RWA-collateralised Safe reads HF >> 1 (fork-proven revert HealthFactorNotBelowThreshold 0x930bb771)",
+    "Spoke.supply is permissionless (self is always a position manager) but non-extractive: Hub.add requires balanceOf(hub) >= liquidity and credits shares against a stored addedShares/liquidity index, so donations cannot inflate the share price",
+    "the Hub's second spoke is a TreasurySpokeInstance whose supply/withdraw/transfer are onlyOwner"
+  ],
+  "poc": {
+    "tests_passed": 8,
+    "tests_total": 8,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39956777484",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39955795395"
+    ]
+  },
+  "key_facts": [
+    "Cash Spoke proxy 0xdffcC3536D932eb51Df51a7F5FA407c4270d5308 -> impl EtherFiSpokeInstance 0xa1f75d801633a1941cae6670352d627884dc3b68 (verified, solc 0.8.28)",
+    "Cash Hub 0x66753c4e3fC84f1eD0e3C267C927284E9d90C572 -> HubInstance 0x697af34263bc8e5e6b0e6b0c37a1ec58cede2ce9; 29 assets, 2 spokes per asset",
+    "borrow gate reads EtherFiDataProvider 0xDC515Cb479a64552c5A11a57109C314E40A1A778 -> EtherFiSafeFactory 0xF4e147Db314947fC1275a8CbB6Cde48c510cd8CF deployedAddresses set (numContractsDeployed 563023)",
+    "only active position manager = LendGateway 0x01F8cDFb1694eA8fE4ED6c38a0fD78d1188E03F4 (impl 0x43d1c047cc32bc08507e9b27758acbddedf7083f), minHealthFactor 1.1e18, paused false",
+    "on-chain totals: ~$317.8M supply / ~$40.8M debt (DL: $300.6M/$43.2M); borrowable reserves 0 USDC,1 WETH,2 USDT,3 EURC,23 USD0; debt all in 0/1/2/3",
+    "76 Borrow events (blocks 155132710-155499634, 31 borrowers, reserves 0/1); 2298 SetUsingAsCollateral events / 1849 users incl. RWA reserves 19/20/21/22/24",
+    "OracleSink 0x7cb68ddc781153d9417E08bAf6A64e801e398d42 (impl 0x06a126e6c104bc5e63512be2aff9d5209a7c3e6a): peers(30101)=0x..c4d666b44daa8d6d12b84875384e08bae52afe19 (mainnet PriceRelay), paused=false",
+    "RWA feeds: iwSPYx 0x8b44..(OracleSinkPriceFeed, rateMaxStaleness 604800), iPAXG 0xaC28..(ChainlinkPriceFeed PAXG/USD), iwQQQx 0x7106.., iwTBLLx 0x81D0.., iPAXGy 0x9B92..; w*x reserves (26/27/28) ERC4626RatePriceFeed with 0 supply",
+    "gates proven by eth_call: borrow -> 0xe883803e OnlyEtherFiSafe(0x1111..1111); LendGateway.borrow -> 0xdf95dcac OnlyDriver()"
+  ],
+  "caveats": [
+    "USD totals use the protocol's own 8-decimal oracle prices; DefiLlama differs slightly",
+    "scope is the public-borrow path + RWA feeds + liquidations; the broader ether.fi Cash multi-sig/card surface was only spot-checked",
+    "7-day rateMaxStaleness on RWA feeds is a liveness/bad-debt risk (a stalled relay reverts the reserve), not attacker-triggerable profit",
+    "Spoke/Hub/LendGateway/OracleSink/DataProvider are upgradeable behind the ether.fi 24h timelock; the invariant 'no other position manager' and the borrow override depend on privileged roles (P risk, not counted)",
+    "fork block is a moving target; gate and feed structure are stable, price/debt numbers are point-in-time",
+    "the ether.fi Liquid AtomicQueue (Ethereum, 2026-09-11) is a different, prior-covered component (ZH1 C-07) and was not re-audited"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 from the ether.fi Cash Aave V4 instance on Optimism: public borrow is contract-gated to ether.fi Cash Safes (OnlyEtherFiSafe), the only position manager's borrow is driver-only (OnlyDriver), the RWA price feeds are LayerZero-relayed/Chainlink (no OP-DEX spot manipulation), and no RWA-collateralised position is liquidatable (HF >> 1)."
+}
