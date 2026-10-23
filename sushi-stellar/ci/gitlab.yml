@@ -1,0 +1,19 @@
+# GitLab CI fallback for ZH4-OPEN-B-Sushi-Stellar (Soroban / Stellar).
+# Used only if GitHub Actions is unavailable:
+#   bash /home/heisenberg/CA/ci/gitlab-run.sh sushi-stellar /home/heisenberg/CA/sushi-stellar/ci/gitlab.yml
+# READ-ONLY: the job only runs dry-run simulateTransaction + keyless ledger/event reads.
+stages: [verify]
+
+verify:
+  stage: verify
+  image: python:3.11-slim
+  timeout: 1h
+  script:
+    - python3 --version
+    - pip install --quiet --disable-pip-version-check "stellar-sdk>=16,<17"
+    - bash ci/run.sh
+  artifacts:
+    when: always
+    paths:
+      - ci-out/
+    expire_in: 1 week

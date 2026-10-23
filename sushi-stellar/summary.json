@@ -1,0 +1,47 @@
+{
+  "finding": "ZH4-OPEN-B-SUSHI-STELLAR",
+  "title": "Sushi Stellar (Soroban UniV3-style CLMM) — no unprivileged extraction path",
+  "chains": ["stellar"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 15117631, "S": 0},
+  "latest_block": 65094625,
+  "block_numbers": {"stellar": 65094625},
+  "targets_checked": 124,
+  "live_targets": 124,
+  "closed_reasons": [
+    "Every value-moving pool entry point requires the correct Soroban require_auth, verified live by simulateTransaction returning the required authorization entries: swap->sender; mint/burn/collect->position owner (PositionManager CARTUL5A...); collect_protocol->factory owner GC7RIP4D...; flash_begin/flash_end->immutable FlashExecutor CDKKPFB...; set_router_authorized->the factory contract; pause/upgrade/migrate/transfer_admin->the admin account.",
+    "swap_prefunded requires the factory-authorized router (CDMIM23W...) and otherwise returns #1 Unauthorized; when called by the authorized router it fails closed (#72 InsufficientToken0 / #73 InsufficientToken1) because the prefunded input is verified.",
+    "pool.swap pulls the input from `sender` (observed token.transfer(sender -> pool) in the dry-run event log), so an attacker can only spend their own tokens.",
+    "PositionManager (NFT) enforces NFT ownership: collect/decrease_liquidity on a third party's token_id -> #1007 Unauthorized; transfer_from -> #202; transfer -> #201; approve -> #203; set_admin/upgrade/revoke_upgrades_permanently/migrate -> require the admin's auth.",
+    "Router swap_exact_input* calls pool.swap(sender=user,...) (user pays); swap_exact_output* are unimplemented stubs; init_router -> #1 Unauthorized.",
+    "FlashExecutor has a single entry execute_flash_loan requiring user.require_auth(); pool.flash_end re-checks balance >= balance_before + expected_fee per token before releasing.",
+    "Legacy factory pools (pool wasm 95a8e001...) use the same auth model; that code version has no admin/upgrade/pause entry points at all.",
+    "Permissionless functions are by design and hold no funds: create_pool/create_and_initialize_pool/get_*; pool initialize (all pools already initialized -> #41), poke_oracle/observe*/snapshot_cumulatives_inside/quote_*."
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39960306325"]
+  },
+  "key_facts": [
+    "Stellar Soroban, public network. Factory (current) CD3KRKGDRVWPXVB3VXLUMQKMX6XZ6Q2H334IVZD4XXNAMKSRVQL5GLYF, 63 pools, pool WASM 003710b383f9da7d650a7f719a7be479110266427817ebbed61d924505fcd7c7 (confirmed via factory.get_pool_wasm_hash and SHA-256 of the mirror WASM).",
+    "It is a Uniswap-V3 concentrated-liquidity port (fee + tick_spacing, slot0, tick bitmap, fee_growth_global_*_x128, oracle observations, flash locks, protocol fees 0 or 4-10) — NOT a UniV2 AMM as the corpus label suggested.",
+    "DefiLlama TVL sushi-stellar = $15,117,631; independent on-chain re-derivation from token.balance(pool) over all 63 current pools is ~$15.0M (unpriced tokenized-treasury legs deJAAA/deJTRSY/PYUSD/USDY approximated at ~$1).",
+    "Protocol fee is ENABLED (get_protocol_fee_0/1 = 4/4); accrued uncollected protocol fees across current pools are ~$17,900 (XLM 48,313.86 = $8,538.88; USDC 9,195.53 = $9,191.59; plus ~$86 treasuries). Owner-gated (collect_protocol).",
+    "Sole owner/admin of factory, all pools, PositionManager and (via factory) the immutable FlashExecutor: account GC7RIP4D7UETKBZU7FNUYW5XIR2IPLUQDV2DUTZRKVF6C3P2A5QEDSZI. Upgrade not frozen and not permanently disabled -> owner-key compromise = $15.1M loss (P).",
+    "Immutable FlashExecutor = CDKKPFBNNQETVN4Y2CIU6CQMWCPIZDXDZE76IDSTF7HLQT6Q573PCDTH; router = CDMIM23WOUL5CZBKX3GOA3V5R5AMVIMTCP52KCDQORWELAPLJ27WZCHL; PositionManager = CARTUL5AWDZYBSN7HUUJZSKCAKCIAKM7M54Z76G6KRYCK4XPR3OHUQZ4.",
+    "Legacy factory CCRSMJDITH3VK5QOGYCVZDAKIY5GL3RCG4TCVLIAVB662IW2V5KJGZGF holds 61 pools (pool WASM 95a8e0018530226701ef8d31c7d4c2fe20ed9d7c303a14a70c3d96848ca4fa54) worth ~$44k; that pool version is immutable (no admin/upgrade).",
+    "Source repo is private (WASM embeds /home/shakes/.rustup and contracts/swap-router/src/{swap,quote,multi_hop}.rs); analysis used the deployed WASM via the public stellar-experimental/contract-wasms mirror (hashes byte-identical) plus the on-chain contract specs.",
+    "No transaction was signed or sent. All verification used Soroban simulateTransaction (dry run) and keyless ledger/event reads.",
+    "AMM-math spot check: the deployed pool's quote_exact_input matches a from-scratch reference UniV3 exact-input single-step formula BIT-FOR-BIT on the largest pool (USDT0/USDC) - after-swap sqrt_price_x96 and output amount identical for both directions; tick walking (tick -2 -> -5 -> -203, liquidity 5.11e16 -> 9.99e5) and price-limit handling behave correctly."
+  ],
+  "caveats": [
+    "Soroban has no EVM-style local fork; the read-only equivalent used here is simulateTransaction against mainnet state (executes real logic, does not apply state).",
+    "simulateTransaction records auth requirements rather than enforcing them, so a 'successful' dry run with a foreign auth target proves the requirement, not exploitability; this is the signal used.",
+    "The AMM/tick/fee-growth math was spot-checked (exact-input single step matches the reference UniV3 formula bit-for-bit; tick walking and price limits behave correctly) but not differentially fuzzed; a subtle logic bug on an untested edge cannot be fully excluded from name-stripped WASM. Confidence of a drainable math bug: low.",
+    "TVL is DefiLlama's figure plus an independent re-derivation; several tokenized-treasury tokens (deJAAA, deJTRSY, PYUSD, USDY, USDGLO, USDE, SolvBTC) have no DefiLlama Stellar price and were approximated at ~$1.",
+    "Point-in-time 2026-10-23 (ledger 65,094,566-65,094,625); re-read all state before acting. Nothing here is an instruction to transact."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Sushi Stellar ($15.1M TVL): every value-moving Soroban entry point (swap, mint/burn/collect, collect_protocol, flash_begin/end, set_router_authorized, pause/upgrade/migrate) requires the correct require_auth (verified live by dry-run simulation returning the required auth entries), swap pulls input from the authenticated sender, and the factory-authorized swap_prefunded fails closed; residual risk is the single-owner upgrade power (P = $15.1M) and an unaudited CLMM math surface."
+}
