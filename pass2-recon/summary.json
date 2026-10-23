@@ -1,0 +1,51 @@
+{
+  "finding": "ZH4-PASS2-RECON",
+  "title": "Pass2 residual reconciliation — every lane candidate dispositioned + OPEN list",
+  "chains": ["ethereum","bsc","arbitrum","filecoin","solana","pulse","katana","tempo","megaeth","pharos","0g","fluent","multi"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 26253609,
+  "block_numbers": {"ethereum": 26253609},
+  "targets_checked": 269,
+  "live_targets": 9,
+  "counts": {
+    "enumerated": 269,
+    "README-FINDING": 3,
+    "README-FINDING-unique": 2,
+    "README-CLOSED": 38,
+    "LANE-CLOSED": 88,
+    "PRIOR-COVERED": 98,
+    "PRIOR-PARTIAL": 1,
+    "NOT-A-PROTOCOL": 32,
+    "OPEN": 9
+  },
+  "open_list": [
+    {"rank":1,"target":"Inverse Finance","chain":"ethereum","live_usd":113060000,"plausibility":"MED-HIGH","addresses":["0xBeCCB6bb0aa4ab551966A7E4B97cec74bb359Bf6","0x926df14a23be491164dcf93f4c468a50ef659d5b","0x865377367054516e17014CcdED1e7d814EDC9ce4"],"gate":"2-party guardian (deployer EOA allowCancel + 4/8 Safe executeCancel); DOLA operator = timelock -> arbitrary mint","next_check":"re-read guardian activity since 2026-02-12; decode recent proposals; confirm no active hostile proposal"},
+    {"rank":2,"target":"Gitcoin","chain":"ethereum","live_usd":4950000,"plausibility":"MEDIUM","addresses":["0x9D4C63565D5618310271bF3F3c01b2954C1D1639","0x57a8865cfB1eCEf7253c27da6B4BC3dAEE5Be518"],"gate":"Proposal Guardian + ~4.06M-GTC veto multisig; quorum 2.5M GTC","next_check":"identify/verify guardian + veto-multisig delegation; check for active proposal"},
+    {"rank":3,"target":"Metric V1","chain":"multi","live_usd":10400000,"plausibility":"LOW-MED","addresses":["0x2a53833cc95548cf52c7b159110e22D3a9018f32"],"gate":"custom Prop-AMM factory, 0 audits, not assessed in depth","next_check":"pull adapter pools; recompile factory+pools; check mint/collect/skim and oracle paths"},
+    {"rank":4,"target":"Tempo Stablecoin DEX","chain":"tempo","live_usd":15800000,"plausibility":"LOW","addresses":["0xdec0000000000000000000000000000000000000"],"gate":"enshrined Rust precompile; withdraw sender-scoped; fill_orders accounting unproven","next_check":"invariant-fuzz quoteSwapExactAmountIn/Out vs executed fills"},
+    {"rank":5,"target":"Upshift (August Digital)","chain":"multi","live_usd":8800000,"plausibility":"LOW","addresses":[],"gate":"audited curator; vaults via api.augustdigital.io; not assessed in depth","next_check":"pull vault addresses; check redeem/curator/allocator roles"},
+    {"rank":6,"target":"Katana Perps","chain":"katana","live_usd":1364000,"plausibility":"MED (code unverified)","addresses":["0x23317197Cf82a14d7B7A671C23B94d39F6A2fa22","0x62230CeA619F734cc215bB8074bbF07bE4Eb633e"],"gate":"unverified 24,525-byte Exchange; obfuscated admin selector; EIP-712 signer binding unconfirmed","next_check":"decompile 0x1c794f24/0x851216f8/0x59702e17/0x8f51afe0/0x904cf00c; verify signer binding + replay"},
+    {"rank":7,"target":"LiquidLoans","chain":"pulse","live_usd":1634818,"plausibility":"LOW-MED","addresses":["0x9159f1d2a9f51998fc9ab03fbd8f265ab14a1b3b"],"gate":"immutable CDP, 0 audits; TVL $4.28M->$1.63M unexplained; lane deferred","next_check":"pull liquidloans-io adapter; read collateral/redemption/liquidation; explain the drop"},
+    {"rank":8,"target":"World Markets Spot","chain":"megaeth","live_usd":664000,"plausibility":"LOW","addresses":[],"gate":"order-book DEX, 0 audits, not assessed in depth","next_check":"locate contracts from worldinc adapter; check margin/liquidation/withdraw auth"},
+    {"rank":9,"target":"Rabby Swap legacy contract","chain":"19 chains","live_usd":0,"plausibility":"LOW (likely <$1k)","addresses":[],"gate":"never patched; unquantified residual approvals","next_check":"allowance census from Revoke.cash exploit list; escalate only if >=$1k"}
+  ],
+  "prior_partial": [
+    {"target":"CapyFi","chain":"ethereum","live_usd":5100000,"prior_angle":"ZH2 C2-13 donation/inflation","new_angle":"Apr-2026 access-control bypass (permissionless access to restricted assets)","worth_check":"yes"}
+  ],
+  "key_facts": [
+    "269 protocol-level candidates named across the 16 pass2 lanes; only 2 were elevated to pass2 findings (Radworks, Pirate Chain).",
+    "98 candidates were already covered by prior trackers/folders; 88 were closed inside their own lane.",
+    "9 candidates are OPEN (funded + plausible unprivileged path + no verdict anywhere): Inverse Finance, Gitcoin, Metric V1, Tempo DEX, Upshift, Katana Perps, LiquidLoans, World Markets Spot, Rabby Swap legacy.",
+    "Inverse Finance and Gitcoin are the governance lane's own #2/#3 pitches, funded ($113M DOLA mint authority / $4.95M timelock) and permissionless-propose, but were never assigned in any pass; both are gated (guardian / veto multisig).",
+    "Live reads 2026-10-23 block 26,253,609: Inverse DOLA.operator()=timelock, quorumVotes=24,000e18, proposalCount=379; Gitcoin quorum=2.5M GTC, timelock holds 12,508,498.1 GTC; Metric factory 0x2a53..8f32 exists on ETH+Base."
+  ],
+  "caveats": [
+    "OPEN is not a verdict of exploitability; each OPEN carries a gate/blocker and a next check.",
+    "'No verdict anywhere' is scoped to the campaign corpus (trackers + kept folders + zh4-check.sh).",
+    "Point-in-time: guardian/code/flow state must be re-read before action.",
+    "No transactions signed/sent; no secrets in this folder."
+  ],
+  "one_liner": "Reconciled 269 lane candidates: 9 OPEN (none confirmed), led by the unassigned governance near-misses Inverse Finance (~$113M DOLA mint authority, 2-party-gated) and Gitcoin (~$4.95M, guardian+veto-gated); total confirmed new extractable this recon = $0."
+}

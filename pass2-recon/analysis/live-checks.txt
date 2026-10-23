@@ -1,0 +1,44 @@
+ZH4-PASS2-RECON — live sanity checks (read-only), 2026-10-23
+Ethereum head block: 26,253,609 (https://ethereum-rpc.publicnode.com)
+
+# Inverse Finance (governance lane #2; OPEN rank 1)
+0xBeCCB6bb0aa4ab551966A7E4B97cec74bb359Bf6 GovernorMills
+  quorumVotes()  -> 24000000000000000000000 (24,000 INV)
+  timelock()     -> 0x926df14a23be491164dcf93f4c468a50ef659d5b
+  proposalCount()-> 379
+0x865377367054516e17014CcdED1e7d814EDC9ce4 DOLA
+  operator()     -> 0x926df14a23be491164dcf93f4c468a50ef659d5b  (timelock == operator => arbitrary mint via proposal)
+0x926df14a23be491164dcf93f4c468a50ef659d5b timelock
+  DOLA.balanceOf -> 52347935832564294478714 (52,347.94 DOLA)
+0x941c2699ec7e55a50bde030d8e1e70649839259d Guardian
+  eth_getCode    -> non-empty (contract live; 2-party cancel)
+
+# Gitcoin (governance lane #3; OPEN rank 2)
+0x9D4C63565D5618310271bF3F3c01b2954C1D1639 GitcoinGovernor
+  quorum(26000000) -> 2500000000000000000000000 (2,500,000 GTC)
+  timelock()       -> 0x57a8865cfB1eCEf7253c27da6B4BC3dAEE5Be518
+0x57a8865cfB1eCEf7253c27da6B4BC3dAEE5Be518 timelock
+  GTC.balanceOf    -> 12508498095757102544213686 (12,508,498.1 GTC)
+
+# Metric V1 (mini-chains; OPEN rank 3)
+0x2a53833cc95548cf52c7b159110e22D3a9018f32 MetricOmmPoolFactory
+  eth_getCode (ETH)  -> 42,905 hex chars (~21.5 KB) present
+  eth_getCode (Base) -> 42,905 hex chars present
+
+# Tempo Stablecoin DEX (mini-chains; OPEN rank 4)
+0xdec0000000000000000000000000000000000000 system precompile (returns 0xef)
+  balanceOf(0x1111.., pathUSD) -> 0  (withdraw is msg.sender-scoped)
+
+# Katana Perps (mini-chains; OPEN rank 6)
+0x23317197Cf82a14d7B7A671C23B94d39F6A2fa22 Custodian (katana rpc)
+  exchange() -> 0x62230CeA619F734cc215bB8074bbF07bE4Eb633e
+
+# LiquidLoans (collapses; OPEN rank 7)
+0x9159f1d2a9f51998fc9ab03fbd8f265ab14a1b3b (pulsechain rpc)
+  eth_getCode   -> ~5.5 KB present
+  eth_getBalance-> 0 (collateral held in separate contracts)
+
+# World Markets Spot / Upshift / Rabby (OPEN rank 5/8/9): contracts not enumerated by lane;
+# next check = extract addresses from DefiLlama adapters / Revoke.cash list.
+
+NOTE: no transactions signed or sent. No secrets recorded.
