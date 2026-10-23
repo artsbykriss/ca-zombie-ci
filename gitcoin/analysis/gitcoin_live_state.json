@@ -1,0 +1,251 @@
+{
+  "meta": {
+    "chain": "ethereum",
+    "chainId": 1,
+    "pinnedBlock": 26253666,
+    "generatedAtUtc": "2026-10-23",
+    "rpc": "https://<rpc> (read-only; BlockPi/NodeReal)",
+    "note": "All values read at block 26253666 unless noted. Blockscout token balances are latest (approx block 26253784)."
+  },
+  "addresses": {
+    "governor_active": "0xef41CbD211076E8b1901e214Bf751d404cf06638",
+    "governor_active_name": "GitcoinGovernorWithGuardian (instance name 'Gitcoin Governor Charlie')",
+    "governor_legacy": "0x9D4C63565D5618310271bF3F3c01b2954C1D1639",
+    "governor_legacy_name": "GitcoinGovernor (instance name 'GTC Governor Bravo')",
+    "timelock": "0x57a8865cfB1eCEf7253c27da6B4BC3dAEE5Be518",
+    "gtc_token": "0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F",
+    "proposal_guardian_safe": "0x5743E35477363241300FcEdc2F5eB0195F300817",
+    "veto_multisig": "0x5743E35477363241300FcEdc2F5eB0195F300817"
+  },
+  "governor_active": {
+    "address": "0xef41CbD211076E8b1901e214Bf751d404cf06638",
+    "contractName": "GitcoinGovernorWithGuardian",
+    "compiler": "v0.8.35+commit.47b9dedd",
+    "ozExtensions": [
+      "GovernorCountingFractional",
+      "GovernorVotesComp",
+      "GovernorPreventLateQuorum",
+      "GovernorTimelockCompound",
+      "GovernorSettings",
+      "GovernorSettableFixedQuorum",
+      "GovernorProposalGuardian (OZ 'last updated v5.5.0')"
+    ],
+    "name": "Gitcoin Governor Charlie",
+    "version": "1",
+    "quorum_gtc": 1500000,
+    "quorum_wei": "1500000000000000000000000",
+    "quorum_call": "quorum(26253666)",
+    "proposalThreshold_gtc": 150000,
+    "proposalThreshold_wei": "150000000000000000000000",
+    "votingDelay_blocks": 14400,
+    "votingPeriod_blocks": 40320,
+    "timelock": "0x57a8865cfB1eCEf7253c27da6B4BC3dAEE5Be518",
+    "token": "0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F",
+    "COUNTING_MODE": "support=bravo,fractional&quorum=for,abstain&params=fractional",
+    "CLOCK_MODE": "mode=blocknumber&from=default",
+    "clock": 26253666,
+    "proposalGuardian": "0x5743E35477363241300FcEdc2F5eB0195F300817",
+    "lateQuorumVoteExtension_blocks": 7200,
+    "proposalNeedsQueuing": true,
+    "has_cancel": true,
+    "cancel_selector": "0x452115d6",
+    "deployedAtBlock": 25776742,
+    "deployedAtUtc": "2026-08-17T18:57:35Z",
+    "deployer": "0xba41c0652c89dda91041fb6ad58576784c9f28f6",
+    "deploymentTx": "0xaa524bf06153ec3fde533f207d0f843fea26661774db6fe7113a67423b9caafb",
+    "proposalCountEver": 0,
+    "note": "Zero ProposalCreated events since deployment. No Active/Pending proposal."
+  },
+  "governor_legacy": {
+    "address": "0x9D4C63565D5618310271bF3F3c01b2954C1D1639",
+    "contractName": "GitcoinGovernor",
+    "compiler": "v0.8.17+commit.8df45f5f",
+    "name": "GTC Governor Bravo",
+    "version": "1",
+    "quorum_gtc": 2500000,
+    "quorum_wei": "2500000000000000000000000",
+    "proposalThreshold_gtc": 150000,
+    "votingDelay_blocks": 13140,
+    "votingPeriod_blocks": 40320,
+    "timelock": "0x57a8865cfB1eCEf7253c27da6B4BC3dAEE5Be518",
+    "token": "0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F",
+    "COUNTING_MODE": "support=bravo&quorum=for,abstain&params=fractional",
+    "has_cancel": false,
+    "deployedAtBlock": 17813942,
+    "deployedAtUtc": "2023-07-31T15:39:35Z",
+    "totalProposals": 49,
+    "firstProposalBlock": 17980434,
+    "lastProposalBlock": 26041897,
+    "lastProposalUtc": "2026-09-23T18:15:35Z",
+    "note": "Legacy governor. No longer timelock admin since block 26127931. Cannot execute/queue."
+  },
+  "timelock": {
+    "address": "0x57a8865cfB1eCEf7253c27da6B4BC3dAEE5Be518",
+    "contractName": "Timelock (Compound-style)",
+    "compiler": "v0.6.12+commit.27d51765",
+    "admin": "0xef41CbD211076E8b1901e214Bf751d404cf06638",
+    "pendingAdmin": "0x0000000000000000000000000000000000000000",
+    "delay_seconds": 172800,
+    "delay_days": 2,
+    "GRACE_PERIOD_seconds": 1209600,
+    "GRACE_PERIOD_days": 14,
+    "MINIMUM_DELAY_seconds": 172800,
+    "MAXIMUM_DELAY_seconds": 2592000,
+    "ethBalance_wei": "138763666637965409775",
+    "ethBalance": 138.763666637965409775,
+    "createdAtBlock": 12497451,
+    "createdAtUtc": "2021-05-24T14:10:37Z",
+    "adminChangeHistory": [
+      {"block": 17969570, "utc": "2023-08-22T10:10:47Z", "note": "NewAdmin+NewPendingAdmin (initial governor wiring)"},
+      {"block": 26127931, "utc": "2026-10-05T18:22:35Z", "tx": "0x50364b5286205edc8025...", "note": "NewAdmin+NewPendingAdmin -> 0xef41... (new governor Charlie)"}
+    ],
+    "pendingQueuedTransactions": 0,
+    "note": "All 6 QueueTransaction events since block 24,000,000 have a matching ExecuteTransaction; no pending timelock tx."
+  },
+  "guardian_safe": {
+    "address": "0x5743E35477363241300FcEdc2F5eB0195F300817",
+    "type": "GnosisSafe",
+    "version": "1.4.1",
+    "singleton": "0x41675C099F32341bf84BFc5382aF534df5C7461a",
+    "proxyFactory": "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67",
+    "threshold": 4,
+    "owners": [
+      "0xdB2A18533309fCbBecC69bb0345d4Ad8e8B6D743",
+      "0x0EdEeA07FB4E700a2A502FDB43414Bde3c75F8ee",
+      "0x00De4B13153673BCAE2616b67bf822500d325Fc3",
+      "0x393BC37ea5493233D2bDC68FD59Dd97Ee01B18Cf",
+      "0xc2E2B715d9e302947Ec7e312fd2384b5a1296099",
+      "0x5a5D9aB7b1bD978F80909503EBb828879daCa9C3"
+    ],
+    "createdAtBlock": 24836964,
+    "createdAtUtc": "2026-04-08T19:04:35Z",
+    "creator": "0x0EdEeA07FB4E700a2A502FDB43414Bde3c75F8ee",
+    "role": "proposalGuardian of active governor AND veto multisig holding delegated treasury GTC"
+  },
+  "guardian_mechanism": {
+    "function": "cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash)",
+    "authorized_caller": "0x5743E35477363241300FcEdc2F5eB0195F300817 (proposalGuardian)",
+    "condition": "GovernorProposalGuardian._validateCancel: guardian == caller. The guardian can cancel any proposal in any state EXCEPT Canceled, Expired, Executed (i.e. Pending, Active, Defeated, Succeeded, Queued are all cancelable).",
+    "can_cancel_queued_or_active": true,
+    "guardian_change": "setProposalGuardian(address) is onlyGovernance (must pass a full governance proposal)",
+    "source_refs": [
+      "lib/openzeppelin-contracts/contracts/governance/extensions/GovernorProposalGuardian.sol",
+      "lib/openzeppelin-contracts/contracts/governance/Governor.sol (cancel/_cancel/_validateCancel)"
+    ]
+  },
+  "gtc_token": {
+    "address": "0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F",
+    "name": "Gitcoin",
+    "symbol": "GTC",
+    "decimals": 18,
+    "totalSupply_wei": "100000000000000000000000000",
+    "totalSupply_gtc": 100000000
+  },
+  "delegation": {
+    "timelock_delegates": "0x5743E35477363241300FcEdc2F5eB0195F300817",
+    "treasury_gtc_delegated": true,
+    "timelock_getCurrentVotes_wei": "0",
+    "veto_multisig_getCurrentVotes_wei": "12508498263341596282817320",
+    "veto_multisig_getCurrentVotes_gtc": 12508498.263341596282817320,
+    "timelock_delegate_change": {"block": 24928212, "utc": "2026-04-21T12:11:47Z", "from": "0x0", "to": "0x5743E35477363241300FcEdc2F5eB0195F300817"},
+    "top_delegates": [
+      {"delegate": "0x5743E35477363241300FcEdc2F5eB0195F300817", "votes_gtc": 12508498.26, "label": "veto multisig / proposal guardian (treasury GTC)"},
+      {"delegate": "0x00De4B13153673BCAE2616b67bf822500d325Fc3", "votes_gtc": 2487835.87, "label": "guardian Safe owner"},
+      {"delegate": "0x93f80a67fdfdf9daf1aee5276db95c8761cc8561", "votes_gtc": 500000.00},
+      {"delegate": "0xc2E2B715d9e302947Ec7e312fd2384b5a1296099", "votes_gtc": 409520.48, "label": "guardian Safe owner"},
+      {"delegate": "0xb35659cbac913d5e4119f2af47fd490a45e2c826", "votes_gtc": 152245.14},
+      {"delegate": "0x393BC37ea5493233D2bDC68FD59Dd97Ee01B18Cf", "votes_gtc": 3971.82, "label": "guardian Safe owner"},
+      {"delegate": "0x59dda36bd196ec849838ce2163e6821f946b37dc", "votes_gtc": 2464.40},
+      {"delegate": "0xdfBecC0b4aEF80b96Da27aB483feb0892472eaC2", "votes_gtc": 826.76}
+    ],
+    "sum_candidate_delegate_votes_gtc": 16066524.05,
+    "estimated_delegated_pct": 16.07,
+    "estimated_undelegated_pct": 83.93,
+    "largest_holder_not_delegating": {"address": "0x14D7Cee42D4643f0C767A1D504d9cA24C890f86c", "balance_gtc": 21509235.53, "delegates": "0x0"},
+    "note": "Top delegates enumerated from top-50 holders + DelegateChanged events since block 23,000,000 (event window truncated at 1000). Exact per-address votes via getCurrentVotes. Delegated total is a lower bound."
+  },
+  "treasury_tokens": {
+    "source": "https://eth.blockscout.com/api/v2/addresses/0x57a8865cfB1eCEf7253c27da6B4BC3dAEE5Be518/token-balances (latest)",
+    "priced": [
+      {"symbol": "GTC", "address": "0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F", "qty": 12508498.095757102544213686, "priceUsd": 0.3169516987934132, "usd": 3964589.72},
+      {"symbol": "RAD", "address": "0x31c8EAcBFFdD875c74b94b077895Bd78CF1E64A3", "qty": 680272.108, "priceUsd": 0.27966557316837964, "usd": 190248.69},
+      {"symbol": "USDC", "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", "qty": 112326.376588, "priceUsd": 0.9995153667115646, "usd": 112271.94},
+      {"symbol": "DAI", "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F", "qty": 2500.0, "priceUsd": 1.0000292739489358, "usd": 2500.07},
+      {"symbol": "SYND", "address": "0x1bAB804803159aD84b8854581AA53AC72455614E", "qty": 200000.0, "priceUsd": 0.006184957248945263, "usd": 1236.99},
+      {"symbol": "CYBER", "address": "0x14778860E937f509e651192a90589dE711Fb88a9", "qty": 300.0, "priceUsd": 0.313996013086311, "usd": 94.20},
+      {"symbol": "MTV", "address": "0x6226e00bCAc68b0Fe55583B90A1d727C14fAB77f", "qty": 1000.0, "priceUsd": 0.00009375771034094727, "usd": 0.09},
+      {"symbol": "GRG", "address": "0x4FbB350052Bca5417566f188eB2EBCE5b19BC964", "qty": 0.025, "priceUsd": 0.2863579409214546, "usd": 0.01},
+      {"symbol": "WETH", "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", "qty": 0.0000000001, "priceUsd": 2401.315668182518, "usd": 0.00}
+    ],
+    "eth": {"qty": 138.763666637965409775, "priceUsd": 2399.76, "usd": 332998.81},
+    "total_priced_usd": 4603940.52,
+    "unpriced_tokens": [
+      {"symbol": "WNDR", "address": "0xB3A64a442debA9412E7D4286d267bfa27a3F2605", "qty": 24000000.0, "note": "DeFi Wonderland; no DefiLlama price"},
+      {"symbol": "ALA", "address": "0xc6a76f7ad66d0e6Ccd1AaAd6e7568c9bd55Dce62", "qty": 142857.1429},
+      {"symbol": "FNF", "address": "0x5F6d3Fc8147ed50fFc13bCcfEB342659BcB83853", "qty": 102452.0},
+      {"symbol": "HAM", "address": "0x085F69B3fD19B94f5511ee59FD5049F18172D608", "qty": 50000.0},
+      {"symbol": "ELIMU", "address": "0xe29797910D413281d2821D5d9a989262c8121CC2", "qty": 2085.03},
+      {"symbol": "SOCKSCLASSIC", "address": "0xf7A5A8A95491EC170738434963B649671b563b88", "qty": 1.0},
+      {"symbol": "MALLY", "address": "0xA3E7833775A9Cc022DB2c72EB900378F90cE89B4", "qty": 0.002095076157751068},
+      {"symbol": "YFIVE", "address": "0xd3E8695d2Bef061EAb38B5EF526c0f714108119C", "qty": 0.0001},
+      {"symbol": "yRise", "address": "0x6051C1354Ccc51b4d561e43b02735DEaE64768B8", "qty": 0.00009},
+      {"symbol": "FAM", "address": "0x9D24364b97270961b2948734aFe8d58832Efd43a", "qty": 0.000000003},
+      {"symbol": "DIXT", "address": "0x43e6228b5bF22Eab754486082cA91FdD8585521A", "qty": 0.00000000091},
+      {"symbol": "HQG", "address": "0x57b9d10157f66D8C00a815B5E289a152DeDBE7ed", "qty": 0.000002},
+      {"symbol": "WPEPE", "address": "0x34D0f1Cb08D47dC1333657A0A84Df2462e806656", "qty": 0.00000013870},
+      {"symbol": "QCORE", "address": "0x82866b4A71BA9d930Fe338C386B6A45a7133eb36", "qty": 0.000000002}
+    ],
+    "nfts": [
+      {"collection": "Uniswap V3 Positions NFT-V1", "address": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88", "tokenId": 25670, "type": "ERC-721", "note": "SACKS/WETH 0.05% LP position; token0=SACKS 0xa6610Ed604047e7B76C1DA288172D15BcdA57596, token1=WETH, liquidity=86081853130684128716, tokensOwed=0. Not priced."},
+      {"collection": "Access Liquideth.fun", "address": "0x375806EDA6dD0049AD0872596175BaF7374FfDEE", "tokenId": 1, "type": "ERC-1155"},
+      {"collection": "NativePunks Original", "address": "0x47294bd724DCCBa578F48B939138dA9200c2ABf3", "tokenId": 1, "type": "ERC-1155"},
+      {"collection": "Maverick Incentive Reward", "address": "0xf224008382e67c7D320A5519a74c10b8B50F363E", "tokenId": 1, "type": "ERC-1155"}
+    ]
+  },
+  "proposals": {
+    "active_governor_proposal_count": 0,
+    "legacy_governor_proposal_count": 49,
+    "any_active_or_pending_now": false,
+    "hostile_proposal_now": false,
+    "last_legacy_proposal": {
+      "proposalId": "108424336499353530648500000064168793429110207266290758900130997553694566139017",
+      "block": 26041897,
+      "utc": "2026-09-23T18:15:35Z",
+      "proposer": "0x00De4B13153673BCAE2616b67bf822500d325Fc3",
+      "title": "Upgrade the Gitcoin Governor",
+      "state": "Executed(7)",
+      "executedBlock": 26127931,
+      "note": "Two actions: timelock.setPendingAdmin(newGov) + newGov.acceptAdmin(). This is the migration."
+    },
+    "apr2026_security_proposals": [
+      {"block": 24844817, "utc": "2026-04-09T21:21:59Z", "title": "Emergency Governance: Temporary Transition to Multisig Execution", "proposer": "0xdfBecC0b4aEF80b96Da27aB483feb0892472eaC2", "action": "USDC.transfer(0x5743E35477363241300FcEdc2F5eB0195F300817, 5000000 USDC)", "rawCalldata": "0xa9059cbb...5743...0817...0000000000000000000000000000000000000000000000000000048c27395000"},
+      {"block": 24845002, "utc": "2026-04-09T21:58:59Z", "title": "Emergency Governance: Delegate GTC to Veto Multisig", "proposer": "0x00De4B13153673BCAE2616b67bf822500d325Fc3", "action": "GTC.delegate(0x5743E35477363241300FcEdc2F5eB0195F300817)", "rawCalldata": "0x5c19a95c0000000000000000000000005743e35477363241300fcedc2f5eb0195f300817"}
+    ],
+    "veto_multisig_current_holdings": {
+      "USDC": 4321564.332682,
+      "ETH": 70.0,
+      "note": "The 4-of-6 Safe holds the bulk of liquid treasury USDC (~$4.32M) + 70 ETH in addition to controlling 12.51M delegated GTC and the guardian cancel power."
+    }
+  },
+  "upgrade": {
+    "newGovernorDeployedBlock": 25776742,
+    "newGovernorDeployedUtc": "2026-08-17T18:57:35Z",
+    "timelockAdminTransferredBlock": 26127931,
+    "timelockAdminTransferredUtc": "2026-10-05T18:22:35Z",
+    "timelockAdminTransferTx": "0x50364b5286205edc8025...",
+    "oldGovernorCanStillExecute": false,
+    "reason": "Timelock admin() == 0xef41... (new governor). Compound timelock only lets the admin queue/execute, so legacy governor 0x9D4C... can no longer queue or execute. All 49 legacy proposals are Executed/Defeated; no pending timelock tx."
+  },
+  "corrections_to_prior_claims": [
+    {"claim": "GitcoinGovernor 0x9D4C... is the active governor, upgraded ~2026-10-05", "verdict": "PARTIAL", "correct": "0x9D4C... is the LEGACY governor. The active governor is 0xef41CbD211076E8b1901e214Bf751d404cf06638 ('Gitcoin Governor Charlie', GitcoinGovernorWithGuardian), deployed 2026-08-17 (block 25776742). The timelock admin was switched to it on 2026-10-05 (block 26127931), which is the actual 'upgrade' activation."},
+    {"claim": "quorum = 2,500,000 GTC", "verdict": "STALE", "correct": "Legacy governor quorum = 2,500,000 GTC. Active governor quorum = 1,500,000 GTC (settable fixed quorum)."},
+    {"claim": "proposalThreshold = 150,000 GTC", "verdict": "CONFIRMED", "correct": "150,000 GTC on both governors."},
+    {"claim": "votingDelay = 13,140 blocks", "verdict": "STALE", "correct": "Legacy = 13,140. Active = 14,400."},
+    {"claim": "votingPeriod = 40,320 blocks", "verdict": "CONFIRMED", "correct": "40,320 on both."},
+    {"claim": "timelock delay = 172,800s", "verdict": "CONFIRMED", "correct": "172,800s (2 days); GRACE_PERIOD 1,209,600s (14 days)."},
+    {"claim": "timelock holds 12,508,498 GTC + 138.76 ETH + 112,326 USDC", "verdict": "CONFIRMED", "correct": "12,508,498.095757 GTC, 138.763666637965409775 ETH, 112,326.376588 USDC (plus RAD, DAI and dust)."},
+    {"claim": "~$4.95M treasury", "verdict": "CLOSE/STALE", "correct": "Currently ~$4.60M (GTC at $0.317 dominates). Difference is price, not quantities."},
+    {"claim": "'Proposal Guardian' that can cancel", "verdict": "CONFIRMED", "correct": "proposalGuardian() = 0x5743E35477363241300FcEdc2F5eB0195F300817, a Gnosis Safe v1.4.1 4-of-6, can cancel proposals in any state except Canceled/Expired/Executed (incl. Active and Queued)."},
+    {"claim": "Apr-2026 veto multisig with ~4.06M GTC delegated", "verdict": "WRONG (amount)", "correct": "The veto multisig is 0x5743E35477363241300FcEdc2F5eB0195F300817 (same Safe as the guardian). Its current delegated votes = 12,508,498.263 GTC (the entire timelock GTC), not 4.06M. The timelock delegated to it once at block 24928212 (2026-04-21) and it has held ~12.5M since block 25,000,000."}
+  ]
+}
