@@ -1,0 +1,138 @@
+{
+  "finding": "ZH4-PASS4-residual-recon",
+  "title": "Residual reconciliation of all 16 zombie-hunt-iv/pass4 lane files; every named candidate dispositioned",
+  "date": "2026-10-23",
+  "mode": "read-only; no transactions; no keyed RPC URLs in folder files",
+  "chains": ["ton","base","mode","ethereum","berachain","monad","hyperevm","sonic","sei","plasma","mantle","ronin","bsc","arbitrum","optimism","initia","world-chain","etherlink","soneium","x-layer","filecoin","celo","flare","fluent","aurora","metis","rootstock","telos","goat","astar","solana","tron","pulse","zksync-era","katana","apechain","xdc","taiko"],
+  "counts": {
+    "named_candidates_enumerated": 209,
+    "readme_finding": 15,
+    "readme_closed": 39,
+    "lane_closed": 75,
+    "prior_covered": 37,
+    "prior_partial": 1,
+    "not_a_protocol": 30,
+    "lane_lead": 6,
+    "open": 6
+  },
+  "open_list": [
+    {
+      "rank": 1,
+      "target": "Cabal LST",
+      "chain": "Initia / Cabal / Strat (Move, non-EVM)",
+      "live_funds": "~$2.74M DefiLlama (Initia $2,114,327 + Cabal $127,578 + Strat $502,890)",
+      "addresses": "non-EVM (Initia Move); DefiLlama slug cabal; audit Code4rena 2025-04-cabal-liquid-staking-token H-01",
+      "plausibility": "MED",
+      "confidence": "LOW-MED",
+      "path": "C4 H-01: LP unstake burns shares but leaves underlying -> share/asset ratio distortion. The live Move modules were never diffed; the audited code may still be live. No mitigation review in the report.",
+      "next_check": "Fetch the deployed Cabal LST + LP-staking Move modules; diff vs the audited commit; unit-test the unstake ratio and confirm whether H-01 was mitigated."
+    },
+    {
+      "rank": 2,
+      "target": "shMonad",
+      "chain": "Monad (143)",
+      "live_funds": "~$7.27M (totalAssets() 333,812,435 MON; totalSupply 203.4M shMON; native balance 8.37M MON ~$182k) at block 115,828,947",
+      "addresses": "proxy 0x1B68626dCa36c7fE922fD2d55E4f631d962dE19c -> EIP-1967 impl 0x8ee4ff5fF50198dcbb7b882a0781f42724DD095f",
+      "plausibility": "MED-LOW",
+      "confidence": "LOW",
+      "path": "Verified ShMonad LST; the lane found 'no unguarded value-moving external' but did not deep-diff the impl. Stake/unstake/validator-queue + share accounting unreviewed; a native-balance-only screen under-reports 98% of assets (staked/delegated).",
+      "next_check": "Diff live impl vs repo HEAD; read stake/unstake/withdraw + share math + validator-delegation auth; fork round-trip + donation/first-redeemer test."
+    },
+    {
+      "rank": 3,
+      "target": "Kipseli Base 'reserve'",
+      "chain": "Base (8453)",
+      "live_funds": "DefiLlama kipseli Base $694,460 (+ Robinhood $299,284 + Binance $395,648); child A block 52,974,224: contract holds 440,831.23 USDC (~$440.6k) + 31.0887 WETH (~$74.7k)",
+      "addresses": "Base reserve 0xbee3211ab312a8d065c4fef0247448e17a8da000 (deployed contract, 2,009 bytes, UNVERIFIED); BSC reserve 0xbee1aa51dce11faa5bfc6c56dbfa5b95d4dfc000 (Gnosis Safe, P-class)",
+      "plausibility": "LOW-MED",
+      "confidence": "LOW",
+      "path": "The Base reserve is a deployed-but-unverified contract holding pooled USDC+WETH. If it exposes an unguarded sweep/release to a caller-supplied recipient (Slice-class) the ~$515k moves in one tx. Not yet decompiled.",
+      "next_check": "Decompile the Base reserve; enumerate non-view selectors and auth; eth_call from a random EOA for any sweep/withdraw."
+    },
+    {
+      "rank": 4,
+      "target": "TOPS",
+      "chain": "BSC",
+      "live_funds": "~$92k USDT in the PancakeV2 pair (lane, 2026-10-22)",
+      "addresses": "token 0x842B1bFA...3FD588 (truncated in lane); pair 0xBEDeBaC3...eDF29",
+      "plausibility": "LOW-MED",
+      "confidence": "LOW",
+      "path": "NEM-class: token bytecode contains a genuine external sync() call; the gate is UNRESOLVED (decompiler could not emit the caller; a fork buy reverted, so no outsider entry via the router). Funded, no verdict anywhere.",
+      "next_check": "Recover the full token source/address; identify the burn-from-pair function and its gate; fork-probe from a fresh EOA."
+    },
+    {
+      "rank": 5,
+      "target": "LVIN",
+      "chain": "BSC",
+      "live_funds": "~$91k USDT in the PancakeV2 pair (lane, 2026-10-22)",
+      "addresses": "token 0x33bc8653...545a8 (truncated in lane); pair 0x43365c7b...9dc8b",
+      "plausibility": "LOW",
+      "confidence": "LOW",
+      "path": "NEM-class recycle(uint256); fork call reverts 'recycle fail' - a state condition, not clearly a gate. Funded, no verdict anywhere.",
+      "next_check": "Recover full address/source; walk the recycle state preconditions on a fork; test the staking-contract path unprivileged."
+    },
+    {
+      "rank": 6,
+      "target": "Metropolis DLMM VaultFactory",
+      "chain": "Sonic (146)",
+      "live_funds": "no direct custody (factory; native 0 at block 81,493,855); owner 0xd1f2823f3aBF4b8c7Ad1B6629421b2618a5e28aF",
+      "addresses": "factory 0x197d40B36677248E82939f96930bf4E7Fe8aD1c2",
+      "plausibility": "LOW",
+      "confidence": "LOW",
+      "path": "Permissionless createMarketMakerOracleVault(ILBPair,uint16) external payable; the vault-side admin/auth was never read. A factory-created vault with a mis-scoped admin is a downstream drain.",
+      "next_check": "Read the vault implementation the factory clones; check created-vault owner/guardian and any unguarded fee/withdraw path."
+    }
+  ],
+  "unverified_watchlist_residual": {
+    "Vectis Finance": "LANE-LEAD; Solana/Eth $5.14M DL; custody unverified",
+    "LiquidLoans": "LANE-LEAD; Pulse $2.83M DL; pass2 collapses note only, not investigated",
+    "Pay Protocol": "LANE-LEAD; Tron/BSC/ETH $1.92M DL; payment module unverified",
+    "Trevee Earn": "LANE-LEAD; Sonic $930k DL; pass3 'not reached'",
+    "Unlink": "LANE-LEAD; Monad; no verifiable TVL/custody",
+    "Lagoon v0.5.2 syncDeposit (RockSolid family)": "LANE-LEAD; JIT-yield edge closed, re-check"
+  },
+  "specific_rows": {
+    "affluent": "README-FINDING P4-01 - withdrawn 2026-10-23 as FALSE POSITIVE (all backing drained to 0); primitive exists but nothing to extract",
+    "burve": "README-FINDING P4-02 - removed; H-5 targets an undeployed single-pair product (product conflation)",
+    "kuru": "README-FINDING P4-03 - removed; OZ EIP-1967 proxies, gate + formal proof; H-O ~$379,725",
+    "infrared": "README-FINDING P4-04 - removed; verified iBERA LST (byte-exact recompile)",
+    "btcx_ns_dmd": "README-FINDING Tier3 #3 - removed; gates resolved (pair-scoped T0 / 4-of-6 Safe / admin EOA)",
+    "bigshot": "README-FINDING Tier3 #1 - monitor; fork-proven sweepToken/refundETH, $0 today",
+    "metis_multicall3router": "README-FINDING Tier3 #2 - monitor; unguarded cleanupERC20 on 34 deterministic deployments, all native 0",
+    "bifi_alpscon_pharaoh_radworks": "PRIOR-COVERED carry-overs (pass3/pass3/pass3/pass2)",
+    "atomicqueue": "README-FINDING Tier3 #4 + PRIOR-COVERED (ZH1 C-07); template forks PRIOR-COVERED",
+    "gasless_reservoir_enabler": "README-FINDING Tier3 #5 + PRIOR-COVERED (ZH2-excluded)",
+    "nile_nuri_cleopatra": "README-FINDING Tier3 #6; PRIOR-COVERED (pass3/ZH2)",
+    "cian_yield_layer": "README-CLOSED (unverified impl but whitelist/admin-gated; child A confirms ~$110.4M live)",
+    "usdsm_startale_mokuvault": "README-CLOSED (role/owner-gated)",
+    "unverified_impl_proxies": "README-CLOSED (22 funded ETH+Base proxies; all OZ-gated, fork no balance change)"
+  },
+  "latest_block": {
+    "monad": 115828947,
+    "base": 52974224,
+    "sonic": 81493855,
+    "world-chain": 36701092,
+    "mantle": 102303744
+  },
+  "key_facts": [
+    "All 16 pass4 lane files were enumerated (table rows + prose/negative/dead-end/watchlist leads); 203 rows/groups, all numbered 1-203.",
+    "No new pass4 finding created; the pass4 verdicts stand (Affluent withdrawn FP; Burve/Kuru/Infrared/BTCX-NS-DMD/BigShot/Metis all closed).",
+    "Six funded, never-README-listed, no-verdict candidates surfaced as OPEN: Cabal LST (~$2.74M), shMonad (~$7.27M), Kipseli (~$694k Base), TOPS (~$92k), LVIN (~$91k), Metropolis DLMM VaultFactory.",
+    "The pass4 README blanket-closed 'gap chains' but left shMonad ($7.27M) and Metropolis un-deep-diffed; both are surfaced as OPEN.",
+    "The microcap 120-protocol watchlist is mostly PRIOR-COVERED (Adrastea/Hylo/Raiku/CatFee/Kyros/StakePoint/SunPump/Magma/Bio Protocol); only Vectis/LiquidLoans/Pay Protocol/Trevee remain unverified LANE-LEADs.",
+    "Cabal is non-EVM (Initia Move): no EVM RPC applies; the audit + DefiLlama TVL are the only handles."
+  ],
+  "caveats": [
+    "Read-only; no transactions signed or sent. Point-in-time reads 2026-10-23.",
+    "OPEN is a triage label, not a proven vulnerability; plausibility/confidence are explicit per row.",
+    "TOPS/LVIN addresses are truncated in the source lane file - recover them in full before acting.",
+    "The World Chain 'Morpho VaultV2' resolves on-chain to 'AgentBank Deposit Vault' holding WLD (~$235k) - the label may be wrong; curator-gated either way.",
+    "DefiLlama data dumps (llama_*, lane_*.tsv, gov/*) were NOT counted as prior coverage (they are data, not verdicts).",
+    "Public RPCs only; no keyed URLs stored in this folder."
+  ],
+  "one_liner": "209 named pass4 candidates dispositioned: 15 README-FINDING, 39 README-CLOSED, 75 LANE-CLOSED, 37 PRIOR-COVERED, 1 PRIOR-PARTIAL, 30 NOT-A-PROTOCOL, 6 LANE-LEAD, 6 OPEN. Largest OPEN: Cabal LST (~$2.74M, un-diffed published H-01) and shMonad (~$7.27M, only surface-scanned).",
+  "ci": {
+    "run_urls": [],
+    "validation": "pending"
+  }
+}
