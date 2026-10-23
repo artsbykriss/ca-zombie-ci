@@ -1,0 +1,62 @@
+{
+  "generated": "2026-10-23",
+  "mode": "read-only (eth_call/eth_getLogs/getCode + local fork tests; no mainnet tx)",
+  "chains": {"ethereum": "latest fork", "base": "latest fork"},
+  "hooks": {
+    "ETH_fAaad5B7": {
+      "address": "0xfAaad5B731F52cDc9746F2414c823eca9B06E844",
+      "chain": "ethereum",
+      "project": "PunkStrategy (PNKSTR) launch/fee hook",
+      "codesize": 14553,
+      "addr_flags": "0x2844",
+      "flags_decoded": ["beforeInitialize", "beforeAddLiquidity", "afterSwap", "afterSwapReturnDelta"],
+      "declared_permissions_match_address": true,
+      "delta_bits": ["afterSwapReturnDelta"],
+      "pool": {"poolId": "0xbdb0f9c31367485f85e691f638345f3de673a78effaff71ce34bc7ff1d54fddc", "currency0": "ETH(0x0)", "currency1": "0xc50673EDb3A7b94E8CAD8a7d4E0cD68864E33eDF (PNKSTR)", "fee": 0, "tickSpacing": 60, "tvl_usd_gateway": 1556953.89, "initialized_block": 23305292},
+      "native_balance": "0x0",
+      "erc20_balance_PNKSTR": "0",
+      "callback_auth": "all callbacks require msg.sender == 0x000000000004444c5dc75cB358380D2e3dE08A90 (v4 PoolManager)",
+      "admin": "reads owner() from the PNKSTR token contract 0xc50673EDb3A7b94E8CAD8a7d4E0cD68864E33eDF",
+      "fork_roundtrip_1eth": {"eth_start": "100.000000000000000000", "eth_end": "99.809759428930431345", "net_eth": "-0.190240571069568655", "pnkstr_out_for_1eth_wei": "198649260615806792632800"},
+      "verdict": "no E-U; charges a positive swap fee to the swapper and forwards it (addFees/processDeposit); hook holds 0 at rest"
+    },
+    "ETH_d33398d4": {
+      "address": "0xd33398d46cB5749c7319AE1FABC498CdeB0F0FC0",
+      "chain": "ethereum",
+      "kind": "EIP-1967/UUPS proxy",
+      "codesize": 176,
+      "implementation": "0x521553991534f26b9aea7d3ac6d798ade0508fc0",
+      "impl_abi_notes": "UUPS (proxiableUUID 0x52d1902d, upgradeToAndCall 0x4f1ef286), Ownable2Step",
+      "addr_flags": "0x0fc0",
+      "flags_decoded": ["beforeAddLiquidity", "afterAddLiquidity", "beforeRemoveLiquidity", "afterRemoveLiquidity", "beforeSwap", "afterSwap"],
+      "delta_bits": [],
+      "declared_permissions_match_address": true,
+      "pool": {"poolId": "0x9103109ede61d0a698f28369f92b8619f5124f504028a8010403b144ff0be95d", "currency0": "0x888888888887715FB9D9F84175Af9e6cCE46807e (ELEVATE, 8dp)", "currency1": "0xdAC17F958D2ee523a2206206994597C13D831ec7 (USDT, 6dp)", "fee": 3000, "tickSpacing": 60, "tvl_usd_gateway": 1028359.53},
+      "native_balance": "0x0",
+      "owner": "0xc5d3c245acb2f3eb41e19a609f9bf06ef77dd21d",
+      "callback_auth": "all callbacks require msg.sender == 0x000000000004444c5dc75cB358380D2e3dE08A90 (v4 PoolManager)",
+      "verdict": "NO delta power at all (recon A3 grouped it with delta hooks in error); only before/after swap+liquidity validation. UUPS upgrade key is a privileged total-loss vector (P)."
+    },
+    "BASE_C90eddF5": {
+      "address": "0xC90eddF51569270E06270eA98F7EfFF828dDe0CC",
+      "chain": "base",
+      "project": "ETH/VAPI launch/fee hook",
+      "codesize": 10154,
+      "addr_flags": "0x20cc",
+      "flags_decoded": ["beforeInitialize", "beforeSwap", "afterSwap", "beforeSwapReturnDelta", "afterSwapReturnDelta"],
+      "declared_permissions_match_address": true,
+      "delta_bits": ["beforeSwapReturnDelta", "afterSwapReturnDelta"],
+      "pool": {"poolId": "0x05da2eb0bd58cb74ce0a0c4c93200a2e96778075fbe611b46967a334986c5671", "currency0": "ETH(0x0)", "currency1": "0x1eA8deB921AA6015f4938010C848140b98108Dd2 (VAPI)", "fee": 0, "tickSpacing": 60, "tvl_usd_gateway": 393972.38},
+      "native_balance": "0x0",
+      "owner": "0x5b818a1b3d88402606d9a7b1a91feaffe1465947",
+      "callback_auth": "all callbacks require msg.sender == 0x498581fF718922c3f8e6A244956aF099B2652b2b (v4 PoolManager on Base)",
+      "fork_roundtrip_1eth": {"eth_start": "100.000000000000000000", "eth_end": "99.940900000000000000", "net_eth": "-0.059100000000000000", "vapi_out_for_1eth_wei": "35789238709048125409481"},
+      "verdict": "no E-U; round trip net-negative; delta used only to charge a fee; holds 0 at rest"
+    }
+  },
+  "public_permissionless_functions_probed": {
+    "0x68e41100 (PNKSTR hook sweep)": "callable by EOA; with hook ETH balance 0 the caller gains 0 ETH (no free money)"
+  },
+  "recon_correction": "pass5-recon A3 grouped 3 hooks as 'delta-returning'. On-chain getHookPermissions()+address bits show only 2 (0xfAaad5B7, 0xC90eddF5) have return-delta bits; 0xd33398d4 has none.",
+  "headline": {"E-U": 0, "confidence": "medium-high", "note": "no unprivileged extraction path found; $2.97M pooled TVL is protected by positive-fee delta logic, correct callback auth, pool binding, and zero hook custody"}
+}

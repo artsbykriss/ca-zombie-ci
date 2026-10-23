@@ -1,0 +1,38 @@
+{
+  "finding": "A3",
+  "title": "3 unverified delta-returning Uniswap v4 hooks (Ethereum/Base) — decompiled + fork-tested",
+  "chains": ["ethereum", "base"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium-high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": {"ethereum": 26255336, "base": 52984525},
+  "block_numbers": {"ethereum": 26255336, "base": 52984525},
+  "targets_checked": 3,
+  "live_targets": 3,
+  "pooled_tvl_usd": 2979285.8,
+  "per_hook": [
+    {"address": "0xfAaad5B731F52cDc9746F2414c823eca9B06E844", "chain": "ethereum", "project": "PunkStrategy PNKSTR ETH/PNKSTR", "tvl_usd": 1556953.89, "delta_bits": ["afterSwapReturnDelta"], "e_u_usd": 0, "roundtrip_net_eth": -0.190240571069568655},
+    {"address": "0xd33398d46cB5749c7319AE1FABC498CdeB0F0FC0", "chain": "ethereum", "project": "ELEVATE/USDT (UUPS)", "tvl_usd": 1028359.53, "delta_bits": [], "e_u_usd": 0, "note": "NO delta power; recon A3 grouped it in error. UUPS upgrade key is privileged (P)."},
+    {"address": "0xC90eddF51569270E06270eA98F7EfFF828dDe0CC", "chain": "base", "project": "ETH/VAPI", "tvl_usd": 393972.38, "delta_bits": ["beforeSwapReturnDelta", "afterSwapReturnDelta"], "e_u_usd": 0, "roundtrip_net_eth": -0.0591}
+  ],
+  "closed_reasons": [
+    "all callbacks require msg.sender == PoolManager (callback auth holds; EOA calls revert)",
+    "declared getHookPermissions() == hook-address permission bits (no flag mismatch) for all 3",
+    "0xd33398d4 has NO return-delta bits (recon A3 error)",
+    "delta used only to charge a positive swap fee; fork round-trips are net-negative",
+    "zero hook custody (native + token balances 0); fee forwarded in-tx",
+    "public sweep 0x68e41100 yields 0 to caller with 0 hook balance"
+  ],
+  "poc": {"tests_passed": 7, "tests_total": 7, "ci_run_urls": []},
+  "key_facts": [
+    "ETH/PNKSTR poolId 0xbdb0f9c3..fddc (fee 0, ts 60); 1 ETH -> 198649.26 PNKSTR; round-trip -0.1902 ETH",
+    "Base ETH/VAPI poolId 0x05da2eb0..5671; round-trip -0.0591 ETH",
+    "ELEVATE/USDT poolId 0x9103109e..e95d (fee 3000); hook impl 0x521553991534f26b9aea7d3ac6d798ade0508fc0 is UUPS",
+    "CurrencyDelta packing confirmed vs v4-core: amount0 = high 128 bits"
+  ],
+  "caveats": [
+    "heimdall is a heuristic decompiler; behavioural fork result does not depend on it being exact",
+    "ELEVATE hook UUPS upgrade key (owner 0xc5d3c245..) and other owners are privileged total-loss/config vectors (P), not E-U"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from the 3 unverified delta hooks ($2.98M pooled): the delta logic only charges a positive swap fee, callbacks are PoolManager-authenticated, permission bits match, and hooks hold no custody; 0xd33398d4 has no delta power at all."
+}
