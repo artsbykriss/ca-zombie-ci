@@ -1,0 +1,39 @@
+{
+  "finding": "ZH4-pass4-OPEN-6",
+  "title": "Metropolis DLMM VaultFactory + OracleRewardVault/Strategy vault-side auth (Sonic)",
+  "chains": ["sonic"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 0, "H-O": 251566, "P": 0, "S": 0},
+  "latest_block": 81495606,
+  "block_numbers": {"sonic": 81495606},
+  "targets_checked": 126,
+  "live_targets": 93,
+  "closed_reasons": [
+    "Factory holds 0 native and 0 pair tokens; only forwards msg.value to feeRecipient",
+    "Factory admin fns are onlyOwner (Gnosis Safe 0xd1f2823f...); initialize4 is reinitializer(6) and slot0 _initialized==6",
+    "createMarketMakerOracleVault requires pair whitelist + 50 S creation fee and only sets the caller as operator of the NEW vault/strategy",
+    "Vault value-movers gated by onlyFactory/onlyOperators/onlyStrategy; strategy by onlyVault/onlyOperators/onlyFactory/onlyDefaultOperator/onlyTrusted",
+    "claim()/updateAccRewardsPerShare are permissionless but self-scoped to the caller's own shares/rewards",
+    "Operators are EOAs/Safes; two are EIP-7702-delegated to EIP7702StatelessDeleGator whose execute() reverts NotEntryPointOrSelf"
+  ],
+  "poc": {"tests_passed": 7, "tests_total": 7, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39921768006"]},
+  "key_facts": [
+    "Factory 0x197d40B36677248E82939f96930bf4E7Fe8aD1c2 is a TransparentUpgradeableProxy -> VaultFactory impl 0x920b7adf83423283c2d1291cbf3d44dd56a80636 (verified, solc 0.8.10)",
+    "Factory owner / defaultOperator / feeRecipient = Gnosis Safe 0xd1f2823f3aBF4b8c7Ad1B6629421b2618a5e28aF (Safe 1.4.1, threshold 2 of 4); ProxyAdmin 0x4541cda311ab72420743d03f8f45b42c858046dc owner = same Safe",
+    "Oracle vault impl 0xe19B636A6ABEe9C14eABB3F64e30c3304859BDB7 = verified OracleRewardVault (BlueLabs fork); strategy impl 0x1817134Ad98B72a42AB68cc485fb123AFaC85e80 = verified Strategy",
+    "124 Oracle vaults created; 92 funded; total getBalances() = $251,566 (matches DefiLlama 'Metropolis DLMM Vaults' $251,646)",
+    "All vault/strategy value-moving entry points revert for a random EOA (probes + fork PoC); factory native + token balances are 0",
+    "vault.claim() is permissionless but pays only the caller's own pro-rata rewards (attacker WETH/wS balance unchanged)",
+    "No vault is in emergency mode; operator is never address(0); 28 empty vaults hold the 1e6 min-lot shares only ($0 stuck)",
+    "Price path fully owner-gated: OracleHelper (onlyFactory, one-shot) -> DexLens proxy 0x189F3FAE... (impl 0xe640b1ad..., verified) whose initialize reverts and whose feed setters are onlyOwnerOrRole(DATA_FEED_MANAGER_ROLE) (role has 0 members); deposits enforce a 5% TWAP deviation check"
+  ],
+  "caveats": [
+    "Point-in-time reads 2026-10-23 (block 81,495,606); TVL moves with rebalances/deposits",
+    "USD from DefiLlama spot prices at read time; wS $0.0522, WETH $2,402, WBTC $81,527",
+    "OracleRewardVault clone confirmed by behaviour + verified impl source, not byte-for-byte recompilation",
+    "Custom reward accounting (phantom shares) reviewed only for unprivileged drain of principal; residual is reward tokens, not principal",
+    "P=0 means no privileged path transfers principal to an arbitrary address; owner/operator can still set a bounded (<=30%/yr) AUM fee and pause/emergency"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from Metropolis DLMM on Sonic: the factory holds no custody and every vault/strategy value-moving function is correctly gated (onlyFactory/onlyOperators/onlyVault/onlyStrategy); ~$251,566 is holder-self-withdrawable (H-O) and $0 stuck."
+}
