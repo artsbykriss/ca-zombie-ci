@@ -1,0 +1,32 @@
+{
+  "finding": "ZH4 pass3-recon #8 (BulbaSwap V3)",
+  "title": "BulbaSwap V3 (Morph) is an unmodified Uniswap V3 deployment — no unprivileged value path",
+  "chains": ["morph"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 28776889,
+  "block_numbers": {"morph": 28776889, "ethereum": 0},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Factory runtime bytecode == canonical UniswapV3Factory (24535 bytes; differs from mainnet only in the 20-byte NoDelegateCall self-address immutable; identical after zeroing it)",
+    "Pool runtime bytecode == canonical UniswapV3Pool (22142 bytes; 376 raw differing bytes, 57 after zeroing token0/token1/factory/pool immutables = fee/tickSpacing/maxLiquidityPerTick constants only)",
+    "Verified pool source is byte-identical to Uniswap v3-core (all 31 flattened files after stripping pragma/import/whitespace)",
+    "swap/mint/burn/flash follow canonical accounting; fork roundtrips are net-negative",
+    "collectProtocol/setFeeProtocol are onlyFactoryOwner (privileged)"
+  ],
+  "poc": {"tests_passed": 4, "tests_total": 4, "ci_run_urls": []},
+  "key_facts": [
+    "factory 0xFf8578C2949148A6F19b7958aE86CAAb2779CDDD (explorer name VitDEXFactory), 212 pools",
+    "representative pool 0x5191035D329f481eFf0143e690e0a4e366Dd1e0c (WETH/USDT, fee 500)",
+    "canonical mainnet factory 0x1F98431c8aD98523631AE4a59f267346ea31F984; canonical mainnet pool 0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8",
+    "factory owner 0x9876097201662D70A63C935c2f7576B35D6f45e7",
+    "DL TVL ~$8.8M (registries/uniswapV3.js)"
+  ],
+  "caveats": [
+    "Only the WETH/USDT pool was code-diffed directly; all 212 pools use the factory's embedded creation code, and the factory is proven canonical, so all are covered",
+    "Peripheral router / NFT position manager were out of scope (they hold no pool funds)"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from BulbaSwap V3: the factory and pools are byte-for-byte canonical Uniswap V3 (only immutable slots differ), so the AMM has no custom value path."
+}
