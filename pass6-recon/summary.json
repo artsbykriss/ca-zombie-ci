@@ -1,0 +1,47 @@
+{
+  "finding": "ZH4-PASS6-residual-recon",
+  "title": "PASS6 residual reconciliation — every named candidate dispositioned; OPEN list produced",
+  "date": "2026-10-24",
+  "mode": "read-only; no transactions signed/sent; no keyed RPC URLs or secrets in folder files",
+  "chains": ["ethereum","base","bsc","arbitrum","optimism","polygon","avalanche","hyperevm","robinhood-chain","0g","solana","unichain","ink","ronin","stacks","wax","cardano","injective"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 26265167,
+  "block_numbers": {"ethereum": 26265167, "base": 53043770, "bsc": 129584923, "unichain": 62128529, "ink": 59378479, "ronin": 62704051},
+  "targets_checked": 177,
+  "live_targets": 21,
+  "counts": {
+    "named_candidates_enumerated": 177,
+    "README-FINDING": 1,
+    "README-CLOSED": 30,
+    "LANE-CLOSED": 49,
+    "PRIOR-COVERED": 34,
+    "PRIOR-PARTIAL": 2,
+    "NOT-A-PROTOCOL": 21,
+    "ASSIGNED": 18,
+    "PARKED": 1,
+    "OPEN": 21
+  },
+  "closed_reasons": [
+    "pass6 README §5 closed 20 clusters (Cardboard, Monetrix, Kestrel, Tessera, Secured Finance, BPool forks, Swaap, Pacifica, StonkBrokers, VETRO, Arcus, Popdex, HoodLock, JUSD, Fake World V2, CommunityV3, Bebop, Aero, Solana LST cluster, Nova/Choice)",
+    "prior passes (ZH2B*/ZH3/ZH4/ZH4P2-P5/L2/TIER3) closed or excluded 34 more",
+    "8 candidates are assigned to other pass6 agents (Robinhood oracle, Ascend, INFER, JPY, Moats, Exceed, Kolan, BSC hook bank)",
+    "21 are off-chain/key/infra/CEX/non-EVM (not a protocol surface)"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40134733308","https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40134958713"], "ci_validation": "ok=true; counts reconciled; 0 keyed-URL hits"},
+  "key_facts": [
+    "pass6 named 177 protocol-level candidates across 20 lanes; the lane-level aggregates (10,566 fresh-verified contracts, 6,538 BPool pools, ~1,040 deployer-lineage contracts, 21 fresh Solana programs) are all LANE-CLOSED negatives",
+    "0 new CRITICAL across pass6 (honest); the only README-FINDING is the armed-but-unprofitable Robinhood-Chain equity-oracle staleness (assigned)",
+    "21 residual candidates are OPEN = funded + a plausible unprivileged path that no pass closed",
+    "TOP-2 OPENs were under-measured by their lane: the ETH whitelist-router 0x278d858f holds ~$399k in tokens (73.4k USDT + 87.1k USDC + 102.28 WETH) and the BSC 0x6aba0315 proxy holds ~$3.28M on BSC (741.7k USDT + 3,476 BNB) — the lanes measured only native ETH / probed selectors",
+    "no candidate in this reconciliation is a proven drain; OPEN is a triage label, not a bug"
+  ],
+  "caveats": [
+    "OPEN plausibility is explicit and mostly LOW-MED; several OPENs are unverified-impl or unread-math surfaces, not demonstrated exploits",
+    "0x6aba0315 has 155.9M txs and 5-chain custody — it may be a CEX/omnibus, not a protocol (main blocker)",
+    "several Solana OPENs (Pascal, Byzanlink, N1, Sat Rush, Loyal Earn, TRUE DEX) are DefiLlama-funded but have no resolved program ID (unlocated)",
+    "point-in-time 2026-10-24; re-read live state before acting; nothing here is an instruction to transact"
+  ],
+  "one_liner": "pass6 residuals fully dispositioned: 177 named candidates -> 1 README-FINDING / 30 README-CLOSED / 49 LANE-CLOSED / 34 PRIOR-COVERED / 2 PRIOR-PARTIAL / 21 NOT-A-PROTOCOL / 18 ASSIGNED / 1 PARKED / 21 OPEN; external unprivileged extractable today = $0 (unchanged), with 21 funded-but-unresolved OPENs ranked for assignment."
+}

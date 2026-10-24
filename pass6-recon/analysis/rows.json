@@ -1,0 +1,2001 @@
+{
+  "finding": "ZH4-PASS6-residual-recon",
+  "title": "Residual reconciliation of pass6 (20 lanes) vs prior coverage; every named candidate dispositioned",
+  "date": "2026-10-24",
+  "counts": {
+    "named_candidates_enumerated": 177,
+    "README-FINDING": 1,
+    "README-CLOSED": 30,
+    "LANE-CLOSED": 49,
+    "PRIOR-COVERED": 34,
+    "PRIOR-PARTIAL": 2,
+    "NOT-A-PROTOCOL": 21,
+    "ASSIGNED": 18,
+    "PARKED": 1,
+    "OPEN": 21
+  },
+  "open_list": [
+    {
+      "n": 39,
+      "lane": "base-bsc-fresh",
+      "candidate": "Wager Predict (SpotEngine/Vault/USDW)",
+      "chain": "BSC",
+      "funds": "$173.7k",
+      "lane_verdict": "MED lead; no cheap drain; USDW impl unread",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row1"
+    },
+    {
+      "n": 40,
+      "lane": "base-bsc-fresh",
+      "candidate": "Tapir Protocol (DepegPool/AMM)",
+      "chain": "Base",
+      "funds": "$55k",
+      "lane_verdict": "MED unread",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row2"
+    },
+    {
+      "n": 41,
+      "lane": "base-bsc-fresh",
+      "candidate": "Prodigy.Fi V2 (PositionManager, unverified impl)",
+      "chain": "Base",
+      "funds": "$68.9k DL",
+      "lane_verdict": "MED opaque core",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row3"
+    },
+    {
+      "n": 42,
+      "lane": "base-bsc-fresh",
+      "candidate": "Nullmask (ZK privacy pool)",
+      "chain": "Base(+BSC)",
+      "funds": "12.50 ETH ~$28.9k",
+      "lane_verdict": "MED unread; prior PARKED",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row4; residual-recon PARKED"
+    },
+    {
+      "n": 43,
+      "lane": "base-bsc-fresh",
+      "candidate": "Primus Confidential Vault (FHE)",
+      "chain": "BSC",
+      "funds": "reported >$1M / backend $38.6M",
+      "lane_verdict": "MED-HIGH address-thin",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row5 (addresses unresolved)"
+    },
+    {
+      "n": 91,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "P6-01 ChimeraQuoteHook404 (v4 hook + ERC-404 launchpad)",
+      "chain": "Ink",
+      "funds": "fees in per-pool vaults",
+      "lane_verdict": "LOW unproven",
+      "disposition": "OPEN",
+      "cite": "fresh-deploy-sweep.md \u00a73"
+    },
+    {
+      "n": 92,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "P6-02 BondingCurveManager",
+      "chain": "Ronin",
+      "funds": "190 ERC-20s",
+      "lane_verdict": "LOW unproven",
+      "disposition": "OPEN",
+      "cite": "fresh-deploy-sweep.md \u00a73"
+    },
+    {
+      "n": 93,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "P6-03 Unichain ImmutableProxy family (~130 clones)",
+      "chain": "Unichain",
+      "funds": "~$130k",
+      "lane_verdict": "LOW unproven (probe reverts)",
+      "disposition": "OPEN",
+      "cite": "fresh-deploy-sweep.md \u00a73"
+    },
+    {
+      "n": 128,
+      "lane": "probed-protocols",
+      "candidate": "BSC 0x6aba0315 proxy ($8.63M / 155.9M txs)",
+      "chain": "BSC+4",
+      "funds": "~$3.28M BSC verified",
+      "lane_verdict": "reverts for stranger; unverified",
+      "disposition": "OPEN",
+      "cite": "probed-protocols.md #2"
+    },
+    {
+      "n": 129,
+      "lane": "probed-protocols",
+      "candidate": "ETH 0x278d858f + BSC 0xa9010523 whitelist-router family",
+      "chain": "ETH+BSC+12",
+      "funds": "~$400k ETH verified; $6.9M family",
+      "lane_verdict": "whitelist works; unverified/obfuscated",
+      "disposition": "OPEN",
+      "cite": "probed-protocols.md #3"
+    },
+    {
+      "n": 147,
+      "lane": "solana-fresh",
+      "candidate": "AlphaQ prop-AMM",
+      "chain": "Solana",
+      "funds": "~$1.0M",
+      "lane_verdict": "LOW; admin gated; swap unresolved",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #3"
+    },
+    {
+      "n": 149,
+      "lane": "solana-fresh",
+      "candidate": "DiversiFi index vaults",
+      "chain": "Solana",
+      "funds": "$745k",
+      "lane_verdict": "LOW; rebalance untested",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #5"
+    },
+    {
+      "n": 151,
+      "lane": "solana-fresh",
+      "candidate": "Overpass wrapper factory",
+      "chain": "Solana",
+      "funds": "$141k",
+      "lane_verdict": "LOW unread",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #7"
+    },
+    {
+      "n": 152,
+      "lane": "solana-fresh",
+      "candidate": "Zodial (marginfi fork)",
+      "chain": "Solana",
+      "funds": "$201k",
+      "lane_verdict": "LOW fork-drift",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #8"
+    },
+    {
+      "n": 154,
+      "lane": "solana-fresh",
+      "candidate": "Sat Rush",
+      "chain": "Solana",
+      "funds": "$847k",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #10"
+    },
+    {
+      "n": 155,
+      "lane": "solana-fresh",
+      "candidate": "Loyal Earn",
+      "chain": "Solana",
+      "funds": "$393k",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #11"
+    },
+    {
+      "n": 156,
+      "lane": "solana-fresh",
+      "candidate": "TRUE DEX",
+      "chain": "Solana",
+      "funds": "$281k",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #12"
+    },
+    {
+      "n": 157,
+      "lane": "solana-fresh",
+      "candidate": "Pascal",
+      "chain": "Solana",
+      "funds": "$2.24M",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #13"
+    },
+    {
+      "n": 158,
+      "lane": "solana-fresh",
+      "candidate": "N1 Exchange Bridge",
+      "chain": "Solana",
+      "funds": "$1.37M",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #14"
+    },
+    {
+      "n": 159,
+      "lane": "solana-fresh",
+      "candidate": "Byzanlink RWA Markets",
+      "chain": "Solana",
+      "funds": "$2.09M",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #15"
+    },
+    {
+      "n": 165,
+      "lane": "swaap",
+      "candidate": "Swaap Maker V2 (SafeguardPool)",
+      "chain": "multi (11)",
+      "funds": "$454k",
+      "lane_verdict": "out-of-scope flag, unread",
+      "disposition": "OPEN",
+      "cite": "swaap.md \u00a74 out-of-scope"
+    }
+  ],
+  "rows": [
+    {
+      "n": 1,
+      "lane": "next-hack",
+      "candidate": "Cardboard Trade (perp DEX)",
+      "chain": "Solana",
+      "funds": "$1.08M",
+      "lane_verdict": "row1 / P6 CLOSED",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75; cardboard.md"
+    },
+    {
+      "n": 2,
+      "lane": "next-hack",
+      "candidate": "Monetrix (USDM/mxHYPE/mxBTC)",
+      "chain": "HyperEVM 999",
+      "funds": "~$4.9M",
+      "lane_verdict": "row2 / P6 CLOSED",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75; monetrix.md"
+    },
+    {
+      "n": 3,
+      "lane": "next-hack",
+      "candidate": "INFER / imdUSD",
+      "chain": "Ethereum",
+      "funds": "<=$340k",
+      "lane_verdict": "row3 LOW-MED",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker (infer-imdusd/)"
+    },
+    {
+      "n": 4,
+      "lane": "next-hack",
+      "candidate": "Robinhood-Chain Morpho x tokenized equities",
+      "chain": "Robinhood 4663",
+      "funds": "$3.4M+",
+      "lane_verdict": "row4 / P6-01 PROVEN-armed",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker (robinhood-oracle/)"
+    },
+    {
+      "n": 5,
+      "lane": "next-hack",
+      "candidate": "Arcus pTokens (17)",
+      "chain": "Robinhood 4663",
+      "funds": "~$720k",
+      "lane_verdict": "row5 MED",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75; arcus-ptokens.md (dup Z3-H12)"
+    },
+    {
+      "n": 6,
+      "lane": "next-hack",
+      "candidate": "VETRO",
+      "chain": "Ethereum",
+      "funds": "~$906k",
+      "lane_verdict": "row6 LOW-MED",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75; vetro.md"
+    },
+    {
+      "n": 7,
+      "lane": "next-hack",
+      "candidate": "StonkBrokers",
+      "chain": "Robinhood 4663",
+      "funds": "$1.16M",
+      "lane_verdict": "row7 LOW-MED",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75; stonkbrokers.md"
+    },
+    {
+      "n": 8,
+      "lane": "next-hack",
+      "candidate": "Pacifica Bridge",
+      "chain": "Solana",
+      "funds": "$24.16M (artifact)",
+      "lane_verdict": "row8 LOW-MED",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75; pacifica-bridge.md"
+    },
+    {
+      "n": 9,
+      "lane": "next-hack",
+      "candidate": "Ascend",
+      "chain": "0G 16661",
+      "funds": "~$3.4M",
+      "lane_verdict": "row9 / P6-02",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker (ascend-0g/)"
+    },
+    {
+      "n": 10,
+      "lane": "next-hack",
+      "candidate": "URM Fortress",
+      "chain": "Base",
+      "funds": "$69k CDP",
+      "lane_verdict": "row10 LOW",
+      "disposition": "PARKED",
+      "cite": "next-hack.md row10; no address published"
+    },
+    {
+      "n": 11,
+      "lane": "next-hack",
+      "candidate": "JPY DeFi (Liquity-v2 fork)",
+      "chain": "Ethereum",
+      "funds": "$840k",
+      "lane_verdict": "row11 LOW-MED",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker (jpy-defi/); PRIOR-PARTIAL = JPYdf closed ZH4"
+    },
+    {
+      "n": 12,
+      "lane": "next-hack",
+      "candidate": "The Moats",
+      "chain": "Avax/RH/Monad/BSC/Base",
+      "funds": "$1.4M",
+      "lane_verdict": "row12 LOW",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker (moats/)"
+    },
+    {
+      "n": 13,
+      "lane": "next-hack",
+      "candidate": "Exceed Finance (exUSDC/exSOL/exBTC)",
+      "chain": "Solana",
+      "funds": "$704k",
+      "lane_verdict": "row13 LOW",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker (exceed-finance/)"
+    },
+    {
+      "n": 14,
+      "lane": "next-hack",
+      "candidate": "JUSD Finance",
+      "chain": "Ethereum+Arbitrum",
+      "funds": "$25.0M",
+      "lane_verdict": "row14 P",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75"
+    },
+    {
+      "n": 15,
+      "lane": "next-hack",
+      "candidate": "Fake World Assets V2",
+      "chain": "Ethereum",
+      "funds": "~$1.57M",
+      "lane_verdict": "row15 no-path",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75"
+    },
+    {
+      "n": 16,
+      "lane": "next-hack",
+      "candidate": "CommunityV3",
+      "chain": "Ethereum",
+      "funds": "$6.3M",
+      "lane_verdict": "row16 no-path",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75"
+    },
+    {
+      "n": 17,
+      "lane": "next-hack",
+      "candidate": "Bebop bopAMM",
+      "chain": "Ethereum",
+      "funds": "~$0",
+      "lane_verdict": "row17 no-path",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75"
+    },
+    {
+      "n": 18,
+      "lane": "next-hack",
+      "candidate": "Aero Basic / Aero Slipstream",
+      "chain": "Base+6",
+      "funds": "$48M/$79M",
+      "lane_verdict": "row18 not-a-fork",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75 (Dromos merger)"
+    },
+    {
+      "n": 19,
+      "lane": "next-hack",
+      "candidate": "Choice Exchange V1",
+      "chain": "Injective",
+      "funds": "$283k",
+      "lane_verdict": "row19 privileged",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "next-hack.md \u00a75 (CosmWasm, multisig admin)"
+    },
+    {
+      "n": 20,
+      "lane": "next-hack",
+      "candidate": "Nova Perps",
+      "chain": "?",
+      "funds": "$208k",
+      "lane_verdict": "Gains 1:1 fork",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75 (Safe+timelocks)"
+    },
+    {
+      "n": 21,
+      "lane": "next-hack",
+      "candidate": "Hyperliquid Earn",
+      "chain": "HyperCore",
+      "funds": "$1.43B",
+      "lane_verdict": "native primitive",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 22,
+      "lane": "next-hack",
+      "candidate": "Strat Perps",
+      "chain": "Initia Move",
+      "funds": "-",
+      "lane_verdict": "non-EVM, 2x Zellic",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 23,
+      "lane": "next-hack",
+      "candidate": "Solana fresh-LST cluster (Forward/Definity/Raiku/Japan)",
+      "chain": "Solana",
+      "funds": "$254-350M",
+      "lane_verdict": "privileged manager",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75"
+    },
+    {
+      "n": 24,
+      "lane": "next-hack",
+      "candidate": "HoodLock",
+      "chain": "-",
+      "funds": "-",
+      "lane_verdict": "no E-U",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75"
+    },
+    {
+      "n": 25,
+      "lane": "next-hack",
+      "candidate": "Popdex Bridge",
+      "chain": "Arbitrum",
+      "funds": "$73.3M",
+      "lane_verdict": "ZH4-internal repeat",
+      "disposition": "PRIOR-COVERED",
+      "cite": "v14-popdex.md"
+    },
+    {
+      "n": 26,
+      "lane": "next-hack",
+      "candidate": "STRATO Bridge",
+      "chain": "-",
+      "funds": "$16.19M",
+      "lane_verdict": "H2-05 closed",
+      "disposition": "PRIOR-COVERED",
+      "cite": "H2-05"
+    },
+    {
+      "n": 27,
+      "lane": "next-hack",
+      "candidate": "Lucid Labs",
+      "chain": "-",
+      "funds": "-",
+      "lane_verdict": "pass5 closed",
+      "disposition": "PRIOR-COVERED",
+      "cite": "pass5"
+    },
+    {
+      "n": 28,
+      "lane": "next-hack",
+      "candidate": "SundaeSwap V4",
+      "chain": "Cardano",
+      "funds": "-",
+      "lane_verdict": "not verifiable",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 29,
+      "lane": "next-hack",
+      "candidate": "xALPH",
+      "chain": "Alephium",
+      "funds": "-",
+      "lane_verdict": "no external path",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 30,
+      "lane": "next-hack",
+      "candidate": "Robinhood tail (Ouro/Raphael/Goo/Titan/Arrowfarm/Crossbow/Abyss)",
+      "chain": "Robinhood 4663",
+      "funds": "$84-444k",
+      "lane_verdict": "UniV2/V3 forks",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 31,
+      "lane": "next-hack",
+      "candidate": "Prosper Alpha",
+      "chain": "-",
+      "funds": "-",
+      "lane_verdict": "kept on board, no lead",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 32,
+      "lane": "next-hack",
+      "candidate": "Forest Road Vault",
+      "chain": "Ethereum",
+      "funds": "-",
+      "lane_verdict": "role/KYC gated",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 33,
+      "lane": "next-hack",
+      "candidate": "NEMO Trading",
+      "chain": "-",
+      "funds": "-",
+      "lane_verdict": "ifSenderWhitelisted",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 34,
+      "lane": "next-hack",
+      "candidate": "Hub Capital / Odyssey Digital AM / DeTrade",
+      "chain": "-",
+      "funds": "-",
+      "lane_verdict": "Lagoon curator-gated",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 35,
+      "lane": "next-hack",
+      "candidate": "Ditto Earn",
+      "chain": "Ethereum",
+      "funds": "$45.88",
+      "lane_verdict": "dust",
+      "disposition": "LANE-CLOSED",
+      "cite": "next-hack.md \u00a75"
+    },
+    {
+      "n": 36,
+      "lane": "next-hack",
+      "candidate": "Excluded repeats (FermiSwap/Kipseli/HertzFlow/LevrBet/Kamui/Longbow/Phase/GoonFi/Scorch/BisonFi/TONCO/Reflect/BDEX/Waterline/Architect/LibertySwap/MetricV1/RNTLend/Faiyah/Papertrade/JustLend sTRX)",
+      "chain": "multi",
+      "funds": "-",
+      "lane_verdict": "zh4-check EXCLUDE",
+      "disposition": "PRIOR-COVERED",
+      "cite": "next-hack.md \u00a75 (24 names)"
+    },
+    {
+      "n": 37,
+      "lane": "next-hack",
+      "candidate": "Carry-over monitors (Radworks/HAI/CL-gauge/Startale/Shibarium WBONE/Affluent/Burve/Kuru/Infrared)",
+      "chain": "multi",
+      "funds": "-",
+      "lane_verdict": "monitor",
+      "disposition": "PRIOR-COVERED",
+      "cite": "next-hack.md \u00a76; MONITOR-LIST.md"
+    },
+    {
+      "n": 38,
+      "lane": "arcus-ptokens",
+      "candidate": "Arcus pToken factory + 17 BeaconProxy vaults",
+      "chain": "Robinhood 4663",
+      "funds": "$693,796",
+      "lane_verdict": "CLOSED E-U $0",
+      "disposition": "README-CLOSED",
+      "cite": "arcus-ptokens.md (dup Z3-H12)"
+    },
+    {
+      "n": 39,
+      "lane": "base-bsc-fresh",
+      "candidate": "Wager Predict (SpotEngine/Vault/USDW)",
+      "chain": "BSC",
+      "funds": "$173.7k",
+      "lane_verdict": "MED lead; no cheap drain; USDW impl unread",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row1"
+    },
+    {
+      "n": 40,
+      "lane": "base-bsc-fresh",
+      "candidate": "Tapir Protocol (DepegPool/AMM)",
+      "chain": "Base",
+      "funds": "$55k",
+      "lane_verdict": "MED unread",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row2"
+    },
+    {
+      "n": 41,
+      "lane": "base-bsc-fresh",
+      "candidate": "Prodigy.Fi V2 (PositionManager, unverified impl)",
+      "chain": "Base",
+      "funds": "$68.9k DL",
+      "lane_verdict": "MED opaque core",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row3"
+    },
+    {
+      "n": 42,
+      "lane": "base-bsc-fresh",
+      "candidate": "Nullmask (ZK privacy pool)",
+      "chain": "Base(+BSC)",
+      "funds": "12.50 ETH ~$28.9k",
+      "lane_verdict": "MED unread; prior PARKED",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row4; residual-recon PARKED"
+    },
+    {
+      "n": 43,
+      "lane": "base-bsc-fresh",
+      "candidate": "Primus Confidential Vault (FHE)",
+      "chain": "BSC",
+      "funds": "reported >$1M / backend $38.6M",
+      "lane_verdict": "MED-HIGH address-thin",
+      "disposition": "OPEN",
+      "cite": "base-bsc-fresh.md row5 (addresses unresolved)"
+    },
+    {
+      "n": 44,
+      "lane": "base-bsc-fresh",
+      "candidate": "Doppler Finance XDP Staking",
+      "chain": "Base",
+      "funds": "$560k staked",
+      "lane_verdict": "NEG inert (0 reward periods)",
+      "disposition": "LANE-CLOSED",
+      "cite": "base-bsc-fresh.md row6 (monitor first addRewardPeriod)"
+    },
+    {
+      "n": 45,
+      "lane": "base-bsc-fresh",
+      "candidate": "ArexAIStaking",
+      "chain": "BSC",
+      "funds": "115M ARXAI ($0 realizable)",
+      "lane_verdict": "LOW no drain",
+      "disposition": "LANE-CLOSED",
+      "cite": "base-bsc-fresh.md row7"
+    },
+    {
+      "n": 46,
+      "lane": "base-bsc-fresh",
+      "candidate": "StakedVault + CooldownSilo",
+      "chain": "Base",
+      "funds": "$0",
+      "lane_verdict": "NEG",
+      "disposition": "LANE-CLOSED",
+      "cite": "base-bsc-fresh.md row7"
+    },
+    {
+      "n": 47,
+      "lane": "base-bsc-fresh",
+      "candidate": "PhoenixCo",
+      "chain": "BSC",
+      "funds": "~$3k",
+      "lane_verdict": "LOW",
+      "disposition": "LANE-CLOSED",
+      "cite": "base-bsc-fresh.md row8"
+    },
+    {
+      "n": 48,
+      "lane": "base-bsc-fresh",
+      "candidate": "Berry Finance / Berry Juicer",
+      "chain": "Base",
+      "funds": "small",
+      "lane_verdict": "LOW unverified EIP-1167",
+      "disposition": "LANE-CLOSED",
+      "cite": "base-bsc-fresh.md row9"
+    },
+    {
+      "n": 49,
+      "lane": "base-bsc-fresh",
+      "candidate": "BASE STREET presale",
+      "chain": "Base",
+      "funds": "~$25k",
+      "lane_verdict": "NEG treasury EOA",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "base-bsc-fresh.md row10"
+    },
+    {
+      "n": 50,
+      "lane": "base-bsc-fresh",
+      "candidate": "Based Eggman",
+      "chain": "Base",
+      "funds": "$0",
+      "lane_verdict": "NEG",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "base-bsc-fresh.md row11"
+    },
+    {
+      "n": 51,
+      "lane": "base-bsc-fresh",
+      "candidate": "ZiG / ZAOIN",
+      "chain": "Base",
+      "funds": "$0",
+      "lane_verdict": "NEG honeypot/1155",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "base-bsc-fresh.md row12"
+    },
+    {
+      "n": 52,
+      "lane": "base-bsc-fresh",
+      "candidate": "Today's fresh-verified Base/BSC (50)",
+      "chain": "Base+BSC",
+      "funds": "0 native",
+      "lane_verdict": "NEG",
+      "disposition": "LANE-CLOSED",
+      "cite": "base-bsc-fresh.md row13"
+    },
+    {
+      "n": 53,
+      "lane": "base-bsc-fresh",
+      "candidate": "Fresh DEX tokens (212)",
+      "chain": "Base+BSC",
+      "funds": "0 native",
+      "lane_verdict": "NEG",
+      "disposition": "LANE-CLOSED",
+      "cite": "base-bsc-fresh.md row14"
+    },
+    {
+      "n": 54,
+      "lane": "base-bsc-fresh",
+      "candidate": "AXIS Robotics",
+      "chain": "Base",
+      "funds": "$2.47M pool",
+      "lane_verdict": "no custody contract yet",
+      "disposition": "LANE-CLOSED",
+      "cite": "base-bsc-fresh.md negatives"
+    },
+    {
+      "n": 55,
+      "lane": "base-bsc-fresh",
+      "candidate": "Concrete (CT)",
+      "chain": "BSC",
+      "funds": "-",
+      "lane_verdict": "out-of-lane",
+      "disposition": "PRIOR-COVERED",
+      "cite": "base-bsc-fresh.md negatives"
+    },
+    {
+      "n": 56,
+      "lane": "base-bsc-fresh",
+      "candidate": "Nesa",
+      "chain": "BSC",
+      "funds": "-",
+      "lane_verdict": "prior-covered",
+      "disposition": "PRIOR-COVERED",
+      "cite": "base-bsc-fresh.md negatives"
+    },
+    {
+      "n": 57,
+      "lane": "base-bsc-fresh",
+      "candidate": "Paimon/pPOLY",
+      "chain": "BSC",
+      "funds": "-",
+      "lane_verdict": "prior-covered pass5",
+      "disposition": "PRIOR-COVERED",
+      "cite": "base-bsc-fresh.md negatives"
+    },
+    {
+      "n": 58,
+      "lane": "base-bsc-fresh",
+      "candidate": "Fake-liquidity cluster (USDB/ATC/GALABET/etc)",
+      "chain": "Base+BSC",
+      "funds": "artifact",
+      "lane_verdict": "NEG",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "base-bsc-fresh.md negatives"
+    },
+    {
+      "n": 59,
+      "lane": "base-bsc-fresh",
+      "candidate": "CEX/MM wallets (0x28e2ea09/0x8a08d98c/0x6aba0315)",
+      "chain": "BSC",
+      "funds": "-",
+      "lane_verdict": "NEG exchange wallets",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "base-bsc-fresh.md negatives"
+    },
+    {
+      "n": 60,
+      "lane": "base-bsc-fresh",
+      "candidate": "0xD189 vault",
+      "chain": "Base",
+      "funds": "$6M",
+      "lane_verdict": "prior-corpus, not E-U",
+      "disposition": "PRIOR-COVERED",
+      "cite": "ZOMBIE-HUNT-II.md"
+    },
+    {
+      "n": 61,
+      "lane": "base-bsc-fresh",
+      "candidate": "UNCX/Slice/NEM/AlpsCon/Umia/RouterDrain",
+      "chain": "multi",
+      "funds": "-",
+      "lane_verdict": "corpus-closed",
+      "disposition": "PRIOR-COVERED",
+      "cite": "base-bsc-fresh.md negatives"
+    },
+    {
+      "n": 62,
+      "lane": "bpool-forks",
+      "candidate": "Balancer V1 BPool fork census (6,538 pools / 9 chains)",
+      "chain": "multi",
+      "funds": "net $0",
+      "lane_verdict": "CLOSED",
+      "disposition": "README-CLOSED",
+      "cite": "pass6 README \u00a75; bpool-forks.md"
+    },
+    {
+      "n": 63,
+      "lane": "bpool-forks",
+      "candidate": "Canonical OCEAN/USDC pool 0x9a16bddf",
+      "chain": "Ethereum",
+      "funds": "$135k",
+      "lane_verdict": "value token frozen",
+      "disposition": "LANE-CLOSED",
+      "cite": "bpool-forks.md \u00a73"
+    },
+    {
+      "n": 64,
+      "lane": "bpool-forks",
+      "candidate": "Swaap Finance Pool 0x7f5f7411",
+      "chain": "Polygon",
+      "funds": "$107k",
+      "lane_verdict": "different math, closed",
+      "disposition": "README-CLOSED",
+      "cite": "swaap.md"
+    },
+    {
+      "n": 65,
+      "lane": "bpool-forks",
+      "candidate": "Base/Arb BCoWPool families",
+      "chain": "Base+Arb",
+      "funds": "-",
+      "lane_verdict": "functions removed",
+      "disposition": "LANE-CLOSED",
+      "cite": "bpool-forks.md"
+    },
+    {
+      "n": 66,
+      "lane": "cardboard",
+      "candidate": "Cardboard Trade oracle/settle",
+      "chain": "Solana",
+      "funds": "$1.08M",
+      "lane_verdict": "CLOSED E-U $0",
+      "disposition": "README-CLOSED",
+      "cite": "cardboard.md"
+    },
+    {
+      "n": 67,
+      "lane": "deployer-lineage",
+      "candidate": "LauncherV2 proxy 0xe1795625",
+      "chain": "Arbitrum",
+      "funds": "$125.7k",
+      "lane_verdict": "funded, NOT extractable",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #1"
+    },
+    {
+      "n": 68,
+      "lane": "deployer-lineage",
+      "candidate": "CrowdRingCircle 6-token sell-destroy family",
+      "chain": "BSC",
+      "funds": "$0",
+      "lane_verdict": "template, unfunded",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #2"
+    },
+    {
+      "n": 69,
+      "lane": "deployer-lineage",
+      "candidate": "BitBay/StableVault ~25-vault family",
+      "chain": "Polygon",
+      "funds": "$0",
+      "lane_verdict": "template, unfunded",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #3"
+    },
+    {
+      "n": 70,
+      "lane": "deployer-lineage",
+      "candidate": "UNCX VestingManager lineage (75 contracts)",
+      "chain": "ETH/ARB/Poly",
+      "funds": "$4.18M nominal",
+      "lane_verdict": "no new sibling",
+      "disposition": "PRIOR-COVERED",
+      "cite": "deployer-lineage.md #4; pass2"
+    },
+    {
+      "n": 71,
+      "lane": "deployer-lineage",
+      "candidate": "KolanHook deployer lineage",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "no second hook",
+      "disposition": "ASSIGNED",
+      "cite": "deployer-lineage.md #5 (kolan-hooks/)"
+    },
+    {
+      "n": 72,
+      "lane": "deployer-lineage",
+      "candidate": "GoldPesa GPXHooks",
+      "chain": "Base",
+      "funds": "$0",
+      "lane_verdict": "drained",
+      "disposition": "PRIOR-COVERED",
+      "cite": "ZH3-H5 monitor"
+    },
+    {
+      "n": 73,
+      "lane": "deployer-lineage",
+      "candidate": "ether.fi AtomicQueue",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "one instance; forks unresolved",
+      "disposition": "PRIOR-COVERED",
+      "cite": "ZH1 C-07 / pass4"
+    },
+    {
+      "n": 74,
+      "lane": "deployer-lineage",
+      "candidate": "FlashLoopAdapter + 30 same-deployer modules",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "possible self-attestation in siblings (unread)",
+      "disposition": "PRIOR-PARTIAL",
+      "cite": "ZOMBIE-HUNT-II.md (closed) + sibling tail unread"
+    },
+    {
+      "n": 75,
+      "lane": "deployer-lineage",
+      "candidate": "MOKE / MokeRelease family",
+      "chain": "BSC",
+      "funds": "$0",
+      "lane_verdict": "paused",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #9"
+    },
+    {
+      "n": 76,
+      "lane": "deployer-lineage",
+      "candidate": "AlpsCon V6-V9 lineage",
+      "chain": "BSC",
+      "funds": "$8,333",
+      "lane_verdict": "known, whitelist re-arm",
+      "disposition": "PRIOR-COVERED",
+      "cite": "pass5"
+    },
+    {
+      "n": 77,
+      "lane": "deployer-lineage",
+      "candidate": "EtherVista factory lineage",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "router-gated (privileged)",
+      "disposition": "PRIOR-COVERED",
+      "cite": "pass2/3"
+    },
+    {
+      "n": 78,
+      "lane": "deployer-lineage",
+      "candidate": "BiFi TokenHandler lineage (89)",
+      "chain": "Ethereum",
+      "funds": "dust",
+      "lane_verdict": "known, paused",
+      "disposition": "PRIOR-COVERED",
+      "cite": "pass3/5"
+    },
+    {
+      "n": 79,
+      "lane": "deployer-lineage",
+      "candidate": "Arrakis G-UNI lineage",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "-",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #13"
+    },
+    {
+      "n": 80,
+      "lane": "deployer-lineage",
+      "candidate": "USM lineage",
+      "chain": "Ethereum",
+      "funds": "small",
+      "lane_verdict": "-",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #14"
+    },
+    {
+      "n": 81,
+      "lane": "deployer-lineage",
+      "candidate": "Float Protocol lineage",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "-",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #15"
+    },
+    {
+      "n": 82,
+      "lane": "deployer-lineage",
+      "candidate": "Balancer V1 BPool deployer",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "-",
+      "disposition": "README-CLOSED",
+      "cite": "deployer-lineage.md #16"
+    },
+    {
+      "n": 83,
+      "lane": "deployer-lineage",
+      "candidate": "MALT sLP",
+      "chain": "Polygon",
+      "funds": "$0",
+      "lane_verdict": "-",
+      "disposition": "PRIOR-COVERED",
+      "cite": "deployer-lineage.md #17"
+    },
+    {
+      "n": 84,
+      "lane": "deployer-lineage",
+      "candidate": "BigShot",
+      "chain": "Optimism",
+      "funds": "$0",
+      "lane_verdict": "pass4",
+      "disposition": "PRIOR-COVERED",
+      "cite": "pass4"
+    },
+    {
+      "n": 85,
+      "lane": "deployer-lineage",
+      "candidate": "Allbridge CCTP",
+      "chain": "Base",
+      "funds": "$0",
+      "lane_verdict": "-",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #19"
+    },
+    {
+      "n": 86,
+      "lane": "deployer-lineage",
+      "candidate": "SandboxOFT",
+      "chain": "Base",
+      "funds": "$0",
+      "lane_verdict": "-",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #20"
+    },
+    {
+      "n": 87,
+      "lane": "deployer-lineage",
+      "candidate": "Perpetual Protocol v2 Curie OrderBooks",
+      "chain": "Optimism",
+      "funds": "$0 ($435k patched)",
+      "lane_verdict": "live bug, empty/patched",
+      "disposition": "LANE-CLOSED",
+      "cite": "deployer-lineage.md #21; child C"
+    },
+    {
+      "n": 88,
+      "lane": "deployer-lineage",
+      "candidate": "Sodium smart-account lineage (479 contracts)",
+      "chain": "Arbitrum",
+      "funds": "$0",
+      "lane_verdict": "no clone references impl",
+      "disposition": "PRIOR-COVERED",
+      "cite": "carry-over (sodium/ kept)"
+    },
+    {
+      "n": 89,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "Fresh-verified contracts (10,566 / 21 chains)",
+      "chain": "multi",
+      "funds": "714 funded",
+      "lane_verdict": "0 drains",
+      "disposition": "LANE-CLOSED",
+      "cite": "fresh-deploy-sweep.md \u00a70"
+    },
+    {
+      "n": 90,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "Funded fresh table rows 1-30 (Safes/UniV2V3/Pendle/ERC-4626/ApeChain dapps)",
+      "chain": "multi",
+      "funds": "$5.0M+",
+      "lane_verdict": "all guarded-by-design",
+      "disposition": "LANE-CLOSED",
+      "cite": "fresh-deploy-sweep.md \u00a72"
+    },
+    {
+      "n": 91,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "P6-01 ChimeraQuoteHook404 (v4 hook + ERC-404 launchpad)",
+      "chain": "Ink",
+      "funds": "fees in per-pool vaults",
+      "lane_verdict": "LOW unproven",
+      "disposition": "OPEN",
+      "cite": "fresh-deploy-sweep.md \u00a73"
+    },
+    {
+      "n": 92,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "P6-02 BondingCurveManager",
+      "chain": "Ronin",
+      "funds": "190 ERC-20s",
+      "lane_verdict": "LOW unproven",
+      "disposition": "OPEN",
+      "cite": "fresh-deploy-sweep.md \u00a73"
+    },
+    {
+      "n": 93,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "P6-03 Unichain ImmutableProxy family (~130 clones)",
+      "chain": "Unichain",
+      "funds": "~$130k",
+      "lane_verdict": "LOW unproven (probe reverts)",
+      "disposition": "OPEN",
+      "cite": "fresh-deploy-sweep.md \u00a73"
+    },
+    {
+      "n": 94,
+      "lane": "fresh-deploy-sweep",
+      "candidate": "zksync fresh-verified feed",
+      "chain": "zkSync",
+      "funds": "-",
+      "lane_verdict": "not covered (0 rows)",
+      "disposition": "LANE-CLOSED",
+      "cite": "fresh-deploy-sweep.md \u00a74"
+    },
+    {
+      "n": 95,
+      "lane": "incidents-siblings",
+      "candidate": "WAX Multi-Chain Bridge",
+      "chain": "WAX",
+      "funds": "~$1.5k residual",
+      "lane_verdict": "PATCHED",
+      "disposition": "LANE-CLOSED",
+      "cite": "incidents-siblings.md #1"
+    },
+    {
+      "n": 96,
+      "lane": "incidents-siblings",
+      "candidate": "Arkadiko (USDA CDP)",
+      "chain": "Stacks",
+      "funds": "TVL $138k",
+      "lane_verdict": "governance, non-EVM",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #2"
+    },
+    {
+      "n": 97,
+      "lane": "incidents-siblings",
+      "candidate": "Swell (swETH/rswETH)",
+      "chain": "Ethereum",
+      "funds": "~2,500 ETH exposure",
+      "lane_verdict": "key/upgrade",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #3"
+    },
+    {
+      "n": 98,
+      "lane": "incidents-siblings",
+      "candidate": "Balancer V1 BPool (DPI)",
+      "chain": "Ethereum",
+      "funds": "$234k",
+      "lane_verdict": "immutable, forks $0",
+      "disposition": "README-CLOSED",
+      "cite": "incidents-siblings.md #4"
+    },
+    {
+      "n": 99,
+      "lane": "incidents-siblings",
+      "candidate": "Cysic bridge",
+      "chain": "BSC",
+      "funds": "$744k moved",
+      "lane_verdict": "off-chain/halted",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #5"
+    },
+    {
+      "n": 100,
+      "lane": "incidents-siblings",
+      "candidate": "CoinDCX",
+      "chain": "multi",
+      "funds": "$16M flagged",
+      "lane_verdict": "CEX cleanup",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #6"
+    },
+    {
+      "n": 101,
+      "lane": "incidents-siblings",
+      "candidate": "Ngrave wallet",
+      "chain": "multi",
+      "funds": "$2.65M",
+      "lane_verdict": "phishing",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #7"
+    },
+    {
+      "n": 102,
+      "lane": "incidents-siblings",
+      "candidate": "Drift exploiter laundering",
+      "chain": "Ethereum",
+      "funds": "$122.3M",
+      "lane_verdict": "not an exploit",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md #8"
+    },
+    {
+      "n": 103,
+      "lane": "incidents-siblings",
+      "candidate": "PHP/LiteLLM/eMudhra",
+      "chain": "off-chain",
+      "funds": "-",
+      "lane_verdict": "infra",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #9"
+    },
+    {
+      "n": 104,
+      "lane": "incidents-siblings",
+      "candidate": "UNCX VestingManager siblings (17/8 chains)",
+      "chain": "multi",
+      "funds": "dust; RH $658k locked",
+      "lane_verdict": "flatFee=uint256.max",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md \u00a72 #1"
+    },
+    {
+      "n": 105,
+      "lane": "incidents-siblings",
+      "candidate": "KolanHook + launchpad 14 hooks",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "code-identical, $0",
+      "disposition": "ASSIGNED",
+      "cite": "incidents-siblings.md \u00a72 #2"
+    },
+    {
+      "n": 106,
+      "lane": "incidents-siblings",
+      "candidate": "TIP/TIPMine",
+      "chain": "BSC",
+      "funds": "$0",
+      "lane_verdict": "pool drained; clone uninitialized",
+      "disposition": "LANE-CLOSED",
+      "cite": "incidents-siblings.md \u00a72 #3"
+    },
+    {
+      "n": 107,
+      "lane": "incidents-siblings",
+      "candidate": "NEM/NemTokenV2",
+      "chain": "BSC",
+      "funds": "$1.79k",
+      "lane_verdict": "prior-covered",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md \u00a72 #4"
+    },
+    {
+      "n": 108,
+      "lane": "incidents-siblings",
+      "candidate": "CrowdRingCircle (CRC)",
+      "chain": "BSC",
+      "funds": "$0",
+      "lane_verdict": "0/301k pairs",
+      "disposition": "LANE-CLOSED",
+      "cite": "incidents-siblings.md \u00a72 #5"
+    },
+    {
+      "n": 109,
+      "lane": "incidents-siblings",
+      "candidate": "MOKE",
+      "chain": "BSC",
+      "funds": "$0",
+      "lane_verdict": "claim paused",
+      "disposition": "LANE-CLOSED",
+      "cite": "incidents-siblings.md \u00a72 #6"
+    },
+    {
+      "n": 110,
+      "lane": "incidents-siblings",
+      "candidate": "Perpetual Protocol v2",
+      "chain": "Optimism",
+      "funds": "$0",
+      "lane_verdict": "empty/patched",
+      "disposition": "LANE-CLOSED",
+      "cite": "incidents-siblings.md \u00a72 #7"
+    },
+    {
+      "n": 111,
+      "lane": "incidents-siblings",
+      "candidate": "AlpsCon V7/V8/V9",
+      "chain": "Ethereum",
+      "funds": "$8,333",
+      "lane_verdict": "V9 no code",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md \u00a72 #9"
+    },
+    {
+      "n": 112,
+      "lane": "incidents-siblings",
+      "candidate": "BiFi Lending",
+      "chain": "BSC/AVAX/Kaia",
+      "funds": "~$97k BSC",
+      "lane_verdict": "paused",
+      "disposition": "PRIOR-COVERED",
+      "cite": "carry-over closed by us"
+    },
+    {
+      "n": 113,
+      "lane": "incidents-siblings",
+      "candidate": "EtherVista",
+      "chain": "Ethereum",
+      "funds": "~$291k WETH",
+      "lane_verdict": "router-gated",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md \u00a72 #11"
+    },
+    {
+      "n": 114,
+      "lane": "incidents-siblings",
+      "candidate": "Argent-style smart wallet",
+      "chain": "Ethereum",
+      "funds": "~24-28 ETH nominal",
+      "lane_verdict": "$0 affordable payload",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md \u00a72 #12"
+    },
+    {
+      "n": 115,
+      "lane": "incidents-siblings",
+      "candidate": "Slice FundsModule",
+      "chain": "Base",
+      "funds": "$0",
+      "lane_verdict": "patched/paused",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md \u00a72 #13"
+    },
+    {
+      "n": 116,
+      "lane": "incidents-siblings",
+      "candidate": "MORPHO EIP-7702",
+      "chain": "Ethereum",
+      "funds": "$2.3M",
+      "lane_verdict": "key/delegation",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #16"
+    },
+    {
+      "n": 117,
+      "lane": "incidents-siblings",
+      "candidate": "X7 Finance (X7Pioneer)",
+      "chain": "Ethereum",
+      "funds": "$52",
+      "lane_verdict": "drained",
+      "disposition": "LANE-CLOSED",
+      "cite": "incidents-siblings.md #18"
+    },
+    {
+      "n": 118,
+      "lane": "incidents-siblings",
+      "candidate": "MALT (Malt Stablecoin)",
+      "chain": "Ethereum",
+      "funds": "8,658 DAI",
+      "lane_verdict": "prior-corpus",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md #19"
+    },
+    {
+      "n": 119,
+      "lane": "incidents-siblings",
+      "candidate": "Pirate Chain (ARRR)",
+      "chain": "Pirate L1",
+      "funds": "79.8M ARRR forged",
+      "lane_verdict": "chain consensus",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #20"
+    },
+    {
+      "n": 120,
+      "lane": "incidents-siblings",
+      "candidate": "Qubic",
+      "chain": "-",
+      "funds": "~$1.13M frozen",
+      "lane_verdict": "wallet-side",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #21"
+    },
+    {
+      "n": 121,
+      "lane": "incidents-siblings",
+      "candidate": "Gamdom/Fearless/Ngrave/Ledger",
+      "chain": "-",
+      "funds": "-",
+      "lane_verdict": "key/supply-chain",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "incidents-siblings.md #23"
+    },
+    {
+      "n": 122,
+      "lane": "incidents-siblings",
+      "candidate": "Affluent (TON) / Coffer (Solana)",
+      "chain": "TON/Solana",
+      "funds": "$1.05M / $0.70",
+      "lane_verdict": "drained/dust",
+      "disposition": "PRIOR-COVERED",
+      "cite": "incidents-siblings.md #24"
+    },
+    {
+      "n": 123,
+      "lane": "incidents-siblings",
+      "candidate": "Secured Finance (ETH/FIL/ARB)",
+      "chain": "multi",
+      "funds": "$168.7k",
+      "lane_verdict": "CLOSED $0 (re-open refuted)",
+      "disposition": "README-CLOSED",
+      "cite": "secured-finance.md"
+    },
+    {
+      "n": 124,
+      "lane": "kestrel",
+      "candidate": "Kestrel Long Yield Carry",
+      "chain": "Solana",
+      "funds": "$441.6k",
+      "lane_verdict": "CLOSED E-U $0",
+      "disposition": "README-CLOSED",
+      "cite": "kestrel.md"
+    },
+    {
+      "n": 125,
+      "lane": "monetrix",
+      "candidate": "Monetrix (USDM/mxHYPE/mxBTC)",
+      "chain": "HyperEVM 999",
+      "funds": "~$4.75M",
+      "lane_verdict": "CLOSED E-U $0",
+      "disposition": "README-CLOSED",
+      "cite": "monetrix.md"
+    },
+    {
+      "n": 126,
+      "lane": "pacifica-bridge",
+      "candidate": "Pacifica Bridge (PCFA + sol-bridge)",
+      "chain": "Solana",
+      "funds": "$24.33M (P-class)",
+      "lane_verdict": "CLOSED E-U $0",
+      "disposition": "README-CLOSED",
+      "cite": "pacifica-bridge.md"
+    },
+    {
+      "n": 127,
+      "lane": "probed-protocols",
+      "candidate": "BSC 0x16ceff8d V4-hook 'bank' (54.5 BNB)",
+      "chain": "BSC",
+      "funds": "64.2 BNB + USDT",
+      "lane_verdict": "probed; no unguarded path",
+      "disposition": "ASSIGNED",
+      "cite": "bsc-v4-hook-bank/"
+    },
+    {
+      "n": 128,
+      "lane": "probed-protocols",
+      "candidate": "BSC 0x6aba0315 proxy ($8.63M / 155.9M txs)",
+      "chain": "BSC+4",
+      "funds": "~$3.28M BSC verified",
+      "lane_verdict": "reverts for stranger; unverified",
+      "disposition": "OPEN",
+      "cite": "probed-protocols.md #2"
+    },
+    {
+      "n": 129,
+      "lane": "probed-protocols",
+      "candidate": "ETH 0x278d858f + BSC 0xa9010523 whitelist-router family",
+      "chain": "ETH+BSC+12",
+      "funds": "~$400k ETH verified; $6.9M family",
+      "lane_verdict": "whitelist works; unverified/obfuscated",
+      "disposition": "OPEN",
+      "cite": "probed-protocols.md #3"
+    },
+    {
+      "n": 130,
+      "lane": "probed-protocols",
+      "candidate": "Uniswap Continuous Clearing Auction 0xa93807cd",
+      "chain": "Ethereum",
+      "funds": "5.17 ETH",
+      "lane_verdict": "LOW",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md #4"
+    },
+    {
+      "n": 131,
+      "lane": "probed-protocols",
+      "candidate": "Axiom Uniswap-V4 hook 0x9689992f",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "LOW",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md #5"
+    },
+    {
+      "n": 132,
+      "lane": "probed-protocols",
+      "candidate": "Cross-chain swap 0x8ea5ad2a / 0x86d5db2a",
+      "chain": "Base+BSC",
+      "funds": "~0.067 ETH",
+      "lane_verdict": "LOW",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md #6"
+    },
+    {
+      "n": 133,
+      "lane": "probed-protocols",
+      "candidate": "Hatchlings mintFree",
+      "chain": "Ethereum",
+      "funds": "-",
+      "lane_verdict": "sold out, not E-U",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "probed-protocols.md #7"
+    },
+    {
+      "n": 134,
+      "lane": "probed-protocols",
+      "candidate": "Packed-command contracts (0xae629bf1/0x29be31e7/0x56320386)",
+      "chain": "Base+BSC",
+      "funds": "spam tokens",
+      "lane_verdict": "LOW reverts",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md #8-10"
+    },
+    {
+      "n": 135,
+      "lane": "probed-protocols",
+      "candidate": "getRich honeypot 0x913b87c7",
+      "chain": "Base",
+      "funds": "-",
+      "lane_verdict": "LOW",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "probed-protocols.md #11"
+    },
+    {
+      "n": 136,
+      "lane": "probed-protocols",
+      "candidate": "executeProgram proxy 0x774c69ab",
+      "chain": "Base",
+      "funds": "-",
+      "lane_verdict": "LOW",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md #12"
+    },
+    {
+      "n": 137,
+      "lane": "probed-protocols",
+      "candidate": "EIP-2535 Diamond 0xb44446b0",
+      "chain": "Ethereum",
+      "funds": "-",
+      "lane_verdict": "LOW",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md #13"
+    },
+    {
+      "n": 138,
+      "lane": "probed-protocols",
+      "candidate": "OptimizedBatchClaimer 0xd6510531",
+      "chain": "Ethereum",
+      "funds": "$0",
+      "lane_verdict": "LOW",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md #14"
+    },
+    {
+      "n": 139,
+      "lane": "probed-protocols",
+      "candidate": "Fresh-EOA one-offs (0x26ff4608/0xfdf682f5)",
+      "chain": "Base",
+      "funds": "-",
+      "lane_verdict": "LOW",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md #15"
+    },
+    {
+      "n": 140,
+      "lane": "probed-protocols",
+      "candidate": "169-ETH Base tag-dispatch contract 0x08fb3354",
+      "chain": "Base",
+      "funds": "169.39 ETH",
+      "lane_verdict": "prior-covered pass5 row15",
+      "disposition": "PRIOR-COVERED",
+      "cite": "probed-protocols.md #16 (monitor)"
+    },
+    {
+      "n": 141,
+      "lane": "probed-protocols",
+      "candidate": "OKX/Across/UniversalRouter/1inch/Seaport/UniswapV4Router04",
+      "chain": "multi",
+      "funds": "dust",
+      "lane_verdict": "legit infra",
+      "disposition": "LANE-CLOSED",
+      "cite": "probed-protocols.md negatives"
+    },
+    {
+      "n": 142,
+      "lane": "probed-protocols",
+      "candidate": "EIP-7702 delegation designators",
+      "chain": "Base+ETH",
+      "funds": "-",
+      "lane_verdict": "MEV bots",
+      "disposition": "PRIOR-COVERED",
+      "cite": "ZH4 monitor"
+    },
+    {
+      "n": 143,
+      "lane": "robinhood-oracle",
+      "candidate": "Robinhood-Chain Morpho equity oracle staleness",
+      "chain": "Robinhood 4663",
+      "funds": "$1.69M debt; $215.5k free",
+      "lane_verdict": "LOW, armed; mechanism proven",
+      "disposition": "README-FINDING",
+      "cite": "pass6 P6-01; robinhood-oracle.md"
+    },
+    {
+      "n": 144,
+      "lane": "robinhood-oracle",
+      "candidate": "Robinhood mock oracle 0x20925300 unprotected setPrice",
+      "chain": "Robinhood 4663",
+      "funds": "$0",
+      "lane_verdict": "mock markets only",
+      "disposition": "LANE-CLOSED",
+      "cite": "robinhood-oracle.md \u00a77"
+    },
+    {
+      "n": 145,
+      "lane": "solana-fresh",
+      "candidate": "Kestrel Long Yield Carry",
+      "chain": "Solana",
+      "funds": "$440k",
+      "lane_verdict": "CLOSED",
+      "disposition": "README-CLOSED",
+      "cite": "kestrel.md"
+    },
+    {
+      "n": 146,
+      "lane": "solana-fresh",
+      "candidate": "Tessera V",
+      "chain": "Solana",
+      "funds": "$9.18M",
+      "lane_verdict": "LOW (router-proxy untested)",
+      "disposition": "README-CLOSED",
+      "cite": "tessera.md"
+    },
+    {
+      "n": 147,
+      "lane": "solana-fresh",
+      "candidate": "AlphaQ prop-AMM",
+      "chain": "Solana",
+      "funds": "~$1.0M",
+      "lane_verdict": "LOW; admin gated; swap unresolved",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #3"
+    },
+    {
+      "n": 148,
+      "lane": "solana-fresh",
+      "candidate": "Exceed Finance",
+      "chain": "Solana",
+      "funds": "$704k",
+      "lane_verdict": "LOW-MED; update_pair_limits gated",
+      "disposition": "ASSIGNED",
+      "cite": "exceed-finance/"
+    },
+    {
+      "n": 149,
+      "lane": "solana-fresh",
+      "candidate": "DiversiFi index vaults",
+      "chain": "Solana",
+      "funds": "$745k",
+      "lane_verdict": "LOW; rebalance untested",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #5"
+    },
+    {
+      "n": 150,
+      "lane": "solana-fresh",
+      "candidate": "Flipcash bonding-curve launchpad",
+      "chain": "Solana",
+      "funds": "$415k",
+      "lane_verdict": "LOW immutable",
+      "disposition": "PRIOR-PARTIAL",
+      "cite": "residual-recon r4:53 (immutable+audited)"
+    },
+    {
+      "n": 151,
+      "lane": "solana-fresh",
+      "candidate": "Overpass wrapper factory",
+      "chain": "Solana",
+      "funds": "$141k",
+      "lane_verdict": "LOW unread",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #7"
+    },
+    {
+      "n": 152,
+      "lane": "solana-fresh",
+      "candidate": "Zodial (marginfi fork)",
+      "chain": "Solana",
+      "funds": "$201k",
+      "lane_verdict": "LOW fork-drift",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #8"
+    },
+    {
+      "n": 153,
+      "lane": "solana-fresh",
+      "candidate": "Umbra Privacy V2",
+      "chain": "Solana",
+      "funds": "$252k",
+      "lane_verdict": "P5 OPEN-B tail",
+      "disposition": "PRIOR-COVERED",
+      "cite": "solana-fresh.md #9"
+    },
+    {
+      "n": 154,
+      "lane": "solana-fresh",
+      "candidate": "Sat Rush",
+      "chain": "Solana",
+      "funds": "$847k",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #10"
+    },
+    {
+      "n": 155,
+      "lane": "solana-fresh",
+      "candidate": "Loyal Earn",
+      "chain": "Solana",
+      "funds": "$393k",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #11"
+    },
+    {
+      "n": 156,
+      "lane": "solana-fresh",
+      "candidate": "TRUE DEX",
+      "chain": "Solana",
+      "funds": "$281k",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #12"
+    },
+    {
+      "n": 157,
+      "lane": "solana-fresh",
+      "candidate": "Pascal",
+      "chain": "Solana",
+      "funds": "$2.24M",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #13"
+    },
+    {
+      "n": 158,
+      "lane": "solana-fresh",
+      "candidate": "N1 Exchange Bridge",
+      "chain": "Solana",
+      "funds": "$1.37M",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #14"
+    },
+    {
+      "n": 159,
+      "lane": "solana-fresh",
+      "candidate": "Byzanlink RWA Markets",
+      "chain": "Solana",
+      "funds": "$2.09M",
+      "lane_verdict": "LOW unlocated",
+      "disposition": "OPEN",
+      "cite": "solana-fresh.md #15"
+    },
+    {
+      "n": 160,
+      "lane": "solana-fresh",
+      "candidate": "Webot",
+      "chain": "Solana",
+      "funds": "$3.59M",
+      "lane_verdict": "CEX off-chain",
+      "disposition": "NOT-A-PROTOCOL",
+      "cite": "solana-fresh.md #16"
+    },
+    {
+      "n": 161,
+      "lane": "solana-fresh",
+      "candidate": "Definity/Raiku/Japan/Forward-Industries SOL",
+      "chain": "Solana",
+      "funds": "$293M",
+      "lane_verdict": "SPL stake pools",
+      "disposition": "README-CLOSED",
+      "cite": "solana-fresh.md #17"
+    },
+    {
+      "n": 162,
+      "lane": "solana-fresh",
+      "candidate": "Prior-corpus repeats (BisonFi/GoonFi/Aquifer/Phase/Scorch/Loopscale/Reflect/Pacifica/Exponent/Save/marginfi/Drift/DefiTuna/Jupiter Offerbook/Bordrless/DeepSwap)",
+      "chain": "Solana",
+      "funds": "-",
+      "lane_verdict": "excluded",
+      "disposition": "PRIOR-COVERED",
+      "cite": "solana-fresh.md negatives"
+    },
+    {
+      "n": 163,
+      "lane": "stonkbrokers",
+      "candidate": "StonkBrokers lockers + TokenEscrowReserve",
+      "chain": "Robinhood 4663",
+      "funds": "$1.01M + $7.07M reserve",
+      "lane_verdict": "CLOSED E-U $0",
+      "disposition": "README-CLOSED",
+      "cite": "stonkbrokers.md"
+    },
+    {
+      "n": 164,
+      "lane": "swaap",
+      "candidate": "Swaap Finance Pool 0x7f5f7411",
+      "chain": "Polygon",
+      "funds": "$107k",
+      "lane_verdict": "CLOSED E-U $0",
+      "disposition": "README-CLOSED",
+      "cite": "swaap.md"
+    },
+    {
+      "n": 165,
+      "lane": "swaap",
+      "candidate": "Swaap Maker V2 (SafeguardPool)",
+      "chain": "multi (11)",
+      "funds": "$454k",
+      "lane_verdict": "out-of-scope flag, unread",
+      "disposition": "OPEN",
+      "cite": "swaap.md \u00a74 out-of-scope"
+    },
+    {
+      "n": 166,
+      "lane": "tessera",
+      "candidate": "Tessera V (Wintermute prop-AMM)",
+      "chain": "Solana",
+      "funds": "$8.5M",
+      "lane_verdict": "LOW; whitelist+operator gates",
+      "disposition": "README-CLOSED",
+      "cite": "tessera.md"
+    },
+    {
+      "n": 167,
+      "lane": "vetro",
+      "candidate": "VETRO (VUSD/vetBTC)",
+      "chain": "Ethereum",
+      "funds": "$906k",
+      "lane_verdict": "CLOSED E-U $0",
+      "disposition": "README-CLOSED",
+      "cite": "vetro.md"
+    },
+    {
+      "n": 168,
+      "lane": "vetro",
+      "candidate": "VETRO VUSD LayerZero OFT lockbox",
+      "chain": "Ethereum",
+      "funds": "230,820 VUSD",
+      "lane_verdict": "correctly configured; monitor",
+      "disposition": "LANE-CLOSED",
+      "cite": "vetro.md \u00a75.7"
+    },
+    {
+      "n": 169,
+      "lane": "assignments",
+      "candidate": "Robinhood oracle (P6-01)",
+      "chain": "Robinhood 4663",
+      "funds": "$0.3-1.5M",
+      "lane_verdict": "assigned",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker"
+    },
+    {
+      "n": 170,
+      "lane": "assignments",
+      "candidate": "Ascend (P6-02)",
+      "chain": "0G",
+      "funds": "<=$3.4M",
+      "lane_verdict": "assigned",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker"
+    },
+    {
+      "n": 171,
+      "lane": "assignments",
+      "candidate": "INFER/imdUSD",
+      "chain": "Ethereum",
+      "funds": "<=$340k",
+      "lane_verdict": "assigned",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker"
+    },
+    {
+      "n": 172,
+      "lane": "assignments",
+      "candidate": "JPY DeFi",
+      "chain": "Ethereum",
+      "funds": "<=$840k",
+      "lane_verdict": "assigned",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker"
+    },
+    {
+      "n": 173,
+      "lane": "assignments",
+      "candidate": "The Moats",
+      "chain": "multi",
+      "funds": "<=$1.4M",
+      "lane_verdict": "assigned",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker"
+    },
+    {
+      "n": 174,
+      "lane": "assignments",
+      "candidate": "Exceed Finance",
+      "chain": "Solana",
+      "funds": "<=$704k",
+      "lane_verdict": "assigned",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker"
+    },
+    {
+      "n": 175,
+      "lane": "assignments",
+      "candidate": "Kolan launchpad x14 hooks",
+      "chain": "Ethereum",
+      "funds": "$0 re-arm",
+      "lane_verdict": "assigned",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker"
+    },
+    {
+      "n": 176,
+      "lane": "assignments",
+      "candidate": "BSC V4-hook bank (54.5 BNB)",
+      "chain": "BSC",
+      "funds": "64.2 BNB",
+      "lane_verdict": "assigned",
+      "disposition": "ASSIGNED",
+      "cite": "ZH4P6 tracker"
+    },
+    {
+      "n": 177,
+      "lane": "assignments",
+      "candidate": "Sodium/AGLHook/Spot/StablePair/BiFi (carry-overs)",
+      "chain": "multi",
+      "funds": "-",
+      "lane_verdict": "closed by us",
+      "disposition": "PRIOR-COVERED",
+      "cite": "ZH4P6 tracker; pass5"
+    }
+  ]
+}
