@@ -1,0 +1,44 @@
+{
+  "finding": "ZH4-residual OPEN #3/#4/#5 (SaucerSwap V2 / SMARDEX USDN / Venus Flux)",
+  "title": "Deep-dive: SaucerSwap V2 (Hedera), SMARDEX USDN (Ethereum), Venus Flux (BSC)",
+  "chains": ["hedera", "ethereum", "bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 171.82, "S": 0},
+  "latest_block": 26265216,
+  "block_numbers": {"ethereum": 26265216, "ethereum_analysis": 26255433, "bsc": 129587304, "hedera": 101522768},
+  "targets_checked": 3,
+  "live_targets": 3,
+  "closed_reasons": [
+    "SaucerSwap V2 (Hedera): faithful UniV3 fork; pool positions keyed by msg.sender, LP positions bound to the HTS LP-NFT owner, collectProtocol factory-owner-only, Hedera network enforces HTS spender allowances on the periphery safeTransferFrom->transferToken path. 10/10 CI.",
+    "SMARDEX USDN (Ethereum): no tick liquidatable (weakest of 28 positions 6.87% from liq at block 26,265,216); liquidate() pays only a hard-capped <=0.5 ETH reward (collateral goes to the vault) and requires a real Wormhole-signed Pyth price <=45s old; every setter/pause/upgrade role-gated. 9/9 CI.",
+    "Venus Flux (BSC): the wstUSR oracle is genuinely broken (redemption rate 1.13297 vs ~$0.083 market, ~13.6x) but the market is fully paused at the Fluid Liquidity layer (borrow limit 1 wei, per-user supply/borrow pause bits, DEX swap paused, DEX share caps 0) so no call path monetises it. 10/10 CI.",
+    "All three re-verified live on 2026-10-24; state unchanged."
+  ],
+  "poc": {
+    "tests_passed": 29,
+    "tests_total": 29,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39923618014",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39960310248",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39961692014",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39916130311"
+    ]
+  },
+  "key_facts": [
+    "SaucerSwap V2 factory 0x..003c3951 (0.0.3946833) live, UniV3-shaped (feeAmountTickSpacing(3000)=60); 56 pools, measured 2-sided TVL $17.61M; only privileged surface is $171.82 of pool HBAR (factory owner).",
+    "SMARDEX USDN proxy 0x656cB8C6d154Aad29d8771384089be5B5141f01a -> impl 0x271df5517a4daacb7cab988aa64d23debda4c498 (byte-identical to repo f9171be); vault+long = 452.5 wstETH (~$1.35M); 28 long positions; protocol usdnPrice ~= par.",
+    "Venus Flux = flux.venus.io/lending/56 on BSC, an Instadapp Fluid deployment (Liquidity 0x52Aa899454998Be5b000Ad077a46Bbe360F4e497); DL $2.17M supply / $1.29M borrowed.",
+    "CORRECTION (carried): Venus Flux listed tokens 0x8E9d../0x4254../0xcE24../0x7773.. are NOT Venus wrappers but third-party tokens syrupUSDT (Maple), wstUSR (Resolv), U (United Stables), asBNB (Astherus); the risk is Fluid's oracle path for exotic collateral.",
+    "Venus Flux latent re-arm magnitude ~$244k net (1.0197 USDT borrow capacity per wstUSR vs ~$0.083 market cost) if governance unpauses/raises the borrow limit or a new chain lists wstUSR with the same stale redemption-rate oracle.",
+    "SaucerSwap V2 PoC is a local non-forked harness (Hedera HTS/HAS precompiles 0x167/0x168 are unforkable via JSON-RPC); SMARDEX and Venus Flux PoCs are real mainnet forks (10/10, 9/9, 10/10)."
+  ],
+  "caveats": [
+    "Per-target verdicts are produced by the child deep-dive folders; this umbrella independently re-verifies live state and reconciles the three verdicts.",
+    "SaucerSwap V2 fork limitation: Hedera HTS precompiles cannot be forked via JSON-RPC, so allowance enforcement is argued from Hedera's documented security model, not reproduced in the local mock.",
+    "Venus Flux E-U is $0 because of an explicit governance lockdown, not because the oracle is correct; the mis-pricing remains deployed and would re-arm on any unpause/limit change/new listing/other chain.",
+    "USD figures use DefiLlama prices at the stated timestamps; wstUSR has no reliable BSC print (Ethereum price used).",
+    "Reads are point-in-time; state can change at any block."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live across all three (SaucerSwap V2 Hedera $17.6M, SMARDEX USDN Ethereum $1.35M, Venus Flux BSC $2.17M/$1.29M): SaucerSwap is a faithful UniV3 fork with all value paths auth-gated, SMARDEX has no liquidatable tick and pays only a hard-capped reward, and Venus Flux's genuinely-broken wstUSR oracle is fully paused — only latent re-arm risks remain (Venus ~$244k on unpause)."
+}
