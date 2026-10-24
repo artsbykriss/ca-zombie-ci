@@ -1,0 +1,57 @@
+{
+  "finding": "ZH4P5-LVIN",
+  "title": "LVIN recycle(uint256) NEM-class gate: state-condition, reachable only via public Stake contract, burn bounded by caller reward \u2014 $0 extractable",
+  "chains": [
+    "binance"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 283522.51,
+    "P": 0,
+    "S": 28.12
+  },
+  "latest_block": 129585818,
+  "block_numbers": {
+    "binance": 129585818,
+    "initial_analysis_block": 129283473
+  },
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "recycle() gated by require(stake == msg.sender, 'recycle fail'); stake = Stake contract 0xe120bBf90eb051A43A3BDc0408b194b6F99b488E",
+    "only reachable path is Stake.transfer -> sell() -> token.recycle(sellAmt); sellAmt = caller's accrued reward (balances+staticReward+dynamicReward)",
+    "dynamicReward = rc.getDynamicAmt - userDynamicAmt = 0 for arbitrary accounts; u.inAmt <= 3000e18 per order",
+    "burn = min(caller_reward, pairBal/3); max live single reward = 103995.84 LVIN (0.60% of pair) among 1241 stakers at HEAD (was 71604.52 at 129283473)",
+    "fresh attacker reward after one cycle = 13224.37 LVIN (~$59); stake round-trip nets ~-$600 (20% routed to dead-address liquidity)",
+    "even a privileged max-burn (r0/3) round trip loses ~$235 on a $20k buy at the live ~$97.6k pool",
+    "TOKEN owner renounced (0x0); Stake owner renounced (0x0); no setStake possible",
+    "HEAD recheck (block 129585818): TOKEN owner 0x0, stake slot13 0xe120...488e, Stake owner 0x0, recycle from random EOA still reverts 'recycle fail', recycle from Stake succeeds -> gate and renouncements unchanged; reserves drifted to 17274748.25 LVIN / 77551.79 USDT so maxBurn = 5758249 LVIN (still ~2 orders above any single reward)"
+  ],
+  "poc": {
+    "tests_passed": 9,
+    "tests_total": 9,
+    "ci_run_urls": [
+      "CI_RUN_URL_LVIN_PLACEHOLDER"
+    ]
+  },
+  "key_facts": [
+    "pair 0x43365C7B7b039bc06dC201Ddf38117cf1C69dc8b (PancakeV2) reserves at HEAD 129585818: 17274748.25 LVIN / 77551.79 USDT (was 16390674.50 LVIN / 97595.51 USDT at 129283473)",
+    "TOKEN 0x33bC8653EcA8469108f65FE87B18c87C136545a8 verified (Etherscan V2 + Sourcify exact_match), solc 0.8.34",
+    "recycle(uint256) selector 0xdd1c35bc; direct call from random EOA reverts 'recycle fail'; call from Stake address succeeds",
+    "TOKEN.stake storage slot 13 = 0xe120bBf90eb051A43A3BDc0408b194b6F99b488E; TOKEN owner slot 5 = 0",
+    "Stake contract verified; holds 10000426.62 LVIN and 283771.07 USDT (HEAD); 1241 stakers; totalStakeAmt 283522.51 USDT",
+    "Stake.transfer(TOP,1) from top staker 0x28AC07a00F9A0345B469dE457394AEFA67626039 succeeds and burns 103995.84 LVIN via recycle (HEAD)",
+    "UC.registerForAddr(referrer) is permissionless (0xE18E914314c2AF0B9F3B0568b390AaFEEb98efaB) but reward accrual needs a full 1-day interval",
+    "fork test G: max burn 5749067.59 LVIN (HEAD), $20k buy->burn->sell returns 18186 USDT (net loss); test_F fresh attacker one-cycle burn 13224.37 LVIN"
+  ],
+  "caveats": [
+    "point-in-time snapshot; initial analysis at block 129283473, head recheck at block 129585818; reward accrual and TVL change daily",
+    "uc (0xE18E...efaB) and rc (0x8795...1a3f) are unverified; behavior inferred from heimdall decompilation + live getter probes (getRewardRate=20, getDynamicAmt(*)=0)",
+    "test_D uses impersonation of the top staker to measure the mechanism's max effect; the true attacker-reachable burn is test_F (~10k LVIN/cycle)",
+    "H-O 283522.51 = nominal staker principal redeemable via redeemOrder (self-service, first-come-first-served), not attacker profit",
+    "S 28.12 = TOKEN contract's own 1364.25 LVIN + 20 USDT, permanently stuck because owner is renounced"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from LVIN: recycle() is a genuine msg.sender==stake gate reachable only through the public Stake contract, and the burn is bounded by the caller's own accrued reward (<=0.44% of the pool today) with every reachable round trip netting a loss."
+}

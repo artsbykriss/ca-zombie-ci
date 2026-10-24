@@ -1,0 +1,67 @@
+{
+  "chain": "binance",
+  "chain_id": 56,
+  "observed_blocks": [129280492, 129280673, 129281512, 129282334, 129283274, 129283473],
+  "pinned_fork_block": 129283473,
+  "block_timestamp_at_129280673": 1792739920,
+  "token": {
+    "address": "0x33bC8653EcA8469108f65FE87B18c87C136545a8",
+    "name": "LVIN", "symbol": "LVIN", "decimals": 18,
+    "totalSupply": "310000000000000000000000000",
+    "verified": true, "verifier": "etherscan-v2 + sourcify exact_match",
+    "contract_name": "TOKEN", "compiler": "v0.8.34+commit.80d5c536",
+    "owner": "0x0000000000000000000000000000000000000000",
+    "owner_renounced": true,
+    "tradingEnable": true, "limitedTimeEnable": false
+  },
+  "pair": {
+    "address": "0x43365C7B7b039bc06dC201Ddf38117cf1C69dc8b",
+    "venue": "PancakeSwap V2 (factory 0xca143ce32fe78f1f7019d7d551a6402fc5350c73)",
+    "token0": "0x33bC8653EcA8469108f65FE87B18c87C136545a8",
+    "token1": "0x55d398326f99059fF775485246999027B3197955 (USDT)",
+    "reserve0_LVIN": "16390674.502540",
+    "reserve1_USDT": "97595.509454",
+    "usd_liquidity": 97595.51,
+    "lp_totalSupply": "1648298.9259146624",
+    "lp_burned_to_dead": "1641526.5849020272",
+    "balanceOf_pair_LVIN": "16390674.502540",
+    "balanceOf_pair_USDT": "97595.509454"
+  },
+  "stake_contract": {
+    "address": "0xe120bBf90eb051A43A3BDc0408b194b6F99b488E",
+    "contract_name": "Stake", "verified": true, "compiler": "v0.8.34+commit.80d5c536",
+    "owner": "0x0000000000000000000000000000000000000000",
+    "owner_renounced": true,
+    "LVIN_balance": "10000426.620262",
+    "USDT_balance": "286699.570222",
+    "totalInAmt_USDT": "390721.6",
+    "totalOutAmt": "747223.699",
+    "totalStakeAmt_USDT": "286226.071",
+    "stakeList_length": 1241,
+    "rewardId": 7, "nextCalculateTime": 1792668890, "rewardInterval": 86400,
+    "resetId": 1, "nextResetTime": 1799831162,
+    "rc_Reward": "0x8795530EED8d79635d484206ADDEC9286F2c1a3F (getRewardRate=20, getDynamicAmt(*)=0)",
+    "uc_Upline": "0xE18E914314c2AF0B9F3B0568b390AaFEEb98efaB (getOpenActive=0, owner=0x41B7E0806f7242688F5608431E8Ca7E0Fa7dAFad)",
+    "lpRewardAddr": "0x8795530EED8d79635d484206ADDEC9286F2c1a3F",
+    "commAddr": "0x6f5f2c8e3cb17fa5f7e1ae24a0655877a3c9af01",
+    "markAddr": "0x2292a5c34fe0d5496672ebca1fb275e38ced7fa7"
+  },
+  "stake_token": {
+    "address": "0xe120bBf90eb051A43A3BDc0408b194b6F99b488E",
+    "storage_slot13": "stake address = 0xe120bBf90eb051A43A3BDc0408b194b6F99b488E; bool tradingEnable=true",
+    "note": "TOKEN.stake (slot 13) == Stake contract -> require(stake==msg.sender) in recycle()"
+  },
+  "recycle_gate": {
+    "function": "recycle(uint256) selector 0xdd1c35bc",
+    "gate": "require(stake == msg.sender, \"recycle fail\")",
+    "stake_value": "0xe120bBf90eb051A43A3BDc0408b194b6F99b488E",
+    "reachable_via": "Stake.transfer(to,value!=3e18) -> sell(account) -> token.recycle(sellAmt)",
+    "burn_amount": "min(sellAmt, balanceOf(pair)/3); sellAmt = getAllReward(caller)"
+  },
+  "token_funds": {
+    "LVIN_balance": "1364.249905", "USDT_balance": "20.0", "BNB": "0",
+    "note": "withdrawToken/withdrawBNB are onlyOwner and owner is renounced -> permanently stuck"
+  },
+  "dead_LVIN": "3615738.246007",
+  "prices": {"USDT_USD": 1.0, "LVIN_USD": 0.005956}
+}
