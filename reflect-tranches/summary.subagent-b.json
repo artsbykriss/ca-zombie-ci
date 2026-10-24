@@ -1,0 +1,48 @@
+{
+  "finding": "ZH4-OPEN-B-REFLECT-TRANCHES",
+  "author": "subagent-b",
+  "title": "Reflect Tranches (Solana) — RLP insurance pool (junior) + shared Reflect proxy (senior)",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 0, "H-O": 0, "P": 2760673.08, "S": 0},
+  "latest_block": 460456908,
+  "block_numbers": {"solana_slot": 460456908},
+  "targets_checked": 6,
+  "live_targets": 2,
+  "live_value_usd": {"senior_proxy_vaults": 2349287.33, "junior_rlp_pools": 411385.75, "total": 2760673.08, "matured_unclaimed_cooldowns": 70.03},
+  "closed_reasons": [
+    "RLP role system: every privileged instruction requires an initialized UserPermissions PDA seed-bound to the signing caller; the only permissionless entry (create_permission_account) creates an account with an EMPTY role set (harness reads the created account: roles tail all-zero)",
+    "RLP update_action_role paired harness proof: the same call is Custom(6043) IncorrectAdmin for the real MANAGER, Custom(6001) InvalidInput for the real SUPREMO (i.e. it PASSES the role gate), and is rejected for a fresh role-less signer",
+    "RLP withdraw: the cooldown is bound to cooldown.authority == signer; a foreign matured cooldown is rejected with an Anchor token-owner constraint Custom(2015)",
+    "Proxy claim_fees: requires signer == ProxyState.authority (offset 82..114) — FULLY VALIDATED: the real authority succeeds (positive control), a role-less third-party signer fails Custom(16)",
+    "Proxy unwrap: 13 candidate account layouts driven against the deployed ELF with a fresh signer pointing branded_user_token_account at a victim's 963,858-token senior position all failed before touching tokens; the victim's branded balance was unchanged in every case",
+    "Prices are Chainlink Data Streams / Pyth reports verified by CPI; stale reports rejected (OracleReportNotNewer). Every live RLP pool holds exactly one asset, so the RLP swap cannot be exercised at all"
+  ],
+  "poc": {
+    "tests_total": 24,
+    "tests_passed": 3,
+    "tests_passed_note": "positive controls that succeeded: proxy claim_fees with the real authority, proxy update_authority with the real authority, create_permission_account registration; every unprivileged attempt was rejected",
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39969562016"],
+    "harness": "poc/ — LiteSVM (in-process VM, sigverify disabled INSIDE the VM) over the deployed ELFs + 40 cloned mainnet accounts, with paired positive controls using the REAL privileged pubkeys as signers (SUPREMO 28sR8pmJ…, MANAGER KuBAWM6p…, proxy authority apyaB89k…, cooldown authority 8iSXYPaU…) vs a fresh random signer"
+  },
+  "key_facts": [
+    "Programs: RLP JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av (Anchor, 19 instructions) + shared Reflect proxy pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C (Pinocchio, 1-byte disc); both upgrade authority 28sR8pmJxhtZNci3hPervkxu9f93nvHpFikbtzXoxmWA",
+    "The pass-5 lane's '0 audits' is WRONG: six published audits cover the deployed code family (Offside Labs Sep-2025 / Nov-2025 proxy / Feb-2026 core; Adevar Labs RLP 2026-06-19 after-fix, RLP oracle-stacking 2026-10-08, proxy oracle-stacking 2026-10-08) at github.com/palindrome-eng/audits",
+    "The published contract-interfaces docs describe a DIFFERENT deployment: RLP rhLMe6… does not exist on chain; documented proxy ProxycrBk… has ProxyState LEN=115 while the live tranches proxy has LEN=156",
+    "Only 3 UserPermissions accounts exist: 28sR8pmJ… = [SUPREMO], KuBAWM6p… = [MANAGER], Gx2XuhLE… = [] (empty). NO CRANK holder exists",
+    "create_permission_account SUCCEEDS for a fresh random signer (25,637 CU, err=null) but grants no role; update_role_holder / update_action_role / slash / freeze_functionality all fail for a fresh signer (Anchor AccountNotInitialized 3012)",
+    "TVL at slot 460456908: senior $2,349,287.33 + junior $411,385.75 = $2,760,673.08 (DefiLlama $2.73–2.85M); 9YEKjRbR… is unpriced so this is a lower bound",
+    "Matured unclaimed RLP Cooldowns hold only ~$70 in total",
+    "The deployed RLP ELF contains the post-fix error strings MinimumSuperadminsRequired / PoolWipedOut / CooldownExpired / NoNavLossToCover / ProtectedVaultMismatch; last deploy 2026-10-05, after the 2026-06-19 after-fix commit",
+    "Proxy wrap/unwrap account layout pinned from a real Wrap tx (slot 460447739): [user, user_stablecoin_ata, user_branded_ata, proxy_state, proxy_vault, branded_mint, oracle, cfg(259B Asset), token_program, stablecoin_mint]"
+  ],
+  "caveats": [
+    "Proxy unwrap is medium-confidence: 13 layouts tried, none produced attacker-favourable movement, but the layout was pinned late and the deployed proxy is the older shared program. An SPL mint authority CAN burn from any token account, so this path must be closed by an explicit owner check, not by the token program.",
+    "RLP withdraw: the only observed on-chain Withdraw tx references one account (7bhqRJxC…) that has since been closed, so a fully-validated positive control was not obtained.",
+    "getTokenSupply / getProgramAccounts(jsonParsed) unsupported on the keyless endpoint used; mint supplies read from raw account bytes. getSignaturesForAddress returns no history for the pool-0 branded mint or its holder ATAs.",
+    "Snapshot only (slot 460456908, 2026-10-23).",
+    "Housekeeping: an accidental overwrite of the parent's README.md/summary.json occurred and was restored byte-for-byte from the parent's copies; ci/run.sh was never modified."
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from Reflect Tranches ($2.76M TVL): the RLP role system requires an initialized per-caller UserPermissions PDA and permissionless registration grants no role (paired proof: real MANAGER rejected, real SUPREMO passes the gate), withdraw binds the cooldown to its recorded authority, proxy claim_fees requires ProxyState.authority (validated), and prices are Chainlink/Pyth-verified — the residual $2.76M is privileged-only."
+}

@@ -1,0 +1,244 @@
+warning: constant `AUTHORITY_ATA0` is never used
+  --> src/main.rs:42:7
+   |
+42 | const AUTHORITY_ATA0: &str = "UVw4BJXJqnVpi9Qw98KXcHNYS6ZG836ZcX8rqibTnFq";
+   |       ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `patch` is never used
+   --> src/main.rs:201:8
+    |
+118 | impl Harness {
+    | ------------ method in this implementation
+...
+201 |     fn patch(&mut self, addr: &Address, f: impl Fn(&mut Vec<u8>)) {
+    |        ^^^^^
+
+== Reflect Tranches — LiteSVM authorisation harness (paired privileged/unprivileged) ==
+
+-- 1. RLP: permissionless registration grants no role --
+  [OK ] create_permission_account(attacker)
+  attacker UserPermissions roles tail = 0000000000000000000000000000
+
+-- 2. RLP update_action_role(action=Slash, role=PUBLIC) — attacker vs real MANAGER vs real SUPREMO --
+  [ERR] attacker (registered, EMPTY roles) -> InstructionError(0, Custom(6043))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x179b
+  [ERR] real MANAGER -> InstructionError(0, Custom(6043))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x179b
+  [ERR] real SUPREMO -> InstructionError(0, Custom(6001))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x1771
+
+-- 3. RLP slash(pool0, 1 unit) — attacker vs real SUPREMO --
+  [ERR] attacker -> InstructionError(0, Custom(3007))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0xbbf
+  [ERR] real SUPREMO -> InstructionError(0, Custom(3007))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0xbbf
+
+-- 4. RLP freeze_functionality(action=Slash, freeze=true) — attacker vs real SUPREMO --
+  [ERR] attacker -> InstructionError(0, Custom(6043))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x179b
+  [ERR] real SUPREMO -> InstructionError(0, Custom(6038))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x1796
+
+-- 5. RLP withdraw(cooldown H9Ai, pool6) — attacker vs the cooldown's real authority --
+  [ERR] attacker on a cooldown it does not own -> InstructionError(0, Custom(2015))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x7df
+  [ERR] cooldown's real authority (positive control) -> InstructionError(0, Custom(2015))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x7df
+
+-- 6. proxy claim_fees(ProxyState FD4Yydhz) — attacker vs the real proxy authority --
+  [ERR] attacker -> InstructionError(0, Custom(16))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x10
+  [OK ] real proxy authority (positive control)
+
+-- 7. proxy unwrap: can a fresh signer burn a VICTIM's branded balance? --
+  [ERR] L1 user,usdc,branded,ps,vault,oracle,cfg,token,mint -> InstructionError(0, NotEnoughAccountKeys)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: insufficient account keys for instruction
+  [ERR] L2 +system -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+  [ERR] L3 +branded_mint -> InstructionError(0, InvalidAccountData)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: invalid account data for instruction
+  [ERR] L4 user,branded,usdc -> InstructionError(0, NotEnoughAccountKeys)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: insufficient account keys for instruction
+  [ERR] L5 user,branded,usdc,system -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+  [ERR] L6 ...bm,oracle,cfg,token -> InstructionError(0, NotEnoughAccountKeys)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: insufficient account keys for instruction
+  [ERR] L7 ...token,system,mint -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+  [ERR] L8 ...token,ata,mint -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+  [ERR] L9 ...token,mint,ata -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+  [ERR] L10 ...cfg,system,token,mint -> InstructionError(0, InvalidAccountData)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: invalid account data for instruction
+  [ERR] L11 ...bm,oracle,cfg,token,system,mint -> InstructionError(0, InvalidAccountData)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: invalid account data for instruction
+  [ERR] L12 ...bm,oracle,cfg,token,mint,system -> InstructionError(0, InvalidAccountData)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: invalid account data for instruction
+  [ERR] L13 ...token,mint,system,ata -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+
+-- 8. proxy update_authority: can a fresh signer seize a ProxyState? --
+  [ERR] attacker -> InstructionError(0, Custom(16))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x10
+  [OK ] real authority (positive control)
+
+[
+  {
+    "err": "",
+    "succeeded": true,
+    "test": "rlp_create_permission_account"
+  },
+  {
+    "err": "0000000000000000000000000000",
+    "succeeded": false,
+    "test": "rlp_attacker_roles_after_registration"
+  },
+  {
+    "err": "InstructionError(0, Custom(6043))",
+    "succeeded": false,
+    "test": "rlp_update_action_role_attacker"
+  },
+  {
+    "err": "InstructionError(0, Custom(6043))",
+    "succeeded": false,
+    "test": "rlp_update_action_role_manager"
+  },
+  {
+    "err": "InstructionError(0, Custom(6001))",
+    "succeeded": false,
+    "test": "rlp_update_action_role_supremo"
+  },
+  {
+    "err": "InstructionError(0, Custom(3007))",
+    "succeeded": false,
+    "test": "rlp_slash_attacker"
+  },
+  {
+    "err": "InstructionError(0, Custom(3007))",
+    "succeeded": false,
+    "test": "rlp_slash_supremo"
+  },
+  {
+    "err": "InstructionError(0, Custom(6043))",
+    "succeeded": false,
+    "test": "rlp_freeze_functionality_attacker"
+  },
+  {
+    "err": "InstructionError(0, Custom(6038))",
+    "succeeded": false,
+    "test": "rlp_freeze_functionality_supremo"
+  },
+  {
+    "err": "InstructionError(0, Custom(2015))",
+    "succeeded": false,
+    "test": "rlp_withdraw_attacker"
+  },
+  {
+    "err": "InstructionError(0, Custom(2015))",
+    "succeeded": false,
+    "test": "rlp_withdraw_real_authority"
+  },
+  {
+    "err": "InstructionError(0, Custom(16))",
+    "succeeded": false,
+    "test": "proxy_claim_fees_attacker"
+  },
+  {
+    "err": "",
+    "succeeded": true,
+    "test": "proxy_claim_fees_real_authority"
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, NotEnoughAccountKeys)",
+    "succeeded": false,
+    "test": "proxy_unwrap:L1 user,usdc,branded,ps,vault,oracle,cfg,token,mint",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, Custom(24))",
+    "succeeded": false,
+    "test": "proxy_unwrap:L2 +system",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, InvalidAccountData)",
+    "succeeded": false,
+    "test": "proxy_unwrap:L3 +branded_mint",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, NotEnoughAccountKeys)",
+    "succeeded": false,
+    "test": "proxy_unwrap:L4 user,branded,usdc",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, Custom(24))",
+    "succeeded": false,
+    "test": "proxy_unwrap:L5 user,branded,usdc,system",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, NotEnoughAccountKeys)",
+    "succeeded": false,
+    "test": "proxy_unwrap:L6 ...bm,oracle,cfg,token",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, Custom(24))",
+    "succeeded": false,
+    "test": "proxy_unwrap:L7 ...token,system,mint",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, Custom(24))",
+    "succeeded": false,
+    "test": "proxy_unwrap:L8 ...token,ata,mint",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, Custom(24))",
+    "succeeded": false,
+    "test": "proxy_unwrap:L9 ...token,mint,ata",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, InvalidAccountData)",
+    "succeeded": false,
+    "test": "proxy_unwrap:L10 ...cfg,system,token,mint",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, InvalidAccountData)",
+    "succeeded": false,
+    "test": "proxy_unwrap:L11 ...bm,oracle,cfg,token,system,mint",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, InvalidAccountData)",
+    "succeeded": false,
+    "test": "proxy_unwrap:L12 ...bm,oracle,cfg,token,mint,system",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "attacker_usdc_plus": 0,
+    "err": "InstructionError(0, Custom(24))",
+    "succeeded": false,
+    "test": "proxy_unwrap:L13 ...token,mint,system,ata",
+    "victim_branded_after": 0,
+    "victim_branded_before": 0
+  },
+  {
+    "err": "InstructionError(0, Custom(16))",
+    "succeeded": false,
+    "test": "proxy_update_authority_attacker"
+  },
+  {
+    "err": "",
+    "succeeded": true,
+    "test": "proxy_update_authority_real"
+  }
+]

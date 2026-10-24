@@ -1,0 +1,326 @@
+[ci] pushed branch reflect-tranches
+[ci] dispatching workflow...
+[ci] run: https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39966390205
+[ci] conclusion: failure
+=== artifact contents ===
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/retry-ci.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/ci-run-1.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_proxy_user_ix.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_ix_orders.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_withdraw2.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_withdraw.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_proxy_ix.log
+=== tail of full log (/home/heisenberg/CA/reflect-tranches/ci-log.txt) ===
+ner/work/ca-zombie-ci/ca-zombie-ci
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1588540Z Deleting the contents of '/home/runner/work/ca-zombie-ci/ca-zombie-ci'
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1592069Z ##[group]Initializing the repository
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1596689Z [command]/usr/bin/git init /home/runner/work/ca-zombie-ci/ca-zombie-ci
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1741081Z hint: Using 'master' as the name for the initial branch. This default branch name
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1743414Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1745380Z hint: to use in all of your new repositories, which will suppress this warning,
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1747023Z hint: call:
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1748176Z hint:
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1750707Z hint: 	git config --global init.defaultBranch <name>
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1752217Z hint:
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1753831Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1755674Z hint: 'development'. The just-created branch can be renamed via this command:
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1757078Z hint:
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1758008Z hint: 	git branch -m <name>
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1759369Z hint:
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1760918Z hint: Disable this message with "git config set advice.defaultBranchName false"
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1763846Z Initialized empty Git repository in /home/runner/work/ca-zombie-ci/ca-zombie-ci/.git/
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1767076Z [command]/usr/bin/git remote add origin https://github.com/artsbykriss/ca-zombie-ci
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1825869Z ##[endgroup]
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1827335Z ##[group]Disabling automatic garbage collection
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1830839Z [command]/usr/bin/git config --local gc.auto 0
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1878364Z ##[endgroup]
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1881070Z ##[group]Setting up auth
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1882939Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+run	Run actions/checkout@v4	2026-10-23T14:03:37.1920683Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+run	Run actions/checkout@v4	2026-10-23T14:03:37.2351292Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+run	Run actions/checkout@v4	2026-10-23T14:03:37.2391550Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+run	Run actions/checkout@v4	2026-10-23T14:03:37.2640625Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+run	Run actions/checkout@v4	2026-10-23T14:03:37.2684842Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+run	Run actions/checkout@v4	2026-10-23T14:03:37.2925663Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+run	Run actions/checkout@v4	2026-10-23T14:03:37.2973572Z ##[endgroup]
+run	Run actions/checkout@v4	2026-10-23T14:03:37.2974592Z ##[group]Fetching the repository
+run	Run actions/checkout@v4	2026-10-23T14:03:37.2984968Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +70d3635e273364a5f889d79b530bc11a69e87884:refs/remotes/origin/reflect-tranches
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7806698Z From https://github.com/artsbykriss/ca-zombie-ci
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7809347Z  * [new ref]         70d3635e273364a5f889d79b530bc11a69e87884 -> origin/reflect-tranches
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7816749Z ##[endgroup]
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7819296Z ##[group]Determining the checkout info
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7822491Z ##[endgroup]
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7824288Z [command]/usr/bin/git sparse-checkout disable
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7884462Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7929331Z ##[group]Checking out the ref
+run	Run actions/checkout@v4	2026-10-23T14:03:37.7934298Z [command]/usr/bin/git checkout --progress --force -B reflect-tranches refs/remotes/origin/reflect-tranches
+run	Run actions/checkout@v4	2026-10-23T14:03:37.8306264Z Switched to a new branch 'reflect-tranches'
+run	Run actions/checkout@v4	2026-10-23T14:03:37.8313330Z branch 'reflect-tranches' set up to track 'origin/reflect-tranches'.
+run	Run actions/checkout@v4	2026-10-23T14:03:37.8324152Z ##[endgroup]
+run	Run actions/checkout@v4	2026-10-23T14:03:37.8414771Z [command]/usr/bin/git log -1 --format=%H
+run	Run actions/checkout@v4	2026-10-23T14:03:37.8419038Z 70d3635e273364a5f889d79b530bc11a69e87884
+run	Run foundry-rs/foundry-toolchain@v1	﻿2026-10-23T14:03:37.8788466Z ##[group]Run foundry-rs/foundry-toolchain@v1
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8790029Z with:
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8791368Z   version: stable
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8792374Z   network: ethereum
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8793355Z   cache: true
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8794540Z   cache-key: run-70d3635e273364a5f889d79b530bc11a69e87884
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8796061Z   cache-restore-keys: run-
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8797136Z env:
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8798361Z   RPC_URL: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8800263Z   BLOCKPI_RPC_URL: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8802462Z   NODEREAL_ETH_RPC_URL: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8803632Z   ETHERSCANV2_API_KEY: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8804922Z   GOLD_RUSH_API_KEY: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8806133Z   ALCHEMY_API_KEY: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8807804Z   ANKR_API_KEY: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8809133Z   DRPC_API_KEY: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8810349Z   INFURA_API_KEY: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8811925Z   DUNE_API_KEY: ***
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8812927Z   ARB_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8813872Z   BSC_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8814870Z   BASE_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8815826Z   OP_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8816794Z   POLYGON_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8817792Z   FANTOM_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8818773Z   CRONOS_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8819761Z   MOONRIVER_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8821305Z   GNOSIS_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8822331Z   SONIC_RPC_URL: 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8823327Z   FOUNDRY_FUZZ_RUNS: 256
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:37.8824400Z ##[endgroup]
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:38.0319036Z Installing Foundry (version: stable)
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:38.0323328Z Downloading foundryup installer from foundry-rs/foundryup@a27902ef04dcb43061fabf343365cb5afc95fc48...
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:38.0766886Z Running foundryup installer...
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:39.2119590Z Running: foundryup 
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.5660345Z Added /home/runner/.foundry/bin to PATH
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.5662095Z Primary key: linux-foundry-chain-fork-run-70d3635e273364a5f889d79b530bc11a69e87884
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.5669033Z Restore keys: linux-foundry-chain-fork-run-
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8074261Z Cache not found
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8075108Z Running: forge --version
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8142803Z forge Version: 1.8.6
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8143760Z Commit SHA: 6bad0a66de7c83f7b33695044138f0f5fa4c5990
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8144791Z Build Timestamp: 2026-10-21T17:56:11.890310850Z (1792605371)
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8145634Z Build Profile: dist
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8149311Z Running: cast --version
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8243657Z cast Version: 1.8.6
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8244751Z Commit SHA: 6bad0a66de7c83f7b33695044138f0f5fa4c5990
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8245815Z Build Timestamp: 2026-10-21T17:56:11.890310850Z (1792605371)
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8246585Z Build Profile: dist
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8252883Z Running: anvil --version
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8302750Z anvil Version: 1.8.6
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8303554Z Commit SHA: 6bad0a66de7c83f7b33695044138f0f5fa4c5990
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8304406Z Build Timestamp: 2026-10-21T17:56:11.890310850Z (1792605371)
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8305138Z Build Profile: dist
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8324045Z Running: chisel --version
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8358445Z chisel Version: 1.8.6
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8359261Z Commit SHA: 6bad0a66de7c83f7b33695044138f0f5fa4c5990
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8360146Z Build Timestamp: 2026-10-21T17:56:11.890310850Z (1792605371)
+run	Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:03:42.8361279Z Build Profile: dist
+run	env info	﻿2026-10-23T14:03:42.8509939Z ##[group]Run df -h /
+run	env info	2026-10-23T14:03:42.8510338Z [36;1mdf -h /[0m
+run	env info	2026-10-23T14:03:42.8510996Z [36;1mnproc[0m
+run	env info	2026-10-23T14:03:42.8511256Z [36;1mforge --version[0m
+run	env info	2026-10-23T14:03:42.8511560Z [36;1mpython3 --version[0m
+run	env info	2026-10-23T14:03:42.8511878Z [36;1mnode --version || true[0m
+run	env info	2026-10-23T14:03:42.8829122Z shell: /usr/bin/bash -e {0}
+run	env info	2026-10-23T14:03:42.8829581Z env:
+run	env info	2026-10-23T14:03:42.8830172Z   RPC_URL: ***
+run	env info	2026-10-23T14:03:42.8831109Z   BLOCKPI_RPC_URL: ***
+run	env info	2026-10-23T14:03:42.8831706Z   NODEREAL_ETH_RPC_URL: ***
+run	env info	2026-10-23T14:03:42.8832036Z   ETHERSCANV2_API_KEY: 
+run	env info	2026-10-23T14:03:42.8832418Z   GOLD_RUSH_API_KEY: ***
+run	env info	2026-10-23T14:03:42.8832778Z   ALCHEMY_API_KEY: ***
+run	env info	2026-10-23T14:03:42.8833259Z   ANKR_API_KEY: ***
+run	env info	2026-10-23T14:03:42.8833669Z   DRPC_API_KEY: ***
+run	env info	2026-10-23T14:03:42.8834001Z   INFURA_API_KEY: ***
+run	env info	2026-10-23T14:03:42.8834349Z   DUNE_API_KEY: ***
+run	env info	2026-10-23T14:03:42.8834624Z   ARB_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8834892Z   BSC_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8835149Z   BASE_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8835464Z   OP_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8835736Z   POLYGON_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8836020Z   FANTOM_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8836299Z   CRONOS_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8836584Z   MOONRIVER_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8836887Z   GNOSIS_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8837156Z   SONIC_RPC_URL: 
+run	env info	2026-10-23T14:03:42.8837436Z   FOUNDRY_FUZZ_RUNS: 256
+run	env info	2026-10-23T14:03:42.8837749Z ##[endgroup]
+run	env info	2026-10-23T14:03:42.9071153Z Filesystem      Size  Used Avail Use% Mounted on
+run	env info	2026-10-23T14:03:42.9072058Z /dev/root       145G   59G   86G  41% /
+run	env info	2026-10-23T14:03:42.9089118Z 4
+run	env info	2026-10-23T14:03:42.9139202Z forge Version: 1.8.6
+run	env info	2026-10-23T14:03:42.9139848Z Commit SHA: 6bad0a66de7c83f7b33695044138f0f5fa4c5990
+run	env info	2026-10-23T14:03:42.9140832Z Build Timestamp: 2026-10-21T17:56:11.890310850Z (1792605371)
+run	env info	2026-10-23T14:03:42.9141466Z Build Profile: dist
+run	env info	2026-10-23T14:03:42.9156108Z Python 3.12.3
+run	env info	2026-10-23T14:03:42.9985988Z v22.23.3
+run	select ETH fork RPC	﻿2026-10-23T14:03:43.0056152Z ##[group]Run pick() {
+run	select ETH fork RPC	2026-10-23T14:03:43.0056511Z [36;1mpick() {[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0056761Z [36;1m  for u in "$@"; do[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0057066Z [36;1m    [ -z "$u" ] && continue[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0057480Z [36;1m    r=$(curl -s -m 12 -X POST -H 'Content-Type: application/json' \[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0058083Z [36;1m          --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' "$u" 2>/dev/null)[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0058633Z [36;1m    case "$r" in *result*) echo "$u"; return 0;; esac[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0058981Z [36;1m  done[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0059214Z [36;1m  echo ""; return 1[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0059468Z [36;1m}[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0060046Z [36;1mPICK=$(pick "https://ethereum-rpc.publicnode.com" "https://eth.drpc.org" "https://1rpc.io/eth" "$RPC_URL" || true)[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0061025Z [36;1mif [ -z "$PICK" ]; then[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0061428Z [36;1m  echo "WARNING: no working ETH RPC found; FORK_RPC_URL left unset"[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0061862Z [36;1melse[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0062111Z [36;1m  echo "ETH fork RPC selected"[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0062455Z [36;1m  echo "FORK_RPC_URL=$PICK" >> "$GITHUB_ENV"[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0062773Z [36;1mfi[0m
+run	select ETH fork RPC	2026-10-23T14:03:43.0128520Z shell: /usr/bin/bash -e {0}
+run	select ETH fork RPC	2026-10-23T14:03:43.0128841Z env:
+run	select ETH fork RPC	2026-10-23T14:03:43.0129252Z   RPC_URL: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0129788Z   BLOCKPI_RPC_URL: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0130260Z   NODEREAL_ETH_RPC_URL: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0130695Z   ETHERSCANV2_API_KEY: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0131028Z   GOLD_RUSH_API_KEY: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0131334Z   ALCHEMY_API_KEY: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0131739Z   ANKR_API_KEY: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0132070Z   DRPC_API_KEY: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0132359Z   INFURA_API_KEY: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0132920Z   DUNE_API_KEY: ***
+run	select ETH fork RPC	2026-10-23T14:03:43.0133176Z   ARB_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0133435Z   BSC_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0133653Z   BASE_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0133890Z   OP_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0134158Z   POLYGON_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0134401Z   FANTOM_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0134631Z   CRONOS_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0134862Z   MOONRIVER_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0135101Z   GNOSIS_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0135320Z   SONIC_RPC_URL: 
+run	select ETH fork RPC	2026-10-23T14:03:43.0135583Z   FOUNDRY_FUZZ_RUNS: 256
+run	select ETH fork RPC	2026-10-23T14:03:43.0135864Z ##[endgroup]
+run	select ETH fork RPC	2026-10-23T14:03:43.1930111Z ETH fork RPC selected
+run	custom CI script	﻿2026-10-23T14:03:43.2619751Z ##[group]Run bash ci/run.sh
+run	custom CI script	2026-10-23T14:03:43.2620116Z [36;1mbash ci/run.sh[0m
+run	custom CI script	2026-10-23T14:03:43.2686686Z shell: /usr/bin/bash -e {0}
+run	custom CI script	2026-10-23T14:03:43.2687024Z env:
+run	custom CI script	2026-10-23T14:03:43.2687405Z   RPC_URL: ***
+run	custom CI script	2026-10-23T14:03:43.2687928Z   BLOCKPI_RPC_URL: ***
+run	custom CI script	2026-10-23T14:03:43.2688450Z   NODEREAL_ETH_RPC_URL: ***
+run	custom CI script	2026-10-23T14:03:43.2688767Z   ETHERSCANV2_API_KEY: 
+run	custom CI script	2026-10-23T14:03:43.2689111Z   GOLD_RUSH_API_KEY: ***
+run	custom CI script	2026-10-23T14:03:43.2689429Z   ALCHEMY_API_KEY: ***
+run	custom CI script	2026-10-23T14:03:43.2689867Z   ANKR_API_KEY: ***
+run	custom CI script	2026-10-23T14:03:43.2690213Z   DRPC_API_KEY: ***
+run	custom CI script	2026-10-23T14:03:43.2690714Z   INFURA_API_KEY: ***
+run	custom CI script	2026-10-23T14:03:43.2691041Z   DUNE_API_KEY: ***
+run	custom CI script	2026-10-23T14:03:43.2691301Z   ARB_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2691544Z   BSC_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2691785Z   BASE_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2692032Z   OP_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2692280Z   POLYGON_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2692544Z   FANTOM_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2692800Z   CRONOS_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2693088Z   MOONRIVER_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2693356Z   GNOSIS_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2693607Z   SONIC_RPC_URL: 
+run	custom CI script	2026-10-23T14:03:43.2693868Z   FOUNDRY_FUZZ_RUNS: 256
+run	custom CI script	2026-10-23T14:03:43.2694214Z   FORK_RPC_URL: https://ethereum-rpc.publicnode.com
+run	custom CI script	2026-10-23T14:03:43.2694606Z ##[endgroup]
+run	custom CI script	2026-10-23T14:03:44.9478549Z rustc 1.99.0 (b940084d7 2026-09-28)
+run	custom CI script	2026-10-23T14:03:47.1303765Z cargo 1.99.0 (5f94df478 2026-08-27)
+run	custom CI script	2026-10-23T14:03:47.2619530Z [ci] building harness
+run	custom CI script	2026-10-23T14:05:19.6646197Z error[E0502]: cannot borrow `h` as mutable because it is also borrowed as immutable
+run	custom CI script	2026-10-23T14:05:19.6647020Z    --> src/main.rs:282:24
+run	custom CI script	2026-10-23T14:05:19.6647425Z     |
+run	custom CI script	2026-10-23T14:05:19.6647872Z 264 |     let mk_urh = |role: u8, perm: Address| Instruction {
+run	custom CI script	2026-10-23T14:05:19.6648541Z     |                  ------------------------- immutable borrow occurs here
+run	custom CI script	2026-10-23T14:05:19.6649127Z 265 |         program_id: h.rlp,
+run	custom CI script	2026-10-23T14:05:19.6649680Z     |                     ----- first borrow occurs due to use of `h.rlp` in closure
+run	custom CI script	2026-10-23T14:05:19.6650317Z ...
+run	custom CI script	2026-10-23T14:05:19.6651414Z 282 |     let (ok, err, _) = h.send(&[mk_urh(4, attacker_perm)], &[&attacker], "update_role_holder(CRANK) as attacker");
+run	custom CI script	2026-10-23T14:05:19.6652582Z     |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
+run	custom CI script	2026-10-23T14:05:19.6657897Z 283 |     results.push(serde_json::json!({"test":"rlp_update_role_holder_crank","succeeded":ok,"err":err}));
+run	custom CI script	2026-10-23T14:05:19.6659259Z 284 |     let (ok, err, _) = h.send(&[mk_urh(0, attacker_perm)], &[&attacker], "update_role_holder(UNSET) as attacker");
+run	custom CI script	2026-10-23T14:05:19.6660356Z     |                                 ------ immutable borrow later used here
+run	custom CI script	2026-10-23T14:05:19.6661022Z 
+run	custom CI script	2026-10-23T14:05:19.6661279Z error[E0502]: cannot borrow `h` as mutable because it is also borrowed as immutable
+run	custom CI script	2026-10-23T14:05:19.6661720Z    --> src/main.rs:284:24
+run	custom CI script	2026-10-23T14:05:19.6661972Z     |
+run	custom CI script	2026-10-23T14:05:19.6662276Z 264 |     let mk_urh = |role: u8, perm: Address| Instruction {
+run	custom CI script	2026-10-23T14:05:19.6662693Z     |                  ------------------------- immutable borrow occurs here
+run	custom CI script	2026-10-23T14:05:19.6663054Z 265 |         program_id: h.rlp,
+run	custom CI script	2026-10-23T14:05:19.6663411Z     |                     ----- first borrow occurs due to use of `h.rlp` in closure
+run	custom CI script	2026-10-23T14:05:19.6664044Z ...
+run	custom CI script	2026-10-23T14:05:19.6664485Z 284 |     let (ok, err, _) = h.send(&[mk_urh(0, attacker_perm)], &[&attacker], "update_role_holder(UNSET) as attacker");
+run	custom CI script	2026-10-23T14:05:19.6665118Z     |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here
+run	custom CI script	2026-10-23T14:05:19.6665761Z 285 |     results.push(serde_json::json!({"test":"rlp_update_role_holder_unset","succeeded":ok,"err":err}));
+run	custom CI script	2026-10-23T14:05:19.6666511Z 286 |     let (ok, err, _) = h.send(&[mk_urh(4, a(PERM_SUPREMO))], &[&attacker], "update_role_holder w/ real SUPREMO perms account");
+run	custom CI script	2026-10-23T14:05:19.6667340Z     |                                 ------ immutable borrow later used here
+run	custom CI script	2026-10-23T14:05:19.6667593Z 
+run	custom CI script	2026-10-23T14:05:19.6667791Z For more information about this error, try `rustc --explain E0502`.
+run	custom CI script	2026-10-23T14:05:19.6668402Z error: could not compile `reflect-auth-harness` (bin "reflect-auth-harness") due to 2 previous errors
+run	custom CI script	2026-10-23T14:05:19.6677858Z ##[error]Process completed with exit code 101.
+run	upload results	﻿2026-10-23T14:05:19.6772783Z ##[group]Run actions/upload-artifact@v4
+run	upload results	2026-10-23T14:05:19.6773119Z with:
+run	upload results	2026-10-23T14:05:19.6773348Z   name: result-reflect-tranches
+run	upload results	2026-10-23T14:05:19.6773705Z   path: reflect-tranches/ci-out/**
+run	upload results	reflect-tranches/**/*.log
+run	upload results	
+run	upload results	2026-10-23T14:05:19.6774085Z   if-no-files-found: ignore
+run	upload results	2026-10-23T14:05:19.6774345Z   retention-days: 7
+run	upload results	2026-10-23T14:05:19.6774581Z   compression-level: 6
+run	upload results	2026-10-23T14:05:19.6774822Z   overwrite: false
+run	upload results	2026-10-23T14:05:19.6775068Z   include-hidden-files: false
+run	upload results	2026-10-23T14:05:19.6775317Z env:
+run	upload results	2026-10-23T14:05:19.6775778Z   RPC_URL: ***
+run	upload results	2026-10-23T14:05:19.6776241Z   BLOCKPI_RPC_URL: ***
+run	upload results	2026-10-23T14:05:19.6776680Z   NODEREAL_ETH_RPC_URL: ***
+run	upload results	2026-10-23T14:05:19.6776945Z   ETHERSCANV2_API_KEY: 
+run	upload results	2026-10-23T14:05:19.6777256Z   GOLD_RUSH_API_KEY: ***
+run	upload results	2026-10-23T14:05:19.6796095Z   ALCHEMY_API_KEY: ***
+run	upload results	2026-10-23T14:05:19.6796862Z   ANKR_API_KEY: ***
+run	upload results	2026-10-23T14:05:19.6797402Z   DRPC_API_KEY: ***
+run	upload results	2026-10-23T14:05:19.6797879Z   INFURA_API_KEY: ***
+run	upload results	2026-10-23T14:05:19.6798347Z   DUNE_API_KEY: ***
+run	upload results	2026-10-23T14:05:19.6798776Z   ARB_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6799156Z   BSC_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6799528Z   BASE_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6799894Z   OP_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6800267Z   POLYGON_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6800934Z   FANTOM_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6801321Z   CRONOS_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6801721Z   MOONRIVER_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6802146Z   GNOSIS_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6802542Z   SONIC_RPC_URL: 
+run	upload results	2026-10-23T14:05:19.6802950Z   FOUNDRY_FUZZ_RUNS: 256
+run	upload results	2026-10-23T14:05:19.6803493Z   FORK_RPC_URL: https://ethereum-rpc.publicnode.com
+run	upload results	2026-10-23T14:05:19.6804101Z ##[endgroup]
+run	upload results	2026-10-23T14:05:19.8489998Z (node:7026) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+run	upload results	2026-10-23T14:05:19.8491165Z (Use `node --trace-deprecation ...` to show where the warning was created)
+run	upload results	2026-10-23T14:05:20.0392639Z With the provided path, there will be 8 files uploaded
+run	upload results	2026-10-23T14:05:20.0398249Z Artifact name is valid!
+run	upload results	2026-10-23T14:05:20.0399321Z Root directory input is valid!
+run	upload results	2026-10-23T14:05:20.4273989Z Beginning upload of artifact content to blob storage
+run	upload results	2026-10-23T14:05:20.4610031Z (node:7026) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+run	upload results	2026-10-23T14:05:20.7708678Z Uploaded bytes 8265
+run	upload results	2026-10-23T14:05:20.8498759Z Finished uploading artifact content to blob storage!
+run	upload results	2026-10-23T14:05:20.8500712Z SHA256 digest of uploaded artifact zip is eaa6b4e55d7393ff77cff9c750d92c4def5a85487a0d8e2c5350751cf361d19f
+run	upload results	2026-10-23T14:05:20.8502420Z Finalizing artifact upload
+run	upload results	2026-10-23T14:05:21.3621799Z Artifact result-reflect-tranches.zip successfully finalized. Artifact ID 12506658695
+run	upload results	2026-10-23T14:05:21.3623469Z Artifact result-reflect-tranches has been successfully uploaded! Final size is 8265 bytes. Artifact ID is 12506658695
+run	upload results	2026-10-23T14:05:21.3631119Z Artifact download URL: https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39966390205/artifacts/12506658695
+run	Post Run actions/checkout@v4	﻿2026-10-23T14:05:21.3856301Z Post job cleanup.
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.4728316Z [command]/usr/bin/git version
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.4774225Z git version 2.55.0
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.4818449Z Temporarily overriding HOME='/home/runner/work/_temp/5b22b42d-0c37-44a7-afff-af3116f1b512' before making global git config changes
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.4820277Z Adding repository directory to the temporary git global config as a safe directory
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.4825847Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ca-zombie-ci/ca-zombie-ci
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.4872334Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.4928465Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.5187521Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.5220634Z http.https://github.com/.extraheader
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.5233762Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.5271690Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.5549984Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+run	Post Run actions/checkout@v4	2026-10-23T14:05:21.5596637Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+run	Complete job	﻿2026-10-23T14:05:21.6026436Z Cleaning up orphan processes
+run	Complete job	2026-10-23T14:05:21.6324086Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

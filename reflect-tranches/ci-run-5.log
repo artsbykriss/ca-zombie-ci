@@ -1,0 +1,334 @@
+[ci] pushed branch reflect-tranches
+[ci] dispatching workflow...
+[ci] run: https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39969562016
+[ci] conclusion: success
+=== artifact contents ===
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/retry-ci.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/ci-run-1.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_proxy_user_ix.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_ix_orders.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_withdraw2.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_withdraw.log
+/home/heisenberg/CA/reflect-tranches/ci-artifacts/result-reflect-tranches/analysis/find_proxy_ix.log
+=== tail of full log (/home/heisenberg/CA/reflect-tranches/ci-log.txt) ===
+Z warning: constant `AUTHORITY_ATA0` is never used
+run	custom CI script	2026-10-23T14:27:52.7696250Z   --> src/main.rs:42:7
+run	custom CI script	2026-10-23T14:27:52.7696689Z    |
+run	custom CI script	2026-10-23T14:27:52.7697234Z 42 | const AUTHORITY_ATA0: &str = "UVw4BJXJqnVpi9Qw98KXcHNYS6ZG836ZcX8rqibTnFq";
+run	custom CI script	2026-10-23T14:27:52.7698060Z    |       ^^^^^^^^^^^^^^
+run	custom CI script	2026-10-23T14:27:52.7698345Z    |
+run	custom CI script	2026-10-23T14:27:52.7698729Z    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+run	custom CI script	2026-10-23T14:27:52.7699081Z 
+run	custom CI script	2026-10-23T14:27:52.7699222Z warning: method `patch` is never used
+run	custom CI script	2026-10-23T14:27:52.7699601Z    --> src/main.rs:201:8
+run	custom CI script	2026-10-23T14:27:52.7699889Z     |
+run	custom CI script	2026-10-23T14:27:52.7700140Z 118 | impl Harness {
+run	custom CI script	2026-10-23T14:27:52.7700472Z     | ------------ method in this implementation
+run	custom CI script	2026-10-23T14:27:52.7700843Z ...
+run	custom CI script	2026-10-23T14:27:52.7701207Z 201 |     fn patch(&mut self, addr: &Address, f: impl Fn(&mut Vec<u8>)) {
+run	custom CI script	2026-10-23T14:27:52.7701726Z     |        ^^^^^
+run	custom CI script	2026-10-23T14:27:52.7701893Z 
+run	custom CI script	2026-10-23T14:27:52.7871178Z == Reflect Tranches — LiteSVM authorisation harness (paired privileged/unprivileged) ==
+run	custom CI script	2026-10-23T14:27:52.8056239Z 
+run	custom CI script	2026-10-23T14:27:52.8056906Z -- 1. RLP: permissionless registration grants no role --
+run	custom CI script	2026-10-23T14:27:52.8069662Z   [OK ] create_permission_account(attacker)
+run	custom CI script	2026-10-23T14:27:52.8070539Z   attacker UserPermissions roles tail = 0000000000000000000000000000
+run	custom CI script	2026-10-23T14:27:52.8070997Z 
+run	custom CI script	2026-10-23T14:27:52.8071861Z -- 2. RLP update_action_role(action=Slash, role=PUBLIC) — attacker vs real MANAGER vs real SUPREMO --
+run	custom CI script	2026-10-23T14:27:52.8075922Z   [ERR] attacker (registered, EMPTY roles) -> InstructionError(0, Custom(6043))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x179b
+run	custom CI script	2026-10-23T14:27:52.8078130Z   [ERR] real MANAGER -> InstructionError(0, Custom(6043))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x179b
+run	custom CI script	2026-10-23T14:27:52.8080105Z   [ERR] real SUPREMO -> InstructionError(0, Custom(6001))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x1771
+run	custom CI script	2026-10-23T14:27:52.8081233Z 
+run	custom CI script	2026-10-23T14:27:52.8081704Z -- 3. RLP slash(pool0, 1 unit) — attacker vs real SUPREMO --
+run	custom CI script	2026-10-23T14:27:52.8083073Z   [ERR] attacker -> InstructionError(0, Custom(3007))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0xbbf
+run	custom CI script	2026-10-23T14:27:52.8085251Z   [ERR] real SUPREMO -> InstructionError(0, Custom(3007))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0xbbf
+run	custom CI script	2026-10-23T14:27:52.8086306Z 
+run	custom CI script	2026-10-23T14:27:52.8086932Z -- 4. RLP freeze_functionality(action=Slash, freeze=true) — attacker vs real SUPREMO --
+run	custom CI script	2026-10-23T14:27:52.8088608Z   [ERR] attacker -> InstructionError(0, Custom(6043))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x179b
+run	custom CI script	2026-10-23T14:27:52.8090661Z   [ERR] real SUPREMO -> InstructionError(0, Custom(6038))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x1796
+run	custom CI script	2026-10-23T14:27:52.8091809Z 
+run	custom CI script	2026-10-23T14:27:52.8092421Z -- 5. RLP withdraw(cooldown H9Ai, pool6) — attacker vs the cooldown's real authority --
+run	custom CI script	2026-10-23T14:27:52.8094374Z   [ERR] attacker on a cooldown it does not own -> InstructionError(0, Custom(2015))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x7df
+run	custom CI script	2026-10-23T14:27:52.8096815Z   [ERR] cooldown's real authority (positive control) -> InstructionError(0, Custom(2015))   | Program JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av failed: custom program error: 0x7df
+run	custom CI script	2026-10-23T14:27:52.8098421Z 
+run	custom CI script	2026-10-23T14:27:52.8099067Z -- 6. proxy claim_fees(ProxyState FD4Yydhz) — attacker vs the real proxy authority --
+run	custom CI script	2026-10-23T14:27:52.8100515Z   [ERR] attacker -> InstructionError(0, Custom(16))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x10
+run	custom CI script	2026-10-23T14:27:52.8101713Z   [OK ] real proxy authority (positive control)
+run	custom CI script	2026-10-23T14:27:52.8102093Z 
+run	custom CI script	2026-10-23T14:27:52.8102461Z -- 7. proxy unwrap: can a fresh signer burn a VICTIM's branded balance? --
+run	custom CI script	2026-10-23T14:27:52.8104563Z   [ERR] L1 user,usdc,branded,ps,vault,oracle,cfg,token,mint -> InstructionError(0, NotEnoughAccountKeys)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: insufficient account keys for instruction
+run	custom CI script	2026-10-23T14:27:52.8107087Z   [ERR] L2 +system -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+run	custom CI script	2026-10-23T14:27:52.8108991Z   [ERR] L3 +branded_mint -> InstructionError(0, InvalidAccountData)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: invalid account data for instruction
+run	custom CI script	2026-10-23T14:27:52.8111153Z   [ERR] L4 user,branded,usdc -> InstructionError(0, NotEnoughAccountKeys)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: insufficient account keys for instruction
+run	custom CI script	2026-10-23T14:27:52.8113356Z   [ERR] L5 user,branded,usdc,system -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+run	custom CI script	2026-10-23T14:27:52.8115663Z   [ERR] L6 ...bm,oracle,cfg,token -> InstructionError(0, NotEnoughAccountKeys)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: insufficient account keys for instruction
+run	custom CI script	2026-10-23T14:27:52.8117535Z   [ERR] L7 ...token,system,mint -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+run	custom CI script	2026-10-23T14:27:52.8118677Z   [ERR] L8 ...token,ata,mint -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+run	custom CI script	2026-10-23T14:27:52.8120092Z   [ERR] L9 ...token,mint,ata -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+run	custom CI script	2026-10-23T14:27:52.8122145Z   [ERR] L10 ...cfg,system,token,mint -> InstructionError(0, InvalidAccountData)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: invalid account data for instruction
+run	custom CI script	2026-10-23T14:27:52.8144692Z   [ERR] L11 ...bm,oracle,cfg,token,system,mint -> InstructionError(0, InvalidAccountData)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: invalid account data for instruction
+run	custom CI script	2026-10-23T14:27:52.8147091Z   [ERR] L12 ...bm,oracle,cfg,token,mint,system -> InstructionError(0, InvalidAccountData)   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: invalid account data for instruction
+run	custom CI script	2026-10-23T14:27:52.8149401Z   [ERR] L13 ...token,mint,system,ata -> InstructionError(0, Custom(24))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x18
+run	custom CI script	2026-10-23T14:27:52.8150569Z 
+run	custom CI script	2026-10-23T14:27:52.8150972Z -- 8. proxy update_authority: can a fresh signer seize a ProxyState? --
+run	custom CI script	2026-10-23T14:27:52.8152397Z   [ERR] attacker -> InstructionError(0, Custom(16))   | Program pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C failed: custom program error: 0x10
+run	custom CI script	2026-10-23T14:27:52.8153652Z   [OK ] real authority (positive control)
+run	custom CI script	2026-10-23T14:27:52.8154332Z 
+run	custom CI script	2026-10-23T14:27:52.8154503Z [
+run	custom CI script	2026-10-23T14:27:52.8154845Z   {
+run	custom CI script	2026-10-23T14:27:52.8155189Z     "err": "",
+run	custom CI script	2026-10-23T14:27:52.8155577Z     "succeeded": true,
+run	custom CI script	2026-10-23T14:27:52.8156047Z     "test": "rlp_create_permission_account"
+run	custom CI script	2026-10-23T14:27:52.8156585Z   },
+run	custom CI script	2026-10-23T14:27:52.8156938Z   {
+run	custom CI script	2026-10-23T14:27:52.8157319Z     "err": "0000000000000000000000000000",
+run	custom CI script	2026-10-23T14:27:52.8157920Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8158425Z     "test": "rlp_attacker_roles_after_registration"
+run	custom CI script	2026-10-23T14:27:52.8159215Z   },
+run	custom CI script	2026-10-23T14:27:52.8159607Z   {
+run	custom CI script	2026-10-23T14:27:52.8160042Z     "err": "InstructionError(0, Custom(6043))",
+run	custom CI script	2026-10-23T14:27:52.8160604Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8161107Z     "test": "rlp_update_action_role_attacker"
+run	custom CI script	2026-10-23T14:27:52.8161653Z   },
+run	custom CI script	2026-10-23T14:27:52.8162002Z   {
+run	custom CI script	2026-10-23T14:27:52.8162427Z     "err": "InstructionError(0, Custom(6043))",
+run	custom CI script	2026-10-23T14:27:52.8162995Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8163478Z     "test": "rlp_update_action_role_manager"
+run	custom CI script	2026-10-23T14:27:52.8164312Z   },
+run	custom CI script	2026-10-23T14:27:52.8164660Z   {
+run	custom CI script	2026-10-23T14:27:52.8165078Z     "err": "InstructionError(0, Custom(6001))",
+run	custom CI script	2026-10-23T14:27:52.8165629Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8166399Z     "test": "rlp_update_action_role_supremo"
+run	custom CI script	2026-10-23T14:27:52.8166909Z   },
+run	custom CI script	2026-10-23T14:27:52.8167230Z   {
+run	custom CI script	2026-10-23T14:27:52.8167480Z     "err": "InstructionError(0, Custom(3007))",
+run	custom CI script	2026-10-23T14:27:52.8167797Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8168060Z     "test": "rlp_slash_attacker"
+run	custom CI script	2026-10-23T14:27:52.8168325Z   },
+run	custom CI script	2026-10-23T14:27:52.8168523Z   {
+run	custom CI script	2026-10-23T14:27:52.8168757Z     "err": "InstructionError(0, Custom(3007))",
+run	custom CI script	2026-10-23T14:27:52.8169058Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8169308Z     "test": "rlp_slash_supremo"
+run	custom CI script	2026-10-23T14:27:52.8169566Z   },
+run	custom CI script	2026-10-23T14:27:52.8169751Z   {
+run	custom CI script	2026-10-23T14:27:52.8170016Z     "err": "InstructionError(0, Custom(6043))",
+run	custom CI script	2026-10-23T14:27:52.8170320Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8170580Z     "test": "rlp_freeze_functionality_attacker"
+run	custom CI script	2026-10-23T14:27:52.8170870Z   },
+run	custom CI script	2026-10-23T14:27:52.8171057Z   {
+run	custom CI script	2026-10-23T14:27:52.8171275Z     "err": "InstructionError(0, Custom(6038))",
+run	custom CI script	2026-10-23T14:27:52.8171580Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8171853Z     "test": "rlp_freeze_functionality_supremo"
+run	custom CI script	2026-10-23T14:27:52.8172143Z   },
+run	custom CI script	2026-10-23T14:27:52.8172329Z   {
+run	custom CI script	2026-10-23T14:27:52.8172558Z     "err": "InstructionError(0, Custom(2015))",
+run	custom CI script	2026-10-23T14:27:52.8172875Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8173122Z     "test": "rlp_withdraw_attacker"
+run	custom CI script	2026-10-23T14:27:52.8173395Z   },
+run	custom CI script	2026-10-23T14:27:52.8173588Z   {
+run	custom CI script	2026-10-23T14:27:52.8174135Z     "err": "InstructionError(0, Custom(2015))",
+run	custom CI script	2026-10-23T14:27:52.8174472Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8174739Z     "test": "rlp_withdraw_real_authority"
+run	custom CI script	2026-10-23T14:27:52.8175030Z   },
+run	custom CI script	2026-10-23T14:27:52.8175219Z   {
+run	custom CI script	2026-10-23T14:27:52.8175452Z     "err": "InstructionError(0, Custom(16))",
+run	custom CI script	2026-10-23T14:27:52.8175778Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8176051Z     "test": "proxy_claim_fees_attacker"
+run	custom CI script	2026-10-23T14:27:52.8176339Z   },
+run	custom CI script	2026-10-23T14:27:52.8176527Z   {
+run	custom CI script	2026-10-23T14:27:52.8176732Z     "err": "",
+run	custom CI script	2026-10-23T14:27:52.8176957Z     "succeeded": true,
+run	custom CI script	2026-10-23T14:27:52.8177225Z     "test": "proxy_claim_fees_real_authority"
+run	custom CI script	2026-10-23T14:27:52.8177524Z   },
+run	custom CI script	2026-10-23T14:27:52.8177718Z   {
+run	custom CI script	2026-10-23T14:27:52.8177916Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8178254Z     "err": "InstructionError(0, NotEnoughAccountKeys)",
+run	custom CI script	2026-10-23T14:27:52.8178592Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8178967Z     "test": "proxy_unwrap:L1 user,usdc,branded,ps,vault,oracle,cfg,token,mint",
+run	custom CI script	2026-10-23T14:27:52.8179408Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8179681Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8179929Z   },
+run	custom CI script	2026-10-23T14:27:52.8180120Z   {
+run	custom CI script	2026-10-23T14:27:52.8180331Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8180615Z     "err": "InstructionError(0, Custom(24))",
+run	custom CI script	2026-10-23T14:27:52.8180912Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8181177Z     "test": "proxy_unwrap:L2 +system",
+run	custom CI script	2026-10-23T14:27:52.8181468Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8181731Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8181975Z   },
+run	custom CI script	2026-10-23T14:27:52.8182166Z   {
+run	custom CI script	2026-10-23T14:27:52.8182374Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8182678Z     "err": "InstructionError(0, InvalidAccountData)",
+run	custom CI script	2026-10-23T14:27:52.8183007Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8183532Z     "test": "proxy_unwrap:L3 +branded_mint",
+run	custom CI script	2026-10-23T14:27:52.8184097Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8184378Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8184629Z   },
+run	custom CI script	2026-10-23T14:27:52.8184809Z   {
+run	custom CI script	2026-10-23T14:27:52.8185012Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8185328Z     "err": "InstructionError(0, NotEnoughAccountKeys)",
+run	custom CI script	2026-10-23T14:27:52.8185663Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8185934Z     "test": "proxy_unwrap:L4 user,branded,usdc",
+run	custom CI script	2026-10-23T14:27:52.8186252Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8186512Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8186749Z   },
+run	custom CI script	2026-10-23T14:27:52.8187074Z   {
+run	custom CI script	2026-10-23T14:27:52.8187276Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8187584Z     "err": "InstructionError(0, Custom(24))",
+run	custom CI script	2026-10-23T14:27:52.8187880Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8188166Z     "test": "proxy_unwrap:L5 user,branded,usdc,system",
+run	custom CI script	2026-10-23T14:27:52.8188512Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8188770Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8189009Z   },
+run	custom CI script	2026-10-23T14:27:52.8189203Z   {
+run	custom CI script	2026-10-23T14:27:52.8189401Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8189708Z     "err": "InstructionError(0, NotEnoughAccountKeys)",
+run	custom CI script	2026-10-23T14:27:52.8190035Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8190318Z     "test": "proxy_unwrap:L6 ...bm,oracle,cfg,token",
+run	custom CI script	2026-10-23T14:27:52.8190639Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8190899Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8191143Z   },
+run	custom CI script	2026-10-23T14:27:52.8191327Z   {
+run	custom CI script	2026-10-23T14:27:52.8191530Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8191811Z     "err": "InstructionError(0, Custom(24))",
+run	custom CI script	2026-10-23T14:27:52.8192115Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8192392Z     "test": "proxy_unwrap:L7 ...token,system,mint",
+run	custom CI script	2026-10-23T14:27:52.8192715Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8192974Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8193217Z   },
+run	custom CI script	2026-10-23T14:27:52.8193408Z   {
+run	custom CI script	2026-10-23T14:27:52.8193612Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8194130Z     "err": "InstructionError(0, Custom(24))",
+run	custom CI script	2026-10-23T14:27:52.8194449Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8194732Z     "test": "proxy_unwrap:L8 ...token,ata,mint",
+run	custom CI script	2026-10-23T14:27:52.8195047Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8195317Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8195568Z   },
+run	custom CI script	2026-10-23T14:27:52.8195762Z   {
+run	custom CI script	2026-10-23T14:27:52.8195975Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8196262Z     "err": "InstructionError(0, Custom(24))",
+run	custom CI script	2026-10-23T14:27:52.8196569Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8196841Z     "test": "proxy_unwrap:L9 ...token,mint,ata",
+run	custom CI script	2026-10-23T14:27:52.8197155Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8197418Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8197655Z   },
+run	custom CI script	2026-10-23T14:27:52.8197847Z   {
+run	custom CI script	2026-10-23T14:27:52.8198051Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8198352Z     "err": "InstructionError(0, InvalidAccountData)",
+run	custom CI script	2026-10-23T14:27:52.8198674Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8198966Z     "test": "proxy_unwrap:L10 ...cfg,system,token,mint",
+run	custom CI script	2026-10-23T14:27:52.8199303Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8199562Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8199808Z   },
+run	custom CI script	2026-10-23T14:27:52.8200000Z   {
+run	custom CI script	2026-10-23T14:27:52.8200199Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8200505Z     "err": "InstructionError(0, InvalidAccountData)",
+run	custom CI script	2026-10-23T14:27:52.8200825Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8201142Z     "test": "proxy_unwrap:L11 ...bm,oracle,cfg,token,system,mint",
+run	custom CI script	2026-10-23T14:27:52.8201520Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8201788Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8202030Z   },
+run	custom CI script	2026-10-23T14:27:52.8202226Z   {
+run	custom CI script	2026-10-23T14:27:52.8202442Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8202766Z     "err": "InstructionError(0, InvalidAccountData)",
+run	custom CI script	2026-10-23T14:27:52.8203222Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8203553Z     "test": "proxy_unwrap:L12 ...bm,oracle,cfg,token,mint,system",
+run	custom CI script	2026-10-23T14:27:52.8204178Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8204449Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8204701Z   },
+run	custom CI script	2026-10-23T14:27:52.8204899Z   {
+run	custom CI script	2026-10-23T14:27:52.8205109Z     "attacker_usdc_plus": 0,
+run	custom CI script	2026-10-23T14:27:52.8205391Z     "err": "InstructionError(0, Custom(24))",
+run	custom CI script	2026-10-23T14:27:52.8205694Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8205992Z     "test": "proxy_unwrap:L13 ...token,mint,system,ata",
+run	custom CI script	2026-10-23T14:27:52.8206326Z     "victim_branded_after": 0,
+run	custom CI script	2026-10-23T14:27:52.8206592Z     "victim_branded_before": 0
+run	custom CI script	2026-10-23T14:27:52.8206970Z   },
+run	custom CI script	2026-10-23T14:27:52.8207158Z   {
+run	custom CI script	2026-10-23T14:27:52.8207384Z     "err": "InstructionError(0, Custom(16))",
+run	custom CI script	2026-10-23T14:27:52.8207683Z     "succeeded": false,
+run	custom CI script	2026-10-23T14:27:52.8207950Z     "test": "proxy_update_authority_attacker"
+run	custom CI script	2026-10-23T14:27:52.8208238Z   },
+run	custom CI script	2026-10-23T14:27:52.8208431Z   {
+run	custom CI script	2026-10-23T14:27:52.8208625Z     "err": "",
+run	custom CI script	2026-10-23T14:27:52.8208841Z     "succeeded": true,
+run	custom CI script	2026-10-23T14:27:52.8209106Z     "test": "proxy_update_authority_real"
+run	custom CI script	2026-10-23T14:27:52.8209392Z   }
+run	custom CI script	2026-10-23T14:27:52.8209578Z ]
+run	custom CI script	2026-10-23T14:27:52.8209802Z [ci] harness exit=0
+run	custom CI script	2026-10-23T14:27:52.8324424Z {
+run	custom CI script	2026-10-23T14:27:52.8324751Z  "ok": true,
+run	custom CI script	2026-10-23T14:27:52.8325043Z  "claim_fees_control_success": true,
+run	custom CI script	2026-10-23T14:27:52.8325365Z  "claim_fees_unpriv_rejected": false,
+run	custom CI script	2026-10-23T14:27:52.8325673Z  "create_permission_ok": false,
+run	custom CI script	2026-10-23T14:27:52.8325947Z  "attacker_zero_roles": true,
+run	custom CI script	2026-10-23T14:27:52.8326216Z  "attacker_rejections": 0
+run	custom CI script	2026-10-23T14:27:52.8326470Z }
+run	custom CI script	2026-10-23T14:27:52.8359590Z DONE
+run	upload results	﻿2026-10-23T14:27:52.8940673Z ##[group]Run actions/upload-artifact@v4
+run	upload results	2026-10-23T14:27:52.8941023Z with:
+run	upload results	2026-10-23T14:27:52.8941261Z   name: result-reflect-tranches
+run	upload results	2026-10-23T14:27:52.8941621Z   path: reflect-tranches/ci-out/**
+run	upload results	reflect-tranches/**/*.log
+run	upload results	
+run	upload results	2026-10-23T14:27:52.8942016Z   if-no-files-found: ignore
+run	upload results	2026-10-23T14:27:52.8942279Z   retention-days: 7
+run	upload results	2026-10-23T14:27:52.8942511Z   compression-level: 6
+run	upload results	2026-10-23T14:27:52.8942756Z   overwrite: false
+run	upload results	2026-10-23T14:27:52.8942997Z   include-hidden-files: false
+run	upload results	2026-10-23T14:27:52.8943247Z env:
+run	upload results	2026-10-23T14:27:52.8943966Z   RPC_URL: ***
+run	upload results	2026-10-23T14:27:52.8944567Z   BLOCKPI_RPC_URL: ***
+run	upload results	2026-10-23T14:27:52.8945027Z   NODEREAL_ETH_RPC_URL: ***
+run	upload results	2026-10-23T14:27:52.8945304Z   ETHERSCANV2_API_KEY: 
+run	upload results	2026-10-23T14:27:52.8945620Z   GOLD_RUSH_API_KEY: ***
+run	upload results	2026-10-23T14:27:52.8945917Z   ALCHEMY_API_KEY: ***
+run	upload results	2026-10-23T14:27:52.8946302Z   ANKR_API_KEY: ***
+run	upload results	2026-10-23T14:27:52.8946617Z   DRPC_API_KEY: ***
+run	upload results	2026-10-23T14:27:52.8946894Z   INFURA_API_KEY: ***
+run	upload results	2026-10-23T14:27:52.8947173Z   DUNE_API_KEY: ***
+run	upload results	2026-10-23T14:27:52.8947423Z   ARB_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8947645Z   BSC_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8947863Z   BASE_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8948079Z   OP_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8948297Z   POLYGON_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8948527Z   FANTOM_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8948757Z   CRONOS_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8948981Z   MOONRIVER_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8949220Z   GNOSIS_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8949444Z   SONIC_RPC_URL: 
+run	upload results	2026-10-23T14:27:52.8949683Z   FOUNDRY_FUZZ_RUNS: 256
+run	upload results	2026-10-23T14:27:52.8949992Z   FORK_RPC_URL: https://ethereum-rpc.publicnode.com
+run	upload results	2026-10-23T14:27:52.8950335Z ##[endgroup]
+run	upload results	2026-10-23T14:27:53.0635149Z (node:6873) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+run	upload results	2026-10-23T14:27:53.0636745Z (Use `node --trace-deprecation ...` to show where the warning was created)
+run	upload results	2026-10-23T14:27:53.2483425Z With the provided path, there will be 15 files uploaded
+run	upload results	2026-10-23T14:27:53.2485071Z Artifact name is valid!
+run	upload results	2026-10-23T14:27:53.2485683Z Root directory input is valid!
+run	upload results	2026-10-23T14:27:53.4598898Z Beginning upload of artifact content to blob storage
+run	upload results	2026-10-23T14:27:53.5028628Z (node:6873) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+run	upload results	2026-10-23T14:27:53.5274205Z Uploaded bytes 24229
+run	upload results	2026-10-23T14:27:53.5449676Z Finished uploading artifact content to blob storage!
+run	upload results	2026-10-23T14:27:53.5451120Z SHA256 digest of uploaded artifact zip is caf416f866f712e64f11f70305bb360c5eb24c6f5cdad00dd7e3f4d5b0971206
+run	upload results	2026-10-23T14:27:53.5452583Z Finalizing artifact upload
+run	upload results	2026-10-23T14:27:53.9996161Z Artifact result-reflect-tranches.zip successfully finalized. Artifact ID 12509025648
+run	upload results	2026-10-23T14:27:53.9997931Z Artifact result-reflect-tranches has been successfully uploaded! Final size is 24229 bytes. Artifact ID is 12509025648
+run	upload results	2026-10-23T14:27:54.0005194Z Artifact download URL: https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39969562016/artifacts/12509025648
+run	Post Run foundry-rs/foundry-toolchain@v1	﻿2026-10-23T14:27:54.0204730Z Post job cleanup.
+run	Post Run foundry-rs/foundry-toolchain@v1	2026-10-23T14:27:54.1451956Z Cache path does not exist, not saving cache: /home/runner/.foundry/cache
+run	Post Run actions/checkout@v4	﻿2026-10-23T14:27:54.1600134Z Post job cleanup.
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.2529428Z [command]/usr/bin/git version
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.2577804Z git version 2.55.0
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.2622206Z Temporarily overriding HOME='/home/runner/work/_temp/f6412230-6886-4689-ba50-1bb96e7b797e' before making global git config changes
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.2624204Z Adding repository directory to the temporary git global config as a safe directory
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.2632679Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ca-zombie-ci/ca-zombie-ci
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.2680285Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.2720550Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.2982482Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.3014670Z http.https://github.com/.extraheader
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.3029088Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.3069153Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.3399076Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+run	Post Run actions/checkout@v4	2026-10-23T14:27:54.3457103Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+run	Complete job	﻿2026-10-23T14:27:54.3877590Z Cleaning up orphan processes
+run	Complete job	2026-10-23T14:27:54.4289178Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

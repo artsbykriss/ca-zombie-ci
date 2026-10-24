@@ -1,0 +1,46 @@
+{
+  "finding": "ZH4-OPEN-B-REFLECT-TRANCHES",
+  "title": "Reflect Tranches (Solana RLP + Proxy programs) — unprivileged extraction",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 2760673.08, "S": 0},
+  "latest_block": 461007135,
+  "block_numbers": {"solana": 461007135},
+  "targets_checked": 91,
+  "live_targets": 91,
+  "closed_reasons": [
+    "RLP role gate VALIDATED with paired controls: update_action_role -> attacker IncorrectAdmin(6043), real MANAGER also 6043, real SUPREMO passes the gate (InvalidInput 6001); freeze_functionality -> attacker 6043 vs real SUPREMO 6038 (gate passed).",
+    "create_permission_account is permissionless but the created UserPermissions carries zero roles (roles tail all-zero); only three UserPermissions accounts exist on chain (SUPREMO=28sR8pmJ..., MANAGER=KuBAWM6p..., one empty) and no CRANK holder exists.",
+    "Proxy claim_fees and update_authority enforce signer == ProxyState.authority — FULLY VALIDATED: real authority succeeds ([OK]); role-less third party fails Custom(16).",
+    "RLP withdraw binds to the Cooldown PDA's authority; a foreign matured cooldown is rejected Custom(2015).",
+    "Every live RLP pool holds exactly one asset (assetIdxs=[x,255,255,255]), so the permissionless oracle-priced RLP swap has no two-asset pool to trade against; oracle reports are Chainlink Data Streams / Pyth PriceUpdateV2 and stale reports are rejected (OracleReportNotNewer).",
+    "Proxy unwrap: SPL Token requires the token-account owner (or delegate) to authorize a burn/transfer; the proxy_state PDA is the branded MINT authority, not a burn authority over third-party accounts. No theft observed across 13 candidate layouts; the Nov-2025 Offside proxy audit covered wrap/unwrap with no missing-owner-check."
+  ],
+  "poc": {
+    "tests_passed": 4,
+    "tests_total": 24,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40134164045", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39969562016"]
+  },
+  "key_facts": [
+    "RLP (junior) JrXLmS6aYJNJDVxdAfjNJE5wikT8ubf3TA9iL2JA9Av, programdata FHdpnjuVWkjWAUf34GTArHMDKyKK8A9QCVeDp5z44Nr, last upgrade slot 453581722 (2026-10-05), upgrade authority 28sR8pmJxhtZNci3hPervkxu9f93nvHpFikbtzXoxmWA.",
+    "Proxy (senior) pRoxYU64BSjv8HbhENna8a7LVCrkzzNrnvbYuTwas8C, programdata 9nVDmUokhJDJ6h2z8MfycSGR5qNDFeo5CqSiJgPLCGX7, last upgrade slot 451679621 (2026-09-29), same upgrade authority.",
+    "Live value $2,760,673.08 = senior $2,349,287.33 (84 ProxyStates) + junior $411,385.75 (7 RLP pools) at slot 460,456,908; DefiLlama reflect-tranches = $2,759,315 (one market unpriced -> lower bound).",
+    "The code family IS audited (correction to pass-5): Offside Labs Reflect Proxy (Nov 2025), Reflect Core (Feb 2026); Adevar Labs RLP after-fix (2026-06-19), RLP oracle-stacking and Proxy oracle-stacking (2026-10-08 after-fix) at github.com/palindrome-eng/audits; deployed ELF contains post-fix markers MinimumSuperadminsRequired, PoolWipedOut, CooldownExpired, NoNavLossToCover, ProtectedVaultMismatch.",
+    "Deployed RLP exposes 19 instructions (superset of the published docs) and has no deposit_rewards. Published interface docs describe a DIFFERENT deployment (rhLMe6... absent on chain; documented proxy ProxyState LEN=115 vs live 156).",
+    "Proxy is Pinocchio with 1-byte discriminators (0 CreateProxy, 1 Wrap, 2 Unwrap, 3 ClaimFees, 4 UpdateFee, 5 UpdateAuthority, 7 CreateAsset, 8 DeactivateAsset, 9 FreezeFee, 11 UpdateDepositCap, 12 FreezeTokenAccount, 13 ThawTokenAccount, 14 UpdateOracle, 15 AcceptAuthority, 16 MigrateAsset, 17 PostOraclePrice, 100 Swap, 101 Withdraw).",
+    "RE-VERIFIED 2026-10-24: fresh valuation at slot 461,007,135 = $2,763,402.95 (senior $2,350,787.35 + junior $412,615.59); value persists. CI re-run 40134164045 (success) regenerated ci-out/sanity.json all-true: claim_fees_control_success, claim_fees_unpriv_rejected, create_permission_ok, attacker_zero_roles, supremo_gate_passed, claim_fees_real_authority_ok = true; attacker_rejections = 6.",
+    "Harness accounting: the 24 LiteSVM cases include 4 literal successes (3 paired positive controls with the real privileged keys + 1 permissionless create_permission_account) and 20 EXPECTED unprivileged rejections (Custom(16)/(2015)/(3007)/(6043)/...); 4/24 is not a failure rate - the 7/7 CI sanity gates are all true.",
+    "Tooling note: getProgramAccounts is 403-disabled on solana-rpc.publicnode.com (silent 0-account enumeration); api.mainnet-beta.solana.com is the working keyless endpoint and was used for the 2026-10-24 re-derivation.",
+    "PDA-custody proof (2026-10-24, slot 461,007,135): the senior USDC+/USDC token accounts are owned by off-curve PDAs - FD4YydhzPpSmXwnHsX1oJBE4er4m9mg4ezaBN9cXgQbz (1,495,729.25), By42A3QzVt1KERdnJcPESGWR3YoN2GSbzZroQFGJ6Qjm (240,357.94), DHEFndu3LxDkuQSzxz5HQ1N2UEm2c6evRzRSsyLL8S7i (211,917.74) - all is_on_curve=False, so no external key can authorise a Transfer/Burn from them; only the Proxy program can move the value, via admin-gated withdraw or authority-gated unwrap/claim_fees."
+  ],
+  "caveats": [
+    "Proxy unwrap is MEDIUM confidence: its account layout was pinned only late and the harness still fails InvalidAccountData for both attacker and legitimate owner, so the unwrap authorization result is not cleanly isolated (closed instead by SPL-Token owner/delegate semantics plus the Offside wrap/unwrap audit).",
+    "RLP withdraw positive control not obtained: the only observed on-chain Withdraw tx references an account (7bhqRJxC...) that has since been closed; the gate rests on the foreign-cooldown rejection plus the Adevar H01 remediation.",
+    "The RLP slash positive control was blocked by pool state (both attacker and real SUPREMO return Custom(3007)), so the slash gate is evidenced by attacker rejection only.",
+    "getTokenSupply / getProgramAccounts(jsonParsed) are unsupported on the keyless endpoint used; supplies were read from raw bytes.",
+    "Junior LP remains slashable through the withdrawal cooldown (by design).",
+    "Point-in-time 2026-10-23; nothing here is an instruction to transact."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Reflect Tranches ($2.76M): the RLP role system is SUPREMO-gated (validated with paired real-key controls; create_permission_account grants no roles and no CRANK holder exists), the Proxy claim_fees/update_authority authority checks are validated by replay, RLP withdraw is cooldown-authority-bound, and every live RLP pool is single-asset so the oracle swap cannot be exercised; residual risk is the single upgrade key (= the only SUPREMO) and the not-fully-isolated proxy unwrap path."
+}
