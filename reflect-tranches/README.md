@@ -195,9 +195,10 @@ reflect-tranches/
 ├── ci-log.txt ci-artifacts/
 ```
 
-**CI:** GitHub Actions **[40134164045](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40134164045)**
-(2026-10-24, branch `reflect-tranches`, conclusion **success**) and the original
-**[39969562016](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39969562016)** (2026-10-23, success):
+**CI:** GitHub Actions **[40137250523](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40137250523)**
+(2026-10-24, branch `reflect-tranches`, conclusion **success**; earlier green runs
+[40134164045](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40134164045) and
+[39969562016](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39969562016)):
 `ci/run.sh` built and ran the LiteSVM harness (`harness exit=0`); the harness output is in `ci-out/litesvm-auth.txt`
 and `ci-log.txt`, and the regenerated machine summary `ci-out/sanity.json` is all-true:
 `claim_fees_control_success`, `claim_fees_unpriv_rejected`, `create_permission_ok`, `attacker_zero_roles`,
