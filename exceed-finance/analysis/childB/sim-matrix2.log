@@ -1,0 +1,75 @@
+
+##### seal_program CONTROL: real guardian signer
+   err = "AccountNotFound"
+
+##### seal_program ATTACKER: ordinary signer
+   err = {"InstructionError": [0, {"Custom": 6421}]}
+    Program log: Instruction: SealProgram
+    Program log: AnchorError thrown in programs/liquid-staking/src/state/access_control.rs:132. Error Code: InvalidGuardian. Error Number: 6421. Error Message: Invalid guardian.
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0x1915
+
+##### vault_withdraw CONTROL: real vault_authority
+   err = {"InstructionError": [0, "MissingAccount"]}
+    Program log: Instruction: VaultWithdraw
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: An account required by the instruction is missing
+
+##### vault_withdraw ATTACKER: ordinary signer
+   err = {"InstructionError": [0, "MissingAccount"]}
+    Program log: Instruction: VaultWithdraw
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: An account required by the instruction is missing
+
+##### fund_withdrawal_window CONTROL: real deposit_authority
+   err = {"InstructionError": [0, {"Custom": 3007}]}
+    Program log: Instruction: FundWithdrawalWindow
+    Program log: AnchorError caused by account: deposit_authority_base_token_account. Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbf
+
+##### fund_withdrawal_window ATTACKER: ordinary signer
+   err = {"InstructionError": [0, {"Custom": 3007}]}
+    Program log: Instruction: FundWithdrawalWindow
+    Program log: AnchorError caused by account: deposit_authority_base_token_account. Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbf
+
+##### create_withdrawal_window CONTROL: real window_authority
+   err = {"InstructionError": [0, {"Custom": 3005}]}
+    Program log: Instruction: CreateWithdrawalWindow
+    Program log: AnchorError caused by account: window_base_token_account. Error Code: AccountNotEnoughKeys. Error Number: 3005. Error Message: Not enough account keys given to the instruction.
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbd
+
+##### create_withdrawal_window ATTACKER: ordinary signer
+   err = {"InstructionError": [0, {"Custom": 3005}]}
+    Program log: Instruction: CreateWithdrawalWindow
+    Program log: AnchorError caused by account: window_base_token_account. Error Code: AccountNotEnoughKeys. Error Number: 3005. Error Message: Not enough account keys given to the instruction.
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbd
+
+##### withdraw_fees CONTROL dest_owner=ordinary(system-owned)
+   err = {"InstructionError": [0, "MissingAccount"]}
+    Program log: Instruction: WithdrawFees
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: An account required by the instruction is missing
+
+##### withdraw_fees dest_owner=access_control PDA (program-owned) -> expect 3010
+   err = {"InstructionError": [0, {"Custom": 3011}]}
+    Program log: Instruction: WithdrawFees
+    Program log: AnchorError caused by account: destination_owner. Error Code: AccountNotSystemOwned. Error Number: 3011. Error Message: The given account is not owned by the system program.
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbc3
+
+##### withdraw_fees ATTACKER: ordinary signer
+   err = {"InstructionError": [0, "MissingAccount"]}
+    Program log: Instruction: WithdrawFees
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: An account required by the instruction is missing
+
+##### update_pair_limits pair=access_control PDA (program-owned, wrong disc)
+   err = {"InstructionError": [0, {"Custom": 3002}]}
+    Program log: Instruction: UpdatePairLimits
+    Program log: AnchorError caused by account: pair. Error Code: AccountDiscriminatorMismatch. Error Number: 3002. Error Message: 8 byte discriminator did not match what was expected.
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbba
+
+##### update_pair_limits pair=ordinary system acct
+   err = {"InstructionError": [0, {"Custom": 3007}]}
+    Program log: Instruction: UpdatePairLimits
+    Program log: AnchorError caused by account: pair. Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.
+    Program log: Left:
+    Program log: 11111111111111111111111111111111
+    Program log: Right:
+    Program log: par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbf

@@ -1,0 +1,81 @@
+=== update_pair_limits substitution matrix ===
+
+##### T1 control: real pair_authority signer, real AC
+   err = null
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+    Program log: Instruction: UpdatePairLimits
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV success
+
+##### T2 authority=ordinary wallet signer, real AC
+   err = {"InstructionError": [0, {"Custom": 2012}]}
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+    Program log: Instruction: UpdatePairLimits
+    Program log: AnchorError caused by account: authority. Error Code: ConstraintAddress. Error Number: 2012. Error Message: An address constraint was violated.
+    Program log: Left:
+    Program log: 5RfcgB1KUeoUjxph7bLqLTdJ1DwbwazXQHGMeoDHoaen
+    Program log: Right:
+    Program log: WYSyHasQGFCtfHb1W5pFf64YCzvMSahJgBoZei5RrwJ
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0x7dc
+
+##### T3 authority=ordinary, AC=ordinary(not program-owned)
+   err = {"InstructionError": [0, {"Custom": 3007}]}
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+    Program log: Instruction: UpdatePairLimits
+    Program log: AnchorError caused by account: access_control. Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.
+    Program log: Left:
+    Program log: 11111111111111111111111111111111
+    Program log: Right:
+    Program log: par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbf
+
+##### T4 authority=ordinary, AC=pair_authority acct(system-owned)
+   err = {"InstructionError": [0, {"Custom": 3007}]}
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+    Program log: Instruction: UpdatePairLimits
+    Program log: AnchorError caused by account: access_control. Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.
+    Program log: Left:
+    Program log: 11111111111111111111111111111111
+    Program log: Right:
+    Program log: par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbf
+
+##### T5 real authority, AC=pair_authority acct(system-owned)
+   err = {"InstructionError": [0, {"Custom": 3007}]}
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+    Program log: Instruction: UpdatePairLimits
+    Program log: AnchorError caused by account: access_control. Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.
+    Program log: Left:
+    Program log: 11111111111111111111111111111111
+    Program log: Right:
+    Program log: par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbf
+
+##### T6 real authority, pair=exSOL pair (seeds ok)
+   err = null
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+    Program log: Instruction: UpdatePairLimits
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV success
+
+=== update_pair_yield substitution matrix ===
+
+##### T7 authority=ordinary signer, real AC
+   err = {"InstructionError": [0, {"Custom": 2012}]}
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+    Program log: Instruction: UpdatePairYield
+    Program log: AnchorError caused by account: authority. Error Code: ConstraintAddress. Error Number: 2012. Error Message: An address constraint was violated.
+    Program log: Left:
+    Program log: 5RfcgB1KUeoUjxph7bLqLTdJ1DwbwazXQHGMeoDHoaen
+    Program log: Right:
+    Program log: WYSyHasQGFCtfHb1W5pFf64YCzvMSahJgBoZei5RrwJ
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0x7dc
+
+##### T8 authority=ordinary, AC=ordinary
+   err = {"InstructionError": [0, {"Custom": 3007}]}
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+    Program log: Instruction: UpdatePairYield
+    Program log: AnchorError caused by account: access_control. Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.
+    Program log: Left:
+    Program log: 11111111111111111111111111111111
+    Program log: Right:
+    Program log: par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV
+    Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV failed: custom program error: 0xbbf

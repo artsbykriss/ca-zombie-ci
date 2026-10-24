@@ -1,0 +1,33 @@
+attacker pubkey: GyfHAmCN5hcdVZ9Uuv5oDXicGd4FqS7YN875jkRbPT4z
+
+##### CONTROL update_pair_limits (real pair_authority as signer)
+   err = null
+   log: Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+   log: Program log: Instruction: UpdatePairLimits
+   log: Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV consumed 7837 of 200000 compute units
+   log: Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV success
+
+##### ATTACKER update_pair_limits (fresh signer as authority, real AC)
+   err = "AccountNotFound"
+
+##### ATTACKER update_pair_limits (fresh signer + fake AC=attacker acct)
+   err = "AccountNotFound"
+
+##### CONTROL update_pair_yield (real pair_authority)
+   err = null
+   log: Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV invoke [1]
+   log: Program log: Instruction: UpdatePairYield
+   log: Program log: Elapsed time: 17993208
+   log: Program log: intervals: 624
+   log: Program log: Remaining seconds: 22008
+   log: Program log: Interval Rate: 1000087045048
+   log: Program log: Compounded rate: 1055815808303
+   log: Program log: Linear yield: 66516924
+   log: Program log: Total rate: 1055882325227
+   log: Program log: New exchange rate: 1310693250936
+   log: Program log: Exchange Rate: 1310693250936
+   log: Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV consumed 18929 of 200000 compute units
+   log: Program par1tyqusak2f2DXg9RHv78SVHNWXkJLSbtJZQSuWjV success
+
+##### ATTACKER update_pair_yield (fresh signer)
+   err = "AccountNotFound"
