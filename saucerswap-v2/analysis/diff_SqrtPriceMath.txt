@@ -1,0 +1,83 @@
+1,6c1,5
+< pragma solidity >=0.5.0;
+< import './LowGasSafeMath.sol';
+< import './SafeCast.sol';
+< import './FullMath.sol';
+< import './UnsafeMath.sol';
+< import './FixedPoint96.sol';
+---
+> pragma solidity ^0.8.0;
+> import {SafeCast} from './SafeCast.sol';
+> import {FullMath} from './FullMath.sol';
+> import {UnsafeMath} from './UnsafeMath.sol';
+> import {FixedPoint96} from './FixedPoint96.sol';
+8d6
+< using LowGasSafeMath for uint256;
+18a17
+> unchecked {
+25c24,25
+< return uint160(UnsafeMath.divRoundingUp(numerator1, (numerator1 / sqrtPX96).add(amount)));
+---
+> }
+> return uint160(UnsafeMath.divRoundingUp(numerator1, (numerator1 / sqrtPX96) + amount));
+26a27
+> unchecked {
+28c29
+< require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);
+---
+> require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product, 'SP:1');
+32a34
+> }
+40,41c42
+< uint256 quotient =
+< (
+---
+> uint256 quotient = (
+46c47
+< return uint256(sqrtPX96).add(quotient).toUint160();
+---
+> return (uint256(sqrtPX96) + quotient).toUint160();
+48,49c49
+< uint256 quotient =
+< (
+---
+> uint256 quotient = (
+54c54,55
+< require(sqrtPX96 > quotient);
+---
+> require(sqrtPX96 > quotient, 'SP:2');
+> unchecked {
+57a59
+> }
+64,65c66,67
+< require(sqrtPX96 > 0);
+< require(liquidity > 0);
+---
+> require(sqrtPX96 > 0, 'SP:3');
+> require(liquidity > 0, 'SP:4');
+77,78c79,80
+< require(sqrtPX96 > 0);
+< require(liquidity > 0);
+---
+> require(sqrtPX96 > 0, 'SP:5');
+> require(liquidity > 0, 'SP:6');
+89a92
+> unchecked {
+93c96
+< require(sqrtRatioAX96 > 0);
+---
+> require(sqrtRatioAX96 > 0, 'SP:7');
+101a105
+> }
+107a112
+> unchecked {
+113a119
+> }
+118a125
+> unchecked {
+123a131
+> }
+128a137
+> unchecked {
+132a142
+> }

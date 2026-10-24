@@ -1,0 +1,36 @@
+1,4c1,3
+< pragma solidity >=0.5.0 <0.8.0;
+< import './FullMath.sol';
+< import './FixedPoint128.sol';
+< import './LiquidityMath.sol';
+---
+> pragma solidity ^0.8.0;
+> import {FullMath} from './FullMath.sol';
+> import {FixedPoint128} from './FixedPoint128.sol';
+5a5
+> error NP();
+30c30
+< require(_self.liquidity > 0, 'NP');
+---
+> if (_self.liquidity == 0) revert NP();
+33c33,35
+< liquidityNext = LiquidityMath.addDelta(_self.liquidity, liquidityDelta);
+---
+> liquidityNext = liquidityDelta < 0
+> ? _self.liquidity - uint128(-liquidityDelta)
+> : _self.liquidity + uint128(liquidityDelta);
+35,36c37,40
+< uint128 tokensOwed0 =
+< uint128(
+---
+> uint128 tokensOwed0;
+> uint128 tokensOwed1;
+> unchecked {
+> tokensOwed0 = uint128(
+43,44c47
+< uint128 tokensOwed1 =
+< uint128(
+---
+> tokensOwed1 = uint128(
+56a60
+> }

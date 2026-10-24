@@ -1,0 +1,46 @@
+1,5c1,3
+< pragma solidity >=0.5.0 <0.8.0;
+< import './LowGasSafeMath.sol';
+< import './SafeCast.sol';
+< import './TickMath.sol';
+< import './LiquidityMath.sol';
+---
+> pragma solidity ^0.8.0;
+> import {SafeCast} from './SafeCast.sol';
+> import {TickMath} from './TickMath.sol';
+7c5
+< using LowGasSafeMath for int256;
+---
+> error LO();
+19a18
+> unchecked {
+24a24
+> }
+32a33
+> unchecked {
+55a57
+> }
+71,72c73,76
+< uint128 liquidityGrossAfter = LiquidityMath.addDelta(liquidityGrossBefore, liquidityDelta);
+< require(liquidityGrossAfter <= maxLiquidity, 'LO');
+---
+> uint128 liquidityGrossAfter = liquidityDelta < 0
+> ? liquidityGrossBefore - uint128(-liquidityDelta)
+> : liquidityGrossBefore + uint128(liquidityDelta);
+> if (liquidityGrossAfter > maxLiquidity) revert LO();
+85,87c89
+< info.liquidityNet = upper
+< ? int256(info.liquidityNet).sub(liquidityDelta).toInt128()
+< : int256(info.liquidityNet).add(liquidityDelta).toInt128();
+---
+> info.liquidityNet = upper ? info.liquidityNet - liquidityDelta : info.liquidityNet + liquidityDelta;
+100a103
+> unchecked {
+104c107,109
+< info.secondsPerLiquidityOutsideX128 = secondsPerLiquidityCumulativeX128 - info.secondsPerLiquidityOutsideX128;
+---
+> info.secondsPerLiquidityOutsideX128 =
+> secondsPerLiquidityCumulativeX128 -
+> info.secondsPerLiquidityOutsideX128;
+107a113
+> }
