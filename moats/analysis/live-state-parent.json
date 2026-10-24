@@ -1,0 +1,33 @@
+{
+  "target": "The Moats (MultiLockMoat / Steak)",
+  "read_at": {"avax_block": null, "robinhood_block": 97078410, "wall_clock_utc": "2026-10-24", "note": "avax reads taken during enum; see moats-enum-raw.txt for per-moat detail"},
+  "factories": {
+    "avalanche": {"address": "0xD0b5249EA2f93E54B90ff0737B4d78AA13a222BC", "owner_EOA": "0xBB519b4c7AC5EEEF69d3ED277E5cD7594c7BE0E1", "owner_is_EOA": true, "adminWallet": "0x7fa527A8561cDb3cB16dE66369cb99Bb6f023588", "feeReceiver": "0x7fa527A8561cDb3cB16dE66369cb99Bb6f023588", "usdcToken": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E (USDC)", "deploymentFee": 250000000, "moat_count": 26},
+    "robinhood": {"address": "0x5CffC369eD14BFcD730031B137FbCEccd0a49560", "moat_count": 5},
+    "base": {"address": "0xcd1901A5AB6CaA8D706D44009609f3c0E04760C4", "moat_count": 0},
+    "bsc": {"address": "0xcd1901A5AB6CaA8D706D44009609f3c0E04760C4", "moat_count": 0},
+    "monad": {"address": "0xcd1901A5AB6CaA8D706D44009609f3c0E04760C4", "moat_count": 0}
+  },
+  "deployed_code": {
+    "moat_runtime_bytes": 18153,
+    "verified": "Routescan (chainid 43114) — ContractName MultiLockMoat, solc 0.8.20+commit.a1b79de6, optimizer=1 runs=200; factory = MultiLockMoatFactory same compiler",
+    "fixes_live_proof": {
+      "POINTS_SCALING_FACTOR": "exposed getter exists + returns 1e12 for 18-dec tokens (tokenDecimals>=12 branch) — function absent in the pre-fix hardcoded version",
+      "MIN_STAKE_AMOUNT": "exposed getter exists (1e12) — absent pre-fix; unstake() enforces remainingAmount>=MIN_STAKE_AMOUNT",
+      "calculateLockMultiplier(365d)": "4121320343559501001 (4.1213x, fractional preserved — NOT truncated to 4) => div-before-mul fixed",
+      "getCurrentPoints": "returns stored lock points (no expiry recalculation) => Finding-4 fix live"
+    }
+  },
+  "reward_pools": {
+    "avax_total_remaining_priced_usd": 2162.95,
+    "largest": {"moat": "0x7e27289337A46d8eca46f9a7B137b0CAa377A54C", "usd": 1114.53},
+    "note": "remaining = getRewardTokens totalDeposited - totalClaimed, priced with DefiLlama; unpriced project tokens excluded. All claimable only by stakers pro-rata (H-O)."
+  },
+  "residuals": {
+    "stake_unstake_truncation": "points=floor(amount/POINTS_SCALING_FACTOR) both ways; floor subadditivity lets a user retain ~1 extra point per partial unstake. Bounded to 1 point/tx by MIN_STAKE_AMOUNT; each point worth rewardPool/totalPoints (~1e-12 USD given totalPoints ~1e15) => economically worthless.",
+    "burn_unchecked_transfer": "burn() uses stakingToken.transfer(DEAD_WALLET, amount) without checking the bool return; only relevant if a live moat's staking token returns false without reverting (none identified).",
+    "unallocated_when_totalPoints_zero": "if a moat has totalPoints==0 and admin deposits rewards, the first staker's next updatePool distributes them to that staker; immaterial (rewards are admin-funded and small).",
+    "privileged": "factory owner is a single EOA (can change adminWallet/feeReceiver/usdcToken/deploymentFee); adminWallet 0x7fa527... is admin of every moat + moatManager; all setters/depositRewards/emergency* are onlyAdmin/onlyMoatManager."
+  },
+  "verdict": "E-U ~$0 (high). Rewards are admin-funded and total ~$2.2k priced; staked principal is per-user withdrawable (H-O); no unprivileged path moves value to an attacker."
+}

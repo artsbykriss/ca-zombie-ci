@@ -1,0 +1,2417 @@
+13December2025
+Prepared for
+Alex
+Moat
+Prepared by
+y4y
+bradmoon
+FailSafe
+MoatV3
+SmartContractAuditReport
+MoatV3: SmartContractAuditReport 13December2025
+TableofContents
+ExecutiveSummary 2
+ProjectDetails 3
+Structure&OrganizationofTheSecurityReport . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+Methodology 4
+In‑scope . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+SummaryofFindings 7
+Finding1: HardcodedPOINTS_SCALING_FACTORIncompatiblewithLow‑DecimalTokens . . . . . . . . 8
+Finding2: LockMultiplierPrecisionLossDuetoPrematureDivision . . . . . . . . . . . . . . . . . . . . . 11
+Finding3: Burnmigrationgrantsretroactiverewards . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+Finding4: ExpiredLockPointRecalculationCausesRewardLossandSystemImbalance . . . . . . . . . 16
+Finding5: Adminremovalallowsdroppinginitialadmin . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+Finding6: CentralizedAdminWalletCreatesSinglePointofFailure . . . . . . . . . . . . . . . . . . . . . 22
+Finding7: Earlyexitcanbecheaperthannormalexitnearmaturity . . . . . . . . . . . . . . . . . . . . . 27
+Finding8: Emergencyunlockisirreversible . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+Finding9: enableEmergencyUnlock()FailstoPauseContract . . . . . . . . . . . . . . . . . . . . . . . . 29
+Finding10: Fee‑on‑TransferTokenIncompatibilityLeadingtoAccountingDiscrepancies . . . . . . . . . 33
+Finding11: Norescueforstuckrewards . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+Finding12: Single‑BlockupdatePool()LimitationEnablesRewardLossandMEVExploitation . . . . . . . 38
+Finding13: Activeusersetunboundedviaburns . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+Finding14: Chain/tokendecimalassumptions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+Finding15: emergencyWithdraw()FailstoHarvestPendingRewards . . . . . . . . . . . . . . . . . . . . 45
+Finding16: LockExitFunctionsDoNotUpdatelastUpdatedTimestamp . . . . . . . . . . . . . . . . . . 49
+Finding17: Unboundedlockscanbloatloops . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 53
+Finding18: LockExitedeventomitsfeecomponent . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 54
+Finding19: USDCTokenAddressShouldBeImmutable . . . . . . . . . . . . . . . . . . . . . . . . . . . 55
+Disclaimer 59
+1
+MoatV3: SmartContractAuditReport 13December2025
+ExecutiveSummary
+FailSafe was engaged to conduct a comprehensive security audit of MoatV3, a smart contract deployed on the
+Ethereumblockchain. Oureliteteamofsecurityexpertsundertookadetailedanalysisofthecontract’scodebase,
+focusingonidentifyingvulnerabilitiesandprovidingactionablerecommendationstoenhanceitssecurityandreli‑
+ability. Throughouttheaudit,FailSafeleverageditsextensiveexperienceinsmartcontractsecuritytoensurethat
+MoatV3adherestothehigheststandardsofsafetyandoperationalintegrity.
+During the audit, several noteworthy vulnerabilities were identified, highlighting the complex and multifaceted
+natureofblockchainsecurity. Amongthecriticalfindingswasanissuewiththelockmultipliercalculation,which
+could lead to permanent point loss for users and undermine the sophisticated incentive mechanisms. Another
+criticalvulnerabilityinvolvedthehardcodingofascalingfactor, renderingtheprotocolincompatiblewithmajor
+low‑decimaltokenslikeUSDTandWBTC,potentiallylimitingitsmarketadoption. High‑severityissuessuchasthe
+burn migration flaw, which allowed users to claim retroactive rewards, and the expired lock point recalculation
+problem,whichcouldleadtosystemimbalanceandrewardloss,werealsodiscovered. Medium‑severityfindings
+includedemergencyunlockproceduresthatcouldnotbereversed,leadingtopotentialtrustissues,andtheuse
+of a centralized admin wallet, which posed a single point of failure risk across all deployments. These findings
+underscoredtheimportanceofthoroughsecuritypracticesandtheneedforcontinuousmonitoringandimprove‑
+ments.
+Thedevelopmentteamistobecommendedfortheirproactiveapproachtoaddressingthesevulnerabilities. Their
+swiftresolutionofcriticalandhigh‑severityissuesdemonstratesastrongcommitmenttomaintainingasecureand
+robust protocol. By implementing the recommendations provided by FailSafe, they have significantly strength‑
+enedMoatV3’ssecurityposture. Movingforward,continueddiligenceandadherencetosecuritybestpracticeswill
+ensure that MoatV3 can operate safely and efficiently, fostering trust and confidence among its users and stake‑
+holders.
+2
+MoatV3: SmartContractAuditReport 13December2025
+ProjectDetails
+Project MoatV3
+Repository https://github.com/0xFortiFi/Moat‑Contracts/tree/main/MoatV3
+Blockchain Ethereum
+AuditType SmartContractAuditReport
+InitialCommit 39832a491fe1a59bc8f7e5d27baa65edd8985eaf
+FinalCommit 943869a85a5e89606750c040d3f562d312288d0c
+Timeline 2December2025‑4December2025
+FinalReport: 13December2025
+Structure&OrganizationofTheSecurityReport
+Issuesaretaggedas“Open”,“Acknowledged”,“PartiallyResolved”,“Resolved”or“Closed”dependingonwhether
+theyhavebeenfixedoraddressed.
+• Open: Theissuehasbeenreportedandisawaitingremediationfromdeveloperteam.
+• Acknowledged: Thedeveloperteamhasreviewedandacceptedtheissuebuthasdecidednottofixit.
+• PartiallyResolved: Mitigationshavebeenapplied,yetsomerisksorgapsstillremain.
+• Resolved: Theissuehasbeenfullyaddressedandnofurtherworkisnecessary.
+• Closed: Theissueisdeemednolongerpertinentoractionable.
+Furthermore, the severity of each issue is written as assessed by the risk of exploitation or other unexpected or
+otherwiseunsafebehavior:
+Critical Theissueaffectstheplatforminsuchawaythatfundsmaybelost, allocatedincorrectly,orother‑
+wiseresultinasignificantloss.
+High Theissueaffectstheabilityoftheplatformtocompileoroperateinasignificantway.
+Medium Theissueaffectstheabilityoftheplatformtooperateinawaythatdoesn’tsignificantlyhinderits
+behavior.
+Low Theissuehasminimalimpactontheplatform’sabilitytooperate.
+Info Theissueisinformationalinnatureanddoesnotposeanydirectrisktotheplatform’soperation.
+3
+MoatV3: SmartContractAuditReport 13December2025
+Methodology
+ThreatModelling
+Wewillemployathreatmodellingapproachtoidentifypotentialattackvectorsandrisksassociatedwiththesmart
+contract(s). Thisinvolves:
+1. Asset Identification: Enumeratingthe critical assets within the smart contract(s), such as tokens, sensitive
+data,accesscontrols,andmore.
+2. ThreatEnumeration: Identifyingpotentialthreatssuchasreentrancy,integeroverflow/underflow,denialof
+service,andmore.
+3. VulnerabilityAssessment: Assessingvulnerabilitiesinthecontextofthesmartcontract(s)anditsinteraction
+withexternalcomponents.
+4. RiskPrioritization: Prioritizingidentifiedthreatsbasedontheirseverityandpotentialimpact.
+ManualCodeReview
+Ourmanualanalysisinvolvesanin‑depthreviewofthesmartcontract(s)sourcecode,focusingon:
+1. CodeReviewLine‑by‑lineexaminationtodetectvulnerabilitiesandensurecompliancewithbestpractices.
+2. LogicAnalysis: Analyzingthesmartcontract(s)Businesslogicforvulnerabilitiesandinconsistencies.
+3. GasOptimization: Identifyingareasforgasoptimizationandefficiencyimprovements.
+4. AccessControlReview: Ensuringproperaccesscontrolsandpermissionmanagement.
+5. ExternalDependencies: Assessingthesecurityimplicationsofexternaldependenciesororacles.
+FunctionalTestinginHardhat/Foundry
+We will perform functional testing using Hardhat/Foundry to ensure the correctness and reliability of the smart
+contract(s). Thisincludes:
+1. FunctionalTesting: Writingcomprehensiveteststocovervariousfunctionalitiesandedgecases.
+2. IntegrationTesting: Verifyingtheinteractionofsmartcontract(s)withothercomponents.
+3. DeploymentVerification: Ensuringthecorrectnessofsmartcontract(s)deployment.
+FuzzingandInvariantTesting
+Ifdeemednecessarybasedonthecomplexityandcriticalityofthesmartcontract(s),wewillperformfuzzingandin‑
+varianttestingtoidentifyvulnerabilitiesthatmightnotbecaughtthroughconventionalmethods. Thisincludes:
+4
+MoatV3: SmartContractAuditReport 13December2025
+1. Fuzz Testing: Employing fuzzing techniques to generate invalid, unexpected, or random inputs to trigger
+potentialvulnerabilities.
+2. InvariantTesting: Verifyinginvariantsandpropertiestoensurethecorrectnessandconsistencyofthesmart
+contract(s)acrossvariousscenarios.
+EdgeCasesScenariosCoverage
+Ourauditwillthoroughlycoverawidespectrumofedgecases,includingbutnotlimitedto:
+1. ExtremeInputs: Testingwithextremeandboundaryinputstoassessresilience.
+2. ExceptionHandling: Evaluatinghowthecontract(s)handleexceptionalscenarios.
+3. Concurrency: Assessingthecontract(s)behaviourinconcurrentorsimultaneousinteractions.
+4. Non‑StandardScenarios: Analyzingnon‑standardusecasesthatmightimpactcontract(s)behaviour.
+ReportingandRecommendations
+Athoroughdescriptionoftheissue,highlightingthepotentialimpactonthesystem.
+1. Thelocationwithinthecodebasewheretheissueisfound.
+2. Aclearexplanationofthevulnerability,itsrootcause,anditspotentialexploitation.
+3. Codesnippetsordetailedinstructionsonhowtoaddressthevulnerability.
+4. Bestpracticesandcodingguidelinestopreventsimilarissuesinthefuture.
+5. Wewillsuggestimprovementsintheoverallsystemarchitectureordesign,ifrelevant.
+6. Whereverapplicable,we’llincludeaPoCtodemonstrateissueseverity,aidingeffectivemitigation.
+ReportGeneration
+1. Documentallfindings,includingidentifiedvulnerabilities,theirseverity,andpotentialimpact.
+2. Provideclearandactionablerecommendationsforaddressingsecurityissues.
+RemediationSupport
+1. Collaboratewiththeproject’sdevelopmentteamtoaddressandremediateidentifiedvulnerabilities.
+2. Reviewandvalidatecodechangesandsecurityfixes.
+FinalAssessment
+Re‑evaluatetheproject’ssecuritypostureafterremediationeffortstoensurevulnerabilitieshavebeenadequately
+addressed.
+5
+MoatV3: SmartContractAuditReport 13December2025
+In‑scope
+• MoatV3/multilock.moat.sol
+• MoatV3/multilock.factory.sol
+6
+MoatV3: SmartContractAuditReport 13December2025
+SummaryofFindings
+Severity Total Open Acknowledged PartiallyResolved Resolved
+Critical 2 ‑ ‑ ‑ 2
+High 2 ‑ ‑ ‑ 2
+Medium 8 ‑ 2 ‑ 6
+Low 5 ‑ 3 ‑ 2
+Info 2 ‑ 1 ‑ 1
+Total 19 0 6 0 13
+# Findings Severity Status
+1 HardcodedPOINTS_SCALING_FACTORIncompatiblewithLow‑Decimal
+Tokens
+Critical Resolved
+2 LockMultiplierPrecisionLossDuetoPrematureDivision
+ Critical Resolved
+3 Burnmigrationgrantsretroactiverewards
+ High Resolved
+4 ExpiredLockPointRecalculationCausesRewardLossandSystem
+Imbalance
+High Resolved
+5 Adminremovalallowsdroppinginitialadmin
+ Medium Resolved
+6 CentralizedAdminWalletCreatesSinglePointofFailure
+ Medium Resolved
+7 Earlyexitcanbecheaperthannormalexitnearmaturity
+ Medium Resolved
+8 Emergencyunlockisirreversible
+ Medium Acknowledged
+9 enableEmergencyUnlock()FailstoPauseContract
+ Medium Resolved
+10 Fee‑on‑TransferTokenIncompatibilityLeadingtoAccounting
+Discrepancies
+Medium Acknowledged
+11 Norescueforstuckrewards
+ Medium Resolved
+12 Single‑BlockupdatePool()LimitationEnablesRewardLossandMEV
+Exploitation
+Medium Resolved
+13 Activeusersetunboundedviaburns
+ Low Acknowledged
+14 Chain/tokendecimalassumptions
+ Low Resolved
+15 emergencyWithdraw()FailstoHarvestPendingRewards
+ Low Acknowledged
+16 LockExitFunctionsDoNotUpdatelastUpdatedTimestamp
+ Low Resolved
+17 Unboundedlockscanbloatloops
+ Low Acknowledged
+18 LockExitedeventomitsfeecomponent
+ Info Acknowledged
+19 USDCTokenAddressShouldBeImmutable
+ Info Resolved
+7
+MoatV3: SmartContractAuditReport 13December2025
+Finding1: HardcodedPOINTS_SCALING_FACTORIncompatiblewithLow‑DecimalTokens
+Severity:
+ Critical
+Status:Resolved
+Description:
+Theprotocolhardcodes POINTS_SCALING_FACTORto 1e12 withoutconsideringthestakingtoken’sdecimalplaces.
+This creates critical incompatibility with tokens having less than 12 decimals (such as USDT with 6 decimals or
+WBTCwith8decimals),resultingintwosevereissues:
+Issue 1 ‑ Impossibly High Entry Barrier: Normal users cannot earn any points. For WBTC (8 decimals), a user
+muststake10,000BTC(approximately$400,000,000)toearnasinglepoint. ForUSDT(6decimals),1,000,000USDT
+($1,000,000)isrequiredfor1point. Thismakestheprotocolcompletelyunusableforthesemajortokens.
+Issue2‑Zero‑CostPointExploitation : Duetointegerdivisiontruncation,attackerscanexploittheprecisionloss
+to accumulate unlimited points at near‑zero cost. By repeatedly staking exactly1e12 wei (earning 1 point) and
+thenunstaking 1e12 - 1 wei(removing0pointsduetotruncation), attackerskeep1pointforonly1weilocked.
+Thiscanberepeatedtoaccumulatethousandsofpointsfornegligiblecost(onlygasfees), allowingrewardpool
+drainage.
+Impact:
+• 1. ProtocolUnusableforMajorTokens : Theprotocolcannotfunctionwithwidely‑usedtokensincluding
+USDT($140Bmarketcap),USDC($50B),andWBTC($15B).Thisseverelylimitsadoptionandutility.
+• 2. Economic Exploit ‑ Zero‑Cost Point Accumulation: Attackers can accumulate unlimited points for
+negligiblecost:
+– Stake 1e12 wei‑>earn1point
+– Unstake 1e12 - 1 wei‑>lose0points(truncation)
+– Repeat1,000times‑>1,000pointsfor1,000wei(~$0.40)+gas
+– Ifrewardpoolis$100,000andattackerhas10%ofpoints‑>claim$10,000
+– Netprofit: ~$9,950(excludinggas)
+• 3. Reward Pool Drainage: Attackers with artificially accumulated points drain rewards intended for le‑
+gitimatestakers,potentiallyleavingthepoolemptyforhonestusers.
+• 4. UnfairCompetition: Usersstakingdifferenttokensfacevastlydifferentbarriers(WETHusersgetmil‑
+lionsofpointsfor$100k,WBTCusersget0pointsfor$4M).
+8
+MoatV3: SmartContractAuditReport 13December2025
+Source:
+• Contract: MultiLockMoat.sol
+• Constant: POINTS_SCALING_FACTOR = 1 e12 (Line55)
+• AffectedFunctions: stake (), unstake (), lock(), burn(), getCurrentPoints ()
+Code:
+1 // Hardcoded constant - doesn 't adapt to token decimals
+2 uint256 public constant POINTS_SCALING_FACTOR = 1 e12 ;
+3
+4 function stake (uint256 _amount) external {
+5 // ...
+6 stakingToken .safeTransferFrom (msg.sender , address (this), _amount);
+7
+8 // PROBLEM 1: For low-decimal tokens , this often equals 0
+9 uint256 points = ( _amount * POINTS_PER_TOKEN) / POINTS_SCALING_FACTOR;
+10 // WBTC example : (100e8 * 1) / 1e12 = 0.01 = 0 points
+11 // User stakes 100 BTC ($4M) and earns ZERO points
+12
+13 user .stakedAmount += _amount;
+14 user .stakingPoints += points;
+15 totalPoints += points;
+16 // ...
+17 }
+18
+19 function unstake (uint256 _amount) external {
+20 // ...
+21 // PROBLEM 2: Allows exploitation via truncation
+22 uint256 points = ( _amount * POINTS_PER_TOKEN) / POINTS_SCALING_FACTOR;
+23 // unstake (1e12 - 1) = (999999999999 * 1) / 1e12 = 0 points removed
+24
+25 user .stakingPoints -= points;
+26 totalPoints -= points;
+27 // ...
+28 }
+ProofofConcept:
+1 function testZeroCostPointExploitation () public {
+2 // Setup with WBTC (8 decimals )
+3 uint256 iterations = 1000;
+4 uint256 attackAmount = 1 e12 ; // Threshold for 1 point
+5
+6 vm.startPrank(attacker );
+7 uint256 initialBalance = wbtc.balanceOf (attacker );
+8
+9 // Execute exploit loop
+10 for (uint i = 0; i < iterations ; i++) {
+11 wbtc.approve (address (moat), attackAmount);
+12 moat.stake (attackAmount); // Earn 1 point
+13 moat.unstake (attackAmount - 1); // Lose 0 points (truncation)
+14 }
+15
+16 uint256 finalBalance = wbtc.balanceOf (attacker );
+17 uint256 points = moat.getCurrentPoints (attacker );
+18 uint256 cost = initialBalance - finalBalance ;
+19
+20 // Results
+21 assertEq (points, iterations ); // 1,000 points earned
+22 assertEq (cost, iterations ); // 1,000 wei locked (~$0.40)
+23
+24 console .log("Points earned :", points);
+9
+MoatV3: SmartContractAuditReport 13December2025
+25 console .log("Cost (wei ):", cost);
+26 console .log("Cost (WBTC):", cost / 1 e8 );
+27 console .log("Cost (USD):", "~ $0.40");
+28
+29 vm.stopPrank();
+30 }
+Remediation:
+Make POINTS_SCALING_FACTOR dynamic based on the staking token’s decimals and enforce minimum stake
+amounts:
+1 contract MultiLockMoat {
+2 IERC20 public immutable stakingToken ;
+3 uint8 public immutable tokenDecimals ;
+4
+5 //   Change from constant to immutable
+6 uint256 public immutable POINTS_SCALING_FACTOR;
+7 uint256 public immutable MIN_STAKE_AMOUNT;
+8
+9 constructor(address _stakingToken , address _feeCollector , address _adminWallet ) {
+10 stakingToken = IERC20(_stakingToken );
+11
+12 //   Get token decimals
+13 tokenDecimals = IERC20Metadata (_stakingToken ).decimals ();
+14
+15 //   Set scaling factor based on decimals
+16 if (tokenDecimals >= 12) {
+17 POINTS_SCALING_FACTOR = 10 ** 12;
+18 } else {
+19 // For low-decimal tokens , use token 's native decimals
+20 // E.g., WBTC (8 decimals ): POINTS_SCALING_FACTOR = 1e8
+21 POINTS_SCALING_FACTOR = 10 ** tokenDecimals ;
+22 }
+23
+24 //   Set minimum to prevent dust exploitation
+25 MIN_STAKE_AMOUNT = POINTS_SCALING_FACTOR;
+26 }
+27
+28 function unstake (uint256 _amount) external {
+29 // ...
+30 uint256 remainingAmount = user .stakedAmount - _amount;
+31
+32 //   Prevent partial unstakes that leave dust
+33 if (remainingAmount > 0) {
+34 require (
+35 remainingAmount >= MIN_STAKE_AMOUNT,
+36 "Must unstake all or leave minimum amount"
+37 );
+38 }
+39 // ...
+40 }
+41 }
+10
+MoatV3: SmartContractAuditReport 13December2025
+Finding2: LockMultiplierPrecisionLossDuetoPrematureDivision
+Severity:
+ Critical
+Status:Resolved
+Description:
+The lock() function performs division before multiplication when calculating user lock points, causing
+Solidity’s integer division to permanently truncate the fractional component of the lock multiplier. The
+calculateLockMultiplier () function intentionally uses a square root algorithm to produce smooth multiplier
+valuesrangingfrom2.0xto5.0x(e.g.,2.5x,3.5x,4.2x). However,theprematuredivisionoperation (multiplier /
+MULTIPLIER_PRECISION)truncatesthesevaluestointegers(2,3,4,5)beforemultiplication,causinguserstolose
+5‑20%oftheirexpectedpointsdependingonlockduration.
+Forexample,a365‑daylockshouldyielda3.5xmultiplier,buttheprematuredivisiontruncatesthisto3x,resulting
+inapermanent14.3%pointlossfortheuser.
+Impact:
+1. PermanentPointLoss : Userspermanentlylose5‑20%ofexpectedpointsbasedonlockduration. Theso‑
+phisticatedsquarerootincentivecurveiscompletelynullified,degradingtoonly4discretemultiplierlevels
+(2,3,4,5).
+2. UnfairRewardDistribution : Userslockingforsimilardurationsreceivedrasticallydifferentrewardsbased
+onwhethertheirdurationproducesanintegermultiplier. Forexample:
+• 365‑daylock: 14.3%loss(3.5x→3x)
+• 182‑daylock: 0%loss(3.0xremains3x)
+• 91‑daylock: 20%loss(2.5x→2x)
+3. BrokenEconomicModel : Theprotocol’scarefullydesignednon‑linearincentivemechanismthatrewards
+longerlocksprogressivelyisdestroyed,underminingtheentirelockrewardstructure.
+4. Cumulative Loss: This loss affects every reward distribution throughout the lock period (potentially 730
+days),compoundingthetotalfinancialimpact.
+Source:
+• Contract: MultiLockMoat.sol
+11
+MoatV3: SmartContractAuditReport 13December2025
+• Function: lock()(Lines314‑316)
+• Related: calculateLockMultiplier ()(Lines581‑597)
+Code:
+1 function lock(uint256 _amount, uint256 _duration) external {
+2 // ...
+3 uint256 multiplier = calculateLockMultiplier (_duration);
+4 // multiplier = 3.5e18 for ~365 day lock
+5
+6 // VULNERABLE: Division happens BEFORE multiplication
+7 uint256 points = ( _amount * POINTS_PER_TOKEN * ( multiplier / MULTIPLIER_PRECISION)) /
+POINTS_SCALING_FACTOR;
+8 // Step 1: (3.5e18 / 1e18 ) = 3.5 -> truncated to 3
+9 // Step 2: (1e24 * 1 * 3) / 1e12 = 3e12 points
+10 // LOSS: Should be 3.5e12 , user loses 0.5e12 (14.3%)
+11 }
+12
+13 // Constants
+14 uint256 public constant POINTS_PER_TOKEN = 1;
+15 uint256 public constant POINTS_SCALING_FACTOR = 1 e12 ;
+16 uint256 public constant MULTIPLIER_PRECISION = 1 e18 ;
+17 uint256 public constant MIN_LOCK_MULTIPLIER = 2;
+18 uint256 public constant MAX_LOCK_MULTIPLIER = 5;
+ProofofConcept:
+1 function testLockMultiplierPrecisionLoss () public {
+2 uint256 amount = 1000000 e18 ;
+3 uint256 duration = 365 days;
+4
+5 // Lock tokens
+6 vm.startPrank(user );
+7 stakingToken .approve (address (moat), amount);
+8 moat.lock(amount, duration);
+9 vm.stopPrank();
+10
+11 // Get actual points received
+12 (, , uint256 actualPoints, , , ) = moat.getUserLock (user , 0);
+13
+14 // Calculate expected points with correct formula
+15 uint256 multiplier = moat.calculateLockMultiplier (duration);
+16 uint256 expectedPoints = ( amount * 1 * multiplier ) / (1 e12 * 1 e18 );
+17
+18 // Verify loss
+19 console .log("Expected points:", expectedPoints ); // 3.5e12
+20 console .log("Actual points:", actualPoints); // 3e12
+21 console .log("Loss:", expectedPoints - actualPoints); // 0.5e12 (14.3%)
+22
+23 assertLt (actualPoints, expectedPoints );
+24 assertEq (actualPoints, ( amount * 3) / 1 e12 ); // Only gets 3x, not 3.5x
+25 }
+Remediation:
+Rearrangethecalculationordertoperformallmultiplicationsbeforedivision,preservingfullprecision:
+1 function lock(uint256 _amount, uint256 _duration) external {
+2 // ...
+3 uint256 multiplier = calculateLockMultiplier (_duration);
+4
+5 // FIXED: All multiplications first, then single division
+6 uint256 points = ( _amount * POINTS_PER_TOKEN * multiplier ) /
+12
+MoatV3: SmartContractAuditReport 13December2025
+7 (POINTS_SCALING_FACTOR * MULTIPLIER_PRECISION);
+8
+9 // Example with multiplier = 3.5e18 :
+10 // Numerator : 1e24 * 1 * 3.5e18 = 3.5e42
+11 // Denominator : 1e12 * 1e18 = 1e30
+12 // Result : 3.5e42 / 1e30 = 3.5e12   Preserves precision !
+13 }
+Additionalrecommendations:
+• Ensureunittestscoveredgecasesformultipliervalues(e.g.,fractionalmultiplierslike2.5x,3.5x).
+• Addfuzztestsoverdurationstoassertnotruncationoccursandexpectedprecisionismaintained.
+• Consider using a SafeMath‑like library or checks to avoid intermediate overflows when multiplying large
+numbersbeforedivision.
+13
+MoatV3: SmartContractAuditReport 13December2025
+Finding3: Burnmigrationgrantsretroactiverewards
+Severity:
+ High
+Status:Resolved
+Description:
+migrateBurnUsers increases user .totalUserBurn and user .burnPoints without updatingrewardDebt . Since
+updatePool ()iscalledfirst, accRewardPerPoint alreadyincludespastrewardallocations. Byaddingnewpoints
+without rebasingrewardDebt , migrated users gain claim on all historically accrued rewards, diluting or draining
+thepoolattheexpenseofexistingusers.
+Impact:
+Migratedaccountscanclaimpastrewardstheyneverearned
+Source:
+• MoatV3/multilock.moat.sol:844-871(migrateBurnUsers )
+• MoatV3/multilock.moat.sol:520-531(_updateAllRewardDebts )
+• MoatV3/multilock.moat.sol:534-550(pendingRewards )
+ProofofConcept:
+1 function test_migrateBurnUsers_grants_retroactive_rewards () public {
+2 address user1 = user ;
+3 address user2 = address (0x4);
+4
+5 // user1 stakes to create points in the main pool
+6 vm.startPrank(user1 );
+7 stakingToken .approve (address (moat), 100 ether );
+8 moat.stake (100 ether );
+9 vm.stopPrank();
+10
+11 // Move to a new block so that a subsequent deposit can allocate rewards
+12 vm.roll(block.number + 1);
+13
+14 // Deposit additional rewards after user1 is already in the pool
+15 rewardToken .mint(address (this), 100 ether );
+16 rewardToken .approve (address (moat), 100 ether );
+17 moat.depositRewards (address (rewardToken ), 100 ether );
+18
+19 // At this point, user1 has pending rewards , while user2 has never interacted
+20 uint256 pendingBeforeUser1 = moat.pendingRewards (user1 , address (rewardToken ));
+21 uint256 pendingBeforeUser2 = moat.pendingRewards (user2 , address (rewardToken ));
+22 assertGt (pendingBeforeUser1 , 0, " user1 should have pending rewards before migration");
+23 assertEq (pendingBeforeUser2 , 0, " user2 should have zero pending before migration");
+24
+25 // Migrate a burn amount for user2 only, simulating an external burn history
+26 address [] memory users = new address [](1);
+27 uint256[] memory burnAmounts = new uint256[](1);
+28 users [0] = user2 ;
+14
+MoatV3: SmartContractAuditReport 13December2025
+29 burnAmounts[0] = 10 ether ;
+30
+31 vm.prank(adminWallet );
+32 moat.migrateBurnUsers (users , burnAmounts);
+33
+34 // user2 still has never staked or burned in this contract, but now
+35 // gains a share of the already -accrued rewards
+36 uint256 pendingAfterUser2 = moat.pendingRewards (user2 , address (rewardToken ));
+37 assertGt (pendingAfterUser2 , 0, " migrated user should receive retroactive rewards ");
+38
+39 // They can actually claim those retroactive rewards
+40 vm.prank(user2 );
+41 moat.claimAllRewards ();
+42
+43 uint256 claimedByUser2 = rewardToken .balanceOf (user2 );
+44 assertEq (claimedByUser2 , pendingAfterUser2 , " user2 should be paid their pending rewards ");
+45 }
+Remediation:
+• After adjusting burn points inmigrateBurnUsers , immediately call_updateAllRewardDebts (_user ) for
+eachmigratedusertorebasetheir rewardDebt tothecurrent accRewardPerPoint .
+• Alternatively, perform migrations before any reward deposits on a fresh deployment and forbid use once
+totalRewardsDeposited > 0 .
+• Restrict moatManager totrusted,auditedoperationsanddocumentmigrationprocedures.
+15
+MoatV3: SmartContractAuditReport 13December2025
+Finding4: ExpiredLockPointRecalculationCausesRewardLossandSystemImbalance
+Severity:
+ High
+Status:Resolved
+Description:
+Thecontractcontainsacriticalflawinhowithandlesexpiredlocks. Whenalockiscreated,theuser’spointsare
+calculatedbasedonthelockdurationmultiplier(2xto5x)andaddedtoboththeuser’slockrecordandtheglobal
+totalPoints. After the lock expires, thegetCurrentPoints () function recalculates the lock’s points using the
+minimummultiplier(2x),but totalPointsremainsunchangeduntilthelockisexplicitlyexited.
+Thiscreatesthreeinterconnectedproblems:
+Problem1‑RewardDebtMismatch(UserPerspective): Whenthelockwasactive,theuser’s rewardDebt wascal‑
+culatedbasedontheirhighmultiplierpoints(e.g.,5xfor730‑daylock). Afterexpiration, getCurrentPoints ()re‑
+turnsrecalculatedlowpoints(2x),but rewardDebt remainsatthehighvalue. Thismakes accumulatedReward <
+rewardDebt ,causing pendingRewards ()toreturn0,completelypreventingtheuserfromclaiminganyrewards.
+Problem 2 ‑ totalPoints Inflation (System Perspective): The globaltotalPoints variable continues to reflect
+the original high multiplier (5x) until the user explicitly exits, but individual users’ effective points (returned by
+getCurrentPoints ()) are reduced to 2x. This means the denominator for reward distribution is larger than the
+sumofallusers’effectivenumerators,causingsystematicunder‑allocationofrewards.
+Problem3‑ReducedRewardEarning(DistributionPerspective): Duringtheexpired‑but‑not‑exitedperiod, users
+with expired locks earn rewards based on their reduced 2x points, while the global pool divides rewards using
+theinflated5xdenominator. Thisdilutestheirrewardshare, causingthemtoreceivesignificantlylessthanthey
+shouldbasedontheiractualcontribution.
+Impact:
+1. UsersCannotClaimRewardsAfterExpiration : Userswithexpiredlockscannotclaimanyrewardsbecause
+pendingRewards ()returns 0 due to the reward debt mismatch. All rewards earned during the lock period
+(upto730days)becomeunclaimableuntiltheyexitthelock.
+2. Systematic Under‑Distribution: While locks are expired but not exited,totalPoints remains artificially
+high,causingallnewrewarddepositstobeunder‑allocated. If100tokensaredepositedand totalPoints
+isinflatedby30%,only~77tokensareeffectivelyclaimablebyusers,leaving~23tokensstranded.
+3. RewardsStrandedinContract : Thecombinationofinflated totalPointsandusersbeingunabletoclaim
+createsasituationwhererewardtokensaccumulateinthecontractwithnomechanismtodistributethem,
+effectivelylockingadmin‑depositedcapital.
+16
+MoatV3: SmartContractAuditReport 13December2025
+4. DilutedRewardsforActiveUsers : Evenuserswithactivepositionsearnlessthantheyshouldbecausetheir
+rewardshareiscalculatedagainstaninflated totalPointsdenominatorthatincludesphantompointsfrom
+expiredlocks.
+5. NoRecoveryMechanism:Thereisnofunctiontoreconcilepointsorforceuserstoexitexpiredlocks. Passive
+usersleavethesysteminapermanentlydegradedstate.
+NumericalExample:
+• Userlocks1,000tokensfor730days
+• Lockcreates5,000points(5xmultiplier)
+• totalPointsincreasesby5,000
+• After730days,lockexpires
+• getCurrentPoints (user )returns2,000(2xmultiplier)
+• But totalPointsstillcontains5,000
+• Discrepancy: 3,000phantompoints
+• Ifadmindeposits10,000rewardtokens:
+– Usershouldget: (2,000/2,000)×10,000=10,000tokens(100%)
+– Useractuallygets: (2,000/5,000)×10,000=4,000tokens(40%)
+– 6,000tokensstranded
+• Additionally,user’s rewardDebt wassetwhentheyhad5,000points,sotheyactuallyget0tokens
+Source:
+• Contract: MultiLockMoat.sol
+• PrimaryFunction: getCurrentPoints ()(Lines558‑578)
+• RelatedFunctions: lock()(Lines294‑338), exitLock ()(Lines396‑429), pendingRewards ()(Lines525‑541)
+• RelatedIssues: audit‑report.mdIssues#3,#5
+Code:
+1 // Lock creation - adds high multiplier points to totalPoints
+2 function lock(uint256 _amount, uint256 _duration) external {
+3 // ...
+4 uint256 multiplier = calculateLockMultiplier (_duration);
+5 // For 730 days: multiplier = 5e18
+6
+7 uint256 points = ( _amount * POINTS_PER_TOKEN * ( multiplier / MULTIPLIER_PRECISION)) /
+POINTS_SCALING_FACTOR;
+8 // points = (1000e18 * 1 * 5) / 1e12 = 5e6 (5x points)
+9
+17
+MoatV3: SmartContractAuditReport 13December2025
+10 Lock memory newLock = Lock({
+11 amount: _amount,
+12 end : block.timestamp + _duration,
+13 points: points, // Stores 5e6 points
+14 originalDuration: _duration,
+15 lastUpdated : block.timestamp ,
+16 active : true
+17 });
+18
+19 user .locks.push(newLock );
+20 totalPoints += points; // Adds 5e6 to global totalPoints
+21 }
+22
+23 // After expiration - recalculates with minimum multiplier
+24 function getCurrentPoints (address _user ) public view returns (uint256) {
+25 UserInfo storage user = userInfo [_user ];
+26 uint256 totalLockPoints = 0;
+27
+28 for (uint256 i = 0; i < user .locks.length ; i++) {
+29 if (user .locks[i].active && user .locks[i].amount > 0) {
+30 if (block.timestamp < user .locks[i].end ) {
+31 // Lock active : use stored points (5e6 )
+32 totalLockPoints += user .locks[i].points;
+33 } else {
+34 // Lock expired : recalculate with MIN multiplier (2x)
+35 totalLockPoints += ( user .locks[i].amount * POINTS_PER_TOKEN * MIN_LOCK_MULTIPLIER) /
+POINTS_SCALING_FACTOR;
+36 // Returns 2e6 instead of original 5e6
+37 }
+38 }
+39 }
+40
+41 return user .stakingPoints + totalLockPoints + user .burnPoints;
+42 }
+43
+44 // Reward calculation uses getCurrentPoints
+45 function pendingRewards (address _user , address _rewardToken ) public view returns (uint256) {
+46 RewardTokenInfo storage reward = rewardInfo [_rewardToken ];
+47 UserInfo storage user = userInfo [_rewardToken ];
+48
+49 uint256 currentPoints = getCurrentPoints (_user ); // Returns 2e6 for expired lock
+50 uint256 accumulatedReward = ( currentPoints * reward .accRewardPerPoint ) / PRECISION_FACTOR;
+51 uint256 userRewardDebt = user .rewardDebt [_rewardToken ]; // Still based on 5e6 points
+52
+53 if (accumulatedReward <= userRewardDebt ) {
+54 return 0; // Returns 0 because debt too high
+55 }
+56 return accumulatedReward - userRewardDebt ;
+57 }
+58
+59 // totalPoints NOT reduced until explicit exit
+60 function exitLock (uint256 _lockIndex ) external {
+61 // ...
+62 totalPoints -= lockData.points; // Only NOW is totalPoints reduced
+63
+64 lockData.active = false ;
+65 lockData.amount = 0;
+66 lockData.points = 0;
+67 }
+ProofofConcept:
+1 function testExpiredLockRewardIssues () public {
+2 // Setup fresh moat
+3 MultiLockMoat testMoat = new MultiLockMoat(address (stakingToken ), feeCollector , admin);
+4 testMoat .addRewardToken (address (rewardToken ));
+5
+6 // User locks for maximum duration (5x multiplier )
+7 vm.startPrank(user );
+18
+MoatV3: SmartContractAuditReport 13December2025
+8 stakingToken .approve (address (testMoat ), 1000 e18 );
+9 testMoat .lock(1000e18 , 730 days);
+10 vm.stopPrank();
+11
+12 uint256 totalPointsBefore = testMoat .totalPoints();
+13 console .log("totalPoints after lock:", totalPointsBefore );
+14
+15 // Fast-forward past expiration
+16 (, uint256 lockEnd, , , , ) = testMoat .getUserLock (user , 0);
+17 vm.warp(lockEnd + 1);
+18
+19 // Check points after expiration
+20 uint256 totalPointsAfter = testMoat .totalPoints();
+21 uint256 userCurrentPoints = testMoat .getCurrentPoints (user );
+22
+23 console .log("totalPoints after expiry :", totalPointsAfter );
+24 console .log("user getCurrentPoints :", userCurrentPoints );
+25
+26 // ISSUE 1: totalPoints unchanged , but user points reduced
+27 assertEq (totalPointsAfter , totalPointsBefore ); // totalPoints still 5x
+28 assertLt (userCurrentPoints , totalPointsAfter ); // User points only 2x
+29
+30 // Admin deposits rewards AFTER expiration
+31 vm.roll(block.number + 1);
+32 vm.startPrank(admin);
+33 rewardToken .approve (address (testMoat ), 10000 e18 );
+34 testMoat .depositRewards (address (rewardToken ), 10000 e18 );
+35 vm.stopPrank();
+36
+37 // Try to claim
+38 vm.prank(user );
+39 testMoat .claimAllRewards ();
+40
+41 uint256 userRewards = rewardToken .balanceOf (user );
+42 console .log("User rewards claimed :", userRewards );
+43
+44 // ISSUE 2: User cannot claim or gets less than expected
+45 assertLt (userRewards , 10000 e18 ); // User doesn 't get full rewards
+46
+47 // ISSUE 3: Rewards stranded in contract
+48 uint256 poolBalance = rewardToken .balanceOf (address (testMoat ));
+49 assertGt (poolBalance , 0); // Stranded rewards remain
+50
+51 console .log("Stranded rewards :", poolBalance );
+52 }
+Remediation:
+Alwaysusetheoriginalstoredpointsforlocks,regardlessofexpirationstatus:
+1 function getCurrentPoints (address _user ) public view returns (uint256) {
+2 UserInfo storage user = userInfo [_user ];
+3 uint256 totalLockPoints = 0;
+4
+5 for (uint256 i = 0; i < user .locks.length ; i++) {
+6 if (user .locks[i].active && user .locks[i].amount > 0) {
+7 // FIXED: Always use original stored points
+8 // Remove the expiration check and recalculation
+9 totalLockPoints += user .locks[i].points;
+10 }
+11 }
+12
+13 return user .stakingPoints + totalLockPoints + user .burnPoints;
+14 }
+15
+16 // Alternative comprehensive fix: Adjust totalPoints on expiration
+17 function _adjustPointsForExpiredLocks (address _user ) internal {
+18 UserInfo storage user = userInfo [_user ];
+19
+MoatV3: SmartContractAuditReport 13December2025
+19
+20 for (uint256 i = 0; i < user .locks.length ; i++) {
+21 Lock storage lock = user .locks[i];
+22
+23 if (lock.active && block.timestamp >= lock.end && ! lock.hasBeenAdjusted ) {
+24 // Calculate point difference
+25 uint256 originalPoints = lock.points;
+26 uint256 minPoints = ( lock.amount * POINTS_PER_TOKEN * MIN_LOCK_MULTIPLIER) /
+POINTS_SCALING_FACTOR;
+27
+28 // Adjust totalPoints and lock points
+29 totalPoints = totalPoints - originalPoints + minPoints;
+30 lock.points = minPoints;
+31 lock.hasBeenAdjusted = true ;
+32 }
+33 }
+34 }
+20
+MoatV3: SmartContractAuditReport 13December2025
+Finding5: Adminremovalallowsdroppinginitialadmin
+Severity:
+ Medium
+Status:Resolved
+Description:
+Theconstructormarks _adminWallet asanadminandalsosetsitas moatManager . removeAdmin canremoveany
+adminexcepttheowner,includingthisinitialadminwallet. Whilethisdoesnotremoveits moatManager privileges,
+itcanviolateoperationalexpectationswhere _adminWallet isexpectedtoretainfulladminrights,andmaycom‑
+plicateoff‑chainadmintooling.
+Impact:
+Theprotocoladminrolecanberemovedbyany MultiMoatowner.
+Source:
+• MoatV3/multilock.moat.sol:119-129(constructor)
+• MoatV3/multilock.moat.sol:214-225(addAdmin, removeAdmin )
+Remediation:
+• If _adminWallet shouldbeimmutableasanadmin,add:
+– require (_admin != moatManager , " Cannot remove moat manager ");
+• Alternatively,fullydecouplethe moatManager rolefromtheadminsetandmanageeachexplicitlywithclear
+documentationofintendedlifecycleandrotation.
+21
+MoatV3: SmartContractAuditReport 13December2025
+Finding6: CentralizedAdminWalletCreatesSinglePointofFailure
+Severity:
+ Medium
+Status:Resolved
+Description:
+The MultiLockMoatFactory contract uses a singleadminWallet address that is configured as the administrator
+forALLdeployed MultiLockMoatcontracts. Thisarchitecturaldesigncreatesacriticalsinglepointoffailurewhere
+compromiseorlossoftheadminwalletaffectseverydeployedcontractsimultaneously.
+Thecoreissueisthat createMultiLockMoat ()passesthefactory’s adminWallet toeverynewMultiLockMoatde‑
+ployment. Oncedeployed,thereisnomechanismtoupdatetheadminonexistingcontracts. Evenifthefactory
+ownercalls setAdminWallet ()tochangetheadminaddressafteracompromise, thisonlyaffectsfuturedeploy‑
+ments‑allpreviouslydeployedcontractsremainpermanentlyboundtothecompromisedwallet.
+This centralization amplifies the impact of any security incident from affecting a single contract to affecting the
+entireprotocolecosystem.
+Impact:
+1. MassExploitationAcrossAllDeployments : Iftheadminwalletiscompromised,anattackergainsfullad‑
+ministrativecontrolovereverysingledeployedMultiLockMoatcontract. Theycan:
+• Call migrateBurnUsers ()tograntthemselvesunlimitedpointsonallcontracts
+• Claimallrewardsfromallpoolsacrosstheentireprotocol
+• Pause/unpausecontractsatwill
+• Enableemergencyunlockstodisruptoperations
+2. IrreversibleDamagetoExistingDeployments : Afteracompromiseisdiscovered,updating adminWallet
+via setAdminWallet ()onlyprotectsnewdeployments. Allexistingcontractsremainvulnerabletothecom‑
+promisedkeyindefinitely,withnobuilt‑inrecoverymechanism.
+3. Total Loss of Administrative Control: If the admin wallet private key is lost (not compromised, just lost),
+ALLdeployedcontractspermanentlyloseadministrativecapabilities:
+• Cannotdepositnewrewards
+• Cannotupdatefees
+• Cannotrespondtoemergencies
+22
+MoatV3: SmartContractAuditReport 13December2025
+• Cannotmodifyanyprotocolparameters
+4. AmplifiedTrustAssumptions : Usersmusttrustnotjusttheprotocolcode,butalso:
+• Admin’soperationalsecuritypracticesacrossalldeployments
+• Admin’skeymanagementprocedures
+• Adminwon’tactmaliciouslyacrossanydeployment
+• Thistrustrequirementscaleswitheverynewdeployment
+AttackScenario:
+• Protocolhasdeployed10MultiLockMoatcontractsfordifferenttokens
+• CombinedTVL:$50millionacrossallcontracts
+• Adminwalletgetsphished/compromised
+• Attackerusescompromisedadminto:
+– Addthemselveswith1billionfakeburnpointsonall10contracts
+– Claimmajorityofallrewardpools
+– Drain$50Mworthofrewardsacrosstheecosystem
+• Ownerchanges adminWallet butdamagealreadydonetoexistingcontracts
+Source:
+• Contract: MultiLockMoatFactory.sol
+• StateVariable: adminWallet (Line11)
+• Function: createMultiLockMoat (), setAdminWallet ()(Lines42‑46)
+Code:
+1 contract MultiLockMoatFactory is Ownable {
+2 // Single admin wallet shared across all deployments
+3 address public adminWallet ;
+4 address public usdcToken ;
+5 address [] public moatContracts;
+6
+7 constructor(address _adminWallet , address _usdcToken ) {
+8 require (_adminWallet != address (0), " Invalid admin wallet ");
+9 require (_usdcToken != address (0), " Invalid USDC token ");
+10
+11 adminWallet = _adminWallet ;
+12 usdcToken = _usdcToken ;
+13 }
+14
+15 function createMultiLockMoat (
+16 address _stakingToken ,
+23
+MoatV3: SmartContractAuditReport 13December2025
+17 address _feeCollector
+18 ) external onlyOwner returns (address ) {
+19 require (_stakingToken != address (0), " Invalid staking token ");
+20 require (_feeCollector != address (0), " Invalid fee collector ");
+21
+22 // VULNERABILITY: Every deployment gets the same admin
+23 MultiLockMoat newMoat = new MultiLockMoat(
+24 _stakingToken ,
+25 _feeCollector ,
+26 adminWallet // Same wallet for all contracts
+27 );
+28
+29 moatContracts.push(address (newMoat ));
+30 emit MultiLockMoatCreated (address (newMoat ), _stakingToken );
+31
+32 return address (newMoat );
+33 }
+34
+35 // Only affects FUTURE deployments , not existing contracts
+36 function setAdminWallet (address _adminWallet ) external onlyOwner {
+37 require (_adminWallet != address (0), " Invalid admin wallet ");
+38 adminWallet = _adminWallet ;
+39 }
+40 }
+41
+42 // In MultiLockMoat.sol - dangerous admin functions
+43 contract MultiLockMoat {
+44 address public moatManager ;
+45
+46 // Compromised admin can manipulate points
+47 function migrateBurnUsers (
+48 address [] calldata _users ,
+49 uint256[] calldata _burnAmounts
+50 ) external onlyMoatManager {
+51 // No validation - admin can add arbitrary burn points to any address
+52 for (uint i = 0; i < _users .length ; i++) {
+53 uint256 pointsToAdd = ( _burnAmounts[i] * POINTS_PER_TOKEN * BURN_MULTIPLIER) /
+POINTS_SCALING_FACTOR;
+54 user .burnPoints += pointsToAdd;
+55 totalPoints += pointsToAdd;
+56 }
+57 }
+58
+59 // Admin can enable emergency withdrawals
+60 function enableEmergencyUnlock () external onlyAdmin {
+61 emergencyUnlockEnabled = true ;
+62 }
+63
+64 // Admin can pause /unpause
+65 function togglePause (bool _state ) external onlyAdmin {
+66 paused = _state ;
+67 }
+68 }
+ProofofConcept:
+1 function testCompromisedAdminAffectsAllDeployments () public {
+2 // Owner deploys multiple contracts with same admin
+3 vm.startPrank(owner );
+4 address moat1 = factory.createMultiLockMoat (address (token1 ), feeCollector );
+5 address moat2 = factory.createMultiLockMoat (address (token2 ), feeCollector );
+6 address moat3 = factory.createMultiLockMoat (address (token3 ), feeCollector );
+7 vm.stopPrank();
+8
+9 // Verify all use same admin
+10 address admin1 = MultiLockMoat(moat1).moatManager ();
+11 address admin2 = MultiLockMoat(moat2).moatManager ();
+12 address admin3 = MultiLockMoat(moat3).moatManager ();
+13
+24
+MoatV3: SmartContractAuditReport 13December2025
+14 assertEq (admin1, adminWallet );
+15 assertEq (admin2, adminWallet );
+16 assertEq (admin3, adminWallet );
+17 console .log("All contracts share admin:", adminWallet );
+18
+19 // Simulate admin compromise
+20 address attacker = address (0xBAAD);
+21 console .log("\n=== Admin Wallet Compromised ===");
+22
+23 vm.startPrank(adminWallet ); // Attacker now controls admin
+24
+25 // Exploit all contracts simultaneously
+26 address [] memory attackerAddr = new address [](1);
+27 attackerAddr [0] = attacker ;
+28
+29 uint256[] memory fakeBurnAmounts = new uint256[](1);
+30 fakeBurnAmounts [0] = 1000000 e18 ; // 1M fake burn amount
+31
+32 // Attack each contract
+33 MultiLockMoat(moat1).migrateBurnUsers (attackerAddr , fakeBurnAmounts );
+34 console .log("Moat1 exploited - attacker granted ", fakeBurnAmounts [0] / 1 e18 , " burn points");
+35
+36 MultiLockMoat(moat2).migrateBurnUsers (attackerAddr , fakeBurnAmounts );
+37 console .log("Moat2 exploited - attacker granted ", fakeBurnAmounts [0] / 1 e18 , " burn points");
+38
+39 MultiLockMoat(moat3).migrateBurnUsers (attackerAddr , fakeBurnAmounts );
+40 console .log("Moat3 exploited - attacker granted ", fakeBurnAmounts [0] / 1 e18 , " burn points");
+41
+42 vm.stopPrank();
+43
+44 // All contracts compromised with single admin key
+45 console .log("\n=== Result ===");
+46 console .log("Contracts compromised : 3/3 (100%)");
+47 console .log("Impact: Entire protocol ecosystem affected ");
+48 }
+Remediation:
+Allowspecifyingdifferentadminaddressesperdeploymenttoisolaterisk:
+1 contract MultiLockMoatFactory is Ownable {
+2 // Rename to indicate it's a default , not the only option
+3 address public defaultAdminWallet ;
+4 address public usdcToken ;
+5 address [] public moatContracts;
+6
+7 constructor(address _defaultAdminWallet , address _usdcToken ) {
+8 require (_defaultAdminWallet != address (0), " Invalid admin wallet ");
+9 require (_usdcToken != address (0), " Invalid USDC token ");
+10
+11 defaultAdminWallet = _defaultAdminWallet ;
+12 usdcToken = _usdcToken ;
+13 }
+14
+15 // FIXED: Allow specifying custom admin per deployment
+16 function createMultiLockMoat (
+17 address _stakingToken ,
+18 address _feeCollector ,
+19 address _adminWallet // New parameter - specify admin for this deployment
+20 ) external onlyOwner returns (address ) {
+21 require (_stakingToken != address (0), " Invalid staking token ");
+22 require (_feeCollector != address (0), " Invalid fee collector ");
+23 require (_adminWallet != address (0), " Invalid admin wallet ");
+24
+25 // Use the specified admin, not factory's default
+26 MultiLockMoat newMoat = new MultiLockMoat(
+27 _stakingToken ,
+28 _feeCollector ,
+25
+MoatV3: SmartContractAuditReport 13December2025
+29 _adminWallet
+30 );
+31
+32 moatContracts.push(address (newMoat ));
+33 emit MultiLockMoatCreated (address (newMoat ), _stakingToken , _adminWallet );
+34
+35 return address (newMoat );
+36 }
+37
+38 // Convenience function for using default admin
+39 function createMultiLockMoatWithDefaultAdmin (
+40 address _stakingToken ,
+41 address _feeCollector
+42 ) external onlyOwner returns (address ) {
+43 return createMultiLockMoat (_stakingToken , _feeCollector , defaultAdminWallet );
+44 }
+45
+46 // Update default for future deployments only
+47 function setDefaultAdminWallet (address _adminWallet ) external onlyOwner {
+48 require (_adminWallet != address (0), " Invalid admin wallet ");
+49 defaultAdminWallet = _adminWallet ;
+50 emit DefaultAdminWalletUpdated (_adminWallet );
+51 }
+52
+53 event DefaultAdminWalletUpdated (address indexed newDefaultAdmin );
+54 event MultiLockMoatCreated (
+55 address indexed moatContract,
+56 address indexed stakingToken ,
+57 address indexed adminWallet
+58 );
+59 }
+26
+MoatV3: SmartContractAuditReport 13December2025
+Finding7: Earlyexitcanbecheaperthannormalexitnearmaturity
+Severity:
+ Medium
+Status:Resolved
+Description:
+earlyExitLock feeisproportionaltoremainingduration,while exitLock alwayscharges unstakeFee onthefull
+lockedamount. Nearlockmaturity,theearly‑exitfeecandropbelow unstakeFee ,makingitcheapertoexit“early”
+ratherthanwaitingtomaturityandexitingvia exitLock . Thisiscounterintuitiveandmayconflictwithintended
+economicdesign.
+Impact:
+Someuserscanavoidpayingmoreexitfeesthanintended.
+Source:
+• MoatV3/multilock.moat.sol:440-481(earlyExitLock )
+• MoatV3/multilock.moat.sol:653-670(calculateEarlyExitFee )
+• MoatV3/multilock.moat.sol:405-437(exitLock )
+Remediation:
+• Alignfeefunctionssothat:
+– Atornearmaturity,early‑exitfeeis>= unstakeFee ;or
+– Earlyexitisdisabledonceremainingdurationfallsbelowathreshold.
+• ClearlydocumentfeebehaviorandexposeUIwarningsnearmaturity.
+27
+MoatV3: SmartContractAuditReport 13December2025
+Finding8: Emergencyunlockisirreversible
+Severity:
+ Medium
+Status:Acknowledged
+Description:
+enableEmergencyUnlock sets emergencyUnlockEnabled = true with no corresponding function to disable it.
+Once activated, users can permanently bypass lock durations viaemergencyWithdraw . This may be desirable in
+emergenciesbutcannotbereverted,weakeninglong‑termtrustinlockguaranteesevenaftertheemergencyhas
+passed.
+Impact:
+Onceemergencyunlockisenabled,itwillalwaysbeon,withnowaytodisableit.
+Source:
+• MoatV3/multilock.moat.sol:241-243(enableEmergencyUnlock )
+• MoatV3/multilock.moat.sol:619-651(emergencyWithdraw )
+Remediation:
+• Addasymmetric disableEmergencyUnlock guardedbystrictercontrols(e.g.,multisig/timelock).
+• Ortreat enableEmergencyUnlock asadocumentedone‑way“finalshutdown”switch.
+• Emitcleareventsandmonitoremergencystateoff‑chain.
+28
+MoatV3: SmartContractAuditReport 13December2025
+Finding9: enableEmergencyUnlock()FailstoPauseContract
+Severity:
+ Medium
+Status:Resolved
+Description:
+Whenanadministratorcalls enableEmergencyUnlock ()toenableemergencywithdrawalsinresponsetoacritical
+vulnerabilityorsystemfailure,thecontractshouldbeimmediatelypausedtopreventusersfromdepositingaddi‑
+tional funds. Currently, the contract continues to accept stakes, locks, and burns even after emergency mode is
+enabled.
+Thiscreatesadangeroussituationwhereuserscanunknowinglydepositfundsintoasystemthattheadminhas
+flaggedascompromisedorbroken. Thesemanticmeaningof“emergencyunlock”signalsthatsomethingiscrit‑
+ically wrong and users should exit, but the contract’s behavior contradicts this by continuing to accept new de‑
+posits.
+Impact:
+1. UninformedUsersDepositIntoCompromisedSystem :Userswhoareunawareoftheemergencysituation
+continuedepositingfundsintoacontractthattheadminhasdeterminedisunsafe. Theymaynotmonitor
+protocolannouncementsorsocialmediaandsimplyinteractwiththecontractasusual.
+2. ContradictorySystemState: Theprotocolsendsconflictingsignals:
+• emergencyUnlockEnabled = true means“somethingiscriticallywrong,usersshouldwithdraw”
+• Contractstillacceptingdepositsmeans“everythingisoperatingnormally”
+• Thiscontradictionconfusesusersandcreatesunsafeconditions
+3. Extended Vulnerability Window: During the time betweenenableEmergencyUnlock () being called and
+usersbecomingaware,thesystemcontinuesacceptingdeposits. Iftheemergencyisduetoavulnerability,
+thesenewdepositsareexposedtothesamevulnerability.
+4. PotentialforUserLosses : Usersdepositingduringtheemergencywindowmay:
+• Havefundsexposedtothevulnerabilitythattriggeredtheemergency
+• Incurgascostsfordepositstheyimmediatelyneedtowithdraw
+• Loseopportunitytoavoidthecompromisedsystementirely
+29
+MoatV3: SmartContractAuditReport 13December2025
+ExampleScenario:
+• Admindiscoverscriticalvulnerabilityinrewarddistributionat10:00AM
+• Admincalls enableEmergencyUnlock ()immediately
+• Between10:00‑10:30AM,5usersstakeacombined$100,000(unawareofemergency)
+• At10:30AM,protocolannouncesemergencyonsocialmedia
+• Usersrealizeandcall emergencyWithdraw ()toexit
+• The$100,000wasunnecessarilyexposedtovulnerabilityfor30minutes
+• Usersalsowastedgasonstake+emergencywithdrawtransactions
+Source:
+• Contract: MultiLockMoat.sol
+• Function: enableEmergencyUnlock ()(Lines240‑242)
+• Related: stake (), lock(), burn(), togglePause ()
+Code:
+1 function enableEmergencyUnlock () external onlyAdmin {
+2 emergencyUnlockEnabled = true ;
+3 // MISSING: Should also set paused = true
+4 // No event emitted , no pause triggered
+5 }
+6
+7 // Users can still deposit even in emergency mode
+8 function stake (uint256 _amount) external whenStakingEnabled whenNotPaused nonReentrant {
+9 require (_amount > 0, " Cannot stake 0");
+10 // This proceeds normally even if emergencyUnlockEnabled = true
+11 // User unknowingly deposits into potentially compromised system
+12 // ...
+13 }
+14
+15 function lock(uint256 _amount, uint256 _duration) external whenLockingEnabled whenNotPaused
+nonReentrant {
+16 require (_amount > 0, " Cannot lock 0");
+17 // This proceeds normally during emergency
+18 // User locks funds in a system flagged for emergency exit
+19 // ...
+20 }
+21
+22 function burn(uint256 _amount) external whenBurningEnabled whenNotPaused nonReentrant {
+23 require (_amount > 0, " Cannot burn 0");
+24 // This proceeds normally during emergency
+25 // User permanently burns tokens in potentially broken system
+26 // ...
+27 }
+28
+29 // Compare with existing pause mechanism
+30 function togglePause (bool _state ) external onlyAdmin {
+31 paused = _state ;
+32 // This exists but is not automatically triggered by enableEmergencyUnlock
+33 }
+30
+MoatV3: SmartContractAuditReport 13December2025
+ProofofConcept:
+1 function testEmergencyUnlockDoesNotPauseDeposits () public {
+2 // Initial state - contract is operational
+3 assertFalse (moat.emergencyUnlockEnabled ());
+4 assertFalse (moat.paused ());
+5
+6 // Admin detects critical issue and enables emergency unlock
+7 vm.prank(admin);
+8 moat.enableEmergencyUnlock ();
+9
+10 // Verify emergency is enabled
+11 assertTrue (moat.emergencyUnlockEnabled ());
+12 console .log("Emergency unlock enabled : true ");
+13
+14 // VULNERABILITY: Contract is NOT paused
+15 assertFalse (moat.paused ());
+16 console .log("Contract paused : false ");
+17
+18 // Uninformed user can still deposit
+19 vm.startPrank(user );
+20 stakingToken .approve (address (moat), 10000 e18 );
+21
+22 // This should fail but succeeds
+23 moat.stake (10000e18 );
+24 console .log("User staked 10,000 tokens during emergency ");
+25
+26 // User can also lock
+27 stakingToken .approve (address (moat), 5000 e18 );
+28 moat.lock(5000e18 , 30 days);
+29 console .log("User locked 5,000 tokens during emergency ");
+30
+31 vm.stopPrank();
+32
+33 // User deposited 15,000 tokens into emergency -flagged system
+34 (uint256 userStaked , , , , ) = moat.userInfo (user );
+35 (, , , , , bool lockActive ) = moat.getUserLock (user , 0);
+36
+37 assertTrue (userStaked > 0);
+38 assertTrue (lockActive );
+39
+40 console .log("\n=== Impact ===");
+41 console .log("Total deposited during emergency :", 15000);
+42 console .log("User was not protected from depositing into unsafe contract");
+43 }
+Remediation:
+Automaticallypausethecontractwhenemergencyunlockisenabled:
+1 function enableEmergencyUnlock () external onlyAdmin {
+2 emergencyUnlockEnabled = true ;
+3
+4 // FIXED: Automatically pause all deposit operations
+5 paused = true ;
+6
+7 emit EmergencyUnlockEnabled (msg.sender , block.timestamp );
+8 emit ContractPaused (msg.sender , block.timestamp );
+9 }
+10
+11 // Admin can still manually unpause later if emergency is resolved
+12 function togglePause (bool _state ) external onlyAdmin {
+13 paused = _state ;
+14
+15 if (_state ) {
+16 emit ContractPaused (msg.sender , block.timestamp );
+17 } else {
+31
+MoatV3: SmartContractAuditReport 13December2025
+18 emit ContractUnpaused (msg.sender , block.timestamp );
+19 }
+20 }
+21
+22 // Events for transparency
+23 event EmergencyUnlockEnabled (address indexed admin, uint256 timestamp );
+24 event ContractPaused (address indexed admin, uint256 timestamp );
+25 event ContractUnpaused (address indexed admin, uint256 timestamp );
+32
+MoatV3: SmartContractAuditReport 13December2025
+Finding10: Fee‑on‑TransferTokenIncompatibilityLeadingtoAccountingDiscrepancies
+Severity:
+ Medium
+Status:Acknowledged
+Description:
+Theprotocolassumesthattokentransferamountsequaltheamountsactuallyreceivedbythecontract. Thisas‑
+sumption fails for fee‑on‑transfer tokens (also called deflationary or taxed tokens), which automatically deduct
+a percentage during each transfer. The contract records the full_amountin its internal accounting without mea‑
+suring actual balance changes, creating a persistent discrepancy between recorded balances and actual token
+holdings.
+Forexample,witha5%fee‑on‑transfertoken:
+• Admintransfers1,000tokens‑>Contractreceives950tokens(5%feededucted)
+• Contractrecords unallocatedRewards += 1,000 (usesfullamount)
+• Discrepancy: 50tokens(5%)
+Thisdiscrepancyaccumulatesacrossmultipledepositsandeventuallycausesthecontracttopromisemoretokens
+than it holds, leading to failed withdrawals and protocol insolvency. Later users will be unable to retrieve their
+fundsafterearlierusershavewithdrawn.
+Impact:
+1. Protocol Insolvency : Cumulative discrepancies lead torecorded balance > actual balance . When
+usersattempttowithdraw,thecontracthasinsufficienttokens:
+• 100usersstake1,000tokenseachwith5%fee
+• Contractreceives: 95,000tokens
+• Contractrecords: 100,000tokens
+• First95userscanwithdraw,last5usersfail
+2. Failed Reward Distributions: Whenadmindepositsfee‑on‑transferrewardtokens,userscanclaimmore
+thanthecontractholds,causinglateclaimerstofail.
+3. Unfair Point Allocation: Usersstakingfee‑on‑transfertokensreceiveinflatedpointscomparedtotheir
+actualcontribution,gainingunfairadvantageoverstandardtokenstakers.
+33
+MoatV3: SmartContractAuditReport 13December2025
+4. Cascading Withdrawal Failures : Createsa“bankrun”scenariowhereearlywithdrawerssucceedbutlater
+usersarelockedout,causingpanicandreputationdamage.
+Source:
+• Contract: MultiLockMoat.sol
+• Functions:
+– depositRewards ()(Lines178‑196)
+– stake ()(Line281)
+– lock()(Line311)
+Code:
+1 function depositRewards (address _rewardToken , uint256 _amount) external onlyAdmin {
+2 require (_amount > 0, " Cannot deposit 0");
+3 RewardTokenInfo storage reward = rewardInfo [_rewardToken ];
+4
+5 // Transfer occurs - actual received may be less than _amount
+6 reward .token .safeTransferFrom (msg.sender , address (this), _amount);
+7
+8 // Accounting uses _amount, not actual received
+9 reward .unallocatedRewards += _amount;
+10 reward .totalRewardsDeposited += _amount;
+11
+12 updatePool ();
+13 }
+14
+15 function stake (uint256 _amount) external {
+16 // ...
+17 // For fee -on-transfer tokens : actual received < _amount
+18 stakingToken .safeTransferFrom (msg.sender , address (this), _amount);
+19
+20 // Points calculated on inflated _amount
+21 uint256 points = ( _amount * POINTS_PER_TOKEN) / POINTS_SCALING_FACTOR;
+22 user .stakedAmount += _amount;
+23 user .stakingPoints += points;
+24 totalStaked += _amount;
+25 // ...
+26 }
+27
+28 function lock(uint256 _amount, uint256 _duration) external {
+29 // ...
+30 stakingToken .safeTransferFrom (msg.sender , address (this), _amount);
+31
+32 uint256 multiplier = calculateLockMultiplier (_duration);
+33 uint256 points = ( _amount * POINTS_PER_TOKEN * ( multiplier / MULTIPLIER_PRECISION)) /
+POINTS_SCALING_FACTOR;
+34 // Same issue : uses _amount instead of actual received
+35
+36 totalLocked += _amount;
+37 // ...
+38 }
+ProofofConcept:
+1 // Mock fee -on-transfer token with 5% fee
+2 contract FeeToken is ERC20 {
+3 function transferFrom (address from, address to, uint256 amount) public override returns (bool) {
+34
+MoatV3: SmartContractAuditReport 13December2025
+4 uint256 fee = amount * 5 / 100; // 5% fee
+5 uint256 amountAfterFee = amount - fee ;
+6
+7 _spendAllowance (from, _msgSender (), amount);
+8 _transfer (from, address (0xdead ), fee ); // Burn fee
+9 _transfer (from, to, amountAfterFee );
+10 return true ;
+11 }
+12 }
+13
+14 function testFeeTokenAccountingDiscrepancy () public {
+15 FeeToken feeToken = new FeeToken ();
+16 MultiLockMoat moat = new MultiLockMoat(address (feeToken ), feeCollector , admin);
+17
+18 uint256 numUsers = 20;
+19
+20 // Users stake
+21 for (uint i = 0; i < numUsers ; i++) {
+22 address user = address (uint160(i + 1));
+23 feeToken .mint(user , 10000 e18 );
+24
+25 vm.startPrank(user );
+26 feeToken .approve (address (moat), 10000 e18 );
+27 moat.stake (10000e18 );
+28 vm.stopPrank();
+29 }
+30
+31 // Verify discrepancy
+32 uint256 totalStaked = moat.totalStaked (); // 200,000
+33 uint256 actualBalance = feeToken .balanceOf (address (moat)); // 190,000
+34
+35 console .log("Recorded balance :", totalStaked / 1 e18 );
+36 console .log("Actual balance :", actualBalance / 1 e18 );
+37 console .log("Discrepancy :", ( totalStaked - actualBalance ) / 1 e18 );
+38
+39 assertGt (totalStaked , actualBalance ); // 10,000 token deficit
+40
+41 // Users try to unstake - some will fail
+42 uint256 failed = 0;
+43 for (uint i = 0; i < numUsers ; i++) {
+44 address user = address (uint160(i + 1));
+45 vm.startPrank(user );
+46
+47 (uint256 staked , , , , ) = moat.userInfo (user );
+48
+49 try moat.unstake (staked ) {
+50 // Early users succeed
+51 } catch {
+52 failed ++; // Later users fail
+53 }
+54 vm.stopPrank();
+55 }
+56
+57 console .log("Failed unstakes :", failed );
+58 assertGt (failed , 0); // Some users cannot withdraw
+59 }
+Remediation:
+Measureactualtokenbalancechangebeforeandaftertransfers:
+1 function depositRewards (address _rewardToken , uint256 _amount) external onlyAdmin {
+2 require (_amount > 0, " Cannot deposit 0");
+3 RewardTokenInfo storage reward = rewardInfo [_rewardToken ];
+4
+5 // Measure balance before transfer
+6 uint256 balanceBefore = reward .token .balanceOf (address (this));
+7
+35
+MoatV3: SmartContractAuditReport 13December2025
+8 reward .token .safeTransferFrom (msg.sender , address (this), _amount);
+9
+10 // Measure balance after transfer
+11 uint256 balanceAfter = reward .token .balanceOf (address (this));
+12
+13 // Calculate and use actual received amount
+14 uint256 actualAmount = balanceAfter - balanceBefore ;
+15 reward .unallocatedRewards += actualAmount;
+16 reward .totalRewardsDeposited += actualAmount;
+17
+18 updatePool ();
+19 emit RewardsDeposited (_rewardToken , actualAmount);
+20 }
+21
+22 function stake (uint256 _amount) external {
+23 // ...
+24 uint256 balanceBefore = stakingToken .balanceOf (address (this));
+25 stakingToken .safeTransferFrom (msg.sender , address (this), _amount);
+26 uint256 balanceAfter = stakingToken .balanceOf (address (this));
+27
+28 // Use actual received amount
+29 uint256 actualAmount = balanceAfter - balanceBefore ;
+30 uint256 points = ( actualAmount * POINTS_PER_TOKEN) / POINTS_SCALING_FACTOR;
+31 user .stakedAmount += actualAmount;
+32 user .stakingPoints += points;
+33 totalStaked += actualAmount;
+34 // ...
+35 }
+36
+MoatV3: SmartContractAuditReport 13December2025
+Finding11: Norescueforstuckrewards
+Severity:
+ Medium
+Status:Resolved
+Description:
+Thecontractsupportsdepositingrewardtokensandaccountingfor unallocatedRewards ,butthereisnoadmin
+functiontorecoverunusedorunallocatedrewardbalances. Combinedwithotherissues(e.g.,zero totalPoints
+with low‑decimal staking tokens or under‑allocation due to expired locks), this can leave large reward balances
+permanentlystrandedinthecontractevenifoperatorswishtomigrateorrefundthem.
+Impact:
+Thecontractsupportsdepositingrewardtokensandaccountingfor unallocatedRewards ,butthereisnoadmin
+functiontorecoverunusedorunallocatedrewardbalances. Combinedwithotherissues(e.g.,zero totalPoints
+with low‑decimal staking tokens or under‑allocation due to expired locks), this can leave large reward balances
+permanentlystrandedinthecontractevenifoperatorswishtomigrateorrefundthem.
+Source:
+• MoatV3/multilock.moat.sol:171-196(depositRewards )
+• MoatV3/multilock.moat.sol:250-275(updatePool )
+• Absenceofany rescueToken /sweepfunctionin multilock.moat.sol
+Remediation:
+• Addanowner/admin‑only rescueToken (address token , uint256 amount, address to)that:
+– Cannotwithdrawthestakingtoken(oristightlyrestrictedforit).
+– Canwithdrawunusedrewardtokens.
+• Optionallyaddashutdownmodedisablingnewactionswhileallowingsweeping.
+• Documenttherescuemechanismandgovernancecontrolsaroundit.
+37
+MoatV3: SmartContractAuditReport 13December2025
+Finding12: Single‑BlockupdatePool()LimitationEnablesRewardLossandMEVExploitation
+Severity:
+ Medium
+Status:Resolved
+Description:
+The updatePool ()functioncontainsablocknumbercheck( if (block.number <= lastRewardBlock ) return ;)
+thatpreventsitfromexecutingmorethanonceperblock. Thisoptimization,intendedtosavegas,createsacritical
+timingvulnerabilitywhereuserscanpermanentlylosetheirshareofrewardsifadmindepositsoccurinthesame
+blockastheiroperations.
+AttackSequence:
+1. Transaction1(sameblock) : UserAperformsanyoperation(stake/unstake/etc.) ‑> updatePool ()executes
+‑> lastRewardBlock settocurrentblocknumber
+2. Transaction 2 (same block): Admin callsdepositRewards () adding 10,000 reward tokens ‑>updatePool
+()calledbut exitsearly duetoblockcheck‑> accRewardPerPoint NOTupdated‑>newrewardsremainin
+unallocatedRewards
+3. Transaction 3 (same block): User B performs operation ‑>updatePool () exits early again ‑> User B’s
+rewardDebt isupdatedbasedon old accRewardPerPoint thatdoesn’tincludethenew10,000tokens
+4. Next Block: Someone triggersupdatePool () ‑> new rewards finally distributed, but User B’srewardDebt
+alreadylockedinatoldvalue‑>UserBpermanentlyexcludedfromthisrewardbatch
+MEVAttackVector: MEVbotscanmonitorthemempoolforadmin depositRewards ()transactionsandsandwich
+them:
+• Frontrun: Harvestrewardsatoldratebeforedeposit
+• Backrun: Stake/increasepositionafterdeposittocapturenewrewards
+• Victims: Normaluserspositionedbetweenthedepositandbackrunlosetheirshare
+Impact:
+1. PermanentRewardLossforUsers : Usersperformingoperationsinthesameblockafteranadminreward
+depositpermanentlylosetheirshareofthatdeposit. Theyhavenowaytorecovertheselostrewards.
+2. Timing‑DependentUnfairness: Twousersperformingidenticaloperationsreceivevastlydifferentrewards
+basedpurelyonwhichblocktheirtransactionlandsinrelativetoadmindeposits.
+38
+MoatV3: SmartContractAuditReport 13December2025
+3. MEVExploitationOpportunity : SophisticatedMEVbotscan:
+• Monitormempoolfor depositRewards ()transactions
+• Frontruntoclaimrewardsatoldrates
+• Backruntopositionfornewrewards
+• Sandwichlegitimateuserscausingthemtoloserewards
+4. Increased Risk on High‑Throughput Chains: On chains with high transactions per block (BSC, Polygon,
+Arbitrum,L2s),thisissueismorelikelytoaffectusersastheprobabilityofadmindepositsoccurringinsame
+blockasuseroperationsincreases.
+5. AdminCannotPreventIssue : Evenwell‑intentionedadminscannotavoidharmingusers,astheyhaveno
+controloverwhichothertransactionsappearinthesameblockastheirdeposit.
+NumericalExample:
+• BlockN,totalPoints=100
+• Tx1(BlockN):UserAunstakes‑> updatePool ()runs‑> lastRewardBlock = N
+• Tx2(BlockN):Admindeposits10,000tokens‑> updatePool ()exitsearly‑> unallocatedRewards = 10,000 ,
+accRewardPerPoint unchanged
+• Tx3(BlockN):UserB(50points,50%ofpool)unstakes‑> rewardDebt setbasedonold accRewardPerPoint
+• BlockN+1: updatePool ()finallyruns,distributes10,000tokens
+• Result: UserBshouldhavegotten5,000tokens(50%),got0tokens
+• Loss: 5,000tokenspermanentlylosttoUserB
+Source:
+• Contract: MultiLockMoat.sol
+• PrimaryFunction: updatePool ()(Lines249‑270)
+• AffectedFunction: depositRewards ()(Lines178‑196)
+• Related: All user functions that callupdatePool () ‑ stake (), unstake (), lock(), burn(), exitLock (),
+earlyExitLock ()
+• RelatedIssue: audit‑report.mdIssue#15
+Code:
+39
+MoatV3: SmartContractAuditReport 13December2025
+1 function updatePool () internal {
+2 // VULNERABILITY: Only allows one update per block
+3 if (block.number <= lastRewardBlock ) {
+4 return ; // Exits early without distributing new rewards
+5 }
+6
+7 if (totalPoints > 0) {
+8 uint256 numRewardTokens = rewardTokenAddresses .length ;
+9 for (uint i = 0; i < numRewardTokens ; i++) {
+10 address rewardTokenAddress = rewardTokenAddresses [i];
+11 RewardTokenInfo storage reward = rewardInfo [rewardTokenAddress ];
+12
+13 if (reward .unallocatedRewards > 0) {
+14 // Distribute rewards to point holders
+15 reward .accRewardPerPoint +=
+16 (reward .unallocatedRewards * PRECISION_FACTOR) /
+17 totalPoints;
+18 reward .unallocatedRewards = 0;
+19 }
+20 }
+21 }
+22
+23 lastRewardBlock = block.number ;
+24 }
+25
+26 function depositRewards (address _rewardToken , uint256 _amount) external onlyAdmin {
+27 require (_amount > 0, " Cannot deposit 0");
+28 RewardTokenInfo storage reward = rewardInfo [_rewardToken ];
+29
+30 reward .token .safeTransferFrom (msg.sender , address (this), _amount);
+31
+32 // New rewards added but may not be distributed
+33 reward .unallocatedRewards += _amount;
+34 reward .totalRewardsDeposited += _amount;
+35
+36 // CRITICAL: May exit early if already called this block
+37 updatePool ();
+38
+39 // If updatePool exited early :
+40 // - unallocatedRewards contains new deposit
+41 // - accRewardPerPoint NOT updated
+42 // - Next user operation will update their rewardDebt with OLD accRewardPerPoint
+43 // - User loses share of this deposit forever
+44 }
+45
+46 // User operations call updatePool and then update rewardDebt
+47 function unstake (uint256 _amount) external {
+48 UserInfo storage user = userInfo [msg.sender ];
+49 updatePool (); // May exit early
+50
+51 _harvestAllRewards (msg.sender ); // Claims based on old accRewardPerPoint
+52
+53 // ... unstake logic ...
+54
+55 _updateAllRewardDebts (msg.sender ); // Sets debt based on old accRewardPerPoint
+56 // User 's future claims now exclude rewards that were deposited earlier in this block
+57 }
+ProofofConcept:
+1 function testSameBlockDepositCausesRewardLoss () public {
+2 // Setup : Both users stake equal amounts
+3 vm.startPrank(userA );
+4 stakingToken .approve (address (moat), 500 e18 );
+5 moat.stake (500e18 );
+6 vm.stopPrank();
+7
+8 vm.startPrank(userB );
+40
+MoatV3: SmartContractAuditReport 13December2025
+9 stakingToken .approve (address (moat), 500 e18 );
+10 moat.stake (500e18 );
+11 vm.stopPrank();
+12
+13 uint256 totalPoints = moat.totalPoints();
+14 uint256 userBPoints = moat.getCurrentPoints (userB );
+15
+16 console .log("Total points:", totalPoints);
+17 console .log("UserB points:", userBPoints );
+18 console .log("UserB share :", ( userBPoints * 100) / totalPoints, "%");
+19
+20 // Move to new block to simulate same -block sequence
+21 vm.roll(block.number + 1);
+22
+23 // === SAME BLOCK SEQUENCE ===
+24 console .log("\n=== Same Block Transactions ===");
+25 console .log("Block number :", block.number );
+26
+27 // Tx1: UserA unstakes (triggers updatePool )
+28 vm.prank(userA );
+29 moat.unstake (100e18 );
+30 console .log("Tx1: UserA unstaked , lastRewardBlock set to", moat.lastRewardBlock ());
+31
+32 // Tx2: Admin deposits rewards (SAME BLOCK)
+33 vm.startPrank(admin);
+34 rewardToken .approve (address (moat), 10000 e18 );
+35 moat.depositRewards (address (rewardToken ), 10000 e18 );
+36 vm.stopPrank();
+37
+38 // Check if rewards were distributed
+39 (, uint256 accRewardPerPoint , uint256 unallocated , , ) = moat.rewardInfo (address (rewardToken ));
+40 console .log("Tx2: Admin deposited ");
+41 console .log(" accRewardPerPoint :", accRewardPerPoint );
+42 console .log(" unallocatedRewards :", unallocated / 1 e18 );
+43
+44 // Vulnerability : unallocated > 0 means distribution was skipped
+45 assertTrue (unallocated > 0, " Rewards not distributed - vulnerability confirmed ");
+46
+47 // Tx3: UserB unstakes (SAME BLOCK)
+48 vm.prank(userB );
+49 moat.unstake (100e18 );
+50 console .log("Tx3: UserB unstaked ");
+51
+52 // === NEXT BLOCK - Check Results ===
+53 vm.roll(block.number + 1);
+54
+55 // Trigger distribution
+56 vm.prank(userA );
+57 stakingToken .approve (address (moat), 1);
+58 moat.stake (1);
+59
+60 // Check UserB 's rewards
+61 uint256 userBRewards = moat.pendingRewards (userB , address (rewardToken ));
+62 uint256 expectedRewards = (10000 e18 * userBPoints ) / totalPoints;
+63
+64 console .log("\n=== Results ===");
+65 console .log("UserB expected rewards :", expectedRewards / 1 e18 );
+66 console .log("UserB actual rewards :", userBRewards / 1 e18 );
+67 console .log("UserB loss:", ( expectedRewards - userBRewards ) / 1 e18 );
+68
+69 // UserB lost their share of the 10,000 token deposit
+70 assertEq (userBRewards , 0);
+71 assertGt (expectedRewards , 0);
+72 }
+Remediation:
+Forcerewarddistributionin depositRewards ()bycallingdistributionlogicdirectly,bypassingtheblockcheck:
+41
+MoatV3: SmartContractAuditReport 13December2025
+1 function depositRewards (address _rewardToken , uint256 _amount) external onlyAdmin whenNotPaused
+nonReentrant {
+2 require (_amount > 0, " Cannot deposit 0");
+3 require (
+4 rewardInfo [_rewardToken ].token != IERC20(address (0)),
+5 "Reward token not added "
+6 );
+7
+8 RewardTokenInfo storage reward = rewardInfo [_rewardToken ];
+9 reward .token .safeTransferFrom (msg.sender , address (this), _amount);
+10 reward .unallocatedRewards += _amount;
+11 reward .totalRewardsDeposited += _amount;
+12
+13 // FIXED: Force distribution immediately , bypassing block check
+14 _forceDistributeRewards ();
+15
+16 emit RewardsDeposited (_rewardToken , _amount);
+17 }
+18
+19 // NEW: Force reward distribution regardless of lastRewardBlock
+20 function _forceDistributeRewards () internal {
+21 if (totalPoints > 0) {
+22 uint256 numRewardTokens = rewardTokenAddresses .length ;
+23 for (uint i = 0; i < numRewardTokens ; i++) {
+24 address rewardTokenAddress = rewardTokenAddresses [i];
+25 RewardTokenInfo storage reward = rewardInfo [rewardTokenAddress ];
+26
+27 if (reward .unallocatedRewards > 0) {
+28 reward .accRewardPerPoint +=
+29 (reward .unallocatedRewards * PRECISION_FACTOR) /
+30 totalPoints;
+31 reward .unallocatedRewards = 0;
+32 }
+33 }
+34 }
+35
+36 lastRewardBlock = block.number ;
+37 }
+38
+39 // Keep original updatePool for normal operations
+40 function updatePool () internal {
+41 if (block.number <= lastRewardBlock ) {
+42 return ;
+43 }
+44 _forceDistributeRewards ();
+45 }
+42
+MoatV3: SmartContractAuditReport 13December2025
+Finding13: Activeusersetunboundedviaburns
+Severity:
+ Low
+Status:Acknowledged
+Description:
+_isUserActive treats anyburnPoints > 0 as a permanent activity signal._addActiveUser inserts a user into
+activeUsers whenever they become “active”, and_removeActiveUser scans the whole array to remove them
+only when they are no longer active. Since burns are permanent, burning once permanently keeps the user ac‑
+tiveunless emergencyWithdraw wipesstate. Attackerscancreatemanyaddressesandburntinyamountstobloat
+activeUsers ,makingremovalloopsincreasinglyexpensiveandeventuallyhittinggaslimits.
+Impact:
+Since burns are permanent, burning once permanently keeps the user active unlessemergencyWithdraw wipes
+state. Attackerscancreatemanyaddressesandburntinyamountstobloat activeUsers ,makingremovalloops
+increasinglyexpensiveandeventuallyhittinggaslimits.
+Source:
+• MoatV3/multilock.moat.sol:673-702(_isUserActive , _addActiveUser , _removeActiveUser )
+• MoatV3/multilock.moat.sol:277-299(stake )
+• MoatV3/multilock.moat.sol:348-376(burn)
+• Exitpathscalling _removeActiveUser
+Remediation:
+• Trackaseparate has burned flagandkeep activeUsers forcurrentstake/locksonly.
+• UseanindexmappingforO(1)removalfrom activeUsers .
+• Enforceminimumburnthresholdsorper‑addresslimitstodiscouragedustspam.
+43
+MoatV3: SmartContractAuditReport 13December2025
+Finding14: Chain/tokendecimalassumptions
+Severity:
+ Low
+Status:Resolved
+Description:
+The factory sets a defaultdeploymentFee = 100 * 1 e6 , implicitly assuming a 6‑decimal USDC‑like token. On
+chains(BNB) where “USDC” is 18 decimals (or if a different stablecoin is used), the fee amount will be off by or‑
+dersofmagnitude. Similarassumptionscanbleedintorewardconfigurationandoff‑chainexpectations.
+Impact:
+If the contracts are to be deployed on BNB chain, the cost to create aMultilockMoat contract will be extremely
+low.
+Source:
+• MoatV3/multilock.factory.sol:11-16, 31-39
+Remediation:
+• Make deploymentFee an explicit configuration parameter; treat it as “smallest units” and document deci‑
+malsperdeployment.
+• Indeploymenttooling,requireexplicitconfirmationoftokendecimalsandintendedhuman‑readablefee.
+• Addhelperviewsorscriptstosanity‑checkconfiguredfeesagainsttokendecimals.
+44
+MoatV3: SmartContractAuditReport 13December2025
+Finding15: emergencyWithdraw()FailstoHarvestPendingRewards
+Severity:
+ Low
+Status:Acknowledged
+Description:
+The emergencyWithdraw ()functionallowsuserstoretrieveallstakedandlockedtokensduringemergencysitua‑
+tions,butitfailstocall _harvestAllRewards ()beforeprocessingthewithdrawal. Sincethefunctionimmediately
+deletesalluserdatavia delete userInfo [msg.sender ], anypendingrewardsaccumulatedsincetheuser’slast
+claimarepermanentlylostandbecomeunclaimable.
+All other user exit flows in the contract (unstake , exitLock , earlyExitLock ) properly call_harvestAllRewards
+(msg.sender ) before modifying positions, making the behavior asymmetric and unexpected. Users in emer‑
+gencysituations,whoarealreadystressed,maynotrealizetheyareforfeitingtheiraccumulatedrewardsbyusing
+emergencyWithdraw .
+1 function emergencyWithdraw () external nonReentrant {
+2 require (emergencyUnlockEnabled , " Emergency unlock not enabled ");
+3 UserInfo storage user = userInfo [msg.sender ];
+4
+5 // Calculate total withdrawable amount
+6 uint256 totalLockedAmount = 0;
+7 for (uint256 i = 0; i < user .locks.length ; i++) {
+8 if (user .locks[i].active ) {
+9 totalLockedAmount += user .locks[i].amount;
+10 }
+11 }
+12
+13 uint256 totalAmount = user .stakedAmount + totalLockedAmount ;
+14 require (totalAmount > 0, " Nothing to withdraw");
+15
+16 // MISSING: _harvestAllRewards (msg.sender );
+17
+18 // Update global state
+19 totalStaked -= user .stakedAmount ;
+20 totalLocked -= totalLockedAmount ;
+21 totalPoints -= ( user .stakingPoints + user .burnPoints);
+22
+23 for (uint256 i = 0; i < user .locks.length ; i++) {
+24 if (user .locks[i].active ) {
+25 totalPoints -= user .locks[i].points;
+26 }
+27 }
+28
+29 // Deletes all user data including rewardDebt without claiming rewards
+30 delete userInfo [msg.sender ];
+31
+32 stakingToken .safeTransfer (msg.sender , totalAmount);
+33 _removeActiveUser (msg.sender );
+34 }
+35
+36 // Compare with normal unstake - properly harvests first
+37 function unstake (uint256 _amount) external {
+38 UserInfo storage user = userInfo [msg.sender ];
+39 updatePool ();
+40
+41 // Properly harvests rewards before proceeding
+45
+MoatV3: SmartContractAuditReport 13December2025
+42 _harvestAllRewards (msg.sender );
+43
+44 // ... rest of unstake logic ...
+45 }
+Impact:
+1. PermanentRewardLoss : Usersloseallpendingrewardsaccumulatedsincetheirlastclaim. Ifauserhas
+beenstakingformonthswithoutclaiming,theycouldlosethousandsofdollarsinrewards.
+2. No Recovery Mechanism: Once userInfo is deleted, there is no way to recover or recalculate the lost re‑
+wards.
+3. Unexpected Behavior: Users expectemergencyWithdraw to be a comprehensive exit that returns every‑
+thingowed,notrealizingitsilentlyforfeitsrewards.
+4. EmergencyStress: Userscallingthisfunctionarealreadyinastressfulemergencysituationandunlikelyto
+noticethey’reforfeitingrewardsuntilafterthetransactioncompletes.
+Examplescenario:
+• Userhas10,000rewardtokenspending
+• Emergencyunlockisenabled
+• Usercalls emergencyWithdraw ()toexitquickly
+• Userreceivesstakedprincipalback
+• Userpermanentlyloses10,000rewardtokens
+Source:
+• Contract: MultiLockMoat.sol
+• Function: emergencyWithdraw ()(Lines610‑642)
+• Comparison: Allotherexitfunctions( unstake , exitLock , earlyExitLock )call _harvestAllRewards ()
+Code:
+1 function emergencyWithdraw () external nonReentrant {
+2 require (emergencyUnlockEnabled , " Emergency unlock not enabled ");
+3 UserInfo storage user = userInfo [msg.sender ];
+4
+5 // Calculate total withdrawable amount
+6 uint256 totalLockedAmount = 0;
+7 for (uint256 i = 0; i < user .locks.length ; i++) {
+8 if (user .locks[i].active ) {
+9 totalLockedAmount += user .locks[i].amount;
+10 }
+46
+MoatV3: SmartContractAuditReport 13December2025
+11 }
+12
+13 uint256 totalAmount = user .stakedAmount + totalLockedAmount ;
+14 require (totalAmount > 0, " Nothing to withdraw");
+15
+16 // MISSING: _harvestAllRewards (msg.sender );
+17
+18 // Update global state
+19 totalStaked -= user .stakedAmount ;
+20 totalLocked -= totalLockedAmount ;
+21 totalPoints -= ( user .stakingPoints + user .burnPoints);
+22
+23 for (uint256 i = 0; i < user .locks.length ; i++) {
+24 if (user .locks[i].active ) {
+25 totalPoints -= user .locks[i].points;
+26 }
+27 }
+28
+29 // Deletes all user data including rewardDebt without claiming rewards
+30 delete userInfo [msg.sender ];
+31
+32 stakingToken .safeTransfer (msg.sender , totalAmount);
+33 _removeActiveUser (msg.sender );
+34 }
+35
+36 // Compare with normal unstake - properly harvests first
+37 function unstake (uint256 _amount) external {
+38 UserInfo storage user = userInfo [msg.sender ];
+39 updatePool ();
+40
+41 // Properly harvests rewards before proceeding
+42 _harvestAllRewards (msg.sender );
+43
+44 // ... rest of unstake logic ...
+45 }
+ProofofConcept:
+1 function testEmergencyWithdrawLosesPendingRewards () public {
+2 // User stakes tokens
+3 vm.startPrank(user );
+4 stakingToken .approve (address (moat), 1000 e18 );
+5 moat.stake (1000e18 );
+6 vm.stopPrank();
+7
+8 // Admin deposits rewards
+9 vm.startPrank(admin);
+10 rewardToken .approve (address (moat), 10000 e18 );
+11 moat.depositRewards (address (rewardToken ), 10000 e18 );
+12 vm.stopPrank();
+13
+14 // Verify user has pending rewards
+15 uint256 pendingBefore = moat.pendingRewards (user , address (rewardToken ));
+16 console .log("Pending rewards before emergency :", pendingBefore );
+17 assertGt (pendingBefore , 0); // User has accumulated rewards
+18
+19 // Admin enables emergency unlock
+20 vm.prank(admin);
+21 moat.enableEmergencyUnlock ();
+22
+23 // User performs emergency withdraw
+24 uint256 rewardBalanceBefore = rewardToken .balanceOf (user );
+25
+26 vm.prank(user );
+27 moat.emergencyWithdraw ();
+28
+29 uint256 rewardBalanceAfter = rewardToken .balanceOf (user );
+30 uint256 rewardsClaimed = rewardBalanceAfter - rewardBalanceBefore ;
+31
+47
+MoatV3: SmartContractAuditReport 13December2025
+32 // User received 0 rewards despite having pending rewards
+33 console .log("Rewards claimed :", rewardsClaimed );
+34 console .log("Rewards lost:", pendingBefore );
+35
+36 assertEq (rewardsClaimed , 0);
+37
+38 // Rewards remain stranded in contract
+39 uint256 poolBalance = rewardToken .balanceOf (address (moat));
+40 assertGt (poolBalance , 0);
+41 }
+Remediation:
+Call _harvestAllRewards ()beforedeletinguserdatatoensureusersreceiveallowedrewards:
+1 function emergencyWithdraw () external nonReentrant {
+2 require (emergencyUnlockEnabled , " Emergency unlock not enabled ");
+3 UserInfo storage user = userInfo [msg.sender ];
+4
+5 // Calculate total withdrawable amount
+6 uint256 totalLockedAmount = 0;
+7 for (uint256 i = 0; i < user .locks.length ; i++) {
+8 if (user .locks[i].active ) {
+9 totalLockedAmount += user .locks[i].amount;
+10 }
+11 }
+12
+13 uint256 totalAmount = user .stakedAmount + totalLockedAmount ;
+14 require (totalAmount > 0, " Nothing to withdraw");
+15
+16 // FIXED: Harvest all pending rewards before deletion
+17 _harvestAllRewards (msg.sender );
+18
+19 // Update global state
+20 totalStaked -= user .stakedAmount ;
+21 totalLocked -= totalLockedAmount ;
+22 totalPoints -= ( user .stakingPoints + user .burnPoints);
+23
+24 for (uint256 i = 0; i < user .locks.length ; i++) {
+25 if (user .locks[i].active ) {
+26 totalPoints -= user .locks[i].points;
+27 }
+28 }
+29
+30 delete userInfo [msg.sender ];
+31 stakingToken .safeTransfer (msg.sender , totalAmount);
+32 _removeActiveUser (msg.sender );
+33 }
+48
+MoatV3: SmartContractAuditReport 13December2025
+Finding16: LockExitFunctionsDoNotUpdatelastUpdatedTimestamp
+Severity:
+ Low
+Status:Resolved
+Description:
+When users exit their locks (either after maturity viaexitLock () or before maturity viaearlyExitLock ()), both
+functionsupdatethelock’scriticalstatefields( active , amount, points)butfailtoupdatethe lastUpdated times‑
+tamp field. This creates inconsistent state data where a lock shows as inactive but retains the timestamp from
+whenitwaslastactive(potentially730daysago).
+Whilethisdoesn’tcausefunctionalissuesorfinanciallosses,itcreatesmisleadingdatathataffectsanalyticsdash‑
+boards,userinterfaces,andoff‑chainindexingsystems. The lastUpdated fieldexistsspecificallytotrackwhena
+lockwaslastmodified,sofailingtoupdateitonthemostsignificantmodification(exit)defeatsitspurpose.
+Impact:
+1. InconsistentStateData: Alockrecordshows active = false (closed)but lastUpdated = <730 days ago
+>,suggestingithasn’tbeentouchedin2yearswhenitwasactuallyclosedtoday.
+2. MisleadingAnalytics: Off‑chainanalyticsplatformsanddashboardsmaydisplay:
+• “Locklastmodified730daysago”whenitwasexitedtoday
+• Incorrectactivitytimelinesforusers
+• Staledatainuseractivityreports
+3. UI/UXConfusion: Userinterfacesrelyingon lastUpdated fordisplayinglockhistorywillshowincorrect“last
+activity”timestamps,potentiallyconfusingusersabouttheirtransactionhistory.
+4. DataIntegrity: Whilenotfinanciallyimpactful,maintainingaccuratetimestampsisimportantfor:
+• Audittrails
+• Debugginguserissues
+• Analyticsandreporting
+• Complianceandrecord‑keeping
+Source:
+49
+MoatV3: SmartContractAuditReport 13December2025
+• Contract: MultiLockMoat.sol
+• Functions:
+– exitLock ()(Line415)
+– earlyExitLock ()(Line458)
+• Struct: Lock(Lines15‑22)
+Code:
+1 struct Lock {
+2 uint256 amount;
+3 uint256 end ;
+4 uint256 points;
+5 uint256 originalDuration;
+6 uint256 lastUpdated ; // Timestamp of last modification
+7 bool active ;
+8 }
+9
+10 function exitLock (uint256 _lockIndex ) external whenNotPaused nonReentrant {
+11 // ... validation and fee calculation ...
+12
+13 Lock storage lockData = user .locks[_lockIndex ];
+14
+15 // Updates these fields
+16 lockData.active = false ;
+17 lockData.amount = 0;
+18 lockData.points = 0;
+19
+20 // MISSING: lockData.lastUpdated = block.timestamp ;
+21 // Lock shows as inactive but timestamp is stale
+22
+23 user .activeLockCount --;
+24
+25 // ... transfer tokens ...
+26 }
+27
+28 function earlyExitLock (uint256 _lockIndex ) external whenEarlyExitEnabled whenNotPaused nonReentrant {
+29 // ... validation and fee calculation ...
+30
+31 Lock storage lockData = user .locks[_lockIndex ];
+32
+33 // Updates these fields
+34 lockData.active = false ;
+35 lockData.amount = 0;
+36 lockData.points = 0;
+37
+38 // MISSING: lockData.lastUpdated = block.timestamp ;
+39 // Same issue as exitLock
+40
+41 user .activeLockCount --;
+42
+43 // ... transfer tokens ...
+44 }
+45
+46 // Compare with lock creation - properly sets lastUpdated
+47 function lock(uint256 _amount, uint256 _duration) external {
+48 // ...
+49 Lock memory newLock = Lock({
+50 amount: _amount,
+51 end : block.timestamp + _duration,
+52 points: points,
+53 originalDuration: _duration,
+54 lastUpdated : block.timestamp , // Correctly set on creation
+55 active : true
+50
+MoatV3: SmartContractAuditReport 13December2025
+56 });
+57
+58 user .locks.push(newLock );
+59 }
+ProofofConcept:
+1 function testLastUpdatedNotUpdatedOnExit () public {
+2 // User creates a lock
+3 vm.startPrank(user );
+4 stakingToken .approve (address (moat), 1000 e18 );
+5 moat.lock(1000e18 , 30 days);
+6 vm.stopPrank();
+7
+8 // Get initial lastUpdated timestamp
+9 (, , , , uint256 lastUpdated1 , bool active1 ) = moat.getUserLock (user , 0);
+10 console .log("After lock creation :");
+11 console .log(" lastUpdated :", lastUpdated1 );
+12 console .log(" active :", active1 );
+13
+14 // Time passes - lock expires
+15 vm.warp(block.timestamp + 31 days);
+16
+17 // User exits the lock
+18 vm.prank(user );
+19 moat.exitLock (0);
+20
+21 // Get lastUpdated after exit
+22 (, , , , uint256 lastUpdated2 , bool active2 ) = moat.getUserLock (user , 0);
+23 console .log("\nAfter lock exit :");
+24 console .log(" lastUpdated :", lastUpdated2 );
+25 console .log(" active :", active2 );
+26
+27 // ISSUE: Timestamps are identical despite major state change
+28 assertEq (lastUpdated1 , lastUpdated2 );
+29 assertFalse (active2 ); // Lock is inactive
+30
+31 // This creates inconsistent state :
+32 // - active = false (lock is closed )
+33 // - lastUpdated = 31 days ago (when lock was created )
+34 // Correct behavior : lastUpdated should be current timestamp (when exited )
+35
+36 console .log("\n=== Issue Demonstrated ===");
+37 console .log("Lock is inactive but lastUpdated shows old timestamp ");
+38 console .log("Time since lastUpdated :", ( block.timestamp - lastUpdated2 ) / 1 days, " days");
+39 }
+Remediation:
+Updatethe lastUpdated timestampwhenlocksareexited:
+1 function exitLock (uint256 _lockIndex ) external whenNotPaused nonReentrant {
+2 UserInfo storage user = userInfo [msg.sender ];
+3 require (_lockIndex < user .locks.length , " Invalid lock index ");
+4 require (user .locks[_lockIndex ].active , " Lock not active ");
+5 require (user .locks[_lockIndex ].amount > 0, " No locked tokens ");
+6 require (block.timestamp >= user .locks[_lockIndex ].end , " Lock period not ended ");
+7
+8 updatePool ();
+9 _harvestAllRewards (msg.sender );
+10
+11 Lock storage lockData = user .locks[_lockIndex ];
+12 uint256 lockAmount = lockData.amount;
+13 uint256 feeAmount = ( lockAmount * unstakeFee ) / 10000;
+14 uint256 amountAfterFee = lockAmount - feeAmount ;
+15
+51
+MoatV3: SmartContractAuditReport 13December2025
+16 totalLocked -= lockAmount;
+17 totalPoints -= lockData.points;
+18
+19 // Deactivate the lock
+20 lockData.active = false ;
+21 lockData.amount = 0;
+22 lockData.points = 0;
+23
+24 // FIXED: Update timestamp to reflect exit time
+25 lockData.lastUpdated = block.timestamp ;
+26
+27 user .activeLockCount --;
+28
+29 _updateAllRewardDebts (msg.sender );
+30
+31 if (feeAmount > 0) {
+32 stakingToken .safeTransfer (feeCollector , feeAmount );
+33 }
+34 stakingToken .safeTransfer (msg.sender , amountAfterFee );
+35
+36 _removeActiveUser (msg.sender );
+37 emit LockExited (msg.sender , amountAfterFee , _lockIndex );
+38 }
+39
+40 function earlyExitLock (uint256 _lockIndex ) external whenEarlyExitEnabled whenNotPaused nonReentrant {
+41 // ... existing validation and calculations ...
+42
+43 Lock storage lockData = user .locks[_lockIndex ];
+44 uint256 amountToReturn = lockData.amount;
+45
+46 totalPoints -= lockData.points;
+47 totalLocked -= lockData.amount;
+48
+49 // Deactivate the lock
+50 lockData.active = false ;
+51 lockData.amount = 0;
+52 lockData.points = 0;
+53
+54 // FIXED: Update timestamp to reflect early exit time
+55 lockData.lastUpdated = block.timestamp ;
+56
+57 user .activeLockCount --;
+58
+59 // ... rest of function ...
+60 }
+52
+MoatV3: SmartContractAuditReport 13December2025
+Finding17: Unboundedlockscanbloatloops
+Severity:
+ Low
+Status:Acknowledged
+Description:
+Users can create an unbounded number of locks. Several functions iterate over the full locks array
+(getCurrentPoints , emergencyWithdraw , lock views). A user can create many tiny locks, making any operation
+thattouchesalllocksintractableduetogaslimits. ThisprimarilyDoS’sthatuser’sownflows,butcanalsoaffect
+sharedstatevia emergencyWithdraw .
+Impact:
+ADoSforusercanhappenduetolargearrayinducedoutofgaserror.
+Source:
+• MoatV3/multilock.moat.sol:301-345(lock)
+• MoatV3/multilock.moat.sol:567-585(getCurrentPoints )
+• MoatV3/multilock.moat.sol:619-647(emergencyWithdraw )
+• MoatV3/multilock.moat.sol:737-767(getUserAllLocks )
+Remediation:
+• Imposeamaximumnumberoflocksperuser.
+• Providea“mergelocks”functiontoconsolidatepositions.
+• Documentgasrisksandencouragefrontendstolimitlockcreation.
+53
+MoatV3: SmartContractAuditReport 13December2025
+Finding18: LockExitedeventomitsfeecomponent
+Severity:
+ Info
+Status:Acknowledged
+Description:
+The LockExited eventemitsonlythepost‑feeamount,whereas EarlyExitemitsamountandfeeseparately. This
+preventsoff‑chainindexersoranalyticsfromaccuratelyreconstructingtheoriginallockamountandfeepaidfrom
+theeventlogalonefornormalexits.
+Impact:
+Inconsistenteventemissionwhichmayresultinconfusingoff‑chainreadingerrors.
+Source:
+• MoatV3/multilock.moat.sol:101-102(eventdefinition)
+• MoatV3/multilock.moat.sol:405-437(exitLock )
+Remediation:
+• Extend LockExited toincludefeeand/ororiginallockamount;or
+• Addanewevent(e.g., LockExitFee )ifbackwardcompatibilityisimportant.
+54
+MoatV3: SmartContractAuditReport 13December2025
+Finding19: USDCTokenAddressShouldBeImmutable
+Severity:
+ Info
+Status:Resolved
+Description:
+The usdcToken state variable stores the address of the USDC token contract, which is a well‑known, canonical,
+andimmutableaddressoneachblockchainnetwork. However,thecurrentimplementationmakesthisamutable
+statevariableandprovidesa setUsdcToken ()setterfunction,whichisunnecessaryandcreatesseveralissues.
+USDCtokenaddressesarefixedconstantspernetworkandshouldneverchange:
+• EthereumMainnet: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+• Polygon: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174
+• Arbitrum: 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8
+• BSC: 0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d
+Theabilitytochangethisaddresspost‑deploymentaddsunnecessarycomplexity,wastesgas,andopensthedoor
+forconfigurationerrors.
+Impact:
+1. GasInefficiency: Everyreadof usdcToken costs2100gas(SLOADofmutablestorage)insteadof~200gasfor
+constantsorimmutables. Overmanydeployments,thiswastessignificantgas.
+2. PotentialMisconfiguration: Theownercouldaccidentallycall setUsdcToken ()withanincorrectaddress
+(typo,wrongnetwork’sUSDC,malicioustoken),causing:
+• Deploymentfeestobesenttowrongtokencontract
+• Faileddeploymentsifthetokendoesn’texist
+• Usersunabletodeployduetofailedfeetransfers
+3. Unclear Code Intent: Using a mutable variable suggests the USDC address might legitimately need to
+change,whichisincorrect. Using immutable or constantclearlycommunicates“thisvalueisfixed.”
+4. UnnecessaryComplexity: ThesetUsdcToken ()functionaddscodethatservesnolegitimatepurposeand
+increasestheattacksurfaceforownererrors.
+55
+MoatV3: SmartContractAuditReport 13December2025
+Source:
+• Contract: MultiLockMoatFactory.sol
+• StateVariable: usdcToken (Line14)
+• Function: setUsdcToken ()(Lines129‑133)
+• Usage: createMultiLockMoat ()deploymentfeecollection
+Code:
+1 contract MultiLockMoatFactory is Ownable {
+2 address public moatImplementation ;
+3 address public adminWallet ;
+4
+5 // Mutable state variable - wastes gas on every read
+6 address public usdcToken ;
+7
+8 address [] public moatContracts;
+9
+10 constructor(address _adminWallet , address _usdcToken ) {
+11 require (_adminWallet != address (0), " Invalid admin wallet ");
+12 require (_usdcToken != address (0), " Invalid USDC token ");
+13
+14 adminWallet = _adminWallet ;
+15 usdcToken = _usdcToken ; // Set in constructor
+16 }
+17
+18 // Unnecessary setter - USDC address should never change
+19 function setUsdcToken (address _usdcToken ) external onlyOwner {
+20 require (_usdcToken != address (0), " Invalid USDC token ");
+21 usdcToken = _usdcToken ;
+22 // Allows owner to point to different token , potentially causing issues
+23 }
+24
+25 // Function that uses usdcToken
+26 function createMultiLockMoat (
+27 address _stakingToken ,
+28 address _feeCollector
+29 ) external onlyOwner returns (address ) {
+30 // ...
+31
+32 // Collect deployment fee in USDC
+33 IERC20(usdcToken ).safeTransferFrom (msg.sender , address (this), deploymentFee );
+34
+35 // Reading usdcToken costs 2100 gas (SLOAD)
+36 // With immutable /constant: would cost ~200 gas
+37
+38 // ...
+39 }
+40 }
+ProofofConcept:
+1 // This is a code quality issue , not an exploitable vulnerability
+2 // PoC demonstrates the gas waste and potential for error
+3
+4 function testUsdcTokenShouldBeImmutable () public {
+5 // Current implementation allows changing USDC address
+6 address originalUsdc = factory.usdcToken ();
+7 console .log("Original USDC:", originalUsdc);
+8
+9 // Owner can change it (shouldn't be possible )
+10 address fakeUsdc = address (0x999);
+56
+MoatV3: SmartContractAuditReport 13December2025
+11 vm.prank(owner );
+12 factory.setUsdcToken (fakeUsdc );
+13
+14 address newUsdc = factory.usdcToken ();
+15 console .log("New USDC:", newUsdc );
+16
+17 // USDC address was changed (should be impossible )
+18 assertEq (newUsdc , fakeUsdc );
+19 assertNotEq (originalUsdc, newUsdc );
+20
+21 // This could cause issues :
+22 // - Deployment fees sent to wrong token
+23 // - Failed transfers if fake token doesn 't exist
+24 // - User confusion
+25
+26 console .log("\n=== Issue ===");
+27 console .log("USDC address should be immutable but can be changed ");
+28 console .log("This wastes gas and allows configuration errors ");
+29 }
+30
+31 function testGasComparison () public {
+32 // Measure gas for reading mutable storage
+33 uint256 gasBefore = gasleft ();
+34 address usdc1 = factory.usdcToken (); // SLOAD = ~2100 gas
+35 uint256 gasUsed = gasBefore - gasleft ();
+36
+37 console .log("Gas for reading mutable usdcToken :", gasUsed );
+38 console .log("Gas for reading immutable : ~200 gas");
+39 console .log("Gas wasted per read : ~1900 gas");
+40
+41 // Over 100 deployments , this wastes 190,000 gas unnecessarily
+42 }
+Remediation:
+Use immutable formulti‑networksupport,or constantforsingle‑networkdeployments:
+1 contract MultiLockMoatFactory is Ownable {
+2 address public moatImplementation ;
+3 address public adminWallet ;
+4
+5 // OPTION 1: Immutable (recommended for multi-network )
+6 // Set once in constructor, cannot be changed thereafter
+7 address public immutable USDC_TOKEN;
+8
+9 address [] public moatContracts;
+10
+11 constructor(address _adminWallet , address _usdcToken ) {
+12 require (_adminWallet != address (0), " Invalid admin wallet ");
+13 require (_usdcToken != address (0), " Invalid USDC token ");
+14
+15 adminWallet = _adminWallet ;
+16 USDC_TOKEN = _usdcToken ; // Set once , immutable
+17 // Saves ~20,000 gas on deployment vs mutable
+18 }
+19
+20 // OPTION 2: Constant (for single network like Ethereum )
+21 // address public constant USDC_TOKEN = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 ;
+22 // Most gas-efficient , but requires different code per network
+23
+24 // Remove setUsdcToken () function entirely
+25 // function setUsdcToken (...) - REMOVED
+26
+27 function createMultiLockMoat (
+28 address _stakingToken ,
+29 address _feeCollector
+30 ) external onlyOwner returns (address ) {
+31 // ...
+57
+MoatV3: SmartContractAuditReport 13December2025
+32
+33 // Reading USDC_TOKEN now costs ~200 gas instead of 2100
+34 IERC20(USDC_TOKEN).safeTransferFrom (msg.sender , address (this), deploymentFee );
+35
+36 // ...
+37 }
+38 }
+39
+40 // Alternative : Chain-specific constant selection
+41 contract MultiLockMoatFactory is Ownable {
+42 address public immutable USDC_TOKEN;
+43
+44 constructor(address _adminWallet ) {
+45 require (_adminWallet != address (0), " Invalid admin wallet ");
+46 adminWallet = _adminWallet ;
+47
+48 // Auto-select USDC based on chain
+49 if (block.chainid == 1) {
+50 USDC_TOKEN = 0 xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 ; // Ethereum
+51 } else if (block.chainid == 137) {
+52 USDC_TOKEN = 0 x2791Bca1f2de4661ED88A30C99A7a9449Aa84174 ; // Polygon
+53 } else if (block.chainid == 42161) {
+54 USDC_TOKEN = 0 xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8 ; // Arbitrum
+55 } else {
+56 revert ("Unsupported chain");
+57 }
+58 }
+59 }
+58
+MoatV3: SmartContractAuditReport 13December2025
+Disclaimer
+Thissecurityreport(“Report”)isprovidedbyFailSafe(“Tester”)fortheexclusiveuseoftheclient(“Client”). The
+scope of this assessment is limited to the security testing services performed against the systems, applications,
+or environments supplied by the Client. This Report is subject to the terms and conditions (including without
+limitation, description of services, confidentiality, disclaimer, and limitation of liability) set forth in the Services
+Agreement,orthescopeofservices,andtermsandconditionsprovidedtoyou(“Customer”orthe“Company”)in
+connectionwiththeAgreement. ThisReport,providedinconnectionwiththeServicessetforthintheAgreement,
+shallbeusedbytheCompanyonlytotheextentpermittedunderthetermsandconditionssetforthintheAgree‑
+ment. This Report may not be transmitted, disclosed, referred to, or relied upon by any person for any purpose,
+normaycopiesbedeliveredtoanyotherpersonotherthantheCompany,withoutFailSafe’spriorwrittenconsent
+ineachinstance.
+ThisReportisnot,norshoulditbeconsidered,an“endorsement”or“disapproval”ofanyparticularproject,sys‑
+tem,orteam. ThisReportisnot,norshoulditbeconsidered,anindicationoftheeconomicsorvalueofany“prod‑
+uct” or “asset” created by any team or project that contracts FailSafe to perform security testing. This Report
+doesnotprovideanywarrantyorguaranteeregardingtheabsolutesecurityorbug‑freenatureofthetechnology
+analyzed, nor does it provide any indication of the technology’s proprietors, business, business model, or legal
+compliance.
+ThisReportshouldnotbeusedinanywaytomakedecisionsaroundinvestmentorinvolvementwithanyparticular
+project. ThisReportinnowayprovidesinvestmentadvice,norshoulditbeleveragedasinvestmentadviceofany
+sort. ThisReportrepresentsanextensivetestingprocessintendedtohelpourcustomersidentifypotentialsecurity
+weaknesseswhilereducingtherisksassociatedwithcomplexsystemsandemergingtechnologies.
+Technologysystems,applications,andcryptographicassetspresentahighlevelofongoingrisk. FailSafe’sposition
+isthateachcompanyandindividualareresponsiblefortheirownduediligenceandcontinuoussecuritypractices.
+FailSafe’s goal is to help reduce attack vectors and the high level of variance associated with utilizing new and
+evolvingtechnologies,andinnowayclaimsanyguaranteeofsecurityorfunctionalityofthesystemsweagreeto
+test.
+ThesecuritytestingservicesprovidedbyFailSafearesubjecttodependenciesandareundercontinuingdevelop‑
+ment. Youagreethatyouraccessand/oruse,includingbutnotlimitedtoanyservices,reports,andmaterials,will
+beatyoursoleriskonanas‑is, where‑is, andas‑availablebasis. Thetestingprocessmayincludefalsepositives,
+false negatives, and other unpredictable results. The services may access and depend upon multiple layers of
+third‑partytechnologies.
+ALL SERVICES, THE LABELS, THE TESTING REPORT, WORK PRODUCT, OR OTHER MATERIALS, OR ANY PRODUCTS
+OR RESULTS OF THE USE THEREOF ARE PROVIDED “AS IS” AND “AS AVAILABLE” AND WITH ALL FAULTS AND DE‑
+FECTSWITHOUTWARRANTYOFANYKIND.TOTHEMAXIMUMEXTENTPERMITTEDUNDERAPPLICABLELAW,FAIL‑
+SAFEHEREBYDISCLAIMSALLWARRANTIES,WHETHEREXPRESS,IMPLIED,STATUTORY,OROTHERWISEWITHRE‑
+59
+MoatV3: SmartContractAuditReport 13December2025
+SPECT TO THE SERVICES, TESTING REPORT, OR OTHER MATERIALS. WITHOUT LIMITING THE FOREGOING, FAIL‑
+SAFESPECIFICALLYDISCLAIMSALLIMPLIEDWARRANTIESOFMERCHANTABILITY,FITNESSFORAPARTICULARPUR‑
+POSE, TITLE AND NON‑INFRINGEMENT, AND ALL WARRANTIES ARISING FROM COURSE OF DEALING, USAGE, OR
+TRADEPRACTICE.WITHOUTLIMITINGTHEFOREGOING,FAILSAFEMAKESNOWARRANTYOFANYKINDTHATTHE
+SERVICES, THE LABELS, THE TESTING REPORT, WORK PRODUCT, OR OTHER MATERIALS, OR ANY PRODUCTS OR
+RESULTS OF THE USE THEREOF, WILL MEET CUSTOMER’S OR ANY OTHER PERSON’S REQUIREMENTS, ACHIEVE
+ANY INTENDED RESULT, BE COMPATIBLE OR WORK WITH ANY SOFTWARE, SYSTEM, OR OTHER SERVICES, OR BE
+SECURE,ACCURATE,COMPLETE,FREEOFHARMFULCODE,ORERROR‑FREE.
+WITHOUT LIMITATION TO THE FOREGOING, FAILSAFE PROVIDES NO WARRANTY OR DISCLAIMER UNDERTAKING,
+AND MAKES NO REPRESENTATION OF ANY KIND THAT THE SERVICE WILL MEET CUSTOMER’S REQUIREMENTS,
+ACHIEVE ANY INTENDED RESULTS, BE COMPATIBLE OR WORK WITH ANY OTHER SOFTWARE, APPLICATIONS, SYS‑
+TEMS OR SERVICES, OPERATE WITHOUT INTERRUPTION, MEET ANY PERFORMANCE OR RELIABILITY STANDARDS
+ORBEERRORFREEORTHATANYERRORSORDEFECTSCANORWILLBECORRECTED.
+WITHOUTLIMITINGTHEFOREGOING,NEITHERFAILSAFENORANYOFFAILSAFE’SAGENTSMAKESANYREPRESEN‑
+TATIONORWARRANTYOFANYKIND,EXPRESSORIMPLIEDASTOTHEACCURACY,RELIABILITY,ORCURRENCYOF
+ANYINFORMATIONORCONTENTPROVIDEDTHROUGHTHESERVICE.FAILSAFEWILLASSUMENOLIABILITYORRE‑
+SPONSIBILITYFOR(I)ANYERRORS,MISTAKES,ORINACCURACIESOFCONTENTANDMATERIALSORFORANYLOSS
+ORDAMAGEOFANYKINDINCURREDASARESULTOFTHEUSEOFANYCONTENT,OR(II)ANYPERSONALINJURYOR
+PROPERTY DAMAGE, OF ANY NATURE WHATSOEVER, RESULTING FROM CUSTOMER’S ACCESS TO OR USE OF THE
+SERVICES,TESTINGREPORT,OROTHERMATERIALS.
+ALLTHIRD‑PARTYMATERIALSAREPROVIDED“ASIS”ANDANYREPRESENTATIONORWARRANTYOFORCONCERN‑
+INGANYTHIRD‑PARTYMATERIALSISSTRICTLYBETWEENCUSTOMERANDTHETHIRD‑PARTYOWNERORDISTRIB‑
+UTOROFTHETHIRD‑PARTYMATERIALS.
+THESERVICES,TESTINGREPORT,ANDANYOTHERMATERIALSHEREUNDERARESOLELYPROVIDEDTOCUSTOMER
+AND MAY NOT BE RELIED ON BY ANY OTHER PERSON OR FOR ANY PURPOSE NOT SPECIFICALLY IDENTIFIED IN
+THISAGREEMENT,NORMAYCOPIESBEDELIVEREDTOANYOTHERPERSONWITHOUTFAILSAFE’SPRIORWRITTEN
+CONSENTINEACHINSTANCE.
+NO THIRD PARTY OR ANYONE ACTING ON BEHALF OF ANY THEREOF, SHALL BE A THIRD PARTY OR OTHER BENE‑
+FICIARYOFSUCHSERVICES,TESTINGREPORT,ANDANYACCOMPANYINGMATERIALSANDNOSUCHTHIRDPARTY
+SHALLHAVEANYRIGHTSOFCONTRIBUTIONAGAINSTFAILSAFEWITHRESPECTTOSUCHSERVICES,TESTINGRE‑
+PORT,ANDANYACCOMPANYINGMATERIALS.
+THE REPRESENTATIONS AND WARRANTIES OF FAILSAFE CONTAINED IN THIS AGREEMENT ARE SOLELY FOR THE
+BENEFITOFCUSTOMER.ACCORDINGLY,NOTHIRDPARTYORANYONEACTINGONBEHALFOFANYTHEREOF,SHALL
+BEATHIRDPARTYOROTHERBENEFICIARYOFSUCHREPRESENTATIONSANDWARRANTIESANDNOSUCHTHIRD
+PARTY SHALL HAVE ANY RIGHTS OF CONTRIBUTION AGAINST FAILSAFE WITH RESPECT TO SUCH REPRESENTA‑
+TIONS OR WARRANTIES OR ANY MATTER SUBJECT TO OR RESULTING IN INDEMNIFICATION UNDER THIS AGREE‑
+MENTOROTHERWISE.
+60
+MoatV3: SmartContractAuditReport 13December2025
+FOR AVOIDANCE OF DOUBT, THE SERVICES, INCLUDING ANY ASSOCIATED TESTING REPORTS OR MATERIALS,
+SHALLNOTBECONSIDEREDORRELIEDUPONASANYFORMOFFINANCIAL,TAX,LEGAL,REGULATORY,OROTHER
+ADVICE.
+61
