@@ -1,0 +1,78 @@
+{
+  "finding": "ZH4-PASS6-T3-3 (Rujira FIN exploit path \u2014 POST-UNHALT live check)",
+  "title": "Rujira FIN v2.2.2 CCL position transfer \u2014 POST-UNHALT 2026-10-24: v3.21.0 EXECUTED, HALTWASMGLOBAL=0 (App Layer live), FIN code UNCHANGED (196, unpatched); fix is a PRIVATE base-layer binary \u2014 not demonstrably exploitable, no exploitation observed; E-U now $0, residual $1.58M",
+  "chains": [
+    "thorchain"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium",
+  "e_u_residual_usd": 1578051.57,
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 1800656.85,
+    "S": 2705851.69
+  },
+  "latest_block": 28378162,
+  "block_numbers": {
+    "thorchain": 28378162,
+    "thorchain_local_snapshot": 28378158,
+    "thorchain_ci_snapshot": 28378160,
+    "upgrade_height_3_21_0": 28366100,
+    "app_layer_resumed_height": 28366103,
+    "scan_window_from": 28366100,
+    "scan_window_to": 28378163,
+    "prior_snapshot": 28365056
+  },
+  "targets_checked": 59,
+  "live_targets": 0,
+  "status": "UNVERIFIABLE (unhalted + unpatched code; v3.21 fix is a private base-layer binary)",
+  "closed_reasons": [
+    "HALTWASMGLOBAL=0 at height 28,378,160 (2026-10-24T12:58:39Z): the CosmWasm App Layer halt is LIFTED; app layer resumed at height 28,366,103 (2026-10-23T14:44:47Z)",
+    "v3.21.0 upgrade EXECUTED: /thorchain/version current=3.21.0; upgrade height 28,366,100 passed (/thorchain/upgrade_proposals now null)",
+    "FIN code NOT migrated: 58 pairs still on code 196 (data_hash 5CC7E1368AEE0E5A7877502CA6A090CA7AA4DFB10CAF3453AADCD035E1F2E071, fin v2.2.2, unpatched), 1 on code 194; full code enumeration = 198 codes, max id 198, no new rujira-fin code",
+    "No exploitation observed in the full post-unhalt window 28,366,100-28,378,163 (12,064 blocks): 15,638 wasm execs, 119 FIN range.* messages, ZERO range.transfer events; range-ownership diff vs 2026-10-21 shows 0 owner changes",
+    "The v3.21 fix is a PRIVATE base-layer binary (MR !5226: 'DO NOT build from source'); public tag v3.21.0 and develop have NO TxSignedBy/assertContractSender guard in handler_wasm_execute_contract.go, so patch completeness is NOT verifiable from outside",
+    "rujira-ghost-credit (HALTWASMCONTRACT-27DUYT) remains individually halted =1 (24h liquidation grace period) -> the credit-account liquidation vector is blocked; rujira-fin (YEVLEC)=0"
+  ],
+  "poc": {
+    "tests_passed": 4,
+    "tests_total": 4,
+    "framework": "cw-multi-test (Rust) against rujira-fin v2.2.2 commit 3114257, code_id 196",
+    "path": "poc/rujira/contracts/rujira-fin/src/exploit_poc.rs",
+    "tests": [
+      "fin_owner_check_blocks_direct_transfer",
+      "owner_transfer_works",
+      "forged_caller_drains_position",
+      "contract_owned_position_transferred_via_execute_as_self"
+    ],
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40096156847",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40095622223",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39956741969",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39664417601"
+    ]
+  },
+  "key_facts": [
+    "ZH4-PASS6 post-unhalt live check 2026-10-24 ~12:48-13:02 UTC: CI run 40096156847 (conclusion success). PoC re-ran 4 passed / 0 failed (cargo test exit=0) against the unchanged deployed code.",
+    "v3.21.0 EXECUTED: /thorchain/version current=3.21.0; upgrade height 28,366,100 passed. App layer resumed at height 28,366,103 (2026-10-23T14:44:47Z).",
+    "HALTWASMGLOBAL=0 at 28,378,160. HALTTHORCHAIN=0, HALTTRADING=0, HALTSECUREDGLOBAL=0. Remaining wasm halts: HALTWASMCONTRACT-27DUYT=1 (rujira-ghost-credit, 24h grace); YEVLEC=0 (rujira-fin), JY3TQX=0 (brune), D5A6R5=0 (liquidy-swap), PTRU2G=0 (staking).",
+    "FIN registry UNCHANGED: 59 rujira-fin pairs; 58 on code 196 (data_hash 5CC7E136...E071, fin v2.2.2 commit 3114257) and 1 on code 194 (2CD5DC97...B606). Full code enumeration: 198 codes, max id 198; only 194 and 196 match FIN hashes; NO new FIN code id. Upstream rujira repo is still fin v2.2.2 (3114257).",
+    "Live value (CI, h=28,378,160): FIN TVL $1,800,656.85; CCL range deposits $1,578,051.57 across 1,199 ranges / 146 owners (123 ranges owned by 8 contracts); Credit Accounts 459 (111 funded) $905,194.84.",
+    "Post-unhalt scan (window 28,366,100-28,378,163; 12,064 blocks): 162,719 txs, 15,638 wasm execs (6,614 blocks), 4,183 blocks with FIN, FIN msg keys {arb 2,867; swap 2,488; order 407; range 119}, ZERO range.transfer.",
+    "Range-ownership diff vs 2026-10-21 snapshot: ranges 1,198 -> 1,199 (2 added, 1 closed by its owner), 0 owner changes, distinct owners 147 -> 146. No position transferred.",
+    "The exploit primitive is unchanged on-chain: code 196 data_hash is byte-identical to the PoC's vendored v2.2.2 build; RangeMsg::Transfer authorises on sender == range.owner, sender = info.sender (ranges/execute.rs:184, contract.rs:87/190).",
+    "The v3.21 fix is NOT publicly verifiable: private binary (MR !5226 'DO NOT build from source'); public tag v3.21.0 tree == mainnet-3.21.0; handler_wasm_execute_contract.go at v3.21.0 and develop is byte-identical with NO TxSignedBy guard.",
+    "On-chain state proves only: upgrade executed, halt lifted, FIN code unchanged, and no exploitation visible in ~24h. Whether the private v3.21 build actually closes the caller-forgery is unknowable read-only."
+  ],
+  "caveats": [
+    "The v3.21 security patch ships only in the private thornode-private image; public source contains no wasm sender-auth guard, so the fix cannot be verified from outside.",
+    "No read-only replay of the base-layer primitive is possible (a live replay needs a transaction, which is forbidden); the PoC is a message-level reproduction against the deployed code.",
+    "The scan decodes top-level tx messages; a range.transfer nested inside another contract's call would not appear as a top-level FIN message (caught indirectly by the 0 owner-change diff and intact CCL book).",
+    "Residual scope: the 2026-09-26 incident affected one team-owned position; $1.578M is the CCL range book ceiling, not a proven per-range exploit.",
+    "rujira-ghost-credit (27DUYT) is still halted, so the credit-account liquidation vector is blocked; the direct FIN caller-forgery path is what remains.",
+    "Prices move and the book now trades (App Layer live), so TVL reflects marks/flow, not a drain.",
+    "S/P overlap: the $1.80M FIN book is both P (node-operator/multisig control) and S (partly frozen); S also includes ~$0.91M of Credit Accounts. Do not sum the categories."
+  ],
+  "one_liner": "As of 2026-10-24 ~12:58 UTC the Rujira FIN bug is NOT demonstrably live and NOT confirmably patched: v3.21.0 has EXECUTED and HALTWASMGLOBAL=0 (App Layer live, resumed 2026-10-23T14:44:47Z), but all 58/59 FIN pairs still run the unpatched code 196 (5CC7E136...E071) and the fix is a PRIVATE base-layer binary that cannot be read (public v3.21.0/develop carry no TxSignedBy guard); in 12,064 post-unhalt blocks there were 15,638 wasm execs and ZERO range.transfer with 0 range-owner changes, so live E-U = $0 (medium confidence) and the $1,578,051.57 CCL book remains a residual risk that flips live only if the private fix is incomplete."
+}
