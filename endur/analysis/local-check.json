@@ -1,0 +1,50 @@
+{
+  "chain": "starknet",
+  "rpc": "(keyless public)",
+  "vault_is_paused": [
+    "0x0"
+  ],
+  "queue_is_paused": [
+    "0x0"
+  ],
+  "roundtrip_assets_to_shares_to_assets": {
+    "1000000000000000000": {
+      "assets_in": 1000000000000000000,
+      "shares": 841459336215763425,
+      "assets_back": 999999999999999999,
+      "delta": -1
+    },
+    "1000000000000000000000": {
+      "assets_in": 1000000000000000000000,
+      "shares": 841459336215763425002,
+      "assets_back": 999999999999999999998,
+      "delta": -2
+    }
+  },
+  "gate_reverts": {
+    "send_to_withdraw_queue": "0x43616c6c657220646f6573206e6f74206861766520726f6c65 ('Caller does not have role')",
+    "set_config": "0x43616c6c657220646f6573206e6f74206861766520726f6c65 ('Caller does not have role')",
+    "upgrade": "0x43616c6c657220646f6573206e6f74206861766520726f6c65 ('Caller does not have role')",
+    "before_unstake": "0x696e76616c69642076616c696461746f72 ('invalid validator')",
+    "queue_request_withdrawal": "0x4f6e6c79204c53542063616e2063616c6c ('Only LST can call')"
+  },
+  "backing": {
+    "validators_supporting_strk": 4,
+    "staked_strk_wei": "147486081441252139216694522",
+    "pending_strk_wei": "28699583508201864491469",
+    "total_assets_wei": "147407451539003019432970714",
+    "staked_covers_total_assets": true
+  },
+  "queue_state_wei": [
+    "0x29c5",
+    "0x16dacb1298c73d1b14ed",
+    "0x0",
+    "0x21db288883dba73a49547",
+    "0x0",
+    "0x68ebfbcdce27aa9c3f4733",
+    "0x0"
+  ],
+  "queue_strk_balance_wei": 551214285691630277697303,
+  "vault_strk_balance_wei": 1000000000000000000,
+  "verdict": "E-U $0 (medium-high) \u2014 all privileged entry points reject an unprivileged caller; withdrawal-queue mint is gated ('Only LST can call'); share math rounds in the vault's favour; total_assets is backed by real staked STRK."
+}

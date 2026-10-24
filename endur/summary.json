@@ -1,0 +1,34 @@
+{
+  "finding": "ZH4 pass3-recon #9 (Endur)",
+  "title": "Endur xSTRK + BTC LST vaults (Starknet) — no unprivileged value path",
+  "chains": ["starknet"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 16886110,
+  "block_numbers": {"starknet": 16886110},
+  "targets_checked": 6,
+  "live_targets": 6,
+  "closed_reasons": [
+    "All six ERC-4626 vaults share one class (0x5f06dcb8…); share math rounds in the vault's favour (1 STRK -> 0.841459 shares -> 0.999999999999999999 STRK, -1 wei)",
+    "vault.send_to_withdraw_queue / set_config / upgrade revert 'Caller does not have role' for an outsider",
+    "queue.request_withdrawal reverts 'Only LST can call' (claim-ticket mint gated to the LST)",
+    "queue.claim_withdrawal burns the NFT (no double claim) and reverts 'Too early to claim' before funding",
+    "queue.take_funds is ungated but only transferFrom's the caller's own STRK (net-neutral top-up)",
+    "total_assets (147.41M STRK) is fully backed by 147.49M staked STRK in the ValidatorRegistry"
+  ],
+  "poc": {"tests_passed": 5, "tests_total": 5, "ci_run_urls": []},
+  "key_facts": [
+    "xSTRK vault 0x028d709c875c0ceac3dce7065bec5328186dc89fe254527084d1689910954b0a; class 0x5f06dcb8ef65dd934ba261e6f5ddc03ad3707a028236289feef4ef451f01a52 (shared by all 6 vaults)",
+    "WithdrawalQueue (ERC721) 0x518a66e579f9eb1603f5ffaeff95d3f013788e9c37ee94995555026b9648b6; ValidatorRegistry 0x029edbca81c979decd6ee02205127e8b10c011bca1d337141170095eba690931",
+    "xSTRK total_assets 147,406,854.13 STRK / total_supply 124,036,873.63 xSTRK (rate 1.188412)",
+    "6-vault USD ~$10.66M (STRK $0.0464816, BTC $80,290.89, DefiLlama 2026-10-24)",
+    "queue holds 551,214 STRK vs 107,926 STRK unprocessed (over-funded); 700-id sample found only 2 unclaimed"
+  ],
+  "caveats": [
+    "Contract classes are UNVERIFIED (no source on Voyager/Starkscan); logic inferred from ABI + live behaviour",
+    "queue.reduce_total_queue_amount signature unresolved; at worst a griefing surface, not extraction",
+    "USD is price-sensitive"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Endur: the vault's privileged paths are role-gated, the withdrawal-queue ticket mint is gated to the LST, share math rounds safely and total_assets is fully backed by staked STRK."
+}
