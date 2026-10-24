@@ -260,8 +260,9 @@ but it materially lowers the probability of a drainable swap-math bug.
 
 ### 7.2 CI
 
-GitHub Actions run **[40134239947](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40134239947)**
-(2026-10-24, repo `artsbykriss/ca-zombie-ci`, branch `sushi-stellar`, workflow `poc.yml`, conclusion **success**):
+GitHub Actions run **[40137251707](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40137251707)**
+(2026-10-24, repo `artsbykriss/ca-zombie-ci`, branch `sushi-stellar`, workflow `poc.yml`, conclusion **success**;
+an identical earlier green run is [40134239947](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40134239947)):
 `ci/run.sh` installs `stellar-sdk` and runs `ci/verify.py`, which independently re-reads the factory state,
 re-enumerates the pools, re-reads all balances, and re-runs every authorization probe, uploading
 `ci-out/sushi-stellar-ci.json` (artifact `result-sushi-stellar`). The log ends
@@ -303,8 +304,9 @@ was not fuzzed.
 **Files.** `README.md`, `summary.json`, `analysis/*` (scripts + JSON dumps + `analysis/wasm/*`),
 `ci/run.sh`, `ci/verify.py`, `ci-out/sushi-stellar-ci.json`, `ci-log.txt`, `ci-artifacts/`.
 
-**CI:** GitHub Actions [40134239947](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40134239947)
-(branch `sushi-stellar`, **success**, 2026-10-24); artifact `result-sushi-stellar` → `ci-out/sushi-stellar-ci.json`.
+**CI:** GitHub Actions [40137251707](https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40137251707)
+(branch `sushi-stellar`, **success**, 2026-10-24; earlier green run 40134239947); artifact
+`result-sushi-stellar` → `ci-out/sushi-stellar-ci.json`.
 
 **Independent auth-target re-check (2026-10-24, ledger 65,118,452):** decoding the required
 `SorobanAuthorizationEntry` XDR for each probe gives `collect_protocol → GC7RIP4D…` (owner),
