@@ -1,0 +1,45 @@
+{
+  "finding": "ZH4-residual-OPEN4",
+  "title": "SMARDEX USDN — permissionless liquidation / validation math on a $1.36M wstETH book",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": { "E-U": 0, "H-O": 0, "P": 0, "S": 0 },
+  "latest_block": 26265216,
+  "block_numbers": { "ethereum": 26255433, "ethereum_recheck": 26265216 },
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "No tick is liquidatable: the weakest of 28 live long positions (tick 77900) has a liquidation price of $2,779.45 vs the current wstETH price of $2,984.59 (fresh re-check block 26,265,216) — a 6.87% buffer (was 8.14% at block 26,255,433).",
+    "liquidate() pays the caller only a LiquidationRewardsManager reward (hard-capped at 0.5 ETH, additionally clamped to the vault balance); the liquidated position's collateral always goes to the vault, never to the caller.",
+    "The liquidation price must come from a Wormhole-signed Pyth ETH/USD update published within the last 45s (pythRecentPriceDelay); the price cannot be forged or spot-manipulated. liquidate('') reverts.",
+    "Deposit mints against max(initiation, validation vault balance) and withdrawal pays min(initiation, current available) — both protocol-conservative; the fork round-trip loses ~0.016%.",
+    "Every setter, pause/unpause, removeBlockedPendingAction* (caller-supplied `to`) and upgradeToAndCall is onlyRole(...)-gated; the proxy has never been upgraded (1 Upgraded event, the initial deploy).",
+    "The pending-action queue is empty, so the (by-design) 0.15 ETH security-deposit validation incentive has no live target."
+  ],
+  "poc": {
+    "tests_passed": 9,
+    "tests_total": 9,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39960310248", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39959981957"]
+  },
+  "key_facts": [
+    "USDN proxy 0x656cB8C6d154Aad29d8771384089be5B5141f01a; EIP-1967 impl 0x271df5517a4daacb7cab988aa64d23debda4c498 (24,381 runtime bytes, keccak 0x550fdbee51fc08861c8a8925201726f7b36a24efac725cf022c5d08866cc93c9).",
+    "Deployed source is byte-identical to github.com/SmarDex-Ecosystem/usdn-contracts @ f9171be (2025-01-21); only ONE Upgraded event ever (block 21,671,554) — the live code is the original Jan-2025 deployment.",
+    "Live value: 453.641 wstETH (~$1,357,433 @ $2,992.16). Accounting: balanceVault 266.221 + balanceLong 187.264 wstETH. USDN supply 805,742.5, usdnPrice 1.00004 (par).",
+    "29 open long positions in 24 populated ticks; highest populated tick 77,900; weakest position buffer 814 bps (8.14%). Re-check 2026-10-24 (block 26,265,216): 28 positions, lastPrice $2,984.59, weakest buffer 687 bps (6.87%).",
+    "Fork PoC: liquidate at the current price -> 0 ticks; single-tick crash liquidate -> reward 0.002434 wstETH (~0.00304 ETH / ~$7); full 18-tick -80% crash -> total reward 1.0000 ETH (2 x 0.5 ETH cap).",
+    "LiquidationRewardsManager maxReward = 0.5 ETH; fork test with a synthetic worst-case tick returns 0.499999... ETH.",
+    "Oracle: PythOracle.parsePriceFeedUpdates with publishTime in [now-45s, now]; price<=0 and positive expo revert; liquidation has no Chainlink fallback (only initiate actions do).",
+    "Undeployed upstream fix ec65255 (revert when Pyth conf > price) is unreachable for the ETH/USD feed (conf would need >5x price).",
+    "Deposit->withdraw fork round trip: 5.0000 -> 4.9992 wstETH (loss).",
+    "Open-position fork test: 1 wstETH collateral recorded exactly, position value 0.9986 wstETH (< collateral) — no free leverage."
+  ],
+  "caveats": [
+    "The PoC mocks the Pyth contract to measure protocol behaviour under a chosen price; this mock cannot exist on-chain, so the forced-crash tests bound the reward, not a feasible attack.",
+    "USD values use DefiLlama wstETH $2,992.16 / ETH $2,400.25 at 2026-10-23; the protocol's own lastPrice for wstETH was $3,025.86.",
+    "The <=0.5 ETH-per-call liquidation reward is by design and is only realisable after a genuine >=8.14% Pyth-signed price move inside 45s; it is not counted as E-U.",
+    "Position enumeration reads the documented storage layout directly; the count matches getTotalLongPositions() (28 at the re-check block), validating the layout.",
+    "Re-checked live on 2026-10-24 (block 26,265,216): still healthy — 28 positions, weakest buffer 6.87%; state moves slowly (one position closed in ~1 day)."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from SMARDEX USDN: no tick is liquidatable (weakest position 8.14% from liquidation), liquidate() pays only a hard-capped <=0.5 ETH reward and needs a real Pyth-signed price crash, the oracle is a signed 45s-freshness feed, and every privileged path is role-gated."
+}
