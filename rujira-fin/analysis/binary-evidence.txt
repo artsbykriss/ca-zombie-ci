@@ -1,0 +1,57 @@
+# ZH4 — deployed-code (binary) evidence for the v3.21.0 base-layer fix
+# Date: 2026-10-24  ·  read-only; no transactions, no secrets.
+#
+# THORChain ships v3.21.0 as a "private binary including additional security
+# patches" (MR !5226: "DO NOT build from source"), so the *deployed* image is
+# not the public tag image. But the private build is the v3.21.0 tree + patches,
+# and two public images on the SAME tree were obtained and inspected:
+#
+#   A) registry.gitlab.com/thorchain/thornode:909528f   (= tag v3.21.0, commit 909528f18d62dea894cddd7461d58f1b003371e7)
+#      config sha256:77ed331d5c9540a812a33d3cab483542b60641ec9ab20bbc52e8ffb74a708e49
+#   B) registry.gitlab.com/thorchain/thornode:mainnet-3.21.0  (= branch mainnet-3.21.0, merge of mainnet 3.20.3 + tag v3.21.0)
+#      amd64 manifest sha256:509696317f3795cf0fbd2bc44798d3c3f1033ae8e0a35cc503170d13279aa61b
+#      config sha256:3abe81e997c0a7debd6de1d1048b8d38383da148a3f91375da647ea7dd871f79
+#
+# Both images contain the same runtime binary at usr/bin/thornode.
+#   A: 234,997,472 bytes  sha256 8fc4b5a636e4ed8533587072a20e0e87b9c8be02827a630489651479a3a8b920  go1.26.9
+#   B: 235,388,064 bytes  sha256 4b4b675a7e6623ed4d57c0f3174961cef168b7324f419f974875e994ace8bac3  go1.26.9
+#   (ELF 64-bit, dynamically linked, with debug_info, NOT stripped)
+#
+# `grep -a -c <needle> usr/bin/thornode`  (A / B):
+#
+#   needle                              A    B     meaning
+#   ----------------------------------  ---  ---   ------------------------------------------
+#   TxExec                               0    0    memo type / const for the `x:` ExecMemo  -> REMOVED
+#   MsgWasmExec                          0    0    the message the ExecMemo produced       -> REMOVED
+#   WasmExecHandler                      0    0    its handler                             -> REMOVED
+#   ParseExecMemo                        0    0    the memo parser                          -> REMOVED
+#   memo_exec                            0    0    (memo_exec.go)                           -> REMOVED
+#   TxSignedBy                           2    2    the NEW sender-authenticity guard       -> PRESENT
+#   "did not sign the transaction"       1    1    v3.21 fix string (handler_send.go:123)  -> PRESENT
+#   "was not signed by its sender"       1    1    v3.21 fix string (handler_send.go:192)  -> PRESENT
+#   BondYieldMemo                        3    3    control: v3.21.0-only feature           -> PRESENT
+#   ExecuteContract                     46   46    control: wasm execute path              -> PRESENT
+#   TxType not supported: %s             1    1    control: memo parser default error      -> PRESENT
+#
+# Conclusion: in the v3.21.0 release line the `x:`/`exec` ExecMemo -> MsgWasmExec
+# dispatch (the exact path the 2026-09-26 incident used) is compiled OUT, and the
+# new `TxSignedBy` MsgSend->MsgDeposit guard is compiled IN. The binaries are not
+# stripped, so absence of the ExecMemo symbols is not a stripping artefact.
+#
+# Exact fix strings found in the binary (verbatim substrings):
+#   "cannot convert send to deposit: %s did not sign the transaction"   (handler_send.go:123)
+#   "send from %s was not signed by its sender"                          (handler_send.go:192)
+#
+# Source cross-check (gitlab.com/thorchain/thornode, compare v3.20.3..v3.21.0):
+#   DEL  x/thorchain/memo/memo_exec.go
+#   DEL  x/thorchain/handler_wasm_exec.go
+#   DEL  x/thorchain/types/msg_wasm_exec.go
+#   DEL  proto/thorchain/v1/types/msg_wasm_exec.proto
+#   DEL  test/regression/suites/wasm/exec.yaml , exports/wasm/exec.json
+#   MOD  x/thorchain/memo/memo.go            (removes "x"/"exec" -> TxExec)
+#   MOD  x/thorchain/handler.go              (removes MsgWasmExec handler + `case ExecMemo`)
+#   MOD  x/thorchain/ante.go                 (adds ContextKeyTxSigners + TxSignedBy; drops authz.MsgGrant/Revoke/Exec)
+#   MOD  x/thorchain/handler_send.go         (gates MsgSend->MsgDeposit on TxSignedBy/HasContract)
+#   MOD  docs/concepts/memos.md              (removes the "Execute Smart Contract" / X:ADDR:MSG section)
+#
+# No secrets; no keyed RPC URLs.

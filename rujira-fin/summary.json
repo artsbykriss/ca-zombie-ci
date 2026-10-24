@@ -1,0 +1,107 @@
+{
+  "finding": "ZH4 (Rujira FIN exploit path \u2014 DEFINITIVE root-cause, pass 7)",
+  "title": "Rujira FIN v2.2.2 CCL position transfer \u2014 DEFINITIVE: the real 2026-09-26 mechanism is the base-layer `x:`/exec ExecMemo->MsgWasmExec dispatch (FIN self-exec via a module-account deposit); that path is REMOVED in v3.21.0, which is live (HALTWASMGLOBAL=0) \u2014 PATCHED",
+  "chains": ["thorchain"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "verdict": "PATCHED",
+  "e_u_residual_usd": 1578051.57,
+  "incident_profit_usd_estimate": 86000,
+  "categories": {"E-U": 0, "H-O": 0, "P": 1800656.85, "S": 2705851.69},
+  "latest_block": 28383399,
+  "block_numbers": {
+    "thorchain": 28383399,
+    "upgrade_height_3_21_0": 28366100,
+    "app_layer_resumed_height": 28366103,
+    "incident_height": 27988325,
+    "prior_snapshot": 28378162
+  },
+  "targets_checked": 59,
+  "live_targets": 0,
+  "status": "PATCHED (base-layer `x:`/ExecMemo dispatch removed in v3.21.0, which executed 2026-10-23; FIN code 196 unchanged but unreachable)",
+  "true_mechanism": {
+    "incident_tx": "8CDB3A24DDD74A034AD81AAB2FA22329B1DC2CB3303331D48CE4EC6D1B3C063B",
+    "height": 27988325,
+    "time": "2026-09-26T12:02:33Z",
+    "memo_decoded": "x:<FIN pair>:{\"do_range\":[\"<victim thor1zspr6...>\",{\"transfer\":{\"idx\":\"64\",\"to\":\"<attacker thor10k8yl...>\"}}]}",
+    "swap_to": "thor1v8ppstuf6e3x0r4glqc68d5jqcs2tf38cg2q6y = the `thorchain` MODULE account",
+    "steps": [
+      "attacker's FIN swap sends its output to the `thorchain` module account (swap.to = module)",
+      "MsgSendHandle converts that MsgSend-to-module into MsgDeposit using the TRANSACTION memo (getDeposit reads ContextKeyTxMemo)",
+      "processOneTxIn parses the `x:` memo (TxExec/ExecMemo) -> MsgWasmExec{contract: FIN, sender: tx.FromAddress.MappedAccAddress() = FIN}",
+      "MsgWasmExec calls ExecuteContract(FIN, sender=FIN, do_range(victim, transfer))",
+      "FIN contract.rs:181-186 `info.sender == env.contract.address` PASSES (FIN==FIN)",
+      "execute_range(sender = payload victim) ranges/execute.rs:184 `sender == range.owner` PASSES -> range.owner = attacker",
+      "second msg Range(Close{64}) by attacker pays out the position"
+    ],
+    "evidence": "4 `execute` events on FIN under msg_index 0 (Swap,Arb,DoSwap,DoRange) then wasm-rujira-fin/range.transfer from=victim to=attacker idx=64; msg_index 1 range.close owner=attacker"
+  },
+  "fix": {
+    "version": "3.21.0",
+    "executed_height": 28366100,
+    "live": true,
+    "removed": [
+      "x/thorchain/memo/memo_exec.go (TxExec/ExecMemo)",
+      "x/thorchain/handler_wasm_exec.go (WasmExecHandler)",
+      "x/thorchain/types/msg_wasm_exec.go (MsgWasmExec)",
+      "proto/thorchain/v1/types/msg_wasm_exec.proto",
+      "`x`/`exec` -> TxExec mapping in x/thorchain/memo/memo.go",
+      "`case ExecMemo` and MsgWasmExec handler registration in x/thorchain/handler.go",
+      "docs/concepts/memos.md 'Execute Smart Contract' (X:ADDR:MSG) section"
+    ],
+    "added": [
+      "x/thorchain/ante.go: ContextKeyTxSigners + TxSignedBy (records tx signers in ante)",
+      "x/thorchain/handler_send.go:123 MsgSendValidate gate !TxSignedBy(from) -> reject",
+      "x/thorchain/handler_send.go:192 MsgSendHandle gate !fromContract && !TxSignedBy(from) -> reject"
+    ],
+    "also_removed": "authz.MsgGrant/MsgRevoke/MsgExec from the ante + wasm fee decorator",
+    "binary_evidence": "thornode binaries of tag 909528f (v3.21.0) and branch mainnet-3.21.0 (NOT stripped): TxExec=0, MsgWasmExec=0, WasmExecHandler=0, ParseExecMemo=0, TxSignedBy=2, 'cannot convert send to deposit: %s did not sign the transaction'=1, 'send from %s was not signed by its sender'=1; controls BondYieldMemo=3, ExecuteContract=46 present"
+  },
+  "closed_reasons": [
+    "The real incident (tx 8CDB3A24..., h27,988,325, 2026-09-26T12:02:33Z) used the base-layer `x:`/exec ExecMemo -> MsgWasmExec dispatch, reached by a FIN swap whose output was sent to the `thorchain` module account; it is decoded and proven.",
+    "That dispatch path is DELETED in v3.21.0 (memo_exec.go, handler_wasm_exec.go, msg_wasm_exec.go, msg_wasm_exec.proto, the `x`/`exec` memo type, and the handler registration).",
+    "Binary confirmation: the v3.21.0 release-line thornode binaries (tag 909528f and branch mainnet-3.21.0; not stripped) contain ZERO TxExec/MsgWasmExec/WasmExecHandler/ParseExecMemo symbols and DO contain TxSignedBy and the new fix error strings.",
+    "v3.21.0 executed on-chain at height 28,366,100 (2026-10-23); /thorchain/version current=3.21.0; HALTWASMGLOBAL=0 (App Layer live, resumed h28,366,103).",
+    "FIN code is unchanged (58/59 pairs on code 196, data_hash 5CC7E136...E071) \u2014 the fix is entirely base-layer, so 'code 196 unchanged' does NOT imply exploitable.",
+    "No range.transfer and 0 range-owner changes in the post-unhalt window (>=12,064 blocks, 16k+ wasm execs)."
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 6,
+    "framework": "cw-multi-test (Rust) against rujira-fin v2.2.2 commit 3114257, code_id 196",
+    "path": "poc/rujira/contracts/rujira-fin/src/exploit_poc.rs",
+    "tests": [
+      "fin_owner_check_blocks_direct_transfer",
+      "owner_transfer_works",
+      "forged_caller_drains_position",
+      "contract_owned_position_transferred_via_execute_as_self",
+      "incident_exact_self_exec_do_range (NEW \u2014 models the real incident: DoRange(victim,transfer) delivered FIN->FIN)",
+      "do_range_guard_blocks_external_caller (NEW \u2014 negative control)"
+    ],
+    "note": "tests_passed/total are filled after the CI run; see ci-log.txt",
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40096156847",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40095622223",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39956741969",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/39664417601"
+    ]
+  },
+  "key_facts": [
+    "TRUE MECHANISM (replaces the earlier 'Range(Transfer) trusts info.sender' model): the incident made FIN execute itself. Attacker set the swap output recipient to the `thorchain` module account; MsgSendHandle converted that send into a MsgDeposit carrying the attacker's TRANSACTION memo; processOneTxIn turned the `x:` (TxExec/ExecMemo) memo into MsgWasmExec{contract: FIN, sender: FIN}; FIN's DoRange guard (info.sender == contract) passed while the payload sender was the victim.",
+    "Incident tx decoded: 8CDB3A24DDD74A034AD81AAB2FA22329B1DC2CB3303331D48CE4EC6D1B3C063B, h27,988,325, 2026-09-26T12:02:33Z, memo x:<FIN>:{\"do_range\":[\"<victim>\",{\"transfer\":{\"idx\":\"64\",\"to\":\"<attacker>\"}}]}; swap.to = thor1v8ppstuf6e3x0r4glqc68d5jqcs2tf38cg2q6y (module account 'thorchain'); range.transfer from=victim to=attacker; range.close owner=attacker paying 221,148.09 x/ruji + 52,116.34 eth-usdc.",
+    "The earlier 2026-09-26 scan missed this tx because its window ended at 27,988,051 \u2014 274 blocks before h27,988,325.",
+    "FIX (v3.21.0, live): `x:`/exec ExecMemo -> MsgWasmExec path deleted (memo_exec.go, handler_wasm_exec.go, msg_wasm_exec.go/.proto, memo type, handler registration, docs).",
+    "FIX also: TxSignedBy/ContextKeyTxSigners added (x/thorchain/ante.go) and MsgSend->MsgDeposit gated on TxSignedBy(from)||HasContract(from) (handler_send.go:123,192); authz removed.",
+    "BINARY EVIDENCE: thornode from registry.gitlab.com/thorchain/thornode:909528f (=v3.21.0 tag) and :mainnet-3.21.0 (distinct builds, both NOT stripped): TxExec=0, MsgWasmExec=0, WasmExecHandler=0, ParseExecMemo=0; TxSignedBy=2; fix strings present; controls BondYieldMemo/ExecuteContract present.",
+    "LIVE: /thorchain/version current=3.21.0; HALTWASMGLOBAL=0; FIN pair thor17cawwg still code 196; CCL book $1,578,051.57 / 1,199 ranges; 0 range.transfer post-unhalt.",
+    "Capital for the real path ~ $0 (dust swap + 0.02 RUNE gas); incident profit ~$86k (one Rujira-team position); ceiling = whole CCL book $1.58M."
+  ],
+  "caveats": [
+    "The *deployed* image is the private thornode-private build (MR !5226 'DO NOT build from source'); the public Docker Hub repo is private/absent and the GitLab registry holds only the two public v3.21.0-lineage builds, so the exact deployed bytes were not readable. Bounded: the private build = v3.21.0 tree + security patches and cannot re-add a removed dispatch path.",
+    "USDC-leg USD depends on the secured-asset decimal convention (1e8 assumed, matching x/ruji and the current $1.58M CCL book); x/ruji leg is unambiguously 1e8.",
+    "cw-multi-test cannot model the base-layer MsgSend->MsgDeposit conversion; PoC tests 5/6 model its result (a FIN self-call) against the deployed contract. The base-layer half is proven by the decoded incident tx + the v3.21.0 source/binary removal.",
+    "No read-only replay of the base-layer primitive is possible (a replay needs a transaction, which is forbidden).",
+    "S/P overlap: the $1.80M FIN book is both P (node-operator/multisig control) and S (partly frozen); S also includes ~$0.91M Credit Accounts. Do not sum the categories."
+  ],
+  "one_liner": "DEFINITIVE: the 2026-09-26 Rujira FIN theft is proven to be a base-layer dispatch bug \u2014 the attacker sent a FIN swap output to the `thorchain` module account so MsgSendHandle converted it into a deposit carrying the attacker's `x:` memo, which processOneTxIn turned into MsgWasmExec{FIN, sender=FIN, do_range(victim,transfer)} and made FIN execute itself; that `x:`/ExecMemo -> MsgWasmExec path is DELETED in v3.21.0 (source diff + binary: zero TxExec/MsgWasmExec symbols in the non-stripped v3.21.0 thornode) and v3.21.0 is live (HALTWASMGLOBAL=0), so the exploit is PATCHED \u2014 E-U now $0 (high confidence); it needed ~$0 capital and netted ~$86k on one team position, ceiling $1.58M if it were live."
+}

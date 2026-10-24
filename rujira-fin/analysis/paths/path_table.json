@@ -1,0 +1,187 @@
+{
+  "generated": "2026-10-24",
+  "subject": "THORChain v3.21.0 base-layer -> CosmWasm dispatch paths: authentication/authorization",
+  "refs": {
+    "tag_v3.21.0": "909528f18d62dea894cddd7461d58f1b003371e7",
+    "tag_date": "2026-10-18",
+    "branches_compared": ["develop", "mainnet-3.21.0"],
+    "wasmd": "github.com/CosmWasm/wasmd v0.54.10",
+    "cosmos_sdk": "github.com/cosmos/cosmos-sdk v0.53.0"
+  },
+  "key_conclusion": "No public v3.21.0 dispatch path lets a fresh unprivileged external caller forge a wasm caller / execute a contract as an arbitrary address / sudo an arbitrary contract. No TxSignedBy guard exists anywhere in the wasm path.",
+  "signer_mechanism": {
+    "top_level": "ante SigVerificationDecorator verifies tx signature against tx.GetSigners(); for a wasm msg signers = [signer field] via cosmos.msg.v1.signer annotation",
+    "inner_dispatch": "wasmd SDKMessageHandler.handleSdkMessage enforces GetMsgV1Signers(msg) subset-of {emitting contract} (handler_plugin.go:103-111)",
+    "signer_annotation": {
+      "MsgExecuteContract": "sender (wasmd tx.proto:189-191)",
+      "MsgSudoContract": "authority (wasmd tx.proto:314-316)",
+      "MsgInstantiateContract": "sender",
+      "MsgMigrateContract": "sender",
+      "MsgUpdateAdmin": "sender",
+      "MsgClearAdmin": "sender",
+      "MsgStoreCode": "sender",
+      "MsgScheduleExecuteContract": "sender (scheduler tx.proto)"
+    }
+  },
+  "routing": {
+    "wasmd_msg_server_disabled": "app/wasm.go:48-63 CustomWasmModule.RegisterServices is a no-op",
+    "thorchain_clone": "proto/thorchain/v1/types/tx.proto:56-77 clones the wasm RPCs; x/thorchain/module.go:160 registers types.MsgServer",
+    "route_key": "cosmos-sdk baseapp.MsgServiceRouter.registerMsgServiceHandler keys routes by sdk.MsgTypeURL(request msg) (msg_service_router.go:138,171; lookup :55)"
+  },
+  "paths": [
+    {
+      "id": 1,
+      "name": "Top-level MsgExecuteContract",
+      "route": "/cosmwasm.wasm.v1.MsgExecuteContract -> thorchain msgServer.ExecuteContract",
+      "handler": "x/thorchain/handler_wasm_execute_contract.go:55-78",
+      "manager": "x/thorchain/manager_wasm_current.go:153-190",
+      "who_can_trigger": "any tx signer",
+      "auth_check": "ante SigVerificationDecorator over tx.GetSigners()=[msg.Sender]; handler validate() is no-op (handler_wasm_execute_contract.go:51-53); handle reads senderAddr:=msg.Sender (:61) and calls ExecuteContract(contractAddr,senderAddr,...) (:70)",
+      "txsignedby_guard_present": false,
+      "can_forge_caller": false,
+      "can_execute_as_arbitrary": false,
+      "can_sudo_arbitrary": false,
+      "fresh_unprivileged_reachable": "yes, but only executes as the signer",
+      "notes": "halts checked via WasmMgr.checkGlobalHalt (manager_wasm_current.go:159,310-319)"
+    },
+    {
+      "id": 2,
+      "name": "Contract submessage WasmMsg::Execute",
+      "route": "wasmd SDKMessageHandler -> encoders -> router -> path 1",
+      "handler": "wasmd/x/wasm/keeper/handler_plugin.go:71-126",
+      "encoder": "wasmd/x/wasm/keeper/handler_plugin_encoders.go:232-245 (Sender := emitting contract; Contract := arbitrary target)",
+      "who_can_trigger": "any contract",
+      "auth_check": "EncodeWasmMsg forces Sender=emitting contract; handleSdkMessage signer check signers subset-of {contractAddr} (handler_plugin.go:103-111) passes tautologically",
+      "can_forge_caller": false,
+      "can_execute_as_arbitrary": "target arbitrary, caller fixed to emitting contract",
+      "fresh_unprivileged_reachable": "only as a contract that is itself the range owner (execute-as-self)",
+      "notes": "this is the FIN Range->Arb{then}->DoRange self-call mechanism"
+    },
+    {
+      "id": 3,
+      "name": "Contract submessage CosmosMsg::Any/Stargate of MsgExecuteContract with foreign sender",
+      "route": "EncodeAnyMsg -> router -> path 1",
+      "encoder": "wasmd/x/wasm/keeper/handler_plugin_encoders.go:211-229",
+      "auth_check": "handleSdkMessage GetMsgV1Signers(msg)=[sender]; rejects unless sender == emitting contract (handler_plugin.go:103-111)",
+      "can_forge_caller": false,
+      "fresh_unprivileged_reachable": false,
+      "notes": "classic wasmd vector; closed. Matches EXPLOIT-PATH.md section 3.4."
+    },
+    {
+      "id": 4,
+      "name": "Top-level MsgSudoContract",
+      "route": "/cosmwasm.wasm.v1.MsgSudoContract -> thorchain msgServer.SudoContract",
+      "handler": "x/thorchain/handler_wasm_sudo_contract.go:47-66",
+      "manager": "x/thorchain/manager_wasm_current.go:246-266",
+      "who_can_trigger": "any tx signer",
+      "auth_check": "signer annotation authority (tx signed by msg.Authority) AND checkIsContractAdmin: caller.Equals(contractInfo.AdminAddr()) (manager_wasm_current.go:260,410-419)",
+      "authority_semantics": "the target contract's admin, NOT a chain-gov authority (wasmd gov policy bypassed because thorchain replaced the wasmd msg server)",
+      "can_sudo_arbitrary": false,
+      "fresh_unprivileged_reachable": "only if caller IS the target contract's admin"
+    },
+    {
+      "id": 5,
+      "name": "Top-level MsgInstantiateContract / MsgInstantiateContract2 (runs init)",
+      "handler": "x/thorchain/handler_wasm_instantiate_contract.go:47-82; handler_wasm_instantiate_contract_2.go:47-84",
+      "manager": "x/thorchain/manager_wasm_current.go:77-146",
+      "auth_check": "signer annotation sender; checkInstantiateAuthorization (manager_wasm_current.go:89,125,399-408) - existing contracts bypass permission",
+      "can_forge_caller": false,
+      "fresh_unprivileged_reachable": "yes, as self"
+    },
+    {
+      "id": 6,
+      "name": "Top-level MsgMigrateContract",
+      "handler": "x/thorchain/handler_wasm_migrate_contract.go:48-72",
+      "manager": "x/thorchain/manager_wasm_current.go:192-243",
+      "auth_check": "signer annotation sender + checkIsContractAdmin (manager_wasm_current.go:207,410-419)",
+      "can_forge_caller": false,
+      "fresh_unprivileged_reachable": "only for own contracts"
+    },
+    {
+      "id": 7,
+      "name": "Top-level MsgUpdateAdmin / MsgClearAdmin",
+      "handler": "x/thorchain/handler_wasm_update_admin.go:47-74; handler_wasm_clear_admin.go:47-69",
+      "manager": "x/thorchain/manager_wasm_current.go:268-308",
+      "auth_check": "signer annotation sender + checkIsContractAdmin (manager_wasm_current.go:281,302)",
+      "can_forge_caller": false,
+      "fresh_unprivileged_reachable": "only for own contracts"
+    },
+    {
+      "id": 8,
+      "name": "Top-level MsgStoreCode",
+      "handler": "x/thorchain/handler_wasm_store_code.go:47-66",
+      "manager": "x/thorchain/manager_wasm_current.go:46-74",
+      "auth_check": "signer annotation sender + checkCanStore (mimir WasmPermissionless or permission list) (manager_wasm_current.go:55,353-368)",
+      "can_forge_caller": false,
+      "fresh_unprivileged_reachable": "yes (permissioned/pinned)"
+    },
+    {
+      "id": 9,
+      "name": "Scheduler EndBlock ExecuteSchedule",
+      "handler": "x/scheduler/keeper/keeper.go:43-112 (call at :77-83)",
+      "who_can_trigger": "runs every block over messages scheduled via MsgScheduleExecuteContract",
+      "auth_check": "scheduling: signer annotation sender + (inner dispatch) sender == emitting contract; execution: Execute(execCtx, contractAddress=msg.Sender, caller=authtypes.NewModuleAddress(\"scheduler\"), msg, coins)",
+      "caller_at_execution": "fixed scheduler module account (not attacker-arbitrary)",
+      "target_at_execution": "the scheduling contract (signer-constrained to the emitter)",
+      "can_forge_caller": false,
+      "fresh_unprivileged_reachable": "can schedule, but executed contract sees info.sender == scheduler module"
+    },
+    {
+      "id": 10,
+      "name": "Reply / error callbacks",
+      "handler": "wasmd/x/wasm/keeper/msg_dispatcher.go:96-206 (keeper.reply at :197)",
+      "auth_check": "invoked as the contract itself; reply payload has no sender field",
+      "can_forge_caller": false
+    },
+    {
+      "id": 11,
+      "name": "IBC / BeginBlock / EndBlock module hooks",
+      "auth_check": "no base-layer module hook dispatches wasm execution (full-repo grep: only the msg server and the scheduler call the wasm keeper)",
+      "can_forge_caller": false
+    },
+    {
+      "id": 12,
+      "name": "x/denom messages",
+      "handler": "x/denom/keeper/msg_server.go:47-185",
+      "auth_check": "assertContractSender requires HasContractInfo(sender) (x/denom/keeper/msg_server.go:33-45); top-level denom msgs rejected by ante default branch (x/thorchain/ante.go:264-266)",
+      "can_forge_caller": false,
+      "notes": "not a wasm-execute path"
+    }
+  ],
+  "answers": {
+    "a_message_type": "standard wasmd cosmwasm.wasm.v1.MsgExecuteContract (signer annotation sender); THORChain registers a cloned proto service types.Msg so its own msg server handles the wasm type URLs; wasmd msg server disabled via CustomWasmModule.RegisterServices no-op",
+    "b_sudo": "MsgSudoContract defined at wasmd proto/cosmwasm/wasm/v1/tx.proto:314-316 (signer authority); THORChain requires msg.Authority == contractInfo.AdminAddr() (manager_wasm_current.go:260,410-419). No path for an external tx to sudo an arbitrary contract.",
+    "c_internal_dispatch": "Only non-message internal dispatch is the scheduler (x/scheduler/keeper/keeper.go:77); caller is the fixed scheduler module account. All other inner dispatches are constrained by wasmd signer check + encoder. No attacker-controlled sender without a signature/ante check.",
+    "d_fix": "In WasmExecuteContractHandler.handle (x/thorchain/handler_wasm_execute_contract.go, after parsing senderAddr ~line 61-64): if !HasContract(senderAddr) && !TxSignedBy(ctx, senderAddr) { reject }, mirroring x/thorchain/handler_send.go:123,192. The HasContract disjunct is mandatory (FIN's own self-call chain is a contract and never signs). TxSignedBy defined x/thorchain/ante.go:120-127."
+  },
+  "fin_implication": "FIN authorises Transfer on sender == range.owner where sender = info.sender of the original Range(msg). Under public v3.21.0, info.sender is always either the tx signer, the emitting contract (encoder-forced + wasmd check), or the scheduler module. No forgery path; the owner check cannot be bypassed by caller forgery. The only owner-matching caller is a contract owner executing as itself (execute-as-self, EXPLOIT-PATH.md 3.5). A TxSignedBy guard would not close that vector.",
+  "negative_results": [
+    "No TxSignedBy in any wasm handler; TxSignedBy used only in x/thorchain/ante.go (def) and x/thorchain/handler_send.go:123,192",
+    "No base-layer handler constructs a wasm execute message (grep MsgExecuteContract{ / WasmMsg{ in non-test Go)",
+    "No authz/group/feegrant/circuit/gov modules in the ModuleManager (app/app.go:486-498); only custom route is cosmos.bank.v1beta1.Msg (app/app.go:446)",
+    "wasmd msg server disabled (app/wasm.go:62-63)",
+    "Scheduler caller is the fixed module account (x/scheduler/keeper/keeper.go:80)"
+  ],
+  "ref_comparison": {
+    "identical_across_v3.21.0_develop_mainnet-3.21.0": [
+      "x/thorchain/handler_wasm_execute_contract.go",
+      "x/thorchain/ante.go",
+      "x/thorchain/manager_wasm_current.go"
+    ],
+    "identical_v3.21.0_vs_develop": [
+      "x/thorchain/handler_wasm_sudo_contract.go",
+      "x/thorchain/handler_send.go",
+      "x/denom/keeper/msg_server.go",
+      "x/scheduler/keeper/keeper.go",
+      "app/wasm.go",
+      "app/ante.go"
+    ],
+    "differs_v3.21.0_vs_develop": ["app/app.go (unrelated: KVStoreService wiring, in-process CometBFT local client)"]
+  },
+  "caveats": [
+    "Signer resolution (GetMsgV1Signers == [sender]) inferred from SDK semantics, not executed; confidence medium-high",
+    "v3.21 deployable image is private (DO NOT build from source, MR !5226); public source bounds only the public tree",
+    "x/wasm not vendored in thornode; wasmd v0.54.10 and cosmos-sdk v0.53.0 analysed at those exact tags",
+    "read-only; no live replay, no transaction"
+  ]
+}
