@@ -1,0 +1,66 @@
+No files changed, compilation skipped
+
+Ran 1 test for test/Tops.t.sol:TopsTest
+[PASS] test_10_lp_exit_blocked_by_buy_gate() (gas: 256975)
+Logs:
+  LP holder 0x555EFdd0b08c49f3c727C8854E88199769416ab7
+  LP balance 1305543440469768404904
+
+Traces:
+  [256975] TopsTest::test_10_lp_exit_blocked_by_buy_gate()
+    ├─ [2537] TOPS/USDT pair::balanceOf(0x555EFdd0b08c49f3c727C8854E88199769416ab7) [staticcall]
+    │   └─ ← [Return] 1305543440469768404904 [1.305e21]
+    ├─ [0] console::log("LP holder", 0x555EFdd0b08c49f3c727C8854E88199769416ab7) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] console::log("LP balance", 1305543440469768404904 [1.305e21]) [staticcall]
+    │   └─ ← [Stop]
+    ├─ [0] VM::assertGt(1305543440469768404904 [1.305e21], 0, "LP holder has liquidity") [staticcall]
+    │   └─ ← [Return]
+    ├─ [0] VM::startPrank(0x555EFdd0b08c49f3c727C8854E88199769416ab7)
+    │   └─ ← [Return]
+    ├─ [46542] TOPS/USDT pair::approve(PancakeRouter: [0x10ED43C718714eb63d5aA57B78B54704E256024E], 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   ├─ emit Approval(owner: 0x555EFdd0b08c49f3c727C8854E88199769416ab7, spender: PancakeRouter: [0x10ED43C718714eb63d5aA57B78B54704E256024E], amount: 115792089237316195423570985008687907853269984665640564039457584007913129639935 [1.157e77])
+    │   └─ ← [Return] true
+    ├─ [0] VM::expectRevert(Pancake: TRANSFER_FAILED)
+    │   └─ ← [Return]
+    ├─ [180040] PancakeRouter::removeLiquidity(TOPS: [0x842B1BFa825Cf6673fD2D98E573FdD267C3Fd588], USDT: [0x55d398326f99059fF775485246999027B3197955], 130554344046976840490 [1.305e20], 0, 0, 0x555EFdd0b08c49f3c727C8854E88199769416ab7, 1792739953 [1.792e9])
+    │   ├─ [32276] TOPS/USDT pair::transferFrom(0x555EFdd0b08c49f3c727C8854E88199769416ab7, TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29], 130554344046976840490 [1.305e20])
+    │   │   ├─ emit Transfer(from: 0x555EFdd0b08c49f3c727C8854E88199769416ab7, to: TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29], amount: 130554344046976840490 [1.305e20])
+    │   │   └─ ← [Return] true
+    │   ├─ [120499] TOPS/USDT pair::burn(0x555EFdd0b08c49f3c727C8854E88199769416ab7)
+    │   │   ├─ [2531] USDT::balanceOf(TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29]) [staticcall]
+    │   │   │   └─ ← [Return] 96379620011969867575726 [9.637e22]
+    │   │   ├─ [3000] TOPS::balanceOf(TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29]) [staticcall]
+    │   │   │   └─ ← [Return] 779740163185866451959983 [7.797e23]
+    │   │   ├─ [2354] 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73::feeTo() [staticcall]
+    │   │   │   └─ ← [Return] 0x0000000000000000000000000ed943ce24baebf257488771759f9bf482c39706
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: 0x0ED943Ce24BaEBf257488771759F9BF482C39706, amount: 852459278908571843 [8.524e17])
+    │   │   ├─ emit Transfer(from: TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29], to: 0x0000000000000000000000000000000000000000, amount: 130554344046976840490 [1.305e20])
+    │   │   ├─ [10871] USDT::transfer(0x555EFdd0b08c49f3c727C8854E88199769416ab7, 45889744466973684895 [4.588e19])
+    │   │   │   ├─ emit Transfer(from: TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29], to: 0x555EFdd0b08c49f3c727C8854E88199769416ab7, amount: 45889744466973684895 [4.588e19])
+    │   │   │   └─ ← [Return] true
+    │   │   ├─ [38795] TOPS::transfer(0x555EFdd0b08c49f3c727C8854E88199769416ab7, 371261858417700940106 [3.712e20])
+    │   │   │   ├─ [893] TOPS/USDT pair::getReserves() [staticcall]
+    │   │   │   │   └─ ← [Return] 96379620011969867575726 [9.637e22], 779740163185866451959983 [7.797e23], 1792739789 [1.792e9]
+    │   │   │   ├─ [531] USDT::balanceOf(TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29]) [staticcall]
+    │   │   │   │   └─ ← [Return] 96333730267502893890831 [9.633e22]
+    │   │   │   ├─ [5151] PancakeRouter::getAmountsOut(1000000000000000000 [1e18], [0x842B1BFa825Cf6673fD2D98E573FdD267C3Fd588, 0x55d398326f99059fF775485246999027B3197955]) [staticcall]
+    │   │   │   │   ├─ [893] TOPS/USDT pair::getReserves() [staticcall]
+    │   │   │   │   │   └─ ← [Return] 96379620011969867575726 [9.637e22], 779740163185866451959983 [7.797e23], 1792739789 [1.792e9]
+    │   │   │   │   └─ ← [Return] [1000000000000000000 [1e18], 123295621430803540 [1.232e17]]
+    │   │   │   ├─ [893] TOPS/USDT pair::getReserves() [staticcall]
+    │   │   │   │   └─ ← [Return] 96379620011969867575726 [9.637e22], 779740163185866451959983 [7.797e23], 1792739789 [1.792e9]
+    │   │   │   ├─ [531] USDT::balanceOf(TOPS/USDT pair: [0xbeDebAC3788171DC769893242a53b881041EDf29]) [staticcall]
+    │   │   │   │   └─ ← [Return] 96333730267502893890831 [9.633e22]
+    │   │   │   ├─ [439] TOPS/USDT pair::totalSupply() [staticcall]
+    │   │   │   │   └─ ← [Return] 274065308289602840161689 [2.74e23]
+    │   │   │   └─ ← [Revert] not allow to remove
+    │   │   └─ ← [Revert] Pancake: TRANSFER_FAILED
+    │   └─ ← [Revert] Pancake: TRANSFER_FAILED
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    └─ ← [Stop]
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 3.04s (3.24ms CPU time)
+
+Ran 1 test suite in 3.11s (3.04s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

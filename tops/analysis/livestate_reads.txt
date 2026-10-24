@@ -1,0 +1,88 @@
+TOPS live-state reads — BSC block 129280478 (archive eth_call, read-only)
+========================================================================
+token  0x842B1BFa825Cf6673fD2D98E573FdD267C3Fd588  (name "TOPS", symbol "TOPS", 18 dec)
+pair   0xbeDebAC3788171DC769893242a53b881041EDf29  (PancakeV2, factory 0xca143ce32fe78f1f7019d7d551a6402fc5350c73)
+USDT   0x55d398326f99059fF775485246999027B3197955
+router 0x10ED43C718714eb63d5aA57B78B54704E256024E
+
+Reserves / balances
+  token0                      = 0x55d398326f99059fF775485246999027B3197955 (USDT)
+  token1                      = 0x842B1BFa825Cf6673fD2D98E573FdD267C3Fd588 (TOPS)
+  getReserves().reserve0      = 96379620011969867575726        (96,379.6200 USDT)
+  getReserves().reserve1      = 779740163185866451959983       (779,740.1632 TOPS)
+  getReserves().tsLast        = 1792739789
+  USDT.balanceOf(pair)        = 96379620011969867575726       == reserve0  (no excess)
+  TOPS.balanceOf(pair)        = 779740163185866451959983      == reserve1  (no excess)
+  pair.totalSupply()  (LP)    = 274195010174370908430336
+  pair.kLast()                = 75149600390793697986175112781662599393915465500
+  TOPS.totalSupply()          = 210000000000000000000000000
+  spot via router.getAmountsOut(1e18 TOPS) = 123295621430803540  (0.12329562 USDT/TOPS)
+  mid price reserve0/reserve1 = 0.1236036 USDT/TOPS   -> pair TVL ~= 2 x $96,379.62
+
+Roles / config
+  owner()                     = 0xf6370D9F937c59b00938CBFB8efa5b617D260D6d
+  tradeController()           = 0xf6370D9F937c59b00938CBFB8efa5b617D260D6d
+  (owner is an EIP-7702 delegated EOA: code = 0xef010063c0c19a282a1b52b07dd5a65b58948a07dae32b)
+  liquidityRemover()          = 0x4aC4Dcc85895c762dF28726f52484dDE83789CD1  (contract; owner 0x39488c631c037f30AaFA0111293A3216BC5cB8cc; paused=false; LP held 0)
+  marketingAddress()          = 0xaa7c01f9DE1f14001Ad4aa4e8EBEf4Cc07cb1513  (7702 EOA)
+  miner()                     = 0x55fdB9628F090D3b5bb6D5978A6b6CDbdB0135a0  (contract; USDT bal 342.2756)
+  node()                      = 0x0b36FFA55f097E6225cc98f0e0627995F4435d29  (contract)
+  liquidityProvider()         = 0x302E512867ce3Fa3599976AadA4dEA645F607F51  (USDT bal 0 -> buyback dead)
+  strictCheck()               = true
+  releaseRate()               = 100
+  rewardGasLimit()            = 500000
+  feeConfig()                 = buy 3000 (30%); sell lp300 node300 market400 level200 diaBurn800 (20% total)
+  lpConfig()                  = (5e19, 1e14, 129279904, 1)
+  tokenLPConfig()             = (1e22, 1e14, 0, 0)
+  nodeRewardCondition()       = 5e19
+
+GATES
+  blockConfig()  = (buyEnabled=false, sellEnabled=true)     <-- BUYS DISABLED
+  priceTracker() = (currentPrice=118773020285185430, historicalHigh=123295621430803540,
+                    lastDay=20749, offset=28800, lastUpdateBlock=129222188)
+  getPriceInfo().realTimePrice = 123295621430803540
+  recycle gate threshold = trackedPrice*10200/10000 = 121148480690889138
+  currentPrice 123295621430803540 >= 121148480690889138  -> priceRose2Percent = TRUE
+                                                         -> _handleSellRecycle SKIPPED
+  getDownFee()   = 0
+
+White/pair registries
+  feeWhiteList[pair]          = false   (so pair-involving transfers take fees)
+  feeWhiteList[liquidityRemover] = true
+  feeWhiteList[marketing]     = true
+  feeWhiteList[0x0]           = true
+  feeWhiteList[0xdead]        = true
+  feeWhiteList[token]         = true   (constructor _allowances[this][router] = MAX)
+  swapPairList[pair]          = true
+  swapRouters[router]         = true
+  TOPS.allowance(token, router) = MAX   (type(uint256).max)
+
+USDT held by fee sinks (block 129280478)
+  lpDistributor      0xeb33c357a6db73B747e8feF9343d6e3DA072a7eA = 50.3500
+  silverDistributor  0xbba0AE716996322918E478719135e734139E563C = 42.1904
+  goldDistributor    0x7c6e5cE27A3003cF4D2f5f3b010924951975E731 = 41.4195
+  diamondDistributor 0x660C677E80e02B5206F60F5Cf529dE051666d78A = 11.6223
+  marketDistributor  0xaa7c01f9DE1f14001Ad4aa4e8EBEf4Cc07cb1513 = 42.0312
+  levelDistributor   0x302E512867ce3Fa3599976AadA4dEA645F607F51 = 0   (= liquidityProvider)
+  miner              0x55fdB9628F090D3b5bb6D5978A6b6CDbdB0135a0 = 342.2756
+
+LP holders (pair.balanceOf)
+  0x555EFdd0b08c49f3c727C8854E88199769416ab7 = 1305.5434 LP
+  0xb7B60704f0a92f2EF2Be0eF5Ec02b1d68A2d2249 =  393.5485 LP
+  0x1BAa5e50CDAe4de20d2b28172150bD9D3205f9B0 =  295.3730 LP
+  0x3bBfDB09781F62102d9e6D818d5108e4cD972048 =  244.8892 LP
+  0xedE042cE6141a28c6D2a61714A73643F639E6407 =   25.0938 LP
+  (remainder of the 274,195 LP supply held by further addresses not enumerated)
+
+Deployment
+  TOPS token & pair both first have code at block 128614640 (timestamp 1792440094)
+  -> ~3.5 days before the analysis block; a freshly deployed fee-token.
+
+Negative / dead ends (recorded so they are not re-investigated)
+  - Sourcify: no verification (match null). Etherscan V2: verified (source used).
+  - No EIP-1967 proxy slots set on the token (slot checks return 0).
+  - Buyback (_executeBuyback) is dead: liquidityProvider USDT balance = 0.
+  - USDT.allowance(pair, router) = 0; TOPS.allowance(pair, *) = 0 (pair has no approvals).
+  - TOPS.transfer from a zero-balance EOA reverts "BNE".
+  - setBuyEnabled/setSellEnabled from a random EOA revert "Not authorized" (onlyTradeController).
+  - liquidityRemover.pause() from a random EOA reverts "!o" (onlyOwner).

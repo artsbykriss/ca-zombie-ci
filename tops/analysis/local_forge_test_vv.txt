@@ -1,0 +1,88 @@
+No files changed, compilation skipped
+
+Ran 11 tests for test/Tops.t.sol:TopsTest
+[PASS] test_01_live_state_and_gate_status() (gas: 284617)
+Logs:
+  block 129280478
+  reserve0 (USDT) 96379620011969867575726
+  reserve1 (TOPS) 779740163185866451959983
+  pair USDT bal   96379620011969867575726
+  pair TOPS bal   779740163185866451959983
+  buyEnabled false
+  sellEnabled true
+  trackedPrice 118773020285185430
+  currentPrice(getTokenPrice) 123295621430803540
+  historicalHigh 123295621430803540
+  lastUpdateBlock 129222188
+  gate threshold tracked*1.02 121148480690889138
+  priceRose2Percent (true => recycle SKIPPED) true
+  owner 0xf6370D9F937c59b00938CBFB8efa5b617D260D6d
+  tradeController 0xf6370D9F937c59b00938CBFB8efa5b617D260D6d
+  liquidityProvider (buyback USDT) 0x302E512867ce3Fa3599976AadA4dEA645F607F51
+  liquidityProvider USDT bal 0
+  miner 0x55fdB9628F090D3b5bb6D5978A6b6CDbdB0135a0
+  node 0x0b36FFA55f097E6225cc98f0e0627995F4435d29
+  feeWhiteList[pair] false
+  feeWhiteList[liqRemover] true
+  feeWhiteList[market] true
+  swapPairList[pair] true
+  strictCheck true
+
+[PASS] test_02_buy_via_router_reverts() (gas: 232218)
+[PASS] test_02b_buy_gate_exact_reason() (gas: 78675)
+[PASS] test_03_direct_pair_swap_buy_reverts() (gas: 192482)
+Logs:
+  direct pair.swap succeeded? false
+  0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001850616e63616b653a205452414e534645525f4641494c45440000000000000000
+
+[PASS] test_04_sell_without_tokens_reverts() (gas: 36310)
+[PASS] test_05_recycle_fires_when_gate_open() (gas: 1881712)
+Logs:
+  recycle events emitted 1
+  reserve1 before 779740163185866451959983
+  reserve1 after  789740163185866451959983
+  net reserve1 delta (after-before) 10000000000000000000000
+  reserve0 delta -2434808727856514868189
+  expected burn d = A/10 10000000000000000000000
+
+[PASS] test_06_zero_fee_rounding_free_burn() (gas: 885516)
+Logs:
+  events 1
+  lpDistributor TOPS before 0
+  lpDistributor TOPS after  0
+  reserve1 delta -999
+  reserve0 delta 0
+  max free burn per call (amount=9999) wei 999
+  2% of reserve1 (TOPS wei) 15594803263717329039199
+  calls needed at 999 wei/call 15610413677394723762
+
+[PASS] test_07_loop_economics_net_loss() (gas: 1397409)
+Logs:
+  attacker TOPS start 50000000000000000000000
+  attacker TOPS end   0
+  attacker net TOPS cost 50000000000000000000000
+  reserve1 delta 5000000000000000000000
+  reserve0 delta -1225131667683450449490
+
+[PASS] test_08_drain_cost_exceeds_reserve() (gas: 35412)
+Logs:
+  amount 19999
+  fee 2000
+  burn 1999
+  fee per burn wei (x1000) 1000
+  TOPS cost to drain (wei) 780130228300016460190078
+  ~USD cost 96427
+  USD reward (r0/1e18) 96379
+
+[PASS] test_09_lp_removal_requires_lp_tokens() (gas: 52302)
+Logs:
+  pair totalSupply (LP) 274195010174370908430336
+
+[PASS] test_10_lp_exit_blocked_by_buy_gate() (gas: 256975)
+Logs:
+  LP holder 0x555EFdd0b08c49f3c727C8854E88199769416ab7
+  LP balance 1305543440469768404904
+
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 4.39s (540.40ms CPU time)
+
+Ran 1 test suite in 4.49s (4.39s CPU time): 11 tests passed, 0 failed, 0 skipped (11 total tests)

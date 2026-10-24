@@ -1,0 +1,81 @@
+Compiling 1 files with Solc 0.8.24
+Solc 0.8.24 finished in 25.04s
+Compiler run successful with warnings:
+Warning (2018): Function state mutability can be restricted to view
+  --> test/TopsRecheck.t.sol:93:5:
+   |
+93 |     function test_R1_live_state_head_gate_is_OPEN() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/TopsRecheck.t.sol:254:5:
+    |
+254 |     function test_R6_drain_cost_exceeds_reserve() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+
+Ran 7 tests for test/TopsRecheck.t.sol:TopsRecheck
+[PASS] test_R1_live_state_head_gate_is_OPEN() (gas: 157854)
+Logs:
+  HEAD block 129588794
+  reserve0 USDT 95849683185367439762597
+  reserve1 TOPS 778016934313255420091397
+  pair USDT bal 95849683185367439762597
+  pair TOPS bal 778016934313255420091397
+  mainPair 0xbeDebAC3788171DC769893242a53b881041EDf29
+  buyEnabled true
+  sellEnabled true
+  trackedPrice 125029487828786344
+  realTimePrice(getTokenPrice) 122889274228647119
+  historicalHigh 136979979549100410
+  lastUpdateBlock 129414121
+  gate threshold tracked*1.02 127530077585362070
+  priceRose2Percent (true => recycle SKIPPED) false
+  => recycle gate OPEN at HEAD? true
+
+[PASS] test_R2_buy_now_succeeds() (gas: 898685)
+Logs:
+  USDT in 10000000000000000000000
+  TOPS received 51334935105134975740681
+  d reserve0 (USDT) 10000000000000000000000
+  d reserve1 (TOPS) -73335621578764251058115
+  buy tax bp (10000=100%) 2999
+
+[PASS] test_R3_sell_recycle_no_reserve_collapse() (gas: 1692573)
+Logs:
+  TOPS sold 93825874033630557421080
+  TokensRecycled events 0
+  d reserve1 (TOPS) 134036962905186510601542
+  d reserve0 (USDT) -19915156755010720926708
+
+[PASS] test_R3b_recycle_fires_at_head() (gas: 2211251)
+Logs:
+  TOPS sold 100000000000000000000000
+  TokensRecycled events 1
+  recycled (burn) amount 10000000000000000000000
+  d reserve1 (TOPS) 90000000000000000000000
+  d reserve0 (USDT) -11017413966798848978567
+
+[PASS] test_R4_roundtrip_pnl_negative() (gas: 1618774)
+Logs:
+  USDT start 20117505789691554006172
+  USDT end   10335653085017147677487
+  net PnL (USDT wei) -9781852704674406328685
+
+[PASS] test_R5_lp_exit_status_head() (gas: 805912)
+Logs:
+  LP holder 0x555EFdd0b08c49f3c727C8854E88199769416ab7
+  LP balance 1491993556105606983008
+  removeLiquidity succeeded? true
+
+[PASS] test_R6_drain_cost_exceeds_reserve() (gas: 28776)
+Logs:
+  fee 2000
+  burn 1999
+  TOPS cost to drain (wei) 778406137381946393288041
+  ~USD cost 95897
+  USD reward r0 95849
+
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 36.23s (115.32s CPU time)
+
+Ran 1 test suite in 36.28s (36.23s CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)
