@@ -1,0 +1,11 @@
+# Kolan launchpad LaunchHook re-arm PoC (fork-only, read-only on mainnet)
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc = "0.8.26"
+optimizer = true
+optimizer_runs = 200
+evm_version = "cancun"
+fuzz = { runs = 32 }
+fs_permissions = [{ access = "read", path = "./" }]

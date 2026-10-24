@@ -1,0 +1,37 @@
+{
+  "finding": "ZH4-PASS6-T3-5",
+  "title": "Kolan launchpad x14 LaunchHooks — code-identical to the exploited KolanHook; $0 today, re-arms on any funded expired window",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 26265324,
+  "block_numbers": {"ethereum": 26265324},
+  "targets_checked": 15,
+  "live_targets": 0,
+  "closed_reasons": [
+    "All 14 LaunchHooks have held().eth = 0 and eth_getBalance = 0 (no escrow) at block 26265171/26265324",
+    "13/14 hooks windowCount() = 0; hook #0 0xc75059b9... has windowCount() = 1 but windows(1) is all-zero and accept(1) reverts NoWindow()",
+    "Main KolanHook 0x0136feCf... has windowCount() = 47 but held() = (0,0) and balance 0"
+  ],
+  "poc": {"tests_passed": 6, "tests_total": 6, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40141052545"]},
+  "key_facts": [
+    "Launchpad 0x8F89905624E3613b3A578Ff1EC690463A33e940e launchCount()=14; hooks enumerated via hooksBetween(0,14)",
+    "accept(uint256)=0x19b05f49 is textually identical in Sourcify full_match sources KolanHook.sol and LaunchHook.sol (solc 0.8.26)",
+    "Exploitable property preserved: _closeWindow settles escrowed ETH at live _sqrtPrice() with no TWAP; _buyBack/_buyKln use sqrtPriceLimitX96 = MIN_SQRT_PRICE+1 (unbounded)",
+    "All 14 hooks CREATE2-deployed by the same Launchpad from one stored creation template; runtime code size 24386 B each",
+    "Launchpad KLN_HOOK() == 0x0136fecf49e0217bfd2d9551e8e7b05f174ba8ec == the hacked KolanHook",
+    "RE-ARM predicate: exists window id with windows[id].owner != 0 AND held(hook).eth > 0 AND block.timestamp >= windows[id].expiry",
+    "Window timing: MIN_WINDOW=1800s, BASE_WINDOW=21600, REFERENCE_PREMIUM=0.05 ETH, MAX_PREMIUM_BPS=3000",
+    "Oct-15 exploit tx 0x7b131926e6f06491ae1aead3e419b208c8aa70ed7898e8c5a33d9f52e40915a9 @ block 26197504, gasUsed 2937548, gasPrice 157.07 gwei (~0.461 ETH gas), net 1.279 ETH",
+    "CI PoC 6/6 PASS (run 40141052545): test_01 byte-faithful reproduction of the Oct-15 drain (attacker net 1.279914 ETH); test_03 drains launch hook[0]'s historical 0.029631 ETH escrow by a stranger; test_04 re-arms and drains a freshly-launched hook on the live Launchpad",
+    "Historical: hook[0] window 1 opened @ block 26167731 with eth=0.0228 + premium=0.006831 (0.029631 ETH escrow), cancelled by owner @ 261677961; had it been abandoned it would have re-armed at expiry",
+    "Monitor: kolan-hooks/analysis/monitor.sh (keyless cast-only) prints windowCount/held.eth/balance + RE-ARMED flag"
+  ],
+  "caveats": [
+    "LaunchHook premium leg is split 50/50 with a KLN buy via _spendPremium, so per-window magnitudes differ from KolanHook; the exploitable property (permissionless accept after expiry + unbounded spot settlement) is preserved",
+    "Bytecode-level accept body differs across the two compilation units by one stack-scheduling SWAP1 (no logic difference); identity rests on the verified source",
+    "Point-in-time 2026-10-24; re-read held() before acting"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 today from the 14 Kolan launch hooks (all empty, no escrow); they are code-identical to the exploited KolanHook and re-arm automatically the instant any hook escrows ETH into a window that later expires (proven accept()/spot-settlement drain)."
+}
