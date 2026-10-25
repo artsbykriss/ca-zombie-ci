@@ -1,0 +1,597 @@
+fieldLength=11 methods=19
+
+### method[0] private args=3 locals=9 ret=1 instrs=146
+    0: LoadLocal 2
+    1: U256Const0
+    2: U256Neq
+    3: U256Const 350
+    4: AssertWithErrorCode
+    5: LoadLocal 0
+    6: LoadLocal 1
+    7: U256Const0
+    8: U256Const1
+    9: U256ModSub
+   10: MulModN
+   11: StoreLocal 3
+   12: LoadLocal 0
+   13: LoadLocal 1
+   14: U256ModMul
+   15: StoreLocal 4
+   16: LoadLocal 3
+   17: LoadLocal 4
+   18: U256ModSub
+   19: LoadLocal 3
+   20: LoadLocal 4
+   21: U256Lt
+   22: IfFalse -> 2
+   23: U256Const1
+   24: Jump -> 1
+   25: U256Const0
+   26: U256ModSub
+   27: StoreLocal 5
+   28: LoadLocal 5
+   29: U256Const0
+   30: U256Eq
+   31: IfFalse -> 4
+   32: LoadLocal 4
+   33: LoadLocal 2
+   34: U256Div
+   35: Return
+   36: LoadLocal 2
+   37: LoadLocal 5
+   38: U256Gt
+   39: U256Const 351
+   40: AssertWithErrorCode
+   41: LoadLocal 0
+   42: LoadLocal 1
+   43: LoadLocal 2
+   44: MulModN
+   45: StoreLocal 6
+   46: LoadLocal 5
+   47: LoadLocal 6
+   48: LoadLocal 4
+   49: U256Gt
+   50: IfFalse -> 2
+   51: U256Const1
+   52: Jump -> 1
+   53: U256Const0
+   54: U256ModSub
+   55: StoreLocal 5
+   56: LoadLocal 4
+   57: LoadLocal 6
+   58: U256ModSub
+   59: StoreLocal 4
+   60: U256Const0
+   61: LoadLocal 2
+   62: U256ModSub
+   63: LoadLocal 2
+   64: NumericBitAnd
+   65: StoreLocal 7
+   66: LoadLocal 2
+   67: LoadLocal 7
+   68: U256Div
+   69: StoreLocal 2
+   70: LoadLocal 4
+   71: LoadLocal 7
+   72: U256Div
+   73: StoreLocal 4
+   74: U256Const0
+   75: LoadLocal 7
+   76: U256ModSub
+   77: LoadLocal 7
+   78: U256Div
+   79: U256Const1
+   80: U256ModAdd
+   81: StoreLocal 7
+   82: LoadLocal 4
+   83: LoadLocal 5
+   84: LoadLocal 7
+   85: U256ModMul
+   86: NumericBitOr
+   87: StoreLocal 4
+   88: U256Const3
+   89: LoadLocal 2
+   90: U256ModMul
+   91: U256Const2
+   92: NumericXor
+   93: StoreLocal 8
+   94: LoadLocal 8
+   95: U256Const2
+   96: LoadLocal 2
+   97: LoadLocal 8
+   98: U256ModMul
+   99: U256ModSub
+  100: U256ModMul
+  101: StoreLocal 8
+  102: LoadLocal 8
+  103: U256Const2
+  104: LoadLocal 2
+  105: LoadLocal 8
+  106: U256ModMul
+  107: U256ModSub
+  108: U256ModMul
+  109: StoreLocal 8
+  110: LoadLocal 8
+  111: U256Const2
+  112: LoadLocal 2
+  113: LoadLocal 8
+  114: U256ModMul
+  115: U256ModSub
+  116: U256ModMul
+  117: StoreLocal 8
+  118: LoadLocal 8
+  119: U256Const2
+  120: LoadLocal 2
+  121: LoadLocal 8
+  122: U256ModMul
+  123: U256ModSub
+  124: U256ModMul
+  125: StoreLocal 8
+  126: LoadLocal 8
+  127: U256Const2
+  128: LoadLocal 2
+  129: LoadLocal 8
+  130: U256ModMul
+  131: U256ModSub
+  132: U256ModMul
+  133: StoreLocal 8
+  134: LoadLocal 8
+  135: U256Const2
+  136: LoadLocal 2
+  137: LoadLocal 8
+  138: U256ModMul
+  139: U256ModSub
+  140: U256ModMul
+  141: StoreLocal 8
+  142: LoadLocal 4
+  143: LoadLocal 8
+  144: U256ModMul
+  145: Return
+
+### method[1] public,preapproved,payToContractOnly args=1 locals=1 ret=0 instrs=4
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadLocal 0
+    3: TransferAlphToSelf
+
+### method[2] contractAssets args=2 locals=10 ret=0 instrs=81
+    0: SelfAddress
+    1: StoreLocal 2
+    2: LoadLocal 2
+    3: AlphRemaining
+    4: MinimalContractDeposit
+    5: U256Sub
+    6: StoreLocal 3
+    7: LoadLocal 0
+    8: LoadMutField 2
+    9: U256Const 10000
+   10: CallLocal 0
+   11: LoadLocal 1
+   12: U256Const 31536000000
+   13: CallLocal 0
+   14: StoreLocal 4
+   15: LoadLocal 4
+   16: LoadLocal 3
+   17: U256Ge
+   18: IfFalse -> 2
+   19: LoadLocal 3
+   20: Jump -> 1
+   21: LoadLocal 4
+   22: StoreLocal 5
+   23: LoadLocal 5
+   24: U256Const0
+   25: U256Gt
+   26: IfFalse -> 54
+   27: LoadLocal 5
+   28: LoadMutField 6
+   29: U256Const 10000
+   30: CallLocal 0
+   31: StoreLocal 6
+   32: LoadLocal 5
+   33: LoadLocal 6
+   34: U256Sub
+   35: StoreLocal 7
+   36: LoadLocal 7
+   37: LoadMutField 3
+   38: U256Const 10000
+   39: CallLocal 0
+   40: StoreLocal 8
+   41: LoadLocal 7
+   42: LoadLocal 8
+   43: U256Sub
+   44: StoreLocal 9
+   45: LoadLocal 6
+   46: U256Const0
+   47: U256Gt
+   48: IfFalse -> 4
+   49: LoadLocal 2
+   50: LoadMutField 7
+   51: LoadLocal 6
+   52: TransferAlph
+   53: LoadLocal 9
+   54: U256Const0
+   55: U256Gt
+   56: IfFalse -> 8
+   57: LoadLocal 2
+   58: LoadLocal 9
+   59: ApproveAlph
+   60: LoadLocal 9
+   61: U256Const1
+   62: U256Const0
+   63: LoadImmField 0
+   64: CallExternal 16
+   65: LoadLocal 8
+   66: U256Const0
+   67: U256Gt
+   68: IfFalse -> 12
+   69: LoadLocal 2
+   70: LoadLocal 8
+   71: ApproveAlph
+   72: LoadLocal 2
+   73: LoadLocal 8
+   74: U256Const2
+   75: U256Const0
+   76: LoadImmField 2
+   77: CallExternal 0
+   78: I256Const0
+   79: LoadLocal 8
+   80: Log2
+
+### method[3] public args=0 locals=3 ret=0 instrs=27
+    0: MethodSelector
+    1: BlockTimeStamp
+    2: StoreLocal 0
+    3: LoadLocal 0
+    4: LoadMutField 1
+    5: U256Gt
+    6: IfFalse -> 4
+    7: LoadLocal 0
+    8: LoadMutField 1
+    9: U256Sub
+   10: Jump -> 1
+   11: U256Const0
+   12: StoreLocal 1
+   13: LoadLocal 0
+   14: StoreMutField 1
+   15: LoadLocal 1
+   16: U256Const0
+   17: U256Gt
+   18: IfFalse -> 8
+   19: U256Const0
+   20: U256Const1
+   21: LoadImmField 0
+   22: CallExternal 13
+   23: StoreLocal 2
+   24: LoadLocal 2
+   25: LoadLocal 1
+   26: CallLocal 2
+
+### method[4] public,preapproved,payToContractOnly args=4 locals=10 ret=0 instrs=47
+    0: MethodSelector
+    1: LoadLocal 0
+    2: SelfAddress
+    3: AddressNeq
+    4: U256Const 25
+    5: AssertWithErrorCode
+    6: U256Const 1461446703485210103287273052203988822378723970342
+    7: U256Const1
+    8: U256Sub
+    9: StoreLocal 4
+   10: LoadMutField 4
+   11: StoreLocal 5
+   12: LoadLocal 5
+   13: LoadLocal 1
+   14: U256ToByteVec
+   15: SubContractIdOf
+   16: StoreLocal 6
+   17: ALPHTokenId
+   18: LoadLocal 2
+   19: ByteVecConcat
+   20: LoadLocal 6
+   21: ByteVecConcat
+   22: StoreLocal 7
+   23: LoadLocal 5
+   24: LoadLocal 7
+   25: SubContractIdOf
+   26: StoreLocal 8
+   27: LoadLocal 8
+   28: StoreLocal 9
+   29: LoadLocal 0
+   30: LoadLocal 2
+   31: LoadLocal 3
+   32: ApproveToken
+   33: LoadLocal 0
+   34: SelfAddress
+   35: ALPHTokenId
+   36: ConstFalse
+   37: LoadLocal 3
+   38: U256ToI256
+   39: LoadLocal 4
+   40: BytesConst {}
+   41: U256Const 7
+   42: U256Const2
+   43: LoadLocal 9
+   44: CallExternalBySelector
+   45: Pop
+   46: Pop
+
+### method[5] public,preapproved,payToContractOnly args=3 locals=11 ret=0 instrs=52
+    0: MethodSelector
+    1: LoadLocal 0
+    2: SelfAddress
+    3: AddressNeq
+    4: U256Const 25
+    5: AssertWithErrorCode
+    6: LoadMutField 5
+    7: StoreLocal 3
+    8: ALPHTokenId
+    9: LoadLocal 1
+   10: ByteVecConcat
+   11: StoreLocal 4
+   12: LoadLocal 3
+   13: LoadLocal 4
+   14: SubContractIdOf
+   15: StoreLocal 5
+   16: LoadLocal 5
+   17: StoreLocal 6
+   18: U256Const0
+   19: U256Const2
+   20: LoadLocal 6
+   21: CallExternalBySelector
+   22: StoreLocal 8
+   23: StoreLocal 7
+   24: U256Const 997
+   25: LoadLocal 2
+   26: U256Mul
+   27: StoreLocal 9
+   28: LoadLocal 9
+   29: LoadLocal 7
+   30: U256Mul
+   31: LoadLocal 9
+   32: U256Const 1000
+   33: LoadLocal 8
+   34: U256Mul
+   35: U256Add
+   36: U256Div
+   37: StoreLocal 10
+   38: LoadLocal 0
+   39: LoadLocal 1
+   40: LoadLocal 2
+   41: ApproveToken
+   42: LoadLocal 0
+   43: SelfAddress
+   44: U256Const0
+   45: LoadLocal 2
+   46: LoadLocal 10
+   47: U256Const0
+   48: U256Const 6
+   49: U256Const0
+   50: LoadLocal 6
+   51: CallExternalBySelector
+
+### method[6] public,preapproved args=4 locals=8 ret=0 instrs=30
+    0: MethodSelector
+    1: LoadLocal 0
+    2: SelfAddress
+    3: AddressNeq
+    4: U256Const 25
+    5: AssertWithErrorCode
+    6: LoadMutField 5
+    7: StoreLocal 4
+    8: LoadLocal 1
+    9: LoadLocal 2
+   10: ByteVecConcat
+   11: StoreLocal 5
+   12: LoadLocal 4
+   13: LoadLocal 5
+   14: SubContractIdOf
+   15: StoreLocal 6
+   16: LoadLocal 6
+   17: StoreLocal 7
+   18: LoadLocal 0
+   19: LoadLocal 6
+   20: LoadLocal 3
+   21: ApproveToken
+   22: LoadLocal 0
+   23: LoadLocal 3
+   24: U256Const2
+   25: U256Const2
+   26: LoadLocal 7
+   27: CallExternalBySelector
+   28: Pop
+   29: Pop
+
+### method[7] public args=1 locals=1 ret=0 instrs=13
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: CallLocal 3
+    7: I256Const2
+    8: LoadMutField 2
+    9: LoadLocal 0
+   10: Log3
+   11: LoadLocal 0
+   12: StoreMutField 2
+
+### method[8] public args=1 locals=1 ret=0 instrs=18
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: LoadLocal 0
+    7: U256Const 10000
+    8: U256Le
+    9: U256Const 21
+   10: AssertWithErrorCode
+   11: CallLocal 3
+   12: I256Const3
+   13: LoadMutField 3
+   14: LoadLocal 0
+   15: Log3
+   16: LoadLocal 0
+   17: StoreMutField 3
+
+### method[9] public args=1 locals=1 ret=0 instrs=18
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: LoadLocal 0
+    7: U256Const 10000
+    8: U256Le
+    9: U256Const 24
+   10: AssertWithErrorCode
+   11: CallLocal 3
+   12: I256Const4
+   13: LoadMutField 6
+   14: LoadLocal 0
+   15: Log3
+   16: LoadLocal 0
+   17: StoreMutField 6
+
+### method[10] public args=1 locals=1 ret=0 instrs=12
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: I256Const5
+    7: LoadMutField 4
+    8: LoadLocal 0
+    9: Log3
+   10: LoadLocal 0
+   11: StoreMutField 4
+
+### method[11] public args=0 locals=0 ret=1 instrs=3
+    0: MethodSelector
+    1: LoadMutField 4
+    2: Return
+
+### method[12] public args=1 locals=1 ret=0 instrs=12
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: I256Const 6
+    7: LoadMutField 5
+    8: LoadLocal 0
+    9: Log3
+   10: LoadLocal 0
+   11: StoreMutField 5
+
+### method[13] public args=1 locals=1 ret=0 instrs=12
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: I256Const 7
+    7: LoadMutField 7
+    8: LoadLocal 0
+    9: Log3
+   10: LoadLocal 0
+   11: StoreMutField 7
+
+### method[14] public args=3 locals=3 ret=1 instrs=14
+    0: MethodSelector
+    1: LoadLocal 1
+    2: SubContractId
+    3: CallerContractId
+    4: ByteVecEq
+    5: U256Const 19
+    6: AssertWithErrorCode
+    7: CallerAddress
+    8: LoadLocal 2
+    9: U256Const2
+   10: U256Const1
+   11: LoadLocal 0
+   12: CallExternalBySelector
+   13: Return
+
+### method[15] public,payToContractOnly args=2 locals=2 ret=1 instrs=13
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: SelfAddress
+    7: LoadLocal 1
+    8: U256Const2
+    9: U256Const1
+   10: LoadLocal 0
+   11: CallExternalBySelector
+   12: Return
+
+### method[16] public args=1 locals=4 ret=1 instrs=32
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: LoadLocal 0
+    7: ALPHTokenId
+    8: ByteVecNeq
+    9: U256Const 23
+   10: AssertWithErrorCode
+   11: SelfContractId
+   12: LoadLocal 0
+   13: LoadMutField 0
+   14: U256Const 3
+   15: Encode
+   16: U256Const 0
+   17: Encode
+   18: StoreLocal 2
+   19: StoreLocal 1
+   20: LoadLocal 0
+   21: LoadImmField 1
+   22: LoadLocal 1
+   23: LoadLocal 2
+   24: CopyCreateSubContract
+   25: StoreLocal 3
+   26: I256Const 8
+   27: LoadLocal 0
+   28: LoadLocal 3
+   29: Log3
+   30: LoadLocal 3
+   31: Return
+
+### method[17] public args=1 locals=2 ret=0 instrs=14
+    0: MethodSelector
+    1: CallerAddress
+    2: StoreLocal 1
+    3: LoadLocal 1
+    4: LoadMutField 0
+    5: AddressEq
+    6: U256Const 18
+    7: AssertWithErrorCode
+    8: I256Const1
+    9: LoadMutField 0
+   10: LoadLocal 0
+   11: Log3
+   12: LoadLocal 0
+   13: StoreMutField 0
+
+### method[18] public args=3 locals=3 ret=0 instrs=10
+    0: MethodSelector
+    1: CallerAddress
+    2: LoadMutField 0
+    3: AddressEq
+    4: U256Const 18
+    5: AssertWithErrorCode
+    6: LoadLocal 0
+    7: LoadLocal 1
+    8: LoadLocal 2
+    9: MigrateWithFields
