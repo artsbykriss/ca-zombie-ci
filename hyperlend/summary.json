@@ -1,0 +1,44 @@
+{
+  "finding": "P7-03",
+  "title": "HyperLend core pool (HyperEVM) — stock AaveOracle with no staleness check; two dead feeds (USDHL 60.1d, PT-sUSDe-25SEP2025 127.3d) on soft-delisted reserves",
+  "chains": ["hyperevm"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 49509633,
+  "block_numbers": {"hyperevm": 49509633},
+  "targets_checked": 22,
+  "live_targets": 18,
+  "closed_reasons": [
+    "AaveOracle.getAssetPrice reads only source.latestAnswer() and requires price>0; no updatedAt/heartbeat/bounds check anywhere (flaw is live)",
+    "USDHL dead feed (60.1d) is ACCURATE: oracle 0.99779574 vs real 0.99956 -> understates 0.18%; cannot over-borrow",
+    "USDHL is soft-delisted: supplyCap=1 AND borrowCap=1, both already exceeded (7696 supplied / 3778 borrowed) -> supply() and borrow() revert",
+    "USDHL LTV=0 and is in no e-mode collateralBitmap -> cannot be collateral",
+    "PT-sUSDe-25SEP2025 dead feed (127.3d) is ACCURATE/conservative: oracle 0.99904247 vs true ~1.00 -> understates ~0.1%",
+    "PT-sUSDe-25SEP2025 supplyCap=1 already exceeded (1.4511 supplied) -> supply() reverts even in e-mode cat 3 (75% LTV)",
+    "every reserve with a live LTV has a fresh feed (<=0.05d); 18/18 scanned",
+    "the two dead feeds are unmanipulable: PythOracleAdapter needs a signed Pyth update; ChainlinkConsumer enforces monotonic timestamps (OldData) -> stale only, not manipulable",
+    "isolated pairs (~$110k total) use OracleChainlink which DOES enforce maxOracleDelay (reverts 'invalid oracle price'); the one stale oracle sits on a ~$1 pair"
+  ],
+  "poc": {"tests_passed": 7, "tests_total": 7, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40227781920"]},
+  "key_facts": [
+    "Pool 0x00A89d7a5A02160f20150EbEA7a2b5E4879A1A8b (proxy -> impl 0xbebb62c7ff8b96db4325d9481c44e09a92d49b06, aave-v3-origin v3.4 PoolInstance); Oracle 0xC9Fb4fbE842d57EAc1dF3e641a281827493A630e (stock AaveOracle, USD 1e8)",
+    "pool size $467.7M supplied / $162.4M borrowed (sum of aToken/variableDebtToken totalSupply x oracle prices)",
+    "USDHL 0xb50A96253aBDF803D85efcDce07Ad8becBc52BD5 feed 0xa19b7fE6FFd492dd84ADF38D37B974Cb52f40267 = PythOracleAdapter using pyth.getPriceUnsafe; updatedAt 1787759670 = 60.1d stale; price 0.99779574",
+    "PT-sUSDe-25SEP2025 0xb7379d395F3c83952ad794896205f7E33E358735 feed 0x8514D528275025AD9bE6019e6e189DFeF1Db6c5e = PendlePriceCapAdapter (matured, discount 0) reading SingleFeedProvider 0x6926d2C4f5aecD82192A9faf7B8e09A1d103bf23 (Chainlink Data Streams USDe/USD); updatedAt 1781949599 = 127.3d stale; price 0.99904247",
+    "true PT value ~$1.00 (0.79692-0.79831 sUSDe per PT x $1.2544; empirical redemption tx 0x678b7b63 at block 48342068 on 2026-10-11); PT redeemable via YT.redeemPY",
+    "CORRECTION to pass-7: e-mode cat 3 'PT-sUSDe / stablecoins' (LTV 7500) has collateralBitmap=0x800 -> PT-sUSDe is e-mode collateral at 75% LTV (reserve LTV is 5bps); bitmaps hidden by legacy getEModeCategoryData(), read from Pool storage slot 55",
+    "CORRECTION to pass-7: both dead-feed reserves are soft-delisted (supplyCap=1 & borrowCap=1, already exceeded) - a second gate beyond LTV",
+    "fork-proven trigger: with USDHL LTV 70% + open caps, 1,000,000 USDHL of dead-feed collateral yields availableBorrowsBase $698,457.02 (borrow power 0.698457/USDHL) and borrow(USDC,100000e6) succeeds",
+    "fork-proven trigger: with PT supplyCap opened, 100,000 PT in e-mode 3 yields availableBorrowsBase $74,928.19 (0.749282/PT) and borrow(USDT0,50000e6) succeeds",
+    "isolated pairs: registry 0xf55AF86c9EC3a7d5fa6367c00a120E6B262f718d, 4 HyperlendPair contracts; 0x06Fd(USDT0/WHLP ~$71k) 0xb8fE(USDT0/xHYPE ~$1) 0x78DD(USDC/xHYPE ~$22k) 0x9465(WHYPE/kmHYPE ~$15k); maxOracleDelay 7d (x3) / 70d (x1)"
+  ],
+  "caveats": [
+    "read-only: no tx signed/sent; PoC is fork-only (GitHub Actions, keyless public HyperEVM RPC)",
+    "point-in-time 2026-10-25; caps/LTV/feeds can change - re-read before acting",
+    "getEModeCategoryData() returns only the legacy struct; v3.4 bitmaps must be read from raw Pool storage (slot 55)",
+    "trigger tests use vm.store state overrides (open caps / raise LTV); they measure the mechanism and ceiling, not a live drain",
+    "no path is attacker-triggerable today - all triggers need a governance/config change or a stablecoin depeg"
+  ],
+  "one_liner": "HyperLend's $467.7M core pool uses a stock AaveOracle with no staleness check and two genuinely dead feeds (60d/127d), but E-U is $0 because both feeds are accurate and both dead-feed reserves are soft-delisted (supplyCap=1 & borrowCap=1 exceeded; USDHL LTV=0); re-arm trigger = a dead feed gaining a real LTV + an open cap + a >30% depeg (USDHL) or the e-mode-3 PT supplyCap opening + a USDe depeg below ~$0.748."
+}
