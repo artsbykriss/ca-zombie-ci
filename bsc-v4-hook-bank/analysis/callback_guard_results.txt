@@ -1,0 +1,19 @@
+Read-only eth_call results from a stranger EOA 0x7a3f...9f01 at BSC head (2026-10-24):
+
+unlockCallback(empty bytes)        -> revert 0x            (guarded)
+pancakeV3SwapCallback(0,0,'')      -> revert 0x4b602735    = OnlyPool()
+uniswapV3SwapCallback(0,0,'')      -> revert 0x4b602735    = OnlyPool()
+fallback 0xdeadbeef                -> revert 0x            (no permissive fallback)
+f9125e2c(0)                        -> revert 0x82b42900    = Unauthorized()
+authorize(0x7a3f...)               -> revert 0x82b42900    = Unauthorized()
+05e85860 (9 words of zero)         -> revert 0x
+
+OnlyPool() = 0x4b602735 is present in the router runtime code as a PUSH4 constant at offset 3431.
+Unauthorized() = 0x82b42900 and InvalidSqrtPriceLimit = 0xb5c41efe are NOT in the router runtime code
+=> those reverts propagate from externally-called contracts.
+
+Real bot calldata replay:
+0xf35ca728(tokenIn,amountIn,limit,tokenOut) -> revert Error("SPL")   (swap price-limit require)
+0x9e1941ca(8 words incl PCS_V4_MANAGER)     -> revert InvalidSqrtPriceLimit(uint160,uint160)
+0x716629d5(13 words)                        -> SUCCESS: PCS V4 Swap(...) from 0xa0FfB9c1 +
+                                               ERC20 Transfer BANK_ADDRESS -> PCS_V4_VAULT

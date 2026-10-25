@@ -1,0 +1,43 @@
+{
+  "finding": "ZH4-PASS6-T3-7",
+  "title": "Unnamed BSC 'bank' 0x16ceff8d... is a permissionless PancakeSwap-Infinity (V4) swap router; bot-cluster failures are normal swap churn, no unprivileged drain found",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 129592843,
+  "block_numbers": {"bsc": 129592843},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Probed selectors (f35ca728, 9e1941ca, a3f8ea7c, d1e57635, 716629d5, ...) are the router's PERMISSIONLESS swap entrypoints; reverts are downstream swap validation (Error(\"SPL\"), InvalidSqrtPriceLimit(uint160,uint160)=0xb5c41efe), not access control",
+    "Successful calls emit PancakeSwap Infinity Swap(...) from PCS_V4_MANAGER 0xa0FfB9c1 and a token Transfer from BANK_ADDRESS EOA 0x7817dbf3 -> PCS_V4_VAULT 0x238a3588",
+    "pass6 claim 'f35ca728 reverts Unauthorized()' NOT reproducible with the bots' real calldata; Unauthorized()=0x82b42900 belongs to admin fns authorize(0xb6a5d7de) and f9125e2c(uint256)",
+    "No path found that pays the router's 65.47 BNB to a caller-controlled recipient; native-balance exit appears role-gated"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": []},
+  "key_facts": [
+    "Target 0x16ceff8d5a4c8648fcc7293f8bd3ac9ada454219: runtime 22469 B, 39-entry dispatch, UNVERIFIED, holds 65.4706 BNB (~$47,976 @ $732.78/BNB) at BSC block 129592843",
+    "Immutables: PCS_V4_MANAGER=0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b, PCS_V4_VAULT=0x238a358808379702088667322f80aC48bAd5e6c4, UNI_V4_MANAGER=0x28e2Ea090877bF75740558f6BFB36A5ffeE9e9dF, BANK_ADDRESS=0x7817DBF38E9d1c95671625F0052c147864692fe0 (EOA, 15.6448 BNB)",
+    "Callbacks: unlockCallback(bytes)=0x91dd7346, pancakeV3SwapCallback=0x23a69e75, uniswapV3SwapCallback=0xfa461e33 => V4+V3 multi-DEX router",
+    "V3 swap callbacks guarded by OnlyPool()=0x4b602735 (router's own error, PUSH4 at code offset 3431): stranger call reverts OnlyPool; unlockCallback reverts empty => no missing-caller-check drain",
+    "authorize(address)=0xb6a5d7de and f9125e2c(uint256) revert Unauthorized()=0x82b42900 (NOT in router code => propagates from an external access-control contract)",
+    "Runtime code contains NO ASCII strings and NO custom-error selectors => reverts propagate from called contracts (thin router)",
+    "Bot cluster: 1501 txs to target in 1500 BSC blocks, 25 distinct EOAs (nonces ~1.9M), all value=0; 436 success (29%) / 1065 fail (71%)",
+    "d1e57635 is OPERATOR-GATED: stranger reverts Unauthorized()=0x82b42900 while bot/owner caller succeeds -> whitelisted bot fleet, not permissionless",
+    "f35ca728/9e1941ca/a3f8ea7c revert on swap-parameter validation (Error(\"SPL\"), InvalidSqrtPriceLimit=0xb5c41efe, SwapAmountCannotBeZero=0xbe8b8507) for strangers; an auth gate may sit behind that validation",
+    "Token-flow analysis of 120 successful calls: BANK_ADDRESS->PCS_V4_VAULT 54, ->BANK_ADDRESS 81, BANK_ADDRESS-> 17; ZERO transfers pay or debit the caller -> caller only triggers, bank trades, output goes to the bank",
+    "Successful selector observed: 0x716629d5 (13 words) executes a PancakeSwap Infinity swap",
+    "PCS V4 Swap event topic0 = 0x04206ad2b7c0f463bff3dd4f33c5735b0f2957a351e4f79763a4fa9e775dd237",
+    "Bank balance grew 54.5 BNB (2026-10-23) -> 65.47 BNB (2026-10-24): actively accumulating",
+    "Linked value: PCS_V4_VAULT 6845.63 BNB (~$5.02M), UNI_V4_MANAGER 2906.88 BNB (~$2.13M), $8.63M proxy 0x6aba0315 3476.04 BNB (~$2.55M)"
+  ],
+  "caveats": [
+    "Contract is UNVERIFIED; identification is by ABI/behaviour, not source. Child decompilation (analysis/CHILD-BSC.md) is the byte-level confirmation",
+    "No archive RPC on public BSC nodes (~128 blocks of state) => no historical balance sampling",
+    "Nonce is a proxy for freshness; 1500-block window is a sample (fleet ongoing)",
+    "Residual: a missing caller/onlyPoolManager check on one of the ~20 (address) role paths or the V4/V3 callbacks is the only place an unprivileged path could hide; fork PoC tests this",
+    "Point-in-time 2026-10-24, block 129592843"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 from the BSC 'bank' 0x16ceff8d (65.47 BNB): it is a permissionless PancakeSwap-Infinity V4 swap router whose 25-bot traffic generates a false-positive 'probed protocol' signal; the bot reverts are normal slippage/price-limit failures (Error(\"SPL\"), InvalidSqrtPriceLimit), not an access-control gate."
+}
