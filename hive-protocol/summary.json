@@ -1,0 +1,49 @@
+{
+  "finding": "ZH4-PASS7 row 3 (Hive Protocol, BSquared)",
+  "title": "Hive Protocol BTC-staking (BSquared) — contracts located, E-U $0",
+  "chains": ["bsquared"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 279875306.35, "P": 0, "S": 0},
+  "latest_block": 39897334,
+  "block_numbers": {"bsquared": 39897334},
+  "targets_checked": 8,
+  "live_targets": 8,
+  "closed_reasons": [
+    "staking payouts are per-user and stake-bounded; withdraw takes only pid, amount comes from the caller's own accounting",
+    "withdraw requires a matured unstake request (fork-proven: no unstake -> 0 payout; over-unstake reverts 'Not enough staking token balance')",
+    "vault deposit/withdraw/transferToStaking require msg.sender == strategies[pid] (fork-proven revert 'no permission')",
+    "strategy manager withdraw is caller-whitelisted (fork-proven revert 'no permission to call')",
+    "B2-staking withdraw/requestWithdrawals are request+balance+lockup gated; admin fns onlyOwner",
+    "34 unprivileged probes on the staking contract moved 0 wei (aggregate staking+vault delta 0)"
+  ],
+  "poc": {
+    "tests_passed": 17,
+    "tests_total": 17,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40231111043"
+    ]
+  },
+  "key_facts": [
+    "staking proxy 0xd5B5f1CA0fa5636ac54b0a0007BA374A1513346e (170B Solady ERC-1967) -> impl 0x41b3C11d65bA8B625d0116E6f512C5e605f946f7; holds 2918.949047718480553371 BTC (~$234.98M)",
+    "vault proxy 0xe677F4B6104726D76DeBc681d7a862CE269aA8F3 -> impl 0x59b1cDe6D056d8B8E36Ac6055a9d46d071a6C036; holds 418.289511807089039265 BTC (~$33.67M)",
+    "B2-staking proxy 0x796e4D53067FF374B89b2Ac101ce0c1f72ccaAc2 -> impl 0x0619E2276F1eb22205544d0F315533f5E3EeaBdb; holds 139.474180565218215250 BTC (~$11.23M)",
+    "strategy manager 0xcf38C660e0E99BED4c4aC8817922A0a3A996700B -> impl 0x7b40779fb681054df2b2F29b527CEB5eeca9d3fd; 0 BTC",
+    "B2 token 0x783c3f003f172c6Ac5AC700218a357d2D66Ee2a2; totalSupply 432800.2544 B2; staking holds 120035.29 B2",
+    "vault.strategies(0..4) all = 0xd5B5...46e; strategyManager.getStrategyCount()=5; poolLength()=5",
+    "paused=false withdrawPaused=false claimPaused=false at block 39897334",
+    "ADMIN_ROLE=0x589d473b...fccde, UPGRADE_ROLE=0xcab03bc4...e6f9; staking roles held by EOA 0x8Da30b68b1E11761e1307EB10564a39E01ae4480, vault roles by EOA 0x8f3c6735152074e4ce2b31bba8b48f128998d76d",
+    "staking impl upgraded 0x6a7C2f1272A9703092D13Df23742a65e18DD1D06 -> 0x41b3...946f7 at block 39700812; vault impl upgraded at block 39700059; ~2800 BTC moved vault->staking (role-gated transferToStaking)",
+    "fork test: deposit 0.01 BTC -> unstake(0,0.01) -> warp 1e6 blocks -> withdraw(0) pays 0.01 BTC from the staking contract (staking delta -0.01, vault delta 0)",
+    "fork test: 34 unprivileged function probes (fe92e060, 75c717ef, fb2d64b1, 514c25c3, setVault, setB2, pauseWithdraw, grantRole, upgradeToAndCall, ...) -> aggregate staking/vault delta 0",
+    "real historical withdraw block 39121414 tx 0xa7238f8dd9ca... paid 0.02 BTC from the vault (pre-upgrade impl)"
+  ],
+  "caveats": [
+    "not all ADMIN_ROLE holders enumerated (mapping not enumerable); two single-EOA upgrade authorities identified via the upgrade txs",
+    "total user accounting not summed, so holder-attribution of the full 3476.71 BTC is an assumption; E-U=$0 does not depend on it",
+    "BSquared has no reachable verified-source explorer (explorer /api/v2 404, Sourcify 404, Etherscan-V2 unsupported chainid) -> all logic recovered by heimdall decompilation and confirmed by fork tests",
+    "categories are not additive: the same custodied BTC is reachable by the privileged (P) upgrade path",
+    "point-in-time 2026-10-25; no transaction signed or sent"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from Hive Protocol (BSquared); the 3,476.71 BTC (~$279.9M) is holder-recoverable but every value/admin path is request-bounded or role-gated (17/17 fork tests), so the finding is code-clear; the material residual is a single-EOA UUPS upgrade authority (P)."
+}
