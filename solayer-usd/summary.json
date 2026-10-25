@@ -1,0 +1,49 @@
+{
+  "finding": "p7-solana-c/solayer-usd",
+  "title": "Solayer USD (sUSD) — no external unprivileged extraction from the usdc-pool-program mint/redeem/NAV surface; pool is in sunset (deposits closed)",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 707818.54, "P": 707818.54, "S": 0},
+  "latest_block": 461396307,
+  "block_numbers": {"solana": 461396307},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Deposit (the only free-mint path) is CLOSED: deposit.rs:73 -> 6039 DepositClosed. The pool is in a sunset wind-down (batchDepositStatus=2).",
+    "All 14 manager/operator/rateAuthority instructions revert 2001 ConstraintHasOne when signed by a neutral third party: set_manager, set_operator, set_rate_authority, set_fee, update_susd_metadata, update_susd_rate, create_susd_offset_pda, emergency_transfer_rwa_token, initiate_batch_deposit, resolve_batch_deposit, initiate_batch_withdraw, resolve_batch_withdraw, collect_fee, sunset_finalize.",
+    "Correct-signer controls prove the gate is signer identity: set_fee signed by the real manager SUCCEEDS; update_susd_rate signed by the real rateAuthority and initiate_batch_withdraw signed by the real operator pass has_one and then revert 6036 PoolSunset; resolve_batch_withdraw signed by the real operator reverts 6026 InvalidStatus.",
+    "withdraw (the only unprivileged value-moving instruction) escrows the caller's OWN sUSD into poolSusdVault and moves NO USDC. Live replay for holder DgCkhZVt...: -1000 raw sUSD from their ATA into poolSusdVault, +0 USDC. USDC payout is a separate operator-gated resolve_batch_withdraw.",
+    "withdraw with a victim's sUSD vault -> 2015 ConstraintTokenOwner; withdraw re-using another user's WithdrawProof -> 2006 ConstraintSeeds; deposit with a victim's USDC account -> 2015 ConstraintTokenOwner.",
+    "claim_with_migrated_deposit_proof with the attacker's own vault -> 2015 ConstraintTokenOwner; with the proof's vault but attacker signer -> 2003 ConstraintRaw. migrate_deposit_proof -> 2006 ConstraintSeeds.",
+    "handle_frozen_accounts -> 6026 InvalidStatus (handle_frozen_account.rs:215); it needs an active batch status the attacker cannot create.",
+    "sunset_initiate_batch_withdraw account layout could not be reconstructed (it is absent from the stale on-chain IDL) and it was not exercised on-chain in the sampled window; it is the operator-gated sunset twin of initiate_batch_withdraw whose RWA vaults are already empty, so it is not an E-U vector.",
+    "initialize fails (system CPI, pool already exists); sunset_redeem_all fails (system CPI, RWA already redeemed)."
+  ],
+  "poc": {
+    "tests_passed": 27,
+    "tests_total": 27,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Program (BPFLoaderUpgradeable) s1aysqpEyZyijPybUV89oBGeooXrR22wMNLjnG2SWJA = 'usdc-pool-program' v0.1.0; programdata 7bzcebKDN8qDkftxobwArKJL8xSGaZ6zBPaY4C4wEhkf, last_deploy_slot 459777916, upgrade_authority 7671j7qpSf9X5KbQDraXReGK8Dxg5xGjr9n913BWhqru",
+    "Real sUSD mint = susdabGDNbhrnCa6ncrYo81u4s9GM8ecK2UwMyZiq4X (Token-2022, interest-bearing, symbol sUSD, mintAuthority=freezeAuthority=rateAuthority=the pool PDA FhVcYNEe58SMtxpZGnTu2kpYJrTu2vwCZDGpPLqbd2yG). The DefiLlama 'address' LAYER4xPpTCb3QL8S9u41EAhAX7mhBn8Q6xMTwY2Yzc is the unrelated LAYER governance mint.",
+    "Pool PDA FhVcYNEe58SMtxpZGnTu2kpYJrTu2vwCZDGpPLqbd2yG (379-byte Pool, disc f19a6d0411b16dbc): manager 7671j7qp... (Squads vault), operator AxnDY6nekRa4hEY1rm1g11A51EPPU29iAXXxh8vAqpM8, rateAuthority uRwMu2114gN23NZVFxkjM6Dwk1iqSc1LLQsHMmiT6Lr, fee 5/1000 -> 3NC1UF4pus6ditVzbcJCLFCVyBLVJm2kxKMhb3mPAoaz",
+    "Live (slot 461393409): poolUsdcMainVault DN2KzAeiHFnndVpjWSTw8UkwF9PZaFSthSnVoW1MVThQ = 708,102.871791 USDC; poolSusdVault FfELPrBpJBzyND1xTM6NmXRaQJbuP8c5J8jmJWZvDJds = 20,671,325 raw sUSD escrow; sUSD raw supply 617,526.573503 / uiAmount 729,545.645829; 57,868 sUSD holders",
+    "The program's full Anchor IDL is stored on-chain, zlib-compressed in program-owned account 3wgB6vYowPy9PeqmZeFBM3o5R5zHGSmNamViuLrGxGeo (disc 184662bf3a907b9e, 18,628 bytes); recovered to analysis/idl.json. It is stale (missing the three sunset_* instructions and the SunsetInfo account).",
+    "Pool is in sunset: sunset_redeem_all (slot 460369625) moved 665,076.226483 cUSDO out; sunset_finalize (slot 460572956) moved 707,958.346338 USDC into poolUsdcMainVault; both executed through the Squads multisig SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf (VaultTransactionExecute).",
+    "withdraw(nonce, amount): creates WithdrawProof PDA seeds ['withdraw_proof', pool, signer, nonce_be8]; records {bump, nonce, from, amount, mint=sUSD, batchId, userUsdcVault=ATA(from,USDC)}. Escrows 'amount' raw sUSD from the signer's ATA into poolSusdVault. Verified: userUsdcVault of proof pzWrVqaj... equals ATA(proof.from, USDC).",
+    "resolve_batch_withdraw (operator-only) pays usdc_withdraw_amount = floor(proof.amount * numerator / denominator) from poolUsdcTokenAccountForWithdraw usdcLDuDT41YeWcbiMLJ6AoqTumSbJtTQCebJsZJsih to each proof's userUsdcVault; real tx slot 460050965 distributed 1,482,371,326 USDC (vault -> 0) across 3 users. Stored ratio withdrawUsdcSusdTokenRatio = 1482371326/1291803292 = 1.14752.",
+    "sUSD is a Token-2022 interest-bearing mint: preUpdateAverageRate 806, uiAmount multiplier ~1.1814 (uiAmount/raw = 729545.645829/617526.573503). Redeem is at the raw ratio (~1.1467 USDC/raw) so accrued ui-interest slightly exceeds USDC backing (a holder shortfall, not an attacker gain).",
+    "All 27 CI simulations matched their expected outcome (14 has_one gates, 3 correct-signer controls, deposit closed, 4 user-path gates, 1 live escrow replay). No unprivileged path moved USDC.",
+    "Role keys are plain system accounts: manager 7671j7qp... (0.0999 SOL, Squads vault), operator AxnDY6n... (0.2846 SOL, hot key), rateAuthority uRwMu21... (0.2883 SOL)."
+  ],
+  "caveats": [
+    "Single snapshot at slot 461,393,409 (CI re-read at ~461,396,307); balances and USD prices drift. USDC $0.9995984819 (DefiLlama ts 1792960181).",
+    "The on-chain IDL is stale: it omits the three sunset_* instructions and the SunsetInfo account type, and its Status enum (2 variants) disagrees with the deployed code (batchDepositStatus observed = 2). sunset_initiate_batch_withdraw's account list is therefore inferred, not verified.",
+    "sunset_redeem_all cannot be re-run to observe success (its RWA vault is already empty); it reverts with a system CPI error for both attacker and manager.",
+    "handle_frozen_accounts was only testable in the current (Inactive) batch state, where it reverts 6026 InvalidStatus; its behaviour under an active batch could not be exercised because only the operator can create that state.",
+    "E-U is $0 at this snapshot; a program upgrade (upgrade authority is live) or a re-opened deposit path would require a fresh pass. Re-run ci/run.sh after any change to last_deploy_slot."
+  ],
+  "one_liner": "Solayer USD (sUSD) is not exploitable by an external unprivileged attacker right now: the mint path is closed (sunset) and the only unprivileged value-mover, withdraw, merely escrows the caller's own sUSD while every USDC-moving instruction is has_one-gated to the operator/manager; E-U $0 (high confidence), with ~$707,819 of pool USDC redeemable by sUSD holders and controllable by the manager (Squads) / operator hot key."
+}
