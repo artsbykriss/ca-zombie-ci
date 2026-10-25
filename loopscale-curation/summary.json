@@ -1,0 +1,33 @@
+{
+  "finding": "p7-solana-c/loopscale-curation",
+  "title": "Loopscale Curation — curator/NAV roles module over Exponent vaults; unprivileged capture closed",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0.00, "P": 0.00, "S": 0.00},
+  "latest_block": 461389570,
+  "block_numbers": {"solana": 461389570},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "curator role is governance-assigned via the vault program's proposal/Squads path, not a permissionless instruction",
+    "UpdatePrice price accounts are PDA-seed + explicit-account bound (ConstraintSeeds 2006 / MissingPriceAccount 6070 / InvalidAccountData 6085)",
+    "UpdateTwapPrice -> InvalidPriceManager (6068) for any non-manager signer",
+    "RefreshAum is permissionless but input-free (recomputes AUM from bound prices; StalePriceData otherwise)",
+    "QueueWithdrawal -> PrivilegeEscalation for a substituted signer (owner-gated)"
+  ],
+  "poc": {"tests_passed": 8, "tests_total": 8, "ci_run_urls": []},
+  "key_facts": [
+    "PRIOR-PARTIAL: pass5 assigned Loopscale CORE (1oopBoJG58DgkUVKkEzKgyG9dvRmpgeEm1AVjoHkF78); this is the distinct curation/roles module over Exponent strategy vaults",
+    "Vaults program sVau1tXvayVWfotzm9Ahcv2qfnnfRWttt78BCnNC6dD, upgrade authority 62zLwJ1xBfsUkhLuBtxgdd8xvhrJ19suDBxviXG95baN (off-curve)",
+    "13 of 72 Exponent strategy vaults are curated by bs1PuRvB9rBBZkryBjADYvxc2qYh51EVW2fsb1uTiBN, an ON-CURVE EOA",
+    "each curated vault has its own squads_settings + squads_vault (per-vault Squads governance)",
+    "DefiLlama loopscale-curation = $7,075,933.52 (Solana, 2026-10-25); on-chain idle reserves of the 13 vaults ~= $25,191 (rest deployed into positions)"
+  ],
+  "caveats": [
+    "vault struct layout has version drift (MigrateVaultLayout); full AUM not byte-decoded, so USD uses DefiLlama AUM + live idle-reserve cross-check",
+    "curator is an EOA -> key-management risk (P-class), not E-U",
+    "balances point-in-time 2026-10-25"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 from the Loopscale curation module: the curator role is governance-assigned and every NAV/price/withdrawal path on the Exponent vaults program is bound or signer-gated."
+}
