@@ -1,0 +1,323 @@
+{
+ "results": [
+  {
+   "name": "unstake_victim_entry",
+   "desc": "unstake() victim entry, attacker U (valid own ATAs) as authority",
+   "expect": "reject: entry authority != signer",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6005
+     }
+    ]
+   },
+   "unitsConsumed": 18944,
+   "log_tail": [
+    "Program log: Left:",
+    "Program log: 4XhM42CN9xTrjXkZawWPM9JmVz2jxxKSL3MnCKWjcQ26",
+    "Program log: Right:",
+    "Program log: DwFjhrXJbwaUKqseGx4shFwtqNWGRk7Vywx6UP22zGqL",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 18944 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1775"
+   ]
+  },
+  {
+   "name": "unstake_own_entry_CONTROL",
+   "desc": "unstake() own entry, real authority U signs",
+   "expect": "passes authority gate (control)",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6016
+     }
+    ]
+   },
+   "unitsConsumed": 22815,
+   "log_tail": [
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH invoke [1]",
+    "Program log: Instruction: Unstake",
+    "Program log: AnchorError thrown in programs/stake-pool/src/instructions/unstake/base.rs:226. Error Code: UnstakeRequestRequired. Error Number: 6016. Error Message: Stake pool has unstake period, request is required prior to unstake.",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 22815 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1780"
+   ]
+  },
+  {
+   "name": "unstake_forged_vault",
+   "desc": "unstake() with sibling pool vault substituted",
+   "expect": "6008 InvalidStakeVault",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6008
+     }
+    ]
+   },
+   "unitsConsumed": 12619,
+   "log_tail": [
+    "Program log: Left:",
+    "Program log: 6YXp8LGUGeW7AjLaNMECq8E4JN1aU2um4apmP6VmXoY9",
+    "Program log: Right:",
+    "Program log: C7cqhMvY7Xry5VimXcc9YPwroZDm8NTo6tDeL23KULed",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 12619 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1778"
+   ]
+  },
+  {
+   "name": "unstake_forged_mint",
+   "desc": "unstake() with stake_mint substituted for mint",
+   "expect": "6007/6011 InvalidMint",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6011
+     }
+    ]
+   },
+   "unitsConsumed": 12388,
+   "log_tail": [
+    "Program log: Left:",
+    "Program log: STREAMribRwybYpMmSYoCsQUdr6MZNXEqHgm7p1gu9M",
+    "Program log: Right:",
+    "Program log: AvpZRQ4ZTimM2TQdm8cj7rcJcTqriDEFnWH7nSFC1foq",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 12388 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x177b"
+   ]
+  },
+  {
+   "name": "unstake_as_worker_forged",
+   "desc": "unstake_as_worker() victim entry, attacker as worker key",
+   "expect": "Unauthorized: worker must be wdrwhn...",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6005
+     }
+    ]
+   },
+   "unitsConsumed": 15120,
+   "log_tail": [
+    "Program log: Left:",
+    "Program log: HGgKAES15w2wgVrNJAc2e9JvTqUiZVH2J6zpNWz17myk",
+    "Program log: Right:",
+    "Program log: wdrwhnCv4pzW8beKsbPa4S2UDZrXenjg16KJdKSpb5u",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 15120 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1775"
+   ]
+  },
+  {
+   "name": "unstake_as_worker_realworker_CONTROL",
+   "desc": "unstake_as_worker() with the hard-coded worker signing",
+   "expect": "passes worker gate (control)",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6005
+     }
+    ]
+   },
+   "unitsConsumed": 15497,
+   "log_tail": [
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH invoke [1]",
+    "Program log: Instruction: UnstakeAsWorker",
+    "Program log: AnchorError thrown in programs/stake-pool/src/instructions/unstake/unstake_as_worker.rs:119. Error Code: Unauthorized. Error Number: 6005. Error Message: Account is not authorized to execute this instruction.",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 15497 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1775"
+   ]
+  },
+  {
+   "name": "migrate_entry_victim",
+   "desc": "migrate_entry() victim entry, attacker U as payer, U destination",
+   "expect": "reject: authority/signer",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 0
+     }
+    ]
+   },
+   "unitsConsumed": 15370,
+   "log_tail": [
+    "Program log: Instruction: MigrateEntry",
+    "Program 11111111111111111111111111111111 invoke [2]",
+    "Allocate: account Address { address: 5YUoVtA44dZmaQKkcsQ4KdPjXG1QRaFYcmC1BmYWxSdH, base: None } already in use",
+    "Program 11111111111111111111111111111111 failed: custom program error: 0x0",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 15370 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x0"
+   ]
+  },
+  {
+   "name": "change_authority_forged",
+   "desc": "change_authority() real pool, attacker U as authority",
+   "expect": "6005 Unauthorized",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6005
+     }
+    ]
+   },
+   "unitsConsumed": 4192,
+   "log_tail": [
+    "Program log: Left:",
+    "Program log: 4XhM42CN9xTrjXkZawWPM9JmVz2jxxKSL3MnCKWjcQ26",
+    "Program log: Right:",
+    "Program log: FrzJcAWGyMnfYb6imyjb85Qs4LB8gmswNnb7tsf1JTDw",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 4192 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1775"
+   ]
+  },
+  {
+   "name": "change_authority_CONTROL",
+   "desc": "change_authority() with the real pool authority signing",
+   "expect": "passes authority gate (control)",
+   "err": null,
+   "unitsConsumed": 3184,
+   "log_tail": [
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH invoke [1]",
+    "Program log: Instruction: ChangeAuthority",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 3184 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH success"
+   ]
+  },
+  {
+   "name": "request_unstake_victim",
+   "desc": "request_unstake() victim entry, attacker U authority",
+   "expect": "6005 Unauthorized",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6005
+     }
+    ]
+   },
+   "unitsConsumed": 4831,
+   "log_tail": [
+    "Program log: Left:",
+    "Program log: 4XhM42CN9xTrjXkZawWPM9JmVz2jxxKSL3MnCKWjcQ26",
+    "Program log: Right:",
+    "Program log: DwFjhrXJbwaUKqseGx4shFwtqNWGRk7Vywx6UP22zGqL",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 4831 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1775"
+   ]
+  },
+  {
+   "name": "close_entry_victim",
+   "desc": "close_entry() victim entry, attacker U authority",
+   "expect": "6005 Unauthorized",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6005
+     }
+    ]
+   },
+   "unitsConsumed": 5106,
+   "log_tail": [
+    "Program log: Left:",
+    "Program log: 4XhM42CN9xTrjXkZawWPM9JmVz2jxxKSL3MnCKWjcQ26",
+    "Program log: Right:",
+    "Program log: DwFjhrXJbwaUKqseGx4shFwtqNWGRk7Vywx6UP22zGqL",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 5106 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1775"
+   ]
+  },
+  {
+   "name": "stake_forged_vault",
+   "desc": "stake() with sibling pool vault substituted",
+   "expect": "6008 InvalidStakeVault",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6008
+     }
+    ]
+   },
+   "unitsConsumed": 18434,
+   "log_tail": [
+    "Program log: Left:",
+    "Program log: 6YXp8LGUGeW7AjLaNMECq8E4JN1aU2um4apmP6VmXoY9",
+    "Program log: Right:",
+    "Program log: C7cqhMvY7Xry5VimXcc9YPwroZDm8NTo6tDeL23KULed",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH consumed 18434 of 200000 compute units",
+    "Program STAKEvGqQTtzJZH6BWDcbpzXXn2BBerPAgQ3EGLN2GH failed: custom program error: 0x1778"
+   ]
+  },
+  {
+   "name": "vesting_withdraw_forged_authority",
+   "desc": "withdraw() victim stream, attacker as authority",
+   "expect": "Unauthorized (authority != sender/recipient)",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 99
+     }
+    ]
+   },
+   "unitsConsumed": 21442,
+   "log_tail": [
+    "Program log: Withdrawing from SPL token stream",
+    "Program log: Checking if all given accounts are correct",
+    "Program log: Provided accounts don't match the ones in contract.",
+    "Program log: ProgramError occurred. Error Code: Custom(99). Error Number: 99. Error Message: Custom program error: 0x63.",
+    "Program strmRqUCoQUgGUan5YhzUZa6KqdzwX5L6FpUxfmKg5m consumed 21442 of 200000 compute units",
+    "Program strmRqUCoQUgGUan5YhzUZa6KqdzwX5L6FpUxfmKg5m failed: custom program error: 0x63"
+   ]
+  },
+  {
+   "name": "vesting_withdraw_CONTROL",
+   "desc": "withdraw() with the real recipient signing",
+   "expect": "passes authority gate (control)",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 99
+     }
+    ]
+   },
+   "unitsConsumed": 21261,
+   "log_tail": [
+    "Program log: Withdrawing from SPL token stream",
+    "Program log: Checking if all given accounts are correct",
+    "Program log: Provided accounts don't match the ones in contract.",
+    "Program log: ProgramError occurred. Error Code: Custom(99). Error Number: 99. Error Message: Custom program error: 0x63.",
+    "Program strmRqUCoQUgGUan5YhzUZa6KqdzwX5L6FpUxfmKg5m consumed 21261 of 200000 compute units",
+    "Program strmRqUCoQUgGUan5YhzUZa6KqdzwX5L6FpUxfmKg5m failed: custom program error: 0x63"
+   ]
+  },
+  {
+   "name": "vesting_cancel_forged_sender",
+   "desc": "cancel() victim stream, attacker as sender",
+   "expect": "Unauthorized (authority != sender/recipient)",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 99
+     }
+    ]
+   },
+   "unitsConsumed": 27198,
+   "log_tail": [
+    "Program log: Cancelling SPL token stream",
+    "Program log: Checking if all given accounts are correct",
+    "Program log: Provided accounts don't match the ones in contract.",
+    "Program log: ProgramError occurred. Error Code: Custom(99). Error Number: 99. Error Message: Custom program error: 0x63.",
+    "Program strmRqUCoQUgGUan5YhzUZa6KqdzwX5L6FpUxfmKg5m consumed 27198 of 200000 compute units",
+    "Program strmRqUCoQUgGUan5YhzUZa6KqdzwX5L6FpUxfmKg5m failed: custom program error: 0x63"
+   ]
+  }
+ ]
+}
