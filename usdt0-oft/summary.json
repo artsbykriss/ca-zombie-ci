@@ -1,0 +1,37 @@
+{
+  "finding": "P7-04",
+  "title": "USDT0 LayerZero OFT adapter (OAdapterUpgradeable) — inbound DVN config & peer verification",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 26271799,
+  "block_numbers": {"ethereum": 26271799},
+  "targets_checked": 30,
+  "live_targets": 21,
+  "closed_reasons": [
+    "all 21 live inbound LayerZero routes are 3-of-3 required DVN (0 optional) — no single-DVN path",
+    "lzReceive is endpoint+peer gated (OnlyEndpoint + _getPeerOrRevert==origin.sender); forged call from 0xdead reverts OnlyEndpoint",
+    "the four weak 1-of-1 DVN configs (eid 30165/30214/30375 -> 0x747c7414..., eid 30243 -> 0x...dEaD) have no peer set; lzReceive from the real endpoint reverts NoPeer(30165)",
+    "initialize is locked (OZ v5 Initializable slot 0xf0c57e16...c6a00 = 1); impl constructor calls _disableInitializers()"
+  ],
+  "poc": {"tests_passed": 3, "tests_total": 3, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40232463980"]},
+  "key_facts": [
+    "proxy 0x6C96dE32CEa08842dcc4058c14d3aaAD7Fa41dee -> impl 0xcd979b10a55fcdac23ec785ce3066c6ef8a479a4 (EIP-1967 slot matches)",
+    "native USDT 0xdAC17F958D2ee523a2206206994597C13D831ec7 balanceOf(proxy) = 3196899493942590 (6dp) = 3,196,899,493.94 USDT ~ $3.197B at block 26271799",
+    "endpoint 0x1a44076050125825900e736c501f859c50fE728c; ULN302 receive lib 0xc02Ab410f0734EFa3F14628780e6e695156024C2",
+    "owner() = endpoint.delegates(oapp) = 0x4DFF9b5b0143E642a3F63a5bcf2d1C328e600bf8; TransparentUpgradeableProxy admin = 0x4de7096b2131e84fd6b2042ad8cd9b4e43f728fc",
+    "21 live peers (30109,30110,30111,30181,30212,30274,30280,30295,30316,30320,30322,30333,30339,30362,30367,30383,30390,30396,30398,30410,30600) all 3-of-3 DVN set {0x3b0531eb...,0x589dedbd...,0xf9d2c091...}",
+    "4 dormant no-peer weak routes: 30165/30214/30375 (1-of-1 0x747c741496a507e4b404b50463e691a8d692f6ac), 30243 (1-of-1 0x000000000000000000000000000000000000dEaD)",
+    "pass7 listed only 8 live routes; on-chain peers() + full PeerSet history show 21 (13 missed). Verdict unchanged (all 3-of-3)",
+    "PeerSet(uint32,bytes32) topic0 = 0x238399d427b947898edb290f5ff0f9109849b1c3ba196a42e35f00c50a54b98b; 25 events since deploy block 21580781; dormant eids never appear",
+    "forged lzReceive from 0x...dEaD reverts OnlyEndpoint(0x...dEaD); lzReceive from real endpoint for eid 30165 reverts NoPeer(30165)"
+  ],
+  "caveats": [
+    "read-only eth_call/eth_getLogs only; no mainnet tx sent",
+    "chain names for eids 30212/30274/30280/30295/30320/30322/30333/30339/30362/30367/30383/30390/30396/30398/30410/30600 unresolved (LayerZero metadata API 403)",
+    "USDT valued at $1.00",
+    "configs are read at block 26271799 and can change (monitor SetConfig / setPeer / setDelegate)"
+  ],
+  "one_liner": "USDT0 Ethereum OFT adapter holds ~$3.197B USDT; all 21 live inbound routes are 3-of-3 DVN so E-U is $0 — the only weak 1-of-1 DVN routes (eid 30165/30214/30375 and 30243) are inert with no peer; trigger = a PeerSet on any of them."
+}
