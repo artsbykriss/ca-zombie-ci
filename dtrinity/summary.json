@@ -1,0 +1,46 @@
+{
+  "finding": "ZH4-PASS7-TARGET-3",
+  "title": "dTRINITY dLEND (Aave-V3 fork) liquidity-index inflation — Sonic unpatched but frozen; Fraxtal/Ethereum patched; $0 live",
+  "chains": ["fraxtal", "ethereum", "sonic"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 81615554,
+  "block_numbers": {"sonic": 81615554, "fraxtal": 43073936, "ethereum": 26271956},
+  "targets_checked": 3,
+  "live_targets": 3,
+  "closed_reasons": [
+    "Fraxtal Pool 0xD76C827Ee2Ce1E37c37Fc2ce91376812d3c9BCE2 impl 0x20a24d51aded06b5ccbc3cc8f71d1e141391a6d7 is PATCHED (routes full flash-loan premium to treasury; never calls cumulateToLiquidityIndex) AND every unfrozen reserve has flashloanEnabled=0 (only frozen reserves have flash=1)",
+    "Ethereum Pool 0x6598DaD18Bda89A0E58A1F427c8CeBc0dE90F153 impl 0xeaa40d04b02726a130c3fd54da7aee7835974f1a is PATCHED AND all 15 reserves have flashloanEnabled=0",
+    "Sonic Pool 0xEdC3cfB1aa36c570cc1D374876268bDda2D460CC impl 0x179867c392add1bf4f7a3d4c70bf8f2f476bb8cc is UNPATCHED (still calls cumulateToLiquidityIndex on flash-loan repay) BUT all 11 reserves are frozen=1 -> supply() and borrow() revert Error('28'); only borrowable assets dUSD (cash 0) and dS (cash 597.7)",
+    "Katana has no dLEND Pool deployed (only the dUSD/dETH stablecoin system)"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40229332526",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40228869145"
+    ]
+  },
+  "key_facts": [
+    "Live impls (EIP-1967): Fraxtal 0x20a24d51aded06b5ccbc3cc8f71d1e141391a6d7 (L2Pool, solc 0.8.24, keccak 0x3427b8a4a151a0f5e4eaf400f47ab440bb13c4babd0a556ff2ecd3970c97ec04); Ethereum 0xeaa40d04b02726a130c3fd54da7aee7835974f1a (L2Pool, 0.8.22, keccak 0xfb69ed0716579376620207aafd79384fd5c84e6308b5b7019c2e8488bffb7e11); Sonic 0x179867c392add1bf4f7a3d4c70bf8f2f476bb8cc (L2Pool, 0.8.20, keccak 0xb207a786c65a88b6fa4e450a4cde151204a0798ca7e647b3ab7c0e3dd1680743)",
+    "Sonic deployed FlashLoanLogic._handleFlashLoanRepayment still contains reserve.cumulateToLiquidityIndex(aToken.totalSupply()+accruedToTreasury.rayMul(index), premiumToLP) with NO minimum-liquidity guard (the exact 2026-03-17 Ethereum cbBTC root cause, ~$257,328.63 dUSD)",
+    "Fraxtal & Ethereum deployed FlashLoanLogic._handleFlashLoanRepayment route the FULL premium to accruedToTreasury and never call cumulateToLiquidityIndex (patch comment: 'Route the full flash-loan premium to the protocol treasury')",
+    "Fork-proven UNPATCHED behaviour on Sonic: donating 100 WETH to the WETH aToken then repaying a 100-WETH flash loan (premium 5 bps) moved the liquidity index from 1.000000050768080105021296080e27 to 1.126732957054914074220441063e27 (x1.1267, +12.67%) in one call",
+    "Fork-proven PATCHED behaviour on Fraxtal: identical donate+flash-loan recipe on the USDe reserve (flash bit forced on) left the index EXACTLY unchanged (1000485424186372924243003231)",
+    "Sonic: all 11 reserves frozen=1 (supply/borrow revert Error('28') RESERVE_FROZEN); flashLoanSimple on frozen WETH SUCCEEDS (frozen is not checked by validateFlashloanSimple); dUSD cash=0, dS cash=597.7, wstkscUSD cash=150546.7",
+    "Fraxtal: only frozen reserves (scrvUSD, FXB20251231, sDAI, USDe) have flashloanEnabled=1; flashLoanSimple on unfrozen sUSDe reverts Error('91') FLASHLOAN_DISABLED",
+    "Ethereum: all 15 reserves flashloanEnabled=0; dUSD cash=115341.2",
+    "Privileged residual (all chains): Pool.backUnbacked -> BridgeLogic.executeBackUnbacked still calls cumulateToLiquidityIndex but is onlyBridge-gated (ACLManager.isBridge)",
+    "DefiLlama dtrinity-dlend TVL (supplied, user-owned): Ethereum $603,518 / Sonic $183,418 / Fraxtal $177,722 (borrowed reported $0); chains = Ethereum, Sonic, Fraxtal only"
+  ],
+  "caveats": [
+    "Point-in-time 2026-10-25; re-read live config bits before acting",
+    "Sonic positive index-inflation test used a permissionless ERC-20 donation to build a thin market; the $0 verdict rests on the UNMODIFIED forks where supply/borrow revert Error('28')",
+    "Fraxtal negative test forced the flash bit on (storage override) to isolate the code; live unfrozen reserves are already flash-disabled (Error('91'))",
+    "Latent risk is conditional: Sonic unfreeze of a reserve PLUS a fresh near-empty market listing with flash enabled and borrowable liquidity would re-open a cbBTC-class exploit bounded by that market's liquidity",
+    "Katana confirmed to have no dLEND Pool (only dUSD/dETH stablecoin system)"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from dTRINITY dLEND: Fraxtal & Ethereum impls are patched (full flash-loan premium to treasury, no cumulateToLiquidityIndex) with flash loans disabled, and the only chain still running the unpatched Sonic impl has every reserve frozen (supply/borrow revert '28') with dUSD cash=0 — fork-proven."
+}
