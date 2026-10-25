@@ -1,0 +1,74 @@
+-- Copyright (c) 2026 DLC-Link, Inc. and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+--  ____  __  ____  ____   __   ____  ____
+-- (  _ \(  )(_  _)/ ___) / _\ (  __)(  __)
+--  ) _ ( )(   )(  \___ \/    \ ) _)  ) _)
+-- (____/(__) (__) (____/\_/\_/(__)  (____)
+
+module Common.Common where
+
+import Splice.Util (HasCheckedFetch(..), require)
+import Splice.Api.Token.HoldingV1
+
+data ForHolding = ForHolding with
+    operator : Party
+    registrar : Party
+    instrumentId : InstrumentId
+  deriving (Eq, Show)
+
+data ForHoldingOwner = ForHoldingOwner with
+    operator : Party
+    registrar : Party
+    instrumentId : InstrumentId
+    owner : Party
+  deriving (Eq, Show)
+
+data ForOwner = ForOwner with
+    registrar : Party
+    instrumentId : InstrumentId
+    owner : Party
+  deriving (Eq, Show)
+
+
+instance HasCheckedFetch HoldingView ForOwner where
+  contractGroupId HoldingView {..} = ForOwner with
+    registrar = instrumentId.admin
+    instrumentId
+    owner
+
+-- | Transaction limits for deposit and withdraw operations.
+data Limits = Limits
+  with
+    minAmount : Optional Decimal
+    maxAmount : Optional Decimal
+  deriving (Eq, Show)
+
+-- | Normalize limits: Limits with both fields None is equivalent to no limits.
+normalizeLimits : Limits -> Optional Limits
+normalizeLimits (Limits None None) = None
+normalizeLimits lim = Some lim
+
+-- | Validate that limits are well-formed: neither value is negative,
+-- and minAmount <= maxAmount when both are set.
+validateLimits : Limits -> Bool
+validateLimits Limits{..} =
+  let minOk = case minAmount of { Some m -> m >= 0.0; None -> True }
+      maxOk = case maxAmount of { Some m -> m >= 0.0; None -> True }
+      ordered = case (minAmount, maxAmount) of
+        (Some mn, Some mx) -> mn <= mx
+        _ -> True
+  in minOk && maxOk && ordered
+
+-- | Check amount against transaction limits (min and max). Does nothing when limits are None.
+checkLimits : Text -> Decimal -> Optional Limits -> Update ()
+checkLimits label amount limitsOpt =
+  case limitsOpt of
+    None -> pure ()
+    Some lim -> do
+      case lim.minAmount of
+        Some minAmt -> require (label <> " amount must be >= " <> show minAmt) (amount >= minAmt)
+        None -> pure ()
+      case lim.maxAmount of
+        Some maxAmt -> require (label <> " amount must be <= " <> show maxAmt) (amount <= maxAmt)
+        None -> pure ()

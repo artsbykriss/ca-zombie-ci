@@ -1,0 +1,355 @@
+-- Copyright (c) 2026 DLC-Link, Inc. and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+--  ____  __  ____  ____   __   ____  ____
+-- (  _ \(  )(_  _)/ ___) / _\ (  __)(  __)
+--  ) _ ( )(   )(  \___ \/    \ ) _)  ) _)
+-- (____/(__) (__) (____/\_/\_/(__)  (____)
+
+module CBTC.WithdrawAccount where
+
+import DA.Optional
+import DA.Text
+import Splice.Util
+import Splice.Api.Token.HoldingV1
+import Splice.Api.Token.BurnMintV1
+import Splice.Api.Token.MetadataV1
+
+import Utility.Credential.V0.Credential (Credential, assertFulfillsAllRequirements)
+import CBTC.Credentials (getCBTCOperationRequirements)
+
+import Common.Common
+import CBTC.WithdrawRequest
+
+withdrawAccountId : (ContractId CBTCWithdrawAccount, CBTCWithdrawAccount) -> ContractId CBTCWithdrawAccount
+withdrawAccountId (self, this) = fromOptional self this.id
+
+validateBtcAddress : Text -> Bool
+validateBtcAddress address =
+  -- Basic validation: non-empty and length between 14 and 74 characters
+  let len = DA.Text.length address in
+  address /= "" && len >= 14 && len <= 74
+
+template CBTCWithdrawAccount
+  with
+    registrar : Party
+      -- ^ The decentralized registrar party
+    operator : Party
+      -- ^ The operator of the utility
+    instrument : InstrumentId
+      -- ^ The instrument identifier
+    owner : Party
+      -- ^ The owner of the WithdrawAccount.
+    id : Optional (ContractId CBTCWithdrawAccount)
+      -- ^ Unique identifier of the CBTCDepositAccount. If this is None
+      -- it's the contract id of the contract itself.
+      -- Note that this only serves as a unique identifier. The contract
+      -- it references may already have been consumed.
+    destinationBtcAddress: Text
+      -- ^ The destination BTC address for this WithdrawAccount.
+    pendingBalance : Decimal
+      -- ^ The pending balance of the WithdrawAccount.
+    limits : Optional Limits
+      -- ^ Transaction limits for this account. None = no limits enforced.
+  where
+    signatory registrar, owner
+
+
+    choice CBTCWithdrawAccount_Withdraw : CBTCWithdrawAccount_WithdrawResult
+      with
+        amount: Decimal
+          -- ^ The amount of BTC to withdraw.
+        tokens: [ContractId Holding]
+          -- ^ The tokens to withdraw.
+        burnMintFactoryCid : Optional (ContractId BurnMintFactory)
+          -- ^ Factory for token standard support
+        extraArgs : Optional ExtraArgs
+          -- ^ Extra args to pass to the BurnMint choice
+        credentialCids : Optional [ContractId Credential]
+          -- ^ Credentials proving the owner has the Minter role.
+      controller owner
+      do
+        let cids = fromSomeNote "Credential CIDs required" credentialCids
+        credentials <- mapA fetch cids
+        assertFulfillsAllRequirements owner (getCBTCOperationRequirements registrar) credentials
+        require "Amount to withdraw must be greater than 0" (amount > 0.0)
+        checkLimits "Withdraw" amount this.limits
+        require "There is no withdrawal in progress" (this.pendingBalance == 0.0)
+
+        -- Fetch holding views from interface contracts and validate ownership
+        holdingViews <- mapA (\tokenCid -> do
+          holdingView <- view <$> fetch tokenCid
+          require "Holding belongs to correct owner" (holdingView.owner == owner)
+          require "Holding has correct instrument" (holdingView.instrumentId == instrument)
+          pure holdingView
+          ) tokens
+        require "Holdings are not locked" (all (\hv -> isNone hv.lock) holdingViews)
+        let totalAmount = sum (map (\hv -> hv.amount) holdingViews)
+
+        require "Amount to withdraw must be less than or equal to the total amount" (amount <= totalAmount)
+        let factoryCid = fromSomeNote "burnMintFactoryCid must be set" burnMintFactoryCid
+
+        let burnMintOutput = if totalAmount > amount
+            then [BurnMintOutput with
+              owner = owner
+              amount = totalAmount - amount
+              context = emptyChoiceContext]
+            else []
+
+        result <- exercise factoryCid BurnMintFactory_BurnMint with
+          expectedAdmin = registrar
+          instrumentId = instrument
+          inputHoldingCids = tokens
+          -- If there is excess, return it to the user
+          outputs = burnMintOutput
+          extraActors = [owner]
+          extraArgs = fromSomeNote "extraArgs must be set" extraArgs
+
+        accountCid <- create this with
+          pendingBalance = this.pendingBalance + amount
+          id = Some (fromOptional self this.id)
+
+        pure CBTCWithdrawAccount_WithdrawResult with
+          withdrawAccountCId = accountCid
+          mintedHoldingCid = case result.outputCids of
+            [] -> None
+            (h :: _) -> Some h
+
+    choice CBTCWithdrawAccount_UpdateLimits : CBTCWithdrawAccount_UpdateLimitsResult
+      with
+        newLimits : Limits
+      controller registrar
+      do
+        require "No pending withdrawal in progress" (this.pendingBalance == 0.0)
+        let normalized = normalizeLimits newLimits
+        require "New limits must differ from current limits" (normalized /= this.limits)
+        require "Limits must be well-formed" (validateLimits newLimits)
+        accountCid <- create this with
+          limits = normalized
+          id = Some (fromOptional self this.id)
+        pure CBTCWithdrawAccount_UpdateLimitsResult with withdrawAccountCid = accountCid, limits = normalized
+
+    choice CBTCWithdrawAccount_UpdateDestinationAddress : CBTCWithdrawAccount_UpdateDestinationAddressResult
+      with
+        newDestinationBtcAddress: Text
+          -- ^ The new destination BTC address for this WithdrawAccount.
+      controller owner
+      do
+        require "Destination BTC address is valid" (validateBtcAddress newDestinationBtcAddress)
+        accountCid <- create this with
+          destinationBtcAddress = newDestinationBtcAddress
+          id = Some (fromOptional self this.id)
+        return CBTCWithdrawAccount_UpdateDestinationAddressResult with
+          withdrawAccountCid = accountCid
+          newDestinationBtcAddress = newDestinationBtcAddress
+
+    choice CBTCWithdrawAccount_CloseUserAccount : CBTCWithdrawAccount_CloseAccountResult
+      controller registrar
+      do
+        require "Pending balance must be zero to close account" (this.pendingBalance == 0.0)
+        return CBTCWithdrawAccount_CloseAccountResult
+
+    choice CBTCWithdrawAccount_CloseOwnAccount : CBTCWithdrawAccount_CloseAccountResult
+      controller owner
+      do
+        require "Pending balance must be zero to close account" (this.pendingBalance == 0.0)
+        return CBTCWithdrawAccount_CloseAccountResult
+
+    choice CBTCWithdrawAccount_CancelWithdrawal : CBTCWithdrawAccount_CancelWithdrawalResult
+      with
+        amount: Decimal
+          -- ^ The amount to cancel and mint back to the owner.
+        burnMintFactoryCid : ContractId BurnMintFactory
+          -- ^ Factory for token standard support
+        extraArgs : ExtraArgs
+          -- ^ Extra args to pass to the BurnMint choice
+      controller owner
+      do
+        require "Amount to cancel must be greater than 0" (amount > 0.0)
+        require "Amount to cancel must be less than or equal to pending balance" (amount <= this.pendingBalance)
+
+        -- Mint tokens back to the user
+        result <- exercise burnMintFactoryCid BurnMintFactory_BurnMint with
+          expectedAdmin = registrar
+          instrumentId = instrument
+          inputHoldingCids = []
+          outputs = [BurnMintOutput with
+            owner = owner
+            amount = amount
+            context = emptyChoiceContext]
+          extraActors = [owner]
+          extraArgs
+
+        accountCid <- create this with
+          pendingBalance = this.pendingBalance - amount
+          id = Some (fromOptional self this.id)
+
+        pure CBTCWithdrawAccount_CancelWithdrawalResult with
+          withdrawAccountCid = accountCid
+          mintedHoldingCid = case result.outputCids of
+            [] -> None
+            (h :: _) -> Some h
+
+    choice CBTCWithdrawAccount_CancelWithdrawalRequest : CBTCWithdrawAccount_CancelWithdrawalRequestResult
+      with
+        withdrawRequestCid: ContractId CBTCWithdrawRequest
+          -- ^ The CBTCWithdrawRequest to cancel.
+      controller registrar
+      do
+        -- Fetch and archive the withdraw request
+        request <- fetch withdrawRequestCid
+        require "Request belongs to this account" (request.owner == owner)
+        require "Request belongs to correct registrar" (request.registrar == registrar)
+        exercise withdrawRequestCid Archive
+
+        -- Credit the user by incrementing the pendingBalance
+        accountCid <- create this with
+          pendingBalance = this.pendingBalance + request.amount
+          id = Some (fromOptional self this.id)
+
+        pure CBTCWithdrawAccount_CancelWithdrawalRequestResult with
+          withdrawAccountCid = accountCid
+
+    choice CBTCWithdrawAccount_CreateWithdrawRequest : CBTCWithdrawAccount_CreateWithdrawRequestResult
+      with
+        btcTxId: Text
+          -- ^ The BTC transaction ID.
+      controller registrar
+      do
+        -- A pending balance is the on-chain marker that
+        -- `CBTCWithdrawAccount_Withdraw` has been exercised by the owner and
+        -- holdings have been burned. Without it, this choice would create a
+        -- zero-amount CBTCWithdrawRequest and reset the (already-zero)
+        -- pending balance, recording a phantom withdrawal. Reject early.
+        require "There must be a pending withdrawal to record" (this.pendingBalance > 0.0)
+        withdrawRequestCid <- create CBTCWithdrawRequest with
+          registrar
+          owner
+          destinationBtcAddress = this.destinationBtcAddress
+          btcTxId
+          amount = this.pendingBalance
+          sourceAccountId = Some (show (withdrawAccountId (self, this)))
+
+        accountCid <- create this with
+          pendingBalance = 0.0
+          id = Some (fromOptional self this.id)
+
+        pure CBTCWithdrawAccount_CreateWithdrawRequestResult with
+          withdrawAccountCid = accountCid
+          withdrawRequestCid
+
+data CBTCWithdrawAccount_UpdateLimitsResult = CBTCWithdrawAccount_UpdateLimitsResult
+  with
+    withdrawAccountCid : ContractId CBTCWithdrawAccount
+    limits : Optional Limits
+  deriving (Eq, Show)
+
+data CBTCWithdrawAccount_CloseAccountResult = CBTCWithdrawAccount_CloseAccountResult
+
+data CBTCWithdrawAccount_CancelWithdrawalResult = CBTCWithdrawAccount_CancelWithdrawalResult
+  with
+    withdrawAccountCid: ContractId CBTCWithdrawAccount
+    -- ^ The contract ID of the updated CBTCWithdrawAccount.
+    mintedHoldingCid: Optional (ContractId Holding)
+    -- ^ The contract ID of the minted Holding.
+  deriving (Eq, Show)
+
+data CBTCWithdrawAccount_CancelWithdrawalRequestResult = CBTCWithdrawAccount_CancelWithdrawalRequestResult
+  with
+    withdrawAccountCid: ContractId CBTCWithdrawAccount
+    -- ^ The contract ID of the updated CBTCWithdrawAccount.
+  deriving (Eq, Show)
+
+data CBTCWithdrawAccount_UpdateDestinationAddressResult = CBTCWithdrawAccount_UpdateDestinationAddressResult
+  with
+    withdrawAccountCid: ContractId CBTCWithdrawAccount
+    -- ^ The contract ID of the updated CBTCWithdrawAccount.
+    newDestinationBtcAddress: Text
+    -- ^ The new destination BTC address for this WithdrawAccount.
+  deriving (Eq, Show)
+
+data CBTCWithdrawAccount_WithdrawResult = CBTCWithdrawAccount_WithdrawResult
+  with
+    withdrawAccountCId: ContractId CBTCWithdrawAccount
+    -- ^ The contract ID of the updated CBTCWithdrawAccount.
+    mintedHoldingCid: Optional (ContractId Holding)
+      -- ^ The contract ID of the minted Holding.
+  deriving (Eq, Show)
+
+data CBTCWithdrawAccount_CreateWithdrawRequestResult = CBTCWithdrawAccount_CreateWithdrawRequestResult
+  with
+    withdrawAccountCid: ContractId CBTCWithdrawAccount
+      -- ^ The contract ID of the updated CBTCWithdrawAccount.
+    withdrawRequestCid: ContractId CBTCWithdrawRequest
+      -- ^ The contract ID of the created CBTCWithdrawRequest.
+  deriving (Eq, Show)
+
+
+template CBTCWithdrawAccountRules with
+    registrar : Party
+      -- ^ The decentralized registrar party
+    operator : Party
+      -- ^ The operator of the utility
+    instrument : InstrumentId
+      -- ^ The instrument identifier
+    limits : Optional Limits
+      -- ^ Default limits for newly created withdraw accounts. None = no limits.
+  where
+    signatory registrar
+
+    choice CBTCWithdrawAccountRules_UpdateLimits : CBTCWithdrawAccountRules_UpdateLimitsResult
+      with
+        newLimits : Limits
+      controller registrar
+      do
+        let normalized = normalizeLimits newLimits
+        require "New limits must differ from current limits" (normalized /= this.limits)
+        require "Limits must be well-formed" (validateLimits newLimits)
+        rulesCid <- create this with limits = normalized
+        pure CBTCWithdrawAccountRules_UpdateLimitsResult with withdrawAccountRulesCid = rulesCid, limits = normalized
+
+    nonconsuming choice CBTCWithdrawAccountRules_CreateWithdrawAccount : CBTCAccountRules_CreateWithdrawAccountResult
+      with
+        owner: Party
+          -- ^ The owner of the WithdrawAccount.
+        destinationBtcAddress: Text
+          -- ^ The destination BTC address for this WithdrawAccount.
+        credentialCids : Optional [ContractId Credential]
+          -- ^ Credentials proving the owner meets the requirements.
+      controller owner
+      do
+        let cids = fromSomeNote "Credential CIDs required" credentialCids
+        credentials <- mapA fetch cids
+        assertFulfillsAllRequirements owner (getCBTCOperationRequirements registrar) credentials
+        require "Destination BTC address is valid" (validateBtcAddress destinationBtcAddress)
+        accountCid <- create CBTCWithdrawAccount with
+          registrar
+          operator
+          instrument
+          owner
+          id = None
+          destinationBtcAddress
+          pendingBalance = 0.0
+          limits = this.limits
+        pure CBTCAccountRules_CreateWithdrawAccountResult with
+          withdrawAccountCid = accountCid
+
+data CBTCAccountRules_CreateWithdrawAccountResult = CBTCAccountRules_CreateWithdrawAccountResult
+  with
+    withdrawAccountCid: ContractId CBTCWithdrawAccount
+      -- ^ The contract ID of the created CBTCWithdrawAccount.
+  deriving (Eq, Show)
+
+data CBTCWithdrawAccountRules_UpdateLimitsResult = CBTCWithdrawAccountRules_UpdateLimitsResult
+  with
+    withdrawAccountRulesCid : ContractId CBTCWithdrawAccountRules
+    limits : Optional Limits
+  deriving (Eq, Show)
+
+instance HasCheckedFetch CBTCWithdrawAccount ForHolding where
+  contractGroupId CBTCWithdrawAccount{..} = ForHolding with
+    operator, registrar, instrumentId = instrument
+
+instance HasCheckedFetch CBTCWithdrawAccountRules ForHolding where
+  contractGroupId CBTCWithdrawAccountRules{..} = ForHolding with
+    operator, registrar, instrumentId = instrument

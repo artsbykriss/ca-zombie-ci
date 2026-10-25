@@ -1,0 +1,41 @@
+{
+  "finding": "bitsafe-cbtc",
+  "title": "BitSafe CBTC (Canton) — FROST-threshold Bitcoin custody + permissioned Canton mint/burn",
+  "chains": ["bitcoin"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 0,
+  "block_numbers": {"bitcoin": 0},
+  "targets_checked": 728,
+  "live_targets": 728,
+  "closed_reasons": [
+    "Reserve BTC (728 P2TR outputs) is spendable only via a Taproot script leaf `<FROST_group_key> OP_CHECKSIG`; the key path is the BIP-341 NUMS key H (provably unspendable). No keyless/hashlock/timelock/anyone-can-spend branch exists.",
+    "Every historical spend of every reserve address is a script-path spend of that exact leaf, with the control-block internal key equal to the independently-derived NUMS key (no key-path spend observed).",
+    "All 728 deposit addresses are independently reproduced from the published threshold xpub + deposit ids (MATCH 728/728), so no address can secretly be of a weaker form.",
+    "Canton Daml source (shipped in the public cbtc-1.2.1.dar) shows mint = registrar-only (CompleteDeposit, controller registrar), burn/withdraw = owner-only (Withdraw, controller owner), BTC-tx recording = registrar-only, and every operation requires a registrar-issued `hasCBTCRole: Minter` credential.",
+    "Canton state is a private ledger (sub-transaction privacy) and is unobservable to an external party; the CBTCGovernanceRules package is not public."
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": []},
+  "key_facts": [
+    "BitSafe CBTC = Canton-Network wrapped BTC by DLC-Link Inc. dba BitSafe (NOT the BitGo/Canton 'CBTC', NOT the EVM dLCBTC/IBTC). DefiLlama slug bitsafe-cbtc, category Decentralized BTC, chain Bitcoin, TVL ~$3.29M.",
+    "DefiLlama TVL source: registries/bitcoin.js -> bitcoin-book fetcher bitsafeCBTC -> GET api.mainnet.bitsafe.finance/cbtc/v1/address-calculation-data (728 deposit addresses + threshold xpub), balances read from Bitcoin.",
+    "Threshold group x-only key (published as xpub pubkey) = 2b26a99ecaf2b616e60efa01c3036c55417b0700972575ca5ccd948e05a13332; tapscript leaf = 202b26a99ecaf2b616e60efa01c3036c55417b0700972575ca5ccd948e05a13332ac.",
+    "Per-address internal key = BIP32 non-hardened m/0/0 child of the BIP-341 NUMS point H (0250929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0) with chaincode SHA256(deposit_id) => key path provably unspendable.",
+    "Independent re-derivation reproduces all 728 reported addresses exactly (MATCH 728/728); also reproduces the live /cbtc/v1/bitcoin-address/test address.",
+    "Largest reserve address is the 'change' deposit account bc1ppp6ft7ragayvsuf8jsq2x6c5m083gpj6kz3rwfcm0efvcgsgkazsdywnne.",
+    "Live FROST threshold config = 3-of-4 (GET /cbtc/v1/bitcoin-address/test -> attestors_requested=4, attestors_responded=3); audit states threshold = floor(n/2)+1.",
+    "Quantstamp audit of the CBTC Daml (Oct 2025): 0 High, 2 Medium, 4 Low, all fixed/mitigated; source repo github.com/DLC-link/canton is not public but the Daml source ships inside cbtc-1.2.1.dar.",
+    "Chainlink CBTC PoR Data Stream reports AUM 40.8028 BTC (NAV 2026-10-25 20:04 UTC); DefiLlama reports $3,286,340 — both consistent with the 728-address reserve."
+  ],
+  "caveats": [
+    "Canton-side state (holdings, deposit/withdraw accounts, pending withdrawals) is private and unobservable; the 1:1 liability side cannot be verified from outside.",
+    "Daml logic is source-read from the public DAR; the on-chain deployed package hash was not verified against the ledger (which is not queryable).",
+    "Unspent reserve outputs hide their tapscript tree on-chain until spent; the leaf is inferred from the public derivation algorithm (which reproduces all addresses) and confirmed on every historical spend.",
+    "Off-chain FROST coordinator / attestor software and any manual custody operations are not auditable from outside (P-class risk).",
+    "PoR completeness is trust-based: the address set derives from operator-published deposit ids; omitted accounts would not be detected.",
+    "Reserve total is a snapshot at the stated Bitcoin block; BTC price drifts.",
+    "Trust risk (not E-U): threshold is 3-of-4 with BitSafe operating 1 of 4 attestors, so BitSafe + any 2 external operators can move the whole reserve; docs inconsistently claim '7-of-10' / '9 external + 1 BitSafe'."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 from BitSafe CBTC: the ~40.8 BTC ($3.29M) reserve sits in 728 Taproot outputs whose only spend path is a FROST threshold `<groupkey> OP_CHECKSIG` leaf (key path is the BIP-341 NUMS point), and the Canton mint/burn is registrar-gated and credentialed — so the value is behind a 3-of-4 threshold signature (P-class trust risk), not any unprivileged path."
+}

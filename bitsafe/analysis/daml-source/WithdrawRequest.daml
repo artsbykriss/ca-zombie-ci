@@ -1,0 +1,48 @@
+-- Copyright (c) 2026 DLC-Link, Inc. and/or its affiliates. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+
+--  ____  __  ____  ____   __   ____  ____
+-- (  _ \(  )(_  _)/ ___) / _\ (  __)(  __)
+--  ) _ ( )(   )(  \___ \/    \ ) _)  ) _)
+-- (____/(__) (__) (____/\_/\_/(__)  (____)
+
+module CBTC.WithdrawRequest where
+
+import Splice.Util
+
+-- Identifiers for fetching requests
+data ForRequestOwner = ForRequestOwner with
+    registrar: Party
+    owner: Party
+    destinationBtcAddress: Text
+  deriving (Eq, Show)
+
+template CBTCWithdrawRequest
+  with
+    registrar: Party
+      -- ^ The decentralized registrar party
+    owner: Party
+      -- ^ The owner of the request
+    destinationBtcAddress: Text
+      -- ^ The destination BTC address for this WithdrawRequest.
+    amount: Decimal
+      -- ^ The amount of BTC to withdraw.
+    btcTxId: Text
+      -- ^ The BTC transaction ID.
+    sourceAccountId: Optional Text
+      -- ^ The account id from which the withdrawal is being made.
+      -- Text to avoid circular dependency with WithdrawAccount.
+  where
+    signatory registrar, owner
+
+    choice CBTCWithdrawRequest_CompleteWithdrawal : ()
+      -- ^ Completes the withdrawal and consumes the request.
+      controller registrar
+      do
+        return ()
+
+instance HasCheckedFetch CBTCWithdrawRequest ForRequestOwner where
+  contractGroupId CBTCWithdrawRequest{..} = ForRequestOwner with
+    registrar
+    owner
+    destinationBtcAddress
