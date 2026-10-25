@@ -1,0 +1,97 @@
+{
+  "finding": "ZH4-PASS7-recon",
+  "title": "Residual reconciliation — every pass7 candidate dispositioned + OPEN list",
+  "chains": ["ethereum", "optimism", "bsc", "polygon", "zksync", "scroll", "robinhood-4663", "hyperevm-999", "solana", "sui"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": {"ethereum": 26271451, "optimism": 158676855, "bsc": 129752711, "zksync": 72636022},
+  "block_numbers": {"ethereum": 26271451, "optimism": 158676855, "bsc": 129752711, "zksync": 72636022},
+  "candidate_count": 302,
+  "counts": {
+    "README-FINDING": 7,
+    "README-CLOSED": 63,
+    "LANE-CLOSED": 90,
+    "PRIOR-COVERED": 43,
+    "PRIOR-PARTIAL": 2,
+    "NOT-A-PROTOCOL": 29,
+    "ASSIGNED": 65,
+    "OPEN": 3
+  },
+  "open": [
+    {
+      "id": "O1",
+      "candidate": "Unverified-impl proxy tail (rows 13-22 of unverified-impl.md) — 10 funded proxies",
+      "chains": ["optimism", "polygon", "bsc", "zksync"],
+      "live_funds_usd_est": 1700000,
+      "addresses": [
+        "0x5520385bFcf07Ec87C4c53A7d8d65595Dff69FA4",
+        "0x4CA08cD98De12a1Df316da8f93BD0b40146e1589",
+        "0x3cDbbC3eCa52a65998B021C67982Bc72B2deCef0",
+        "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
+        "0xA4B6D09c26113F90E7b0B42E76E6FA1959b354b5",
+        "0x6726CA16b1Ba702f58D835cf199672CA04E727eC",
+        "0x7d5b0215EF203D0660BC37d5D09d964fd6b55a1E",
+        "0xB07FfFf3c7DE073c9dA55dcD899fcd4AD8C3050D",
+        "0xc4d4500326981eacD020e20A81b1c479c161c7EF"
+      ],
+      "plausibility": "LOW-MED",
+      "why_open": "lane only ran a selector scan; impls never decompiled/fork-probed; README aggregate $0 rests on 11/65 impls",
+      "next_check": "decompile the 10 impls; probe transfer/withdraw/sweep/upgradeTo from a fresh EOA on a fork"
+    },
+    {
+      "id": "O2",
+      "candidate": "Scroll unverified-impl proxies (0x25aB3Efd/0x740a7C5E/0x7BE980E3/0x7ba30C4c)",
+      "chains": ["scroll"],
+      "live_funds_usd_est": 0,
+      "plausibility": "LOW",
+      "why_open": "unresolved; explorer 403; unvalued",
+      "next_check": "eth_getCode + token balances on Scroll; decompile if funded"
+    },
+    {
+      "id": "O3",
+      "candidate": "Lazy Summer / FleetCommander Ark class",
+      "chains": ["ethereum"],
+      "live_funds_usd_est": 0,
+      "plausibility": "LOW",
+      "why_open": "lane says 'class open'; other FleetCommander deployments never enumerated",
+      "next_check": "enumerate FleetCommander/Ark deployments; diff totalAssets vs active-Ark set"
+    }
+  ],
+  "prior_partial_reprobe": [
+    {
+      "candidate": "BSC DEX router 0xa331fde0 (new impl 0xc700cf8d7adf1782a53a4805d255cf17e126db7f)",
+      "chain": "bsc",
+      "why": "prior-corpus HIGH 'no known fix'; impl upgraded; both selectors 0x33411b5e/0x23a69e75 still present; callback caller-validation never probed",
+      "next_check": "decompile new impl; Approval census for spender=router; fake Pancake-V3 pool callback test"
+    }
+  ],
+  "targets_checked": 302,
+  "live_targets": 12,
+  "closed_reasons": [
+    "README-CLOSED: pass7 README §5 verified-closed + carry-over-closed",
+    "LANE-CLOSED: closed inside its own lane with a cited gate/fork/proof",
+    "PRIOR-COVERED: closed by an earlier pass (tracker line cited)",
+    "ASSIGNED: handled by a pass7 wave-1 or wave-2 agent (per ci/ZH4P7-RESULTS-TRACKER.md)",
+    "NOT-A-PROTOCOL: off-chain / key / CEX / chain-level / non-EVM / scam template"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40229376356", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40228261880"]},
+  "key_facts": [
+    "302 named candidates enumerated across pass7 README + 17 lanes; every one dispositioned",
+    "0 new E-U extraction found by this recon; pass7's one CRITICAL mechanism (wsNET) is ASSIGNED",
+    "wave-1 handled README 1 CRIT + 9 HIGH + 12 LOW; wave-2 handled 24 lane-level funded residuals (tracker §COVERAGE AUDIT)",
+    "residual = 4 OPEN (O1 unverified-impl proxy tail ~$1.7M live; O2 Scroll proxies; O3 FleetCommander class; O4 Hyperlane 7702 relayer) + 1 PRIOR-PARTIAL re-probe (BSC router)",
+    "live re-read supersedes the lane's Ankr valuations for several tail rows (e.g. row20 $276k -> $13.7k; row21 $702k -> $64k)",
+    "child-A: TurboFlow upgrade authority is an on-curve plain key (P-class); Sui cluster packages are upgradable; AlphaFi is winding down; Loopscale Curation = Exponent's vault program",
+    "child-B: BitBay family has no funded sibling vault (PRIOR-COVERED); DexFi 'unauth setFarm' hypothesis refuted; Hyperbeat strategist is an EOA; Goldilocks $527k is HONEY in the Goldiswap AMM",
+    "child-C: Hyperlane threshold-1 routes are dust (H-O/P); EIP-7702 relayer execute() reverts NotEntryPointOrSelf (closed); Payy is onlyProver-gated not paused; Flying Tulip/Parallel/Sturdy located (assigned)"
+  ],
+  "caveats": [
+    "OPEN is a triage label, not a bug; plausibility LOW-MED for all four",
+    "O1 impls are unverified on all free sources -> identify by decompiler; several plausibly CEX/MM custody",
+    "O2 Scroll proxies unvalued (explorer 403 from this host)",
+    "second wave launched concurrently; some wave-2 targets are PRIOR-PARTIAL and their folders may supersede",
+    "point-in-time 2026-10-25; re-read live state before acting"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live; pass7's 302 candidates are all dispositioned (wave-1/wave-2 cover the funded leads), residual = 3 OPEN (top: ~$1.7M in never-decompiled unverified-impl proxy tail rows 13-22) + the upgraded BSC router re-probe."
+}

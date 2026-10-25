@@ -1,0 +1,46 @@
+# Prior-coverage evidence (grep) — ZH4 pass7 recon
+
+Command (from /home/heisenberg/CA):
+
+```
+for n in <candidate names>; do
+  grep -rilF "$n" ci/ZH4P7-RESULTS-TRACKER.md ci/ZH4P6-RESULTS-TRACKER.md \
+    ci/ZH4P5-RESULTS-TRACKER.md ci/ZH4P4-RESULTS-TRACKER.md ci/ZH4P3-RESULTS-TRACKER.md \
+    ci/ZH4P2-RESULTS-TRACKER.md ci/ZH4-RESULTS-TRACKER.md ci/ZH3-RESULTS-TRACKER.md \
+    ci/ZH2B2..7 ci/H ci/H2 ci/L1 ci/L2-PHASE1 ci/TIER3-LOW-TRACKER.md ci/MONITOR-LIST.md \
+    ci/MASTER-EXTRACTION-TABLE.md ci/RESULTS-TRACKER.md \
+    pass6-recon/README.md residual-recon/README.md pass2-recon/README.md
+done
+```
+
+## Key hits used for dispositions
+
+| Candidate | Hit | Disposition |
+|---|---|---|
+| Project 0 / marginfi | `ci/ZH4P7-RESULTS-TRACKER.md` §COVERAGE ("Project 0 **is** the marginfi-v2 codebase → PRIOR-PARTIAL") | ASSIGNED (wave2) / PRIOR-PARTIAL |
+| Loopscale Curation | `ci/ZH4P5-RESULTS-TRACKER.md` (pass5 assigned Loopscale $7.49M core) | ASSIGNED (wave2) / PRIOR-PARTIAL |
+| Hyperbeat Earn | `ci/ZH4P3-RESULTS-TRACKER.md` (beHYPE LST closed, byte-identical) | ASSIGNED (wave2) / PRIOR-PARTIAL |
+| Sat Rush / Loyal Earn / TRUE DEX / Pascal / N1 Bridge / Byzanlink | `ci/ZH4P6-RESULTS-TRACKER.md` (pass6-open-tail: all 11 E-U $0) | PRIOR-COVERED |
+| Nado | `ci/ZH2B6-RESULTS-TRACKER.md` H2-02 (Altura/Nado/Rysk/... E-U $0) | PRIOR-COVERED |
+| Morpho Midnight | `residual-recon/README.md` line 128 (PARKED) | PRIOR-COVERED |
+| Wildcat | `ci/ZH4P3-RESULTS-TRACKER.md` (Wildcat 88 markets closed) | ASSIGNED (wave2) / PRIOR-PARTIAL |
+| TxFlow / STRATO / Hibachi | `ci/qc/exotic-legacy-QC-VERIFY.md`, `ci/ZH2B6` H2-05, `wave2/v16` | PRIOR-COVERED |
+| Moonwell | `ci/RESULTS-TRACKER.md` C-28/C-32 | PRIOR-COVERED |
+| BitBay | `ci/ZH3-RESULTS-TRACKER.md` H6 (re-arm-watch) + pass6 deployer-lineage | PRIOR-PARTIAL |
+| Concrete | `pass6-recon/README.md` row55 / `pass2-recon` | NOT-A-PROTOCOL / PRIOR |
+| Abracadabra | `ci/ZH4P5-RESULTS-TRACKER.md` (PurrSwap contest gap) | LANE-CLOSED |
+| Curvance | `ci/ZH4P5-RESULTS-TRACKER.md` advisories-git (≈HEAD) | LANE-CLOSED / PRIOR |
+| Reservoir | `ci/ZH4P3` (Waterline Reservoir, distinct) + `ZH4P4` (GaslessReservoirEnabler) | LANE-CLOSED |
+| Seamless | `ci/H2-RESULTS-TRACKER.md` H-5 shutdown census | LANE-CLOSED / PRIOR |
+| Radworks / Gitcoin / Inverse | `ci/ZH4P2-RESULTS-TRACKER.md` (pass2 recon) | PRIOR-COVERED |
+
+## Names with **zero** prior-corpus hits (fresh to ZH4) → dispositioned by their own lane
+
+KTON, SUN.io, FleetCommander, Goldilocks, GrowiHF, Impermax, Edel, Neutral Trade, Felix, Liminal,
+Project X, Tydro, Teller, "40 Acres", "Revert Lend", Fira, QiDao, Avalon, Perena, Streamflow,
+TurboFlow, RateX, Oro Finance, Solayer, Omnipair, DexFi, CGO.
+
+Of these: Perena / Streamflow / TurboFlow / RateX / Oro / Solayer / Omnipair / DexFi / CGO → **ASSIGNED (wave2)**;
+KTON / SUN.io / FleetCommander / Goldilocks / GrowiHF / Impermax / Edel / Neutral Trade / Felix / Liminal /
+Project X / Tydro / Teller / 40 Acres / Revert Lend / Fira / QiDao / Avalon → **LANE-CLOSED / NOT-A-PROTOCOL**
+(per the oracle / accounting / fresh-deep lanes).
