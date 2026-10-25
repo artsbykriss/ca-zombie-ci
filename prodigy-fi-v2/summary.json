@@ -1,0 +1,39 @@
+{
+  "finding": "O4",
+  "title": "Prodigy.Fi V2 (Base) — unverified UUPS PositionManager + collateral pool: no external-unprivileged path to the $18.9k in escrow",
+  "chains": ["base"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 18927.43, "P": 18927.43, "S": 0},
+  "latest_block": 53044841,
+  "block_numbers": {"base": 53044841},
+  "targets_checked": 1718,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Collateral pool 0xe1303B2514755A72da4AcA9B917d96F16c842c80 is the only contract holding value (4147.915743 USDC + 4.065428875384615385 WETH + 0.06555499 cbBTC = $18,927.43 at Base block 53,044,841); its sole outbound transfer withdraw(address,uint256) 0xf3fef3a3 is indexed by keccak256(msg.sender, slot3), so a fresh EOA reverts with 'CollateralPoolV2: insufficient withdrawable balance'.",
+    "Every other pool outflow (processUserDeposit 0x1ea734b6, 0xd5735e7d(address), 0xa4bc9c2d(bool)) requires registeredVaults[msg.sender] and reverts 'CollateralPoolV2: not registered vault'; registerVault 0x05c4fdf9 reverts 'CollateralPool: Caller is not factory'; approveVault 0x3e99414e reverts 'CollateralPoolV2: approve with not vault owner'.",
+    "All 1714 vaults are EIP-1167 clones and hold 0 tokens/native (collateral is pooled); 1714/1714 are initialised; deposits revert 'Vault: deposit period has ended' (v1) or 'VaultV2: Signature required for deposit' (v2); vault admin reverts 'Vault: not creator'.",
+    "All 22 tested PositionManager admin/deploy selectors (upgradeToAndCall, initialize, initializeUpgrade, pause/unpause, setCollateralPool(V2), setVaultImplementation, changeFeeReceiver, setMinDepositAmount, changeDepositDeadlineOffset, setWETH, transferOwnership, deploy/settlement fns) revert from a fresh EOA (onlyOwner / already-initialised).",
+    "Two selectors that appear callable are provably inert: 0x715018a6 on the PM and pool has a bare STOP body (disabled renounceOwnership stub; owner unchanged, no transfer); pool 0x1749aa26(token,amount) reads mapping[msg.sender] and early-returns when zero."
+  ],
+  "poc": {"tests_passed": 12, "tests_total": 12, "ci_run_urls": []},
+  "key_facts": [
+    "PositionManager 0x50aB3FE7d089c4F0dD8096aAeA9578f8E7B18AF7 is a verified proxy (EIP-1967 impl slot 0x360894a1... = 0xb1522e3514adfa6cbacd6675378fce03e1b97dd8, unverified ~14.6KB) with UUPSUpgradeable (UPGRADE_INTERFACE_VERSION 5.0.0) + Ownable.",
+    "EIP-1967 admin slot 0xb5312768... on the PM is 0x0 (no transparent admin) — upgrades go through the impl's UUPS upgradeToAndCall.",
+    "owner() of the PM and of both pools is the single EOA 0xB17A226B38A576738C1ad5E6ACC273a1A3A99A9F (eth_getCode=0x, nonce 234) => privileged (P) risk, not E-U.",
+    "getDeployedVaultCount() = 1714 (Base); all 1714 vaults report collateralPool() = 0xe1303B2514755A72da4AcA9B917d96F16c842c80; 0 vaults hold USDC/WETH/cbBTC/native directly; 16 vaults have depositTotal>0.",
+    "Vault implementations in use: 0x72615c2175f8b838139f9c43830d16372b2a6177, 0xBeD271eA97905eD771e291a9D2924c06c4eb0987 (vaultImplementation()), 0x42c3fc87e3b65bc75b94c4177af376cf231518a2 (returned by 0x03ce4248).",
+    "Funded pool 0xe1303B2514755A72da4AcA9B917d96F16c842c80 -> impl 0x50c0be4490fa490e01029fdfb03df206189f0d3f; pool v1 0x864cd49392a4348b5da5337623d994151610D0a3 -> impl 0x863af80be1d6b8ac31322b8e6db196f3dcec45d5 holds 0.",
+    "DefiLlama (2026-10-24): Prodigy.Fi V2 protocol TVL $67,961.68; Base $18,807.42; Ethereum $44,912.86; Hyperliquid $3,231.73; Berachain $1,009.68.",
+    "Protocol is audited (Halborn 2024-10-30 + 2025-12-09 collaborative report, github.com/prodigyfi/audits) — not a zombie; the pass6 'MED opaque core' hypothesis is refuted for E-U.",
+    "Same factory address exists on Ethereum (2268 vaults, same owner; pool 0xe1303B25 holds ~11208 USDC + 1.082 WETH ~ $13.7k) — out of Base scope, same conclusion expected."
+  ],
+  "caveats": [
+    "Implementation bytecode is unverified on BaseScan/Etherscan-V2/Sourcify; analysis is decompiler (heimdall) + disassembler + fresh-EOA eth_call based. A bug reachable only via the registered-vault settlement flow (requires a vault owner, i.e. H-O/P) cannot be fully excluded.",
+    "~20 factory selectors and several vault/pool selectors remain unresolved by the free signature DBs; each was probed from a fresh EOA and reverted.",
+    "H-O (18927.43) and P (18927.43) are the same live funds counted under different authorities; they are not additive with E-U (which is 0).",
+    "USD is price-sensitive (WETH $2340.38, cbBTC $80342.43); token amounts are exact and pinned to block 53,044,841 (2026-10-24/25).",
+    "Read-only: no mainnet transaction was signed or sent; the PoC runs on a local Base fork in CI only."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from Prodigy.Fi V2 on Base: the ~$18.9k of real collateral sits in pool 0xe1303B25 whose only outflow withdraw(token,amount) is keyed by msg.sender (stranger reverts 'insufficient withdrawable balance') and every other path is vault-registered or onlyOwner; the only residual risk is the single-EOA owner (P)."
+}

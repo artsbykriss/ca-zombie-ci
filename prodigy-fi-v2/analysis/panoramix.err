@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/panoramix/__main__.py", line 83, in <module>
+    main()
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/panoramix/__main__.py", line 79, in main
+    print_decompilation(args.address_or_bytecode, args)
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/panoramix/__main__.py", line 53, in print_decompilation
+    decompilation = decompile_bytecode(this_addr, function_name)
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/panoramix/decompiler.py", line 44, in decompile_bytecode
+    loader.load_binary(code)  # Code is actually hex.
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/panoramix/loader.py", line 183, in load_binary
+    num = int("0x" + source[:2], 16)
+ValueError: invalid literal for int() with base 16: '0xva'
