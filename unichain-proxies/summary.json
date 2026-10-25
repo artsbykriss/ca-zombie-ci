@@ -1,0 +1,40 @@
+{
+  "finding": "O8",
+  "title": "Unichain ImmutableProxy family (~130 clones) = Eco intent Vault escrow; empty + portal-gated",
+  "chains": ["unichain"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 62191907,
+  "block_numbers": {"unichain": 62191907},
+  "targets_checked": 299,
+  "live_targets": 0,
+  "closed_reasons": [
+    "All 299 named ImmutableProxy clones hold 0 USDC and 0 native (eth_call/eth_getBalance via 4 RPCs, block 62191907)",
+    "withdraw/refund/recover/fundFor are onlyPortal on all 3 impls -> NotPortalCaller(0x407c71ac) for a stranger (live probe + fork test)",
+    "Vault.portal is an immutable = impl deployer; no initializer / no unguarded setter",
+    "Portal value paths are hash-bound: withdraw -> prover-recorded claimant; refund/recoverToken -> reward.creator; refundTo -> creator-only",
+    "Changing any reward field (e.g. prover) changes intentHash -> a different empty vault (no redirect)",
+    "Every funded intent was withdrawn or refunded: IntentFunded minus (Withdrawn u Refunded) = 0 for both ImmutableProxy-creating portals",
+    "Recon's ~$130k is a stale Blockscout /token-balances artifact (stale index sum $271,684.77 vs live $0)"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40204644262"]
+  },
+  "key_facts": [
+    "299 verified ImmutableProxy clones (Blockscout name search); 141 have verified_at 2026-10-16 (the recon's '~130')",
+    "impls: 0x3fd339E58769a56D08dcd2683F9012E881287476 (295, verified Vault), 0x204D732E8d2f71D756eF5De79Dc6589721b53420 (2), 0x9f70b0c839fe2D7190a09AE87ED658B6d1Cba4F9 (2) — recon's stated impl 0x9f70b0c8 is used by only 2 clones",
+    "portals (embedded immutable + deployer): 0x399Dbd5DF04f83103F77A58cBa2B7c4d3cdede97 (impl 0x3fd339), 0xEC000064576f9C95a8623Bc0eff3db6d296ea6df (impl 0x9f70b0c8), 0xEC000769A73b70e16f361a442292500b3BCf4A85 (impl 0x204d732e)",
+    "0x399Dbd5D inactive since block 52898784 (2026-07-10); 0xEC000064 inactive since block 60029342 (2026-09-30); 0xEC000769 is active but uses a different non-ImmutableProxy vault design",
+    "example clone 0x08A4955F created & settled in the same block (42591324, 2026-03-12); live balanceOf=0 on 4 RPCs while Blockscout token-balances reports 4,961,103,879"
+  ],
+  "caveats": [
+    "Blockscout /token-balances is stale for these addresses; on-chain balanceOf is authoritative",
+    "impls 0x204d732e and 0x9f70b0c8 are unverified; gating confirmed by live probe + bytecode, not source",
+    "point-in-time snapshot at block 62191907; the newer active portal transiently funds vaults that settle within minutes",
+    "no transaction was signed or broadcast on any real chain"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from the Unichain ImmutableProxy family: all 299 Eco intent-escrow clones are empty and every value path is onlyPortal + hash-bound; the recon's ~$130k is a stale Blockscout token-balances artifact."
+}
