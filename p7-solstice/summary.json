@@ -1,0 +1,64 @@
+{
+  "finding": "ZH4-PASS7-Solana-Solstice-YieldVault",
+  "title": "Solstice Finance YieldVault (eUSX) — cooldown-escrow / vesting residual closed",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 5130401.60, "P": 5130401.60, "S": 0},
+  "latest_block": 461377202,
+  "block_numbers": {"solana_slot": 461377202},
+  "blocktime": 1792956767,
+  "targets_checked": 1,
+  "live_targets": 1,
+  "targets": [
+    {
+      "name": "Solstice YieldVault (eUSX)",
+      "program": "eUSXyKoZ6aGejYVbnp3wtWQ1E8zuokLAJPecPxxtgG3",
+      "asset_vault": "2SGicAhchh23nsrtWrur7zPAdb4hHtnyThQVPfza8CHA",
+      "live_usx_in_pool": 4578980.353873,
+      "live_usd_pool": 4574692.63,
+      "escrowed_usx": 556229.813281,
+      "escrowed_usd": 555708.96,
+      "usx_price_usd": 0.9990636083,
+      "upgrade_authority": "CYr14TrXD5MAertRqcR58KirPz7XoHGZjfBsfn5M2voh",
+      "upgrade_authority_on_curve": false,
+      "extractable_usd": 0
+    }
+  ],
+  "closed_reasons": [
+    "YieldPool.total_assets is STORED (u128) and equals the ASSET_VAULT SPL balance exactly -> donation-neutral (ERC-4626 donation attack structurally closed)",
+    "yield enters only via transfer_in_yield signed by a PermissionedAccount harvester PDA; attacker attempts -> ConstraintSeeds 2006 / AccountOwnedByWrongProgram 3007",
+    "CooldownEscrow is additive and per-user: two unlocks SUM asset_amount and the per-user vault balance identically; withdraw pays exactly asset_amount and ZEROES it; a second withdraw -> InsufficientFunds 6015",
+    "withdraw before cooldown_end -> CooldownNotEnded 6013",
+    "fast/standard cooldown branch keys off the RESULTING escrow total; chunking to >1000 USX upgrades the whole escrow to 604800 s and resets the timer -> no fast-lane bypass; a fresh >1000 USX unlock is standard too",
+    "caller-supplied cooldown_escrow / cooldown_escrow_vault (e.g. a victim's) -> ConstraintSeeds 2006",
+    "lock and unlock use the SAME effective basis (total_assets - unvested); a lock->unlock round trip returns <= the deposit (pool-favouring floor) -> no unvested-yield theft",
+    "lock(1 unit) -> ZeroShareAmount 6017; stored total_assets + long-initialised pool close the first-depositor/inflation attack"
+  ],
+  "poc": {
+    "tests_passed": 16,
+    "tests_total": 16,
+    "method": "simulateTransaction(sigVerify=false, replaceRecentBlockhash=true) on unsigned attacker-built messages",
+    "tests_in_ci": 9,
+    "tests_local": 7,
+    "ci_run_urls": [],
+    "ci_out": "ci-out/solstice_ci.json"
+  },
+  "key_facts": [
+    "Only permissionless surface: YieldVault lock/unlock/withdraw; USX mint/redeem is whitelist-permissioned (RequestMint/ConfirmMint + permissioned_account, validate_permissions.rs)",
+    "total_assets == ASSET_VAULT balance == 4,578,980,353,873 (6dp) at slot 461,377,202",
+    "Controller: cooldown 604800 s, fast cutoff 1000 USX / 86400 s, vesting 28500 s, is_frozen 0",
+    "VestingSchedule live and ACTIVE during tests: 118.761904 USX over [1792947789,1792976289]",
+    "13,956 CooldownEscrow PDAs; 1,029 funded; 556,229.813281 USX escrowed in per-user vaults (NOT the pool)",
+    "Both protocol programs are UPGRADEABLE with off-curve (Squads) authorities -> P-class latent, not E-U",
+    "README reconciliation: pass7/README.md §5 'Solstice YieldVault -> $0 closed' is CORRECT; this subagent additionally closed the lane's explicitly-untested cooldown/vesting/rounding residual"
+  ],
+  "caveats": [
+    "H-O and P reference the SAME underlying USX: H-O = holders self-service (unlock->cooldown->withdraw); P = latent Squads 3-of-5 upgrade capability, not an active withdrawal path",
+    "Theoretical S (<= ~118 USX): if ALL shares exit during a vesting window the unvested remainder is stranded in ASSET_VAULT with shares_supply=0",
+    "Informational: a subsequent unlock RESETS cooldown_end for the entire escrow (user-hostile liveness, no value leaves the caller)",
+    "BPF not fully decompiled: semantics proven behaviourally via simulation, not by reading Rust source; all balances point-in-time 2026-10-25",
+    "No secret/keyed RPC URL written to the folder; CI uses keyless public Solana RPCs only"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 from Solstice's $4.57M eUSX YieldVault; cooldown-escrow accumulation is additive/per-user with exact-balance payout+zeroing, vesting share math is symmetric (TA-unvested), dust/rounding gated, yield harvester-PDA-gated and NAV donation-neutral — pass7 README's '$0 closed' stands and its untested residual is now closed."
+}
