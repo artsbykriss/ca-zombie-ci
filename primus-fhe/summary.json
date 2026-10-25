@@ -1,0 +1,53 @@
+{
+  "finding": "O3-primus-fhe",
+  "title": "Primus Confidential Vault (FHE) on BSC — no unprivileged extraction path",
+  "chains": ["bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 248434.55,
+    "P": 248434.55,
+    "S": 109.0
+  },
+  "latest_block": 129593000,
+  "block_numbers": {
+    "bsc": 129593000
+  },
+  "targets_checked": 20,
+  "live_targets": 4,
+  "closed_reasons": [
+    "Aggregator batch settlement (dispatchAggregate / dispatchAggregateCallback) is overridden to keeper-only in UnitasAggregatorConfidentialUpgradeable; live keeper = 0x43A28B8dD1ebc3752ECcfd610d70D5c2BCc18FB6, non-keeper reverts NotKeeper(address).",
+    "claim(aggregateId, account) is permissionless but always pays the depositor `account` after zeroing that account's own deposit; an account with no deposit reverts ZeroDeposits / UnexpectedAggregateState.",
+    "quit(aggregateId) is self-only (deposits[id][msg.sender]); recoverAggregate and every policy setter are onlyOwner.",
+    "finalizeUnshield(requestId, cleartext, proof) is permissionless but reverts InvalidUnshieldRequest for any id not opened by a real unshield, always pays the recorded recipient, and requires FHE.checkSignatures -> Decryption.verifyPublicDecryptionEIP712KMSSignature (threshold 2-of-3 KMS).",
+    "unshield(from,to,amount) requires FHE.isAllowed(amount, msg.sender) AND from==msg.sender||isOperator; _update clamps with tryDecrease so no balance can be over-spent or stolen.",
+    "FHE ACL allow/allowForDecryption require the caller to already hold the handle (SenderNotAllowed otherwise); ACL/FHEExecutor/Decryption/SpaceBridgeConfig are owner-only.",
+    "RestrictedConfidentialConverter can pin esUSDu transfers to whitelisted rails (esUSDu-u live transferRestrictionEnabled()=true).",
+    "UnitasRewardPool enterBatch/postPeriod/claimRewardBatch are onlyKeeper; onConfidentialTransferReceived only accepts the reward token.",
+    "StakedUSDuV2 (Ethena-lineage ERC4626) share math uses tryDecrease/clamp + MIN_SHARES anti-donation guard + 7d cooldown + blacklist roles; no rounding edge for outsiders."
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 7,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "FHE vault resolved from dapp.primuslabs.xyz JS chunk module 83401: eU converter 0x3EcB7d91C98ca4B4924e0CC5Eca7472b21F06800; eUSDT converter 0xc2CC9419DDEb3425876091a1eb79D5C59017838c; esUSDu-u converter 0x06776741b1f8bfF5ea51750E91edcf03ed8C6994; esUSDu-usdt converter 0x75787E2aBEE0ddaa747Eee5F0f4Ff58dB142354d; mint aggregators 0xedcDd426f7690c7Da365f8E9BE0C396353e5dd24 (u) and 0xE76F5202EF8eEB462eC784Fe51D69E9a8a0b56c1 (usdt); redeem aggregators 0xBef1366512ffFF33cdd6C48d66e48D33c6dbCa22 (u) and 0x485dBFD90DdF92E009438FF49b1918C6636a8f89 (usdt).",
+    "FHE system (from PrimusConfigBase, chainid 56): ACL 0x3fE3B494Ae2d54fdee94C9fe60365024a44742AE, FHEExecutor 0x12964221F412e3e52F5f0C9592781904266dd9B4, Decryption 0x29873f805e66B39c28D394B213f712B7b2B52ba1, SpaceBridgeConfig 0x8914af6Bb24Cbff797Be208aBE388927C0FC0396, CiphertextVerification 0x9313191E3Eadc4C365d2043E8b7c03d73193D99A, AlphatrionReward 0xa536Ba1D17268e3821a17A591D7d6530cb593845.",
+    "Live FHE-converter backing at block 129,593,000: 96,242.263463 sUSDu (esUSDu-u) + 121,457.549211 sUSDu (esUSDu-usdt) + 4,060.886564 USDT (eUSDT) + 4,915.308965 U (eU) = $248,434.55 (sUSDu $1.099982 = rate 1.101189526792412782586448363 x USDu $0.998903; DefiLlama ts 1792881602).",
+    "Unitas backend (context): StakedUSDuV2 0x385C279445581a186a4182a5503094eBb652EC71 totalSupply 35,223,612.958 sUSDu, totalAssets 38,787,873.685 USDu (~$38.75M), cooldownDuration 604800 (7d), owner 0x179650b38B20773393c3a10B3b55ba57780BDBD9; silo 0x6F8A06A8087006309dfe89959b5b6A056bEbEAFD holds 1,013,216.78 USDu (~$1.01M); UnitasMintingV2 0xbB984CE670100AA855f6152f88b26EE57f4EA82A holds 843,213.54 USDT (~$842k).",
+    "Batch cadence: mint minAggregateAge 28800s (8h) / deadline 86400s; redeem minAggregateAge 604800s (7d) / deadline 1296000s; reward pool period 28800s (8h). Live batch ids: mint_u 180, mint_usdt 101, redeem_u 9, redeem_usdt 5. Only redeem_u #8 in flight (step 4 RedeemCooldown, healthy).",
+    "FHE decryption is centralised: 2-of-3 KMS signers (0x7b0D311DE29c8AC04948a30BecB268F97d23B8ee, 0x91D3D15FE8f3b5fd4b26584FA3912dF3a432848b, 0x708f25bEc3a52748C44727909a6916439d9a08cc) and 2-of-3 Alphatrion signers, all owned/operated under owner 0xEA7Ff99584C1996Bd9E94033b5C7A1Fe37B00d87. The KMS proof is value-bearing, so a 2-key compromise = forged finalizeUnshield = converter drain (classified P, not E-U).",
+    "Privileged actors: owner#1 0xEA7Ff99584C1996Bd9E94033b5C7A1Fe37B00d87 (ACL, FHEExecutor, Decryption, SpaceBridgeConfig, eU, esUSDu-u, mint_u, redeem_u, reward pool, ProxyAdmins); owner#2 0x3480B1E2f19D95cdfb8dA3ae40E9C7C500Fe4893 (eUSDT, esUSDu-usdt, mint_usdt, redeem_usdt); aggregator keeper 0x43A28B8dD1ebc3752ECcfd610d70D5c2BCc18FB6; reward-pool keeper 0x70520046798043970955AbF5189c63b11C3Dd3DC.",
+    "All stack contracts are verified on Etherscan (chainid 56) and are UUPS / Transparent-upgradeable behind EIP-1967 proxies; the vault proxy 0xe9E8573Bb351da16c6EE7dDaC0cBC70b7f9784AE delegates to UnitasProxy (mintAndStake/redeemAndWithdraw role-gated MINT_CALLER_ROLE/REDEEM_CALLER_ROLE)."
+  ],
+  "caveats": [
+    "FHE confidentiality + decryption authorisation are centralised (2-of-3 KMS / 2-of-3 Alphatrion, all Primus EOAs); the decryption proof is value-bearing, so a 2-key compromise drains the converters. This is a privileged/insider risk (P), not external-unprivileged (E-U).",
+    "The recon's '>$1M user deposits' is not what is on-chain today: the FHE converters back $248,434.55; the remainder of the reported figure is likely cumulative or the Unitas backend ($38.7M TVL), which is not FHE-vault value.",
+    "H-O ($248,434.55) is redeemable only via the keeper-driven off-chain Unitas mint/redeem API and, on the redeem route, only after the 7-day sUSDu cooldown; if the keeper halts, the owner must recoverAggregate.",
+    "S (~$109 = 0.146737176 BNB at $741.82) is the FHEExecutor prepaid fee balance: refundFee is disabled and only the owner/AlphatrionReward can distribute it; effectively unrecoverable by users.",
+    "Reads were taken at BSC block 129,593,000 with an archive RPC (key redacted); prices from DefiLlama at ts 1792881602. Some getters (penaltyRate, converter paused()) revert by design and are not used."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from the Primus Confidential Vault (FHE) on BSC; all value-moving paths are gated by FHE-ACL handle access, self-ownership, a keeper/owner role, or a 2-of-3 KMS decryption proof — the ~$248,434 of live backing is holder-only (H-O) and the whole stack (including the FHE oracle) is controlled by two Primus EOAs plus one keeper EOA."
+}
