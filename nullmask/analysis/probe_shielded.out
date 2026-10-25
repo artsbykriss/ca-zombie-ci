@@ -1,0 +1,29 @@
+# block=53045843 noteTreeRoot=3679977093441026037537931926674477690423598908980900717843036262319395186934
+
+== shieldedWithdrawal ==
+  zero-root, empty proof   -> REVERT {"code": 3, "message": "execution reverted", "data": "0x330fd1c40000000000000000000000000000000000000000000000000000000000000000"}
+  real-root, garbage proof -> REVERT {"code": 3, "message": "execution reverted", "data": "0x59895a530000000000000000000000000000000000000000000000000000000000000011000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000023c0"}
+
+== shieldedTransfer ==
+  real-root, garbage proof -> REVERT {"code": 3, "message": "execution reverted", "data": "0x21b968b80000000000000000000000000000000000000000000000000000000000000000"}
+
+== shieldedSwap ==
+  real-root, garbage proof -> REVERT {"code": 3, "message": "execution reverted"}
+
+== sweepProtocolFees(address(0)) from fresh EOA ==
+Traceback (most recent call last):
+  File "/home/heisenberg/CA/nullmask/analysis/probe_shielded.py", line 80, in <module>
+    print("  ->", call("0x" + (sel("sweepProtocolFees(address)") + abi_encode(["address"], [Z])).hex())[:200])
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/eth_abi/codec.py", line 74, in encode
+    return encoder(args)
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/eth_abi/encoding.py", line 99, in __call__
+    return self.encode(value)
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/eth_abi/encoding.py", line 140, in encode
+    self.validate_value(values)
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/eth_abi/encoding.py", line 135, in validate_value
+    encoder.validate_value(item)
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/eth_abi/encoding.py", line 467, in validate_value
+    cls.invalidate_value(value)
+  File "/home/heisenberg/.local/lib/python3.10/site-packages/eth_abi/encoding.py", line 89, in invalidate_value
+    raise exc(
+eth_abi.exceptions.EncodingTypeError: Value `b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x...` of type <class 'bytes'> cannot be encoded by AddressEncoder

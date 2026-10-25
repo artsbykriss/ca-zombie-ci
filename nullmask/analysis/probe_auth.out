@@ -1,0 +1,30 @@
+# Nullmask pool 0xd64EF1417EB047ed0b54736a5a41F01178C391c6  from=0x000000000000000000000000000000000000dEaD  rpc=https://base-rpc.publicnode.com
+# block: 53045594
+
+== privileged setters ==
+setGuard                     Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+setRelayer                   Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+setTreasury                  Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+setVerifiers                 Error: encode length mismatch: expected 3 types, got 4
+setWhitelistManager          Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+setUpgradeController         Error: execution reverted: NotUpgradeController(0x000000000000000000000000000000000000dEaD)
+setFeeConfig                 Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+setTokenParams               Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+setDepositLimits             Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+setTokenWhitelist            Error: execution reverted: NotWhitelistManager(0x000000000000000000000000000000000000dEaD)
+setPaused                    Error: execution reverted: NotGuard(0x000000000000000000000000000000000000dEaD)
+setWithdrawalsPaused         Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+upgradeToAndCall             Error: execution reverted: UpgradeNotAuthorized(0x000000000000000000000000000000000000dEaD)
+
+== guard-only ==
+approveDeposit               Error: execution reverted: NotGuard(0x000000000000000000000000000000000000dEaD)
+rejectDeposit                Error: execution reverted: NotGuard(0x000000000000000000000000000000000000dEaD)
+
+== user paths ==
+withdrawPendingDeposit       Error: execution reverted: DepositNotPending(0)
+initialize                   Error: execution reverted: InvalidInitialization
+deposit(no key)              Error: execution reverted: ReceivingKeyNotFound(0x000000000000000000000000000000000000dEaD)
+
+== permissionless (expected to succeed but send to treasury) ==
+sweepProtocolFees(ETH)       0x
+sweepProtocolFees(0x0)       0x

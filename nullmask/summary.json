@@ -1,0 +1,39 @@
+{
+  "finding": "O6",
+  "title": "Nullmask ZK privacy pool (same CREATE2 proxy on Base + Ethereum + BNB Chain)",
+  "chains": ["base", "ethereum", "bsc"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 163425, "P": 163425, "S": 0},
+  "latest_block": 53047050,
+  "block_numbers": {"ethereum": 26265712, "base": 53047050, "bsc": 129599507},
+  "targets_checked": 1,
+  "live_targets": 3,
+  "closed_reasons": [
+    "every value-moving entry point is ZK-proof-gated against a real UltraHonk verifier (shieldedWithdrawal/Transfer/Swap)",
+    "all parameter/role setters require the AdminUpgradeController admin (2-of-3 Gnosis Safe)",
+    "approveDeposit/rejectDeposit/pullDeposit require msg.sender == guard",
+    "withdrawPendingDeposit is depositor-scoped via keccak hash",
+    "initialize is spent (InvalidInitialization); proxy setImplementationAndCall is one-shot and spent",
+    "sweepProtocolFees is permissionless but pays only the treasury",
+    "UUPS upgrade is gated by canUpgrade(msg.sender)==(caller==admin Safe)"
+  ],
+  "poc": {"tests_passed": 13, "tests_total": 14, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40142033538"]},
+  "key_facts": [
+    "pool proxy 0xd64EF1417EB047ed0b54736a5a41F01178C391c6 (same address on ETH/Base/BSC, CREATE2)",
+    "Base impl 0xc763e8212e5c4143b8404c19f848c7d18e1ae5a1 (verified Nullmask, VIRTUAL_CHAIN_ID=43618)",
+    "admin AdminUpgradeController 0xcD12496c9821075fD807c3488F3E0020715DED27, admin()=0xb2b1A7b415DBDf38308ba8206B0aED433Ed0706F (2-of-3 Gnosis Safe v1.5.0)",
+    "guard 0x0558E584846D1c913205c33588575CF5a20Bf856 (EOA, screening only, cannot move principal)",
+    "live value: ETH 20.989 ETH + 2,427.88 USDT; Base 11.833 ETH + 16,898.74 USDC; BSC 91.150 BNB + 173.78 USDT ~= $163.4k",
+    "note trees actively growing (Base noteTreeSize 11.3k, keyRegistry 2.4k)",
+    "brief's '12.377 ETH' is the Base pool only at pass6 block 53,043,770; the brief's 'BSC side ~dust' is wrong (91 BNB)"
+  ],
+  "caveats": [
+    "P-class ~$163.4k: 2-of-3 Safe can upgrade impls and drain all three pools (single largest risk)",
+    "ZK circuit soundness not verifiable by on-chain read; verifiers are real Barretenberg/UltraHonk",
+    "H-O value bounded by pool balances, not enumerated per-note",
+    "1 CI test failed = the P-class upgrade harness (malicious impl missing proxiableUUID), not an E-U test",
+    "point-in-time 2026-10-25; Robinhood-chain deployment unread"
+  ],
+  "one_liner": "external unprivileged attacker can extract $0 live from Nullmask (~$163.4k across ETH/Base/BSC); every value path is ZK-proof-gated against a real UltraHonk verifier or role-gated to the 2-of-3 admin Safe."
+}
