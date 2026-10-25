@@ -1,0 +1,82 @@
+// module collector  package 0xf2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e (v1)
+// Move bytecode v6
+module f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e.collector {
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::float;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct PriceCollector<phantom Ty0> has drop {
+	contents: VecMap<TypeName, Option<Float>>
+}
+
+public new<Ty0>(): PriceCollector<Ty0> {
+B0:
+	0: Call vec_map::empty<TypeName, Option<Float>>(): VecMap<TypeName, Option<Float>>
+	1: PackGeneric[0](PriceCollector<Ty0>)
+	2: Ret
+}
+
+public collect<Ty0, Ty1: drop>(Arg0: &mut PriceCollector<Ty0>, Arg1: Ty1, Arg2: Option<Float>) {
+L3:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty1>(): TypeName
+	1: StLoc[3](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut PriceCollector<Ty0>)
+	3: FreezeRef
+	4: Call contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	5: ImmBorrowLoc[3](loc0: TypeName)
+	6: Call vec_map::contains<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>, &TypeName): bool
+	7: Not
+	8: BrFalse(15)
+B1:
+	9: MoveLoc[0](Arg0: &mut PriceCollector<Ty0>)
+	10: MutBorrowFieldGeneric[0](PriceCollector.contents: VecMap<TypeName, Option<Float>>)
+	11: MoveLoc[3](loc0: TypeName)
+	12: MoveLoc[2](Arg2: Option<Float>)
+	13: Call vec_map::insert<TypeName, Option<Float>>(&mut VecMap<TypeName, Option<Float>>, TypeName, Option<Float>)
+	14: Branch(21)
+B2:
+	15: MoveLoc[2](Arg2: Option<Float>)
+	16: MoveLoc[0](Arg0: &mut PriceCollector<Ty0>)
+	17: MutBorrowFieldGeneric[0](PriceCollector.contents: VecMap<TypeName, Option<Float>>)
+	18: ImmBorrowLoc[3](loc0: TypeName)
+	19: Call vec_map::get_mut<TypeName, Option<Float>>(&mut VecMap<TypeName, Option<Float>>, &TypeName): &mut Option<Float>
+	20: WriteRef
+B3:
+	21: Ret
+}
+
+public contents<Ty0>(Arg0: &PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>> {
+B0:
+	0: MoveLoc[0](Arg0: &PriceCollector<Ty0>)
+	1: ImmBorrowFieldGeneric[0](PriceCollector.contents: VecMap<TypeName, Option<Float>>)
+	2: Ret
+}
+
+public(friend) remove<Ty0>(Arg0: &mut PriceCollector<Ty0>, Arg1: &TypeName) {
+B0:
+	0: CopyLoc[0](Arg0: &mut PriceCollector<Ty0>)
+	1: FreezeRef
+	2: Call contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	3: CopyLoc[1](Arg1: &TypeName)
+	4: Call vec_map::contains<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>, &TypeName): bool
+	5: BrFalse(13)
+B1:
+	6: MoveLoc[0](Arg0: &mut PriceCollector<Ty0>)
+	7: MutBorrowFieldGeneric[0](PriceCollector.contents: VecMap<TypeName, Option<Float>>)
+	8: MoveLoc[1](Arg1: &TypeName)
+	9: Call vec_map::remove<TypeName, Option<Float>>(&mut VecMap<TypeName, Option<Float>>, &TypeName): TypeName * Option<Float>
+	10: Pop
+	11: Pop
+	12: Branch(17)
+B2:
+	13: MoveLoc[1](Arg1: &TypeName)
+	14: Pop
+	15: MoveLoc[0](Arg0: &mut PriceCollector<Ty0>)
+	16: Pop
+B3:
+	17: Ret
+}
+
+}

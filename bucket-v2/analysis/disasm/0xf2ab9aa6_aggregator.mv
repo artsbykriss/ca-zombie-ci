@@ -1,0 +1,1027 @@
+// module aggregator  package 0xf2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e (v1)
+// Move bytecode v6
+module f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e.aggregator {
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::float;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::collector;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::listing;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::result;
+use 0000000000000000000000000000000000000000000000000000000000000001::ascii;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000001::vector;
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct NewPriceAggregator has copy, drop {
+	aggregator_id: ID,
+	coin_type: String,
+	weight_threshold: u64,
+	outlier_tolerance_bps: u64
+}
+
+struct WeightUpdated<phantom Ty0> has copy, drop {
+	aggregator_id: ID,
+	rule_type: String,
+	weight: u8
+}
+
+struct ThresholdUpdated<phantom Ty0> has copy, drop {
+	aggregator_id: ID,
+	weight_threshold: u64
+}
+
+struct OutlierToleranceUpdated<phantom Ty0> has copy, drop {
+	aggregator_id: ID,
+	outlier_tolerance_bps: u64
+}
+
+struct PriceAggregated<phantom Ty0> has copy, drop {
+	aggregator_id: ID,
+	sources: vector<String>,
+	prices: vector<u128>,
+	weights: vector<u8>,
+	current_threshold: u64,
+	result: u128
+}
+
+struct PriceAggregator<phantom Ty0> has store, key {
+	id: UID,
+	weights: VecMap<TypeName, u8>,
+	weight_threshold: u64,
+	outlier_tolerance: Float
+}
+
+err_missing_price_source() {
+B0:
+	0: LdConst[0](u64: 201)
+	1: Abort
+}
+
+err_invalid_weight() {
+B0:
+	0: LdConst[1](u64: 202)
+	1: Abort
+}
+
+err_invalid_threshold() {
+B0:
+	0: LdConst[2](u64: 203)
+	1: Abort
+}
+
+err_total_weight_not_enough() {
+B0:
+	0: LdConst[3](u64: 204)
+	1: Abort
+}
+
+public new<Ty0>(Arg0: &mut ListingCap, Arg1: u64, Arg2: u64, Arg3: &mut TxContext): PriceAggregator<Ty0> {
+L4:	loc0: PriceAggregator<Ty0>
+L5:	loc1: ID
+L6:	loc2: String
+L7:	loc3: UID
+B0:
+	0: CopyLoc[1](Arg1: u64)
+	1: LdU64(0)
+	2: Eq
+	3: BrFalse(5)
+B1:
+	4: Call err_invalid_threshold()
+B2:
+	5: MoveLoc[3](Arg3: &mut TxContext)
+	6: Call object::new(&mut TxContext): UID
+	7: StLoc[7](loc3: UID)
+	8: ImmBorrowLoc[7](loc3: UID)
+	9: Call object::uid_to_inner(&UID): ID
+	10: StLoc[5](loc1: ID)
+	11: MoveLoc[7](loc3: UID)
+	12: Call vec_map::empty<TypeName, u8>(): VecMap<TypeName, u8>
+	13: CopyLoc[1](Arg1: u64)
+	14: CopyLoc[2](Arg2: u64)
+	15: Call float::from_bps(u64): Float
+	16: PackGeneric[0](PriceAggregator<Ty0>)
+	17: StLoc[4](loc0: PriceAggregator<Ty0>)
+	18: MoveLoc[0](Arg0: &mut ListingCap)
+	19: CopyLoc[5](loc1: ID)
+	20: Call listing::register<Ty0>(&mut ListingCap, ID): TypeName
+	21: Call type_name::into_string(TypeName): String
+	22: StLoc[6](loc2: String)
+	23: MoveLoc[5](loc1: ID)
+	24: MoveLoc[6](loc2: String)
+	25: MoveLoc[1](Arg1: u64)
+	26: MoveLoc[2](Arg2: u64)
+	27: Pack[0](NewPriceAggregator)
+	28: Call event::emit<NewPriceAggregator>(NewPriceAggregator)
+	29: MoveLoc[4](loc0: PriceAggregator<Ty0>)
+	30: Ret
+}
+
+entry create<Ty0>(Arg0: &mut ListingCap, Arg1: u64, Arg2: u64, Arg3: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut ListingCap)
+	1: MoveLoc[1](Arg1: u64)
+	2: MoveLoc[2](Arg2: u64)
+	3: MoveLoc[3](Arg3: &mut TxContext)
+	4: Call new<Ty0>(&mut ListingCap, u64, u64, &mut TxContext): PriceAggregator<Ty0>
+	5: Call transfer::share_object<PriceAggregator<Ty0>>(PriceAggregator<Ty0>)
+	6: Ret
+}
+
+public set_rule_weight<Ty0, Ty1>(Arg0: &mut PriceAggregator<Ty0>, Arg1: &ListingCap, Arg2: u8) {
+L3:	loc0: TypeName
+L4:	loc1: &mut VecMap<TypeName, u8>
+B0:
+	0: Call type_name::get<Ty1>(): TypeName
+	1: StLoc[3](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut PriceAggregator<Ty0>)
+	3: MutBorrowFieldGeneric[0](PriceAggregator.weights: VecMap<TypeName, u8>)
+	4: StLoc[4](loc1: &mut VecMap<TypeName, u8>)
+	5: CopyLoc[4](loc1: &mut VecMap<TypeName, u8>)
+	6: FreezeRef
+	7: ImmBorrowLoc[3](loc0: TypeName)
+	8: Call vec_map::contains<TypeName, u8>(&VecMap<TypeName, u8>, &TypeName): bool
+	9: BrFalse(26)
+B1:
+	10: CopyLoc[2](Arg2: u8)
+	11: LdU8(0)
+	12: Gt
+	13: BrFalse(20)
+B2:
+	14: CopyLoc[2](Arg2: u8)
+	15: MoveLoc[4](loc1: &mut VecMap<TypeName, u8>)
+	16: ImmBorrowLoc[3](loc0: TypeName)
+	17: Call vec_map::get_mut<TypeName, u8>(&mut VecMap<TypeName, u8>, &TypeName): &mut u8
+	18: WriteRef
+	19: Branch(38)
+B3:
+	20: MoveLoc[4](loc1: &mut VecMap<TypeName, u8>)
+	21: ImmBorrowLoc[3](loc0: TypeName)
+	22: Call vec_map::remove<TypeName, u8>(&mut VecMap<TypeName, u8>, &TypeName): TypeName * u8
+	23: Pop
+	24: Pop
+	25: Branch(38)
+B4:
+	26: CopyLoc[2](Arg2: u8)
+	27: LdU8(0)
+	28: Gt
+	29: BrFalse(35)
+B5:
+	30: MoveLoc[4](loc1: &mut VecMap<TypeName, u8>)
+	31: CopyLoc[3](loc0: TypeName)
+	32: CopyLoc[2](Arg2: u8)
+	33: Call vec_map::insert<TypeName, u8>(&mut VecMap<TypeName, u8>, TypeName, u8)
+	34: Branch(38)
+B6:
+	35: MoveLoc[4](loc1: &mut VecMap<TypeName, u8>)
+	36: Pop
+	37: Call err_invalid_weight()
+B7:
+	38: MoveLoc[0](Arg0: &mut PriceAggregator<Ty0>)
+	39: FreezeRef
+	40: Call object::id<PriceAggregator<Ty0>>(&PriceAggregator<Ty0>): ID
+	41: MoveLoc[3](loc0: TypeName)
+	42: Call type_name::into_string(TypeName): String
+	43: MoveLoc[2](Arg2: u8)
+	44: PackGeneric[1](WeightUpdated<Ty0>)
+	45: Call event::emit<WeightUpdated<Ty0>>(WeightUpdated<Ty0>)
+	46: Ret
+}
+
+public set_weight_threshold<Ty0>(Arg0: &mut PriceAggregator<Ty0>, Arg1: &ListingCap, Arg2: u64) {
+B0:
+	0: CopyLoc[2](Arg2: u64)
+	1: LdU64(0)
+	2: Eq
+	3: BrFalse(5)
+B1:
+	4: Call err_invalid_threshold()
+B2:
+	5: CopyLoc[2](Arg2: u64)
+	6: CopyLoc[0](Arg0: &mut PriceAggregator<Ty0>)
+	7: MutBorrowFieldGeneric[1](PriceAggregator.weight_threshold: u64)
+	8: WriteRef
+	9: MoveLoc[0](Arg0: &mut PriceAggregator<Ty0>)
+	10: FreezeRef
+	11: Call object::id<PriceAggregator<Ty0>>(&PriceAggregator<Ty0>): ID
+	12: MoveLoc[2](Arg2: u64)
+	13: PackGeneric[2](ThresholdUpdated<Ty0>)
+	14: Call event::emit<ThresholdUpdated<Ty0>>(ThresholdUpdated<Ty0>)
+	15: Ret
+}
+
+public set_outlier_tolerance<Ty0>(Arg0: &mut PriceAggregator<Ty0>, Arg1: &ListingCap, Arg2: u64) {
+B0:
+	0: CopyLoc[2](Arg2: u64)
+	1: Call float::from_bps(u64): Float
+	2: CopyLoc[0](Arg0: &mut PriceAggregator<Ty0>)
+	3: MutBorrowFieldGeneric[2](PriceAggregator.outlier_tolerance: Float)
+	4: WriteRef
+	5: MoveLoc[0](Arg0: &mut PriceAggregator<Ty0>)
+	6: FreezeRef
+	7: Call object::id<PriceAggregator<Ty0>>(&PriceAggregator<Ty0>): ID
+	8: MoveLoc[2](Arg2: u64)
+	9: PackGeneric[3](OutlierToleranceUpdated<Ty0>)
+	10: Call event::emit<OutlierToleranceUpdated<Ty0>>(OutlierToleranceUpdated<Ty0>)
+	11: Ret
+}
+
+public aggregate<Ty0>(Arg0: &PriceAggregator<Ty0>, Arg1: PriceCollector<Ty0>): PriceResult<Ty0> {
+L2:	loc0: u64
+L3:	loc1: u64
+L4:	loc2: u64
+L5:	loc3: Float
+L6:	loc4: vector<String>
+L7:	loc5: String
+L8:	loc6: &mut vector<String>
+L9:	loc7: ID
+L10:	loc8: Float
+L11:	loc9: u8
+L12:	loc10: Float
+L13:	loc11: TypeName
+L14:	loc12: u8
+L15:	loc13: TypeName
+L16:	loc14: u64
+L17:	loc15: u64
+L18:	loc16: u64
+L19:	loc17: Float
+L20:	loc18: &Option<Float>
+L21:	loc19: Float
+L22:	loc20: vector<u128>
+L23:	loc21: vector<String>
+L24:	loc22: TypeName
+L25:	loc23: vector<TypeName>
+L26:	loc24: vector<TypeName>
+L27:	loc25: u64
+L28:	loc26: u64
+L29:	loc27: u64
+L30:	loc28: Float
+L31:	loc29: u8
+L32:	loc30: u64
+L33:	loc31: vector<TypeName>
+L34:	loc32: vector<u8>
+L35:	loc33: vector<u8>
+L36:	loc34: vector<TypeName>
+L37:	loc35: vector<TypeName>
+L38:	loc36: vector<TypeName>
+L39:	loc37: u8
+L40:	loc38: u8
+L41:	loc39: vector<u8>
+B0:
+	0: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	1: MutBorrowLoc[1](Arg1: PriceCollector<Ty0>)
+	2: Call remove_outliers<Ty0>(&PriceAggregator<Ty0>, &mut PriceCollector<Ty0>)
+	3: ImmBorrowLoc[1](Arg1: PriceCollector<Ty0>)
+	4: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	5: Call vec_map::keys<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>): vector<TypeName>
+	6: StLoc[25](loc23: vector<TypeName>)
+	7: VecPack(21, 0)
+	8: StLoc[26](loc24: vector<TypeName>)
+	9: LdConst[4](vector<u128>: 00)
+	10: StLoc[22](loc20: vector<u128>)
+	11: LdConst[5](vector<u8>: "" /..)
+	12: StLoc[41](loc39: vector<u8>)
+	13: MoveLoc[25](loc23: vector<TypeName>)
+	14: StLoc[33](loc31: vector<TypeName>)
+	15: Call float::zero(): Float
+	16: StLoc[10](loc8: Float)
+	17: MoveLoc[33](loc31: vector<TypeName>)
+	18: StLoc[38](loc36: vector<TypeName>)
+	19: MutBorrowLoc[38](loc36: vector<TypeName>)
+	20: Call vector::reverse<TypeName>(&mut vector<TypeName>)
+	21: ImmBorrowLoc[38](loc36: vector<TypeName>)
+	22: VecLen(21)
+	23: StLoc[4](loc2: u64)
+	24: LdU64(0)
+	25: StLoc[16](loc14: u64)
+	26: MoveLoc[4](loc2: u64)
+	27: StLoc[27](loc25: u64)
+B1:
+	28: CopyLoc[16](loc14: u64)
+	29: CopyLoc[27](loc25: u64)
+	30: Lt
+	31: BrFalse(88)
+B2:
+	32: CopyLoc[16](loc14: u64)
+	33: Pop
+	34: MutBorrowLoc[38](loc36: vector<TypeName>)
+	35: VecPopBack(21)
+	36: StLoc[13](loc11: TypeName)
+	37: MoveLoc[10](loc8: Float)
+	38: StLoc[30](loc28: Float)
+	39: MoveLoc[13](loc11: TypeName)
+	40: StLoc[24](loc22: TypeName)
+	41: ImmBorrowLoc[1](Arg1: PriceCollector<Ty0>)
+	42: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	43: ImmBorrowLoc[24](loc22: TypeName)
+	44: Call vec_map::get<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>, &TypeName): &Option<Float>
+	45: StLoc[20](loc18: &Option<Float>)
+	46: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	47: Call weights<Ty0>(&PriceAggregator<Ty0>): &VecMap<TypeName, u8>
+	48: ImmBorrowLoc[24](loc22: TypeName)
+	49: Call vec_map::get<TypeName, u8>(&VecMap<TypeName, u8>, &TypeName): &u8
+	50: ReadRef
+	51: StLoc[40](loc38: u8)
+	52: CopyLoc[20](loc18: &Option<Float>)
+	53: Call option::is_some<Float>(&Option<Float>): bool
+	54: BrFalse(77)
+B3:
+	55: MoveLoc[20](loc18: &Option<Float>)
+	56: Call option::borrow<Float>(&Option<Float>): &Float
+	57: ReadRef
+	58: StLoc[19](loc17: Float)
+	59: MutBorrowLoc[26](loc24: vector<TypeName>)
+	60: MoveLoc[24](loc22: TypeName)
+	61: VecPushBack(21)
+	62: MutBorrowLoc[22](loc20: vector<u128>)
+	63: CopyLoc[19](loc17: Float)
+	64: Call float::to_scaled_val(Float): u128
+	65: VecPushBack(45)
+	66: MutBorrowLoc[41](loc39: vector<u8>)
+	67: CopyLoc[40](loc38: u8)
+	68: VecPushBack(46)
+	69: MoveLoc[30](loc28: Float)
+	70: MoveLoc[19](loc17: Float)
+	71: MoveLoc[40](loc38: u8)
+	72: CastU64
+	73: Call float::mul_u64(Float, u64): Float
+	74: Call float::add(Float, Float): Float
+	75: StLoc[5](loc3: Float)
+	76: Branch(81)
+B4:
+	77: MoveLoc[20](loc18: &Option<Float>)
+	78: Pop
+	79: MoveLoc[30](loc28: Float)
+	80: StLoc[5](loc3: Float)
+B5:
+	81: MoveLoc[5](loc3: Float)
+	82: StLoc[10](loc8: Float)
+	83: MoveLoc[16](loc14: u64)
+	84: LdU64(1)
+	85: Add
+	86: StLoc[16](loc14: u64)
+	87: Branch(28)
+B6:
+	88: MoveLoc[38](loc36: vector<TypeName>)
+	89: VecUnpack(21, 0)
+	90: MoveLoc[10](loc8: Float)
+	91: StLoc[21](loc19: Float)
+	92: CopyLoc[41](loc39: vector<u8>)
+	93: StLoc[34](loc32: vector<u8>)
+	94: LdU8(0)
+	95: StLoc[11](loc9: u8)
+	96: MoveLoc[34](loc32: vector<u8>)
+	97: StLoc[35](loc33: vector<u8>)
+	98: MutBorrowLoc[35](loc33: vector<u8>)
+	99: Call vector::reverse<u8>(&mut vector<u8>)
+	100: ImmBorrowLoc[35](loc33: vector<u8>)
+	101: VecLen(46)
+	102: StLoc[2](loc0: u64)
+	103: LdU64(0)
+	104: StLoc[17](loc15: u64)
+	105: MoveLoc[2](loc0: u64)
+	106: StLoc[28](loc26: u64)
+	107: Branch(108)
+B7:
+	108: CopyLoc[17](loc15: u64)
+	109: CopyLoc[28](loc26: u64)
+	110: Lt
+	111: BrFalse(130)
+B8:
+	112: CopyLoc[17](loc15: u64)
+	113: Pop
+	114: MutBorrowLoc[35](loc33: vector<u8>)
+	115: VecPopBack(46)
+	116: StLoc[14](loc12: u8)
+	117: MoveLoc[11](loc9: u8)
+	118: StLoc[31](loc29: u8)
+	119: MoveLoc[14](loc12: u8)
+	120: StLoc[39](loc37: u8)
+	121: MoveLoc[31](loc29: u8)
+	122: MoveLoc[39](loc37: u8)
+	123: Add
+	124: StLoc[11](loc9: u8)
+	125: MoveLoc[17](loc15: u64)
+	126: LdU64(1)
+	127: Add
+	128: StLoc[17](loc15: u64)
+	129: Branch(108)
+B9:
+	130: MoveLoc[35](loc33: vector<u8>)
+	131: VecUnpack(46, 0)
+	132: MoveLoc[11](loc9: u8)
+	133: CastU64
+	134: StLoc[32](loc30: u64)
+	135: CopyLoc[32](loc30: u64)
+	136: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	137: Call weight_threshold<Ty0>(&PriceAggregator<Ty0>): u64
+	138: Lt
+	139: BrFalse(141)
+B10:
+	140: Call err_total_weight_not_enough()
+B11:
+	141: MoveLoc[21](loc19: Float)
+	142: MoveLoc[32](loc30: u64)
+	143: Call float::div_u64(Float, u64): Float
+	144: StLoc[12](loc10: Float)
+	145: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	146: Call object::id<PriceAggregator<Ty0>>(&PriceAggregator<Ty0>): ID
+	147: StLoc[9](loc7: ID)
+	148: MoveLoc[26](loc24: vector<TypeName>)
+	149: StLoc[36](loc34: vector<TypeName>)
+	150: VecPack(22, 0)
+	151: StLoc[23](loc21: vector<String>)
+	152: MoveLoc[36](loc34: vector<TypeName>)
+	153: StLoc[37](loc35: vector<TypeName>)
+	154: MutBorrowLoc[37](loc35: vector<TypeName>)
+	155: Call vector::reverse<TypeName>(&mut vector<TypeName>)
+	156: ImmBorrowLoc[37](loc35: vector<TypeName>)
+	157: VecLen(21)
+	158: StLoc[3](loc1: u64)
+	159: LdU64(0)
+	160: StLoc[18](loc16: u64)
+	161: MoveLoc[3](loc1: u64)
+	162: StLoc[29](loc27: u64)
+B12:
+	163: CopyLoc[18](loc16: u64)
+	164: CopyLoc[29](loc27: u64)
+	165: Lt
+	166: BrFalse(185)
+B13:
+	167: CopyLoc[18](loc16: u64)
+	168: Pop
+	169: MutBorrowLoc[37](loc35: vector<TypeName>)
+	170: VecPopBack(21)
+	171: StLoc[15](loc13: TypeName)
+	172: MutBorrowLoc[23](loc21: vector<String>)
+	173: StLoc[8](loc6: &mut vector<String>)
+	174: MoveLoc[15](loc13: TypeName)
+	175: Call type_name::into_string(TypeName): String
+	176: StLoc[7](loc5: String)
+	177: MoveLoc[8](loc6: &mut vector<String>)
+	178: MoveLoc[7](loc5: String)
+	179: VecPushBack(22)
+	180: MoveLoc[18](loc16: u64)
+	181: LdU64(1)
+	182: Add
+	183: StLoc[18](loc16: u64)
+	184: Branch(163)
+B14:
+	185: MoveLoc[37](loc35: vector<TypeName>)
+	186: VecUnpack(21, 0)
+	187: MoveLoc[23](loc21: vector<String>)
+	188: StLoc[6](loc4: vector<String>)
+	189: MoveLoc[9](loc7: ID)
+	190: MoveLoc[6](loc4: vector<String>)
+	191: MoveLoc[22](loc20: vector<u128>)
+	192: MoveLoc[41](loc39: vector<u8>)
+	193: MoveLoc[0](Arg0: &PriceAggregator<Ty0>)
+	194: ImmBorrowFieldGeneric[1](PriceAggregator.weight_threshold: u64)
+	195: ReadRef
+	196: CopyLoc[12](loc10: Float)
+	197: Call float::to_scaled_val(Float): u128
+	198: PackGeneric[4](PriceAggregated<Ty0>)
+	199: Call event::emit<PriceAggregated<Ty0>>(PriceAggregated<Ty0>)
+	200: MoveLoc[12](loc10: Float)
+	201: Call result::new<Ty0>(Float): PriceResult<Ty0>
+	202: Ret
+}
+
+public weights<Ty0>(Arg0: &PriceAggregator<Ty0>): &VecMap<TypeName, u8> {
+B0:
+	0: MoveLoc[0](Arg0: &PriceAggregator<Ty0>)
+	1: ImmBorrowFieldGeneric[0](PriceAggregator.weights: VecMap<TypeName, u8>)
+	2: Ret
+}
+
+public weight_threshold<Ty0>(Arg0: &PriceAggregator<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &PriceAggregator<Ty0>)
+	1: ImmBorrowFieldGeneric[1](PriceAggregator.weight_threshold: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public outlier_tolerance<Ty0>(Arg0: &PriceAggregator<Ty0>): Float {
+B0:
+	0: MoveLoc[0](Arg0: &PriceAggregator<Ty0>)
+	1: ImmBorrowFieldGeneric[2](PriceAggregator.outlier_tolerance: Float)
+	2: ReadRef
+	3: Ret
+}
+
+remove_outliers<Ty0>(Arg0: &PriceAggregator<Ty0>, Arg1: &mut PriceCollector<Ty0>) {
+L2:	loc0: u64
+L3:	loc1: u64
+L4:	loc2: u64
+L5:	loc3: u64
+L6:	loc4: u64
+L7:	loc5: u64
+L8:	loc6: u64
+L9:	loc7: vector<TypeName>
+L10:	loc8: u8
+L11:	loc9: u8
+L12:	loc10: Float
+L13:	loc11: bool
+L14:	loc12: bool
+L15:	loc13: u64
+L16:	loc14: Float
+L17:	loc15: TypeName
+L18:	loc16: TypeName
+L19:	loc17: TypeName
+L20:	loc18: TypeName
+L21:	loc19: u64
+L22:	loc20: u64
+L23:	loc21: u64
+L24:	loc22: u64
+L25:	loc23: u64
+L26:	loc24: u64
+L27:	loc25: u64
+L28:	loc26: u64
+L29:	loc27: u64
+L30:	loc28: u64
+L31:	loc29: Option<u8>
+L32:	loc30: Option<u8>
+L33:	loc31: Float
+L34:	loc32: Float
+L35:	loc33: &Option<Float>
+L36:	loc34: vector<TypeName>
+L37:	loc35: vector<TypeName>
+L38:	loc36: vector<TypeName>
+L39:	loc37: vector<TypeName>
+L40:	loc38: &TypeName
+L41:	loc39: &TypeName
+L42:	loc40: &TypeName
+L43:	loc41: TypeName
+L44:	loc42: TypeName
+L45:	loc43: &TypeName
+L46:	loc44: &TypeName
+L47:	loc45: vector<TypeName>
+L48:	loc46: u64
+L49:	loc47: u64
+L50:	loc48: u64
+L51:	loc49: u64
+L52:	loc50: u64
+L53:	loc51: u64
+L54:	loc52: u64
+L55:	loc53: u64
+L56:	loc54: Float
+L57:	loc55: u64
+L58:	loc56: vector<TypeName>
+L59:	loc57: vector<TypeName>
+L60:	loc58: &vector<TypeName>
+L61:	loc59: &vector<TypeName>
+L62:	loc60: vector<TypeName>
+L63:	loc61: vector<TypeName>
+L64:	loc62: vector<TypeName>
+L65:	loc63: vector<TypeName>
+L66:	loc64: vector<TypeName>
+L67:	loc65: vector<TypeName>
+L68:	loc66: &vector<TypeName>
+L69:	loc67: u8
+L70:	loc68: u8
+L71:	loc69: Float
+B0:
+	0: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	1: ImmBorrowFieldGeneric[0](PriceAggregator.weights: VecMap<TypeName, u8>)
+	2: Call vec_map::keys<TypeName, u8>(&VecMap<TypeName, u8>): vector<TypeName>
+	3: StLoc[9](loc7: vector<TypeName>)
+	4: ImmBorrowLoc[9](loc7: vector<TypeName>)
+	5: StLoc[61](loc59: &vector<TypeName>)
+	6: CopyLoc[61](loc59: &vector<TypeName>)
+	7: VecLen(21)
+	8: StLoc[5](loc3: u64)
+	9: LdU64(0)
+	10: StLoc[28](loc26: u64)
+	11: MoveLoc[5](loc3: u64)
+	12: StLoc[53](loc51: u64)
+B1:
+	13: CopyLoc[28](loc26: u64)
+	14: CopyLoc[53](loc51: u64)
+	15: Lt
+	16: BrFalse(40)
+B2:
+	17: CopyLoc[28](loc26: u64)
+	18: StLoc[21](loc19: u64)
+	19: CopyLoc[61](loc59: &vector<TypeName>)
+	20: MoveLoc[21](loc19: u64)
+	21: VecImmBorrow(21)
+	22: StLoc[40](loc38: &TypeName)
+	23: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	24: FreezeRef
+	25: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	26: MoveLoc[40](loc38: &TypeName)
+	27: Call vec_map::contains<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>, &TypeName): bool
+	28: Not
+	29: BrFalse(35)
+B3:
+	30: MoveLoc[61](loc59: &vector<TypeName>)
+	31: Pop
+	32: LdFalse
+	33: StLoc[14](loc12: bool)
+	34: Branch(44)
+B4:
+	35: MoveLoc[28](loc26: u64)
+	36: LdU64(1)
+	37: Add
+	38: StLoc[28](loc26: u64)
+	39: Branch(13)
+B5:
+	40: MoveLoc[61](loc59: &vector<TypeName>)
+	41: Pop
+	42: LdTrue
+	43: StLoc[14](loc12: bool)
+B6:
+	44: MoveLoc[14](loc12: bool)
+	45: Not
+	46: BrFalse(49)
+B7:
+	47: Call err_missing_price_source()
+	48: Branch(49)
+B8:
+	49: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	50: FreezeRef
+	51: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	52: Call vec_map::keys<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>): vector<TypeName>
+	53: StLoc[58](loc56: vector<TypeName>)
+	54: VecPack(21, 0)
+	55: StLoc[36](loc34: vector<TypeName>)
+	56: MoveLoc[58](loc56: vector<TypeName>)
+	57: StLoc[59](loc57: vector<TypeName>)
+	58: MutBorrowLoc[59](loc57: vector<TypeName>)
+	59: Call vector::reverse<TypeName>(&mut vector<TypeName>)
+	60: ImmBorrowLoc[59](loc57: vector<TypeName>)
+	61: VecLen(21)
+	62: StLoc[2](loc0: u64)
+	63: LdU64(0)
+	64: StLoc[22](loc20: u64)
+	65: MoveLoc[2](loc0: u64)
+	66: StLoc[48](loc46: u64)
+B9:
+	67: CopyLoc[22](loc20: u64)
+	68: CopyLoc[48](loc46: u64)
+	69: Lt
+	70: BrFalse(93)
+B10:
+	71: CopyLoc[22](loc20: u64)
+	72: Pop
+	73: MutBorrowLoc[59](loc57: vector<TypeName>)
+	74: VecPopBack(21)
+	75: StLoc[17](loc15: TypeName)
+	76: ImmBorrowLoc[17](loc15: TypeName)
+	77: StLoc[41](loc39: &TypeName)
+	78: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	79: FreezeRef
+	80: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	81: MoveLoc[41](loc39: &TypeName)
+	82: Call vec_map::get<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>, &TypeName): &Option<Float>
+	83: Call option::is_none<Float>(&Option<Float>): bool
+	84: BrFalse(88)
+B11:
+	85: MutBorrowLoc[36](loc34: vector<TypeName>)
+	86: MoveLoc[17](loc15: TypeName)
+	87: VecPushBack(21)
+B12:
+	88: MoveLoc[22](loc20: u64)
+	89: LdU64(1)
+	90: Add
+	91: StLoc[22](loc20: u64)
+	92: Branch(67)
+B13:
+	93: MoveLoc[59](loc57: vector<TypeName>)
+	94: VecUnpack(21, 0)
+	95: MoveLoc[36](loc34: vector<TypeName>)
+	96: StLoc[38](loc36: vector<TypeName>)
+	97: ImmBorrowLoc[38](loc36: vector<TypeName>)
+	98: StLoc[60](loc58: &vector<TypeName>)
+	99: CopyLoc[60](loc58: &vector<TypeName>)
+	100: VecLen(21)
+	101: StLoc[3](loc1: u64)
+	102: LdU64(0)
+	103: StLoc[23](loc21: u64)
+	104: MoveLoc[3](loc1: u64)
+	105: StLoc[49](loc47: u64)
+B14:
+	106: CopyLoc[23](loc21: u64)
+	107: CopyLoc[49](loc47: u64)
+	108: Lt
+	109: BrFalse(124)
+B15:
+	110: CopyLoc[23](loc21: u64)
+	111: StLoc[24](loc22: u64)
+	112: CopyLoc[60](loc58: &vector<TypeName>)
+	113: MoveLoc[24](loc22: u64)
+	114: VecImmBorrow(21)
+	115: StLoc[42](loc40: &TypeName)
+	116: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	117: MoveLoc[42](loc40: &TypeName)
+	118: Call collector::remove<Ty0>(&mut PriceCollector<Ty0>, &TypeName)
+	119: MoveLoc[23](loc21: u64)
+	120: LdU64(1)
+	121: Add
+	122: StLoc[23](loc21: u64)
+	123: Branch(106)
+B16:
+	124: MoveLoc[60](loc58: &vector<TypeName>)
+	125: Pop
+	126: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	127: FreezeRef
+	128: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	129: Call vec_map::keys<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>): vector<TypeName>
+	130: StLoc[47](loc45: vector<TypeName>)
+	131: CopyLoc[47](loc45: vector<TypeName>)
+	132: StLoc[62](loc60: vector<TypeName>)
+	133: LdU64(0)
+	134: StLoc[15](loc13: u64)
+	135: MoveLoc[62](loc60: vector<TypeName>)
+	136: StLoc[63](loc61: vector<TypeName>)
+	137: MutBorrowLoc[63](loc61: vector<TypeName>)
+	138: Call vector::reverse<TypeName>(&mut vector<TypeName>)
+	139: ImmBorrowLoc[63](loc61: vector<TypeName>)
+	140: VecLen(21)
+	141: StLoc[4](loc2: u64)
+	142: LdU64(0)
+	143: StLoc[25](loc23: u64)
+	144: MoveLoc[4](loc2: u64)
+	145: StLoc[50](loc48: u64)
+B17:
+	146: CopyLoc[25](loc23: u64)
+	147: CopyLoc[50](loc48: u64)
+	148: Lt
+	149: BrFalse(187)
+B18:
+	150: CopyLoc[25](loc23: u64)
+	151: Pop
+	152: MutBorrowLoc[63](loc61: vector<TypeName>)
+	153: VecPopBack(21)
+	154: StLoc[18](loc16: TypeName)
+	155: MoveLoc[15](loc13: u64)
+	156: StLoc[55](loc53: u64)
+	157: MoveLoc[18](loc16: TypeName)
+	158: StLoc[43](loc41: TypeName)
+	159: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	160: Call weights<Ty0>(&PriceAggregator<Ty0>): &VecMap<TypeName, u8>
+	161: ImmBorrowLoc[43](loc41: TypeName)
+	162: Call vec_map::try_get<TypeName, u8>(&VecMap<TypeName, u8>, &TypeName): Option<u8>
+	163: StLoc[31](loc29: Option<u8>)
+	164: ImmBorrowLoc[31](loc29: Option<u8>)
+	165: Call option::is_some<u8>(&Option<u8>): bool
+	166: BrFalse(171)
+B19:
+	167: MoveLoc[31](loc29: Option<u8>)
+	168: Call option::destroy_some<u8>(Option<u8>): u8
+	169: StLoc[10](loc8: u8)
+	170: Branch(175)
+B20:
+	171: MoveLoc[31](loc29: Option<u8>)
+	172: Call option::destroy_none<u8>(Option<u8>)
+	173: LdU8(0)
+	174: StLoc[10](loc8: u8)
+B21:
+	175: MoveLoc[10](loc8: u8)
+	176: StLoc[69](loc67: u8)
+	177: MoveLoc[55](loc53: u64)
+	178: MoveLoc[69](loc67: u8)
+	179: CastU64
+	180: Add
+	181: StLoc[15](loc13: u64)
+	182: MoveLoc[25](loc23: u64)
+	183: LdU64(1)
+	184: Add
+	185: StLoc[25](loc23: u64)
+	186: Branch(146)
+B22:
+	187: MoveLoc[63](loc61: vector<TypeName>)
+	188: VecUnpack(21, 0)
+	189: MoveLoc[15](loc13: u64)
+	190: StLoc[57](loc55: u64)
+	191: CopyLoc[57](loc55: u64)
+	192: LdU64(0)
+	193: Eq
+	194: BrFalse(196)
+B23:
+	195: Call err_total_weight_not_enough()
+B24:
+	196: MoveLoc[47](loc45: vector<TypeName>)
+	197: StLoc[64](loc62: vector<TypeName>)
+	198: Call float::zero(): Float
+	199: StLoc[16](loc14: Float)
+	200: MoveLoc[64](loc62: vector<TypeName>)
+	201: StLoc[65](loc63: vector<TypeName>)
+	202: MutBorrowLoc[65](loc63: vector<TypeName>)
+	203: Call vector::reverse<TypeName>(&mut vector<TypeName>)
+	204: ImmBorrowLoc[65](loc63: vector<TypeName>)
+	205: VecLen(21)
+	206: StLoc[6](loc4: u64)
+	207: LdU64(0)
+	208: StLoc[26](loc24: u64)
+	209: MoveLoc[6](loc4: u64)
+	210: StLoc[51](loc49: u64)
+B25:
+	211: CopyLoc[26](loc24: u64)
+	212: CopyLoc[51](loc49: u64)
+	213: Lt
+	214: BrFalse(274)
+B26:
+	215: CopyLoc[26](loc24: u64)
+	216: Pop
+	217: MutBorrowLoc[65](loc63: vector<TypeName>)
+	218: VecPopBack(21)
+	219: StLoc[19](loc17: TypeName)
+	220: MoveLoc[16](loc14: Float)
+	221: StLoc[56](loc54: Float)
+	222: MoveLoc[19](loc17: TypeName)
+	223: StLoc[44](loc42: TypeName)
+	224: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	225: FreezeRef
+	226: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	227: ImmBorrowLoc[44](loc42: TypeName)
+	228: Call vec_map::get<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>, &TypeName): &Option<Float>
+	229: StLoc[35](loc33: &Option<Float>)
+	230: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	231: Call weights<Ty0>(&PriceAggregator<Ty0>): &VecMap<TypeName, u8>
+	232: ImmBorrowLoc[44](loc42: TypeName)
+	233: Call vec_map::try_get<TypeName, u8>(&VecMap<TypeName, u8>, &TypeName): Option<u8>
+	234: StLoc[32](loc30: Option<u8>)
+	235: ImmBorrowLoc[32](loc30: Option<u8>)
+	236: Call option::is_some<u8>(&Option<u8>): bool
+	237: BrFalse(242)
+B27:
+	238: MoveLoc[32](loc30: Option<u8>)
+	239: Call option::destroy_some<u8>(Option<u8>): u8
+	240: StLoc[11](loc9: u8)
+	241: Branch(246)
+B28:
+	242: MoveLoc[32](loc30: Option<u8>)
+	243: Call option::destroy_none<u8>(Option<u8>)
+	244: LdU8(0)
+	245: StLoc[11](loc9: u8)
+B29:
+	246: MoveLoc[11](loc9: u8)
+	247: StLoc[70](loc68: u8)
+	248: CopyLoc[35](loc33: &Option<Float>)
+	249: Call option::is_some<Float>(&Option<Float>): bool
+	250: BrFalse(263)
+B30:
+	251: MoveLoc[35](loc33: &Option<Float>)
+	252: Call option::borrow<Float>(&Option<Float>): &Float
+	253: ReadRef
+	254: StLoc[33](loc31: Float)
+	255: MoveLoc[56](loc54: Float)
+	256: MoveLoc[33](loc31: Float)
+	257: MoveLoc[70](loc68: u8)
+	258: CastU64
+	259: Call float::mul_u64(Float, u64): Float
+	260: Call float::add(Float, Float): Float
+	261: StLoc[12](loc10: Float)
+	262: Branch(267)
+B31:
+	263: MoveLoc[35](loc33: &Option<Float>)
+	264: Pop
+	265: MoveLoc[56](loc54: Float)
+	266: StLoc[12](loc10: Float)
+B32:
+	267: MoveLoc[12](loc10: Float)
+	268: StLoc[16](loc14: Float)
+	269: MoveLoc[26](loc24: u64)
+	270: LdU64(1)
+	271: Add
+	272: StLoc[26](loc24: u64)
+	273: Branch(211)
+B33:
+	274: MoveLoc[65](loc63: vector<TypeName>)
+	275: VecUnpack(21, 0)
+	276: MoveLoc[16](loc14: Float)
+	277: MoveLoc[57](loc55: u64)
+	278: Call float::div_u64(Float, u64): Float
+	279: StLoc[71](loc69: Float)
+	280: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	281: FreezeRef
+	282: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	283: Call vec_map::keys<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>): vector<TypeName>
+	284: StLoc[66](loc64: vector<TypeName>)
+	285: VecPack(21, 0)
+	286: StLoc[37](loc35: vector<TypeName>)
+	287: MoveLoc[66](loc64: vector<TypeName>)
+	288: StLoc[67](loc65: vector<TypeName>)
+	289: MutBorrowLoc[67](loc65: vector<TypeName>)
+	290: Call vector::reverse<TypeName>(&mut vector<TypeName>)
+	291: ImmBorrowLoc[67](loc65: vector<TypeName>)
+	292: VecLen(21)
+	293: StLoc[7](loc5: u64)
+	294: LdU64(0)
+	295: StLoc[27](loc25: u64)
+	296: MoveLoc[7](loc5: u64)
+	297: StLoc[52](loc50: u64)
+	298: Branch(299)
+B34:
+	299: CopyLoc[27](loc25: u64)
+	300: CopyLoc[52](loc50: u64)
+	301: Lt
+	302: BrFalse(348)
+B35:
+	303: CopyLoc[27](loc25: u64)
+	304: Pop
+	305: MutBorrowLoc[67](loc65: vector<TypeName>)
+	306: VecPopBack(21)
+	307: StLoc[20](loc18: TypeName)
+	308: ImmBorrowLoc[20](loc18: TypeName)
+	309: StLoc[45](loc43: &TypeName)
+	310: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	311: Call weights<Ty0>(&PriceAggregator<Ty0>): &VecMap<TypeName, u8>
+	312: CopyLoc[45](loc43: &TypeName)
+	313: Call vec_map::contains<TypeName, u8>(&VecMap<TypeName, u8>, &TypeName): bool
+	314: Not
+	315: BrFalse(321)
+B36:
+	316: MoveLoc[45](loc43: &TypeName)
+	317: Pop
+	318: LdTrue
+	319: StLoc[13](loc11: bool)
+	320: Branch(338)
+B37:
+	321: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	322: FreezeRef
+	323: Call collector::contents<Ty0>(&PriceCollector<Ty0>): &VecMap<TypeName, Option<Float>>
+	324: MoveLoc[45](loc43: &TypeName)
+	325: Call vec_map::get<TypeName, Option<Float>>(&VecMap<TypeName, Option<Float>>, &TypeName): &Option<Float>
+	326: Call option::borrow<Float>(&Option<Float>): &Float
+	327: ReadRef
+	328: StLoc[34](loc32: Float)
+	329: CopyLoc[71](loc69: Float)
+	330: MoveLoc[34](loc32: Float)
+	331: Call float::diff(Float, Float): Float
+	332: CopyLoc[71](loc69: Float)
+	333: Call float::div(Float, Float): Float
+	334: CopyLoc[0](Arg0: &PriceAggregator<Ty0>)
+	335: Call outlier_tolerance<Ty0>(&PriceAggregator<Ty0>): Float
+	336: Call float::gt(Float, Float): bool
+	337: StLoc[13](loc11: bool)
+B38:
+	338: MoveLoc[13](loc11: bool)
+	339: BrFalse(343)
+B39:
+	340: MutBorrowLoc[37](loc35: vector<TypeName>)
+	341: MoveLoc[20](loc18: TypeName)
+	342: VecPushBack(21)
+B40:
+	343: MoveLoc[27](loc25: u64)
+	344: LdU64(1)
+	345: Add
+	346: StLoc[27](loc25: u64)
+	347: Branch(299)
+B41:
+	348: MoveLoc[0](Arg0: &PriceAggregator<Ty0>)
+	349: Pop
+	350: MoveLoc[67](loc65: vector<TypeName>)
+	351: VecUnpack(21, 0)
+	352: MoveLoc[37](loc35: vector<TypeName>)
+	353: StLoc[39](loc37: vector<TypeName>)
+	354: ImmBorrowLoc[39](loc37: vector<TypeName>)
+	355: StLoc[68](loc66: &vector<TypeName>)
+	356: CopyLoc[68](loc66: &vector<TypeName>)
+	357: VecLen(21)
+	358: StLoc[8](loc6: u64)
+	359: LdU64(0)
+	360: StLoc[29](loc27: u64)
+	361: MoveLoc[8](loc6: u64)
+	362: StLoc[54](loc52: u64)
+B42:
+	363: CopyLoc[29](loc27: u64)
+	364: CopyLoc[54](loc52: u64)
+	365: Lt
+	366: BrFalse(381)
+B43:
+	367: CopyLoc[29](loc27: u64)
+	368: StLoc[30](loc28: u64)
+	369: CopyLoc[68](loc66: &vector<TypeName>)
+	370: MoveLoc[30](loc28: u64)
+	371: VecImmBorrow(21)
+	372: StLoc[46](loc44: &TypeName)
+	373: CopyLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	374: MoveLoc[46](loc44: &TypeName)
+	375: Call collector::remove<Ty0>(&mut PriceCollector<Ty0>, &TypeName)
+	376: MoveLoc[29](loc27: u64)
+	377: LdU64(1)
+	378: Add
+	379: StLoc[29](loc27: u64)
+	380: Branch(363)
+B44:
+	381: MoveLoc[68](loc66: &vector<TypeName>)
+	382: Pop
+	383: MoveLoc[1](Arg1: &mut PriceCollector<Ty0>)
+	384: Pop
+	385: Ret
+}
+
+Constants [
+	0 => u64: 201
+	1 => u64: 202
+	2 => u64: 203
+	3 => u64: 204
+	4 => vector<u128>: 00
+	5 => vector<u8>: "" // interpreted as UTF8 string
+]
+}

@@ -1,0 +1,43 @@
+// module treasury  package 0x524a37ec411ba112f284508d9cd98265b796bea85db9450c84a42c8b5268885d (v2)
+// Move bytecode v6
+module e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd.treasury {
+use 0000000000000000000000000000000000000000000000000000000000000001::ascii;
+use 0000000000000000000000000000000000000000000000000000000000000001::string;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+
+struct CollectFee<phantom Ty0> has copy, drop {
+	memo: String,
+	coin_type: String,
+	amount: u64
+}
+
+struct ClaimFee<phantom Ty0> has copy, drop {
+	coin_type: String,
+	amount: u64
+}
+
+public(friend) emit_collect_fee<Ty0, Ty1>(Arg0: String, Arg1: u64) {
+B0:
+	0: MoveLoc[0](Arg0: String)
+	1: Call type_name::with_defining_ids<Ty0>(): TypeName
+	2: Call type_name::into_string(TypeName): String
+	3: Call string::from_ascii(String): String
+	4: MoveLoc[1](Arg1: u64)
+	5: PackGeneric[0](CollectFee<Ty1>)
+	6: Call event::emit<CollectFee<Ty1>>(CollectFee<Ty1>)
+	7: Ret
+}
+
+public(friend) emit_claim_fee<Ty0, Ty1>(Arg0: u64) {
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: Call type_name::into_string(TypeName): String
+	2: Call string::from_ascii(String): String
+	3: MoveLoc[0](Arg0: u64)
+	4: PackGeneric[1](ClaimFee<Ty1>)
+	5: Call event::emit<ClaimFee<Ty1>>(ClaimFee<Ty1>)
+	6: Ret
+}
+
+}

@@ -1,0 +1,666 @@
+// module pool  version-object 0x695470911f9bec43a0f9d926f2f652e05ef58c57077234af666028f36380e640 (v2)
+// Move bytecode v6
+module c2ae6693383e4a81285136effc8190c7baaf0e75aafa36d1c69cd2170cfc3803.pool {
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::account;
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::float;
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::sheet;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::result;
+use c2ae6693383e4a81285136effc8190c7baaf0e75aafa36d1c69cd2170cfc3803::events;
+use c2ae6693383e4a81285136effc8190c7baaf0e75aafa36d1c69cd2170cfc3803::memo;
+use c2ae6693383e4a81285136effc8190c7baaf0e75aafa36d1c69cd2170cfc3803::version;
+use c2ae6693383e4a81285136effc8190c7baaf0e75aafa36d1c69cd2170cfc3803::witness;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::admin;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::usdb;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::string;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct FeeConfig has copy, drop, store {
+	swap_in_fee_rate: Float,
+	swap_out_fee_rate: Float
+}
+
+struct Pool<phantom Ty0> has store, key {
+	id: UID,
+	decimal: u8,
+	default_fee_config: FeeConfig,
+	partner_fee_configs: VecMap<address, FeeConfig>,
+	price_tolerance: Float,
+	balance: Balance<Ty0>,
+	balance_amount: u64,
+	usdb_supply: u64,
+	sheet: Sheet<Ty0, BucketV2PSM>
+}
+
+err_pool_not_enough() {
+B0:
+	0: LdConst[0](u64: 401)
+	1: Abort
+}
+
+err_fluctuating_price() {
+B0:
+	0: LdConst[1](u64: 402)
+	1: Abort
+}
+
+public new<Ty0>(Arg0: &Treasury, Arg1: &AdminCap, Arg2: u8, Arg3: u64, Arg4: u64, Arg5: u64, Arg6: &mut TxContext): Pool<Ty0> {
+L7:	loc0: FeeConfig
+L8:	loc1: UID
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: MoveLoc[6](Arg6: &mut TxContext)
+	3: Call object::new(&mut TxContext): UID
+	4: StLoc[8](loc1: UID)
+	5: ImmBorrowLoc[8](loc1: UID)
+	6: Call object::uid_to_inner(&UID): ID
+	7: CopyLoc[2](Arg2: u8)
+	8: CopyLoc[3](Arg3: u64)
+	9: CopyLoc[4](Arg4: u64)
+	10: Call events::emit_new_pool<Ty0>(ID, u8, u64, u64)
+	11: MoveLoc[3](Arg3: u64)
+	12: Call float::from_bps(u64): Float
+	13: MoveLoc[4](Arg4: u64)
+	14: Call float::from_bps(u64): Float
+	15: Pack[0](FeeConfig)
+	16: StLoc[7](loc0: FeeConfig)
+	17: MoveLoc[8](loc1: UID)
+	18: MoveLoc[2](Arg2: u8)
+	19: MoveLoc[7](loc0: FeeConfig)
+	20: Call vec_map::empty<address, FeeConfig>(): VecMap<address, FeeConfig>
+	21: MoveLoc[5](Arg5: u64)
+	22: Call float::from_bps(u64): Float
+	23: Call balance::zero<Ty0>(): Balance<Ty0>
+	24: LdU64(0)
+	25: LdU64(0)
+	26: Call witness::witness(): BucketV2PSM
+	27: Call sheet::new<Ty0, BucketV2PSM>(BucketV2PSM): Sheet<Ty0, BucketV2PSM>
+	28: PackGeneric[0](Pool<Ty0>)
+	29: Ret
+}
+
+public create<Ty0>(Arg0: &Treasury, Arg1: &AdminCap, Arg2: u8, Arg3: u64, Arg4: u64, Arg5: u64, Arg6: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: MoveLoc[1](Arg1: &AdminCap)
+	2: MoveLoc[2](Arg2: u8)
+	3: MoveLoc[3](Arg3: u64)
+	4: MoveLoc[4](Arg4: u64)
+	5: MoveLoc[5](Arg5: u64)
+	6: MoveLoc[6](Arg6: &mut TxContext)
+	7: Call new<Ty0>(&Treasury, &AdminCap, u8, u64, u64, u64, &mut TxContext): Pool<Ty0>
+	8: Call transfer::share_object<Pool<Ty0>>(Pool<Ty0>)
+	9: Ret
+}
+
+public set_fee_config<Ty0>(Arg0: &mut Pool<Ty0>, Arg1: &AdminCap, Arg2: Option<address>, Arg3: u64, Arg4: u64) {
+L5:	loc0: &mut FeeConfig
+L6:	loc1: address
+B0:
+	0: ImmBorrowLoc[2](Arg2: Option<address>)
+	1: Call option::is_some<address>(&Option<address>): bool
+	2: BrFalse(37)
+B1:
+	3: MoveLoc[2](Arg2: Option<address>)
+	4: Call option::destroy_some<address>(Option<address>): address
+	5: StLoc[6](loc1: address)
+	6: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	7: ImmBorrowFieldGeneric[0](Pool.partner_fee_configs: VecMap<address, FeeConfig>)
+	8: ImmBorrowLoc[6](loc1: address)
+	9: Call vec_map::contains<address, FeeConfig>(&VecMap<address, FeeConfig>, &address): bool
+	10: BrFalse(27)
+B2:
+	11: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	12: MutBorrowFieldGeneric[0](Pool.partner_fee_configs: VecMap<address, FeeConfig>)
+	13: ImmBorrowLoc[6](loc1: address)
+	14: Call vec_map::get_mut<address, FeeConfig>(&mut VecMap<address, FeeConfig>, &address): &mut FeeConfig
+	15: StLoc[5](loc0: &mut FeeConfig)
+	16: MoveLoc[3](Arg3: u64)
+	17: Call float::from_bps(u64): Float
+	18: CopyLoc[5](loc0: &mut FeeConfig)
+	19: MutBorrowField[1](FeeConfig.swap_in_fee_rate: Float)
+	20: WriteRef
+	21: MoveLoc[4](Arg4: u64)
+	22: Call float::from_bps(u64): Float
+	23: MoveLoc[5](loc0: &mut FeeConfig)
+	24: MutBorrowField[2](FeeConfig.swap_out_fee_rate: Float)
+	25: WriteRef
+	26: Branch(49)
+B3:
+	27: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	28: MutBorrowFieldGeneric[0](Pool.partner_fee_configs: VecMap<address, FeeConfig>)
+	29: MoveLoc[6](loc1: address)
+	30: MoveLoc[3](Arg3: u64)
+	31: Call float::from_bps(u64): Float
+	32: MoveLoc[4](Arg4: u64)
+	33: Call float::from_bps(u64): Float
+	34: Pack[0](FeeConfig)
+	35: Call vec_map::insert<address, FeeConfig>(&mut VecMap<address, FeeConfig>, address, FeeConfig)
+	36: Branch(49)
+B4:
+	37: MoveLoc[3](Arg3: u64)
+	38: Call float::from_bps(u64): Float
+	39: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	40: MutBorrowFieldGeneric[1](Pool.default_fee_config: FeeConfig)
+	41: MutBorrowField[1](FeeConfig.swap_in_fee_rate: Float)
+	42: WriteRef
+	43: MoveLoc[4](Arg4: u64)
+	44: Call float::from_bps(u64): Float
+	45: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	46: MutBorrowFieldGeneric[1](Pool.default_fee_config: FeeConfig)
+	47: MutBorrowField[2](FeeConfig.swap_out_fee_rate: Float)
+	48: WriteRef
+B5:
+	49: Ret
+}
+
+public set_price_tolerance<Ty0>(Arg0: &mut Pool<Ty0>, Arg1: &AdminCap, Arg2: u64) {
+B0:
+	0: MoveLoc[2](Arg2: u64)
+	1: Call float::from_bps(u64): Float
+	2: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	3: MutBorrowFieldGeneric[2](Pool.price_tolerance: Float)
+	4: WriteRef
+	5: Ret
+}
+
+public swap_in<Ty0>(Arg0: &mut Pool<Ty0>, Arg1: &mut Treasury, Arg2: &PriceResult<Ty0>, Arg3: Coin<Ty0>, Arg4: &Option<AccountRequest>, Arg5: &mut TxContext): Coin<USDB> {
+L6:	loc0: Option<address>
+L7:	loc1: Option<address>
+L8:	loc2: &Pool<Ty0>
+L9:	loc3: Float
+L10:	loc4: &Option<AccountRequest>
+B0:
+	0: CopyLoc[1](Arg1: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	4: FreezeRef
+	5: MoveLoc[2](Arg2: &PriceResult<Ty0>)
+	6: Call check_price<Ty0>(&Pool<Ty0>, &PriceResult<Ty0>)
+	7: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	8: FreezeRef
+	9: StLoc[8](loc2: &Pool<Ty0>)
+	10: MoveLoc[4](Arg4: &Option<AccountRequest>)
+	11: StLoc[10](loc4: &Option<AccountRequest>)
+	12: CopyLoc[10](loc4: &Option<AccountRequest>)
+	13: Call option::is_some<AccountRequest>(&Option<AccountRequest>): bool
+	14: BrFalse(21)
+B1:
+	15: MoveLoc[10](loc4: &Option<AccountRequest>)
+	16: Call option::borrow<AccountRequest>(&Option<AccountRequest>): &AccountRequest
+	17: Call account::request_address(&AccountRequest): address
+	18: Call option::some<address>(address): Option<address>
+	19: StLoc[7](loc1: Option<address>)
+	20: Branch(25)
+B2:
+	21: MoveLoc[10](loc4: &Option<AccountRequest>)
+	22: Pop
+	23: Call option::none<address>(): Option<address>
+	24: StLoc[7](loc1: Option<address>)
+B3:
+	25: MoveLoc[7](loc1: Option<address>)
+	26: StLoc[6](loc0: Option<address>)
+	27: MoveLoc[8](loc2: &Pool<Ty0>)
+	28: MoveLoc[6](loc0: Option<address>)
+	29: Call swap_in_fee_rate<Ty0>(&Pool<Ty0>, Option<address>): Float
+	30: StLoc[9](loc3: Float)
+	31: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	32: MoveLoc[1](Arg1: &mut Treasury)
+	33: MoveLoc[3](Arg3: Coin<Ty0>)
+	34: MoveLoc[9](loc3: Float)
+	35: MoveLoc[5](Arg5: &mut TxContext)
+	36: Call swap_in_internal<Ty0>(&mut Pool<Ty0>, &mut Treasury, Coin<Ty0>, Float, &mut TxContext): Coin<USDB>
+	37: Ret
+}
+
+public swap_out<Ty0>(Arg0: &mut Pool<Ty0>, Arg1: &mut Treasury, Arg2: &PriceResult<Ty0>, Arg3: Coin<USDB>, Arg4: &Option<AccountRequest>, Arg5: &mut TxContext): Coin<Ty0> {
+L6:	loc0: Option<address>
+L7:	loc1: Option<address>
+L8:	loc2: &Pool<Ty0>
+L9:	loc3: Float
+L10:	loc4: &Option<AccountRequest>
+B0:
+	0: CopyLoc[1](Arg1: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	4: FreezeRef
+	5: MoveLoc[2](Arg2: &PriceResult<Ty0>)
+	6: Call check_price<Ty0>(&Pool<Ty0>, &PriceResult<Ty0>)
+	7: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	8: FreezeRef
+	9: StLoc[8](loc2: &Pool<Ty0>)
+	10: MoveLoc[4](Arg4: &Option<AccountRequest>)
+	11: StLoc[10](loc4: &Option<AccountRequest>)
+	12: CopyLoc[10](loc4: &Option<AccountRequest>)
+	13: Call option::is_some<AccountRequest>(&Option<AccountRequest>): bool
+	14: BrFalse(21)
+B1:
+	15: MoveLoc[10](loc4: &Option<AccountRequest>)
+	16: Call option::borrow<AccountRequest>(&Option<AccountRequest>): &AccountRequest
+	17: Call account::request_address(&AccountRequest): address
+	18: Call option::some<address>(address): Option<address>
+	19: StLoc[7](loc1: Option<address>)
+	20: Branch(25)
+B2:
+	21: MoveLoc[10](loc4: &Option<AccountRequest>)
+	22: Pop
+	23: Call option::none<address>(): Option<address>
+	24: StLoc[7](loc1: Option<address>)
+B3:
+	25: MoveLoc[7](loc1: Option<address>)
+	26: StLoc[6](loc0: Option<address>)
+	27: MoveLoc[8](loc2: &Pool<Ty0>)
+	28: MoveLoc[6](loc0: Option<address>)
+	29: Call swap_out_fee_rate<Ty0>(&Pool<Ty0>, Option<address>): Float
+	30: StLoc[9](loc3: Float)
+	31: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	32: MoveLoc[1](Arg1: &mut Treasury)
+	33: MoveLoc[3](Arg3: Coin<USDB>)
+	34: MoveLoc[9](loc3: Float)
+	35: MoveLoc[5](Arg5: &mut TxContext)
+	36: Call swap_out_internal<Ty0>(&mut Pool<Ty0>, &mut Treasury, Coin<USDB>, Float, &mut TxContext): Coin<Ty0>
+	37: Ret
+}
+
+public decimal<Ty0>(Arg0: &Pool<Ty0>): u8 {
+B0:
+	0: MoveLoc[0](Arg0: &Pool<Ty0>)
+	1: ImmBorrowFieldGeneric[3](Pool.decimal: u8)
+	2: ReadRef
+	3: Ret
+}
+
+public conversion_rate<Ty0>(Arg0: &Pool<Ty0>): Float {
+L1:	loc0: Float
+L2:	loc1: u8
+B0:
+	0: Call usdb::decimal(): u8
+	1: StLoc[2](loc1: u8)
+	2: CopyLoc[2](loc1: u8)
+	3: CopyLoc[0](Arg0: &Pool<Ty0>)
+	4: ImmBorrowFieldGeneric[3](Pool.decimal: u8)
+	5: ReadRef
+	6: Ge
+	7: BrFalse(18)
+B1:
+	8: Call float::ten(): Float
+	9: MoveLoc[2](loc1: u8)
+	10: MoveLoc[0](Arg0: &Pool<Ty0>)
+	11: ImmBorrowFieldGeneric[3](Pool.decimal: u8)
+	12: ReadRef
+	13: Sub
+	14: CastU64
+	15: Call float::pow(Float, u64): Float
+	16: StLoc[1](loc0: Float)
+	17: Branch(29)
+B2:
+	18: Call float::one(): Float
+	19: Call float::ten(): Float
+	20: MoveLoc[0](Arg0: &Pool<Ty0>)
+	21: ImmBorrowFieldGeneric[3](Pool.decimal: u8)
+	22: ReadRef
+	23: MoveLoc[2](loc1: u8)
+	24: Sub
+	25: CastU64
+	26: Call float::pow(Float, u64): Float
+	27: Call float::div(Float, Float): Float
+	28: StLoc[1](loc0: Float)
+B3:
+	29: MoveLoc[1](loc0: Float)
+	30: Ret
+}
+
+public swap_in_fee_rate<Ty0>(Arg0: &Pool<Ty0>, Arg1: Option<address>): Float {
+L2:	loc0: bool
+L3:	loc1: Float
+B0:
+	0: ImmBorrowLoc[1](Arg1: Option<address>)
+	1: Call option::is_some<address>(&Option<address>): bool
+	2: BrFalse(10)
+B1:
+	3: CopyLoc[0](Arg0: &Pool<Ty0>)
+	4: ImmBorrowFieldGeneric[0](Pool.partner_fee_configs: VecMap<address, FeeConfig>)
+	5: ImmBorrowLoc[1](Arg1: Option<address>)
+	6: Call option::borrow<address>(&Option<address>): &address
+	7: Call vec_map::contains<address, FeeConfig>(&VecMap<address, FeeConfig>, &address): bool
+	8: StLoc[2](loc0: bool)
+	9: Branch(12)
+B2:
+	10: LdFalse
+	11: StLoc[2](loc0: bool)
+B3:
+	12: MoveLoc[2](loc0: bool)
+	13: BrFalse(23)
+B4:
+	14: MoveLoc[0](Arg0: &Pool<Ty0>)
+	15: ImmBorrowFieldGeneric[0](Pool.partner_fee_configs: VecMap<address, FeeConfig>)
+	16: ImmBorrowLoc[1](Arg1: Option<address>)
+	17: Call option::borrow<address>(&Option<address>): &address
+	18: Call vec_map::get<address, FeeConfig>(&VecMap<address, FeeConfig>, &address): &FeeConfig
+	19: ImmBorrowField[1](FeeConfig.swap_in_fee_rate: Float)
+	20: ReadRef
+	21: StLoc[3](loc1: Float)
+	22: Branch(28)
+B5:
+	23: MoveLoc[0](Arg0: &Pool<Ty0>)
+	24: ImmBorrowFieldGeneric[1](Pool.default_fee_config: FeeConfig)
+	25: ImmBorrowField[1](FeeConfig.swap_in_fee_rate: Float)
+	26: ReadRef
+	27: StLoc[3](loc1: Float)
+B6:
+	28: MoveLoc[3](loc1: Float)
+	29: Ret
+}
+
+public swap_out_fee_rate<Ty0>(Arg0: &Pool<Ty0>, Arg1: Option<address>): Float {
+L2:	loc0: bool
+L3:	loc1: Float
+B0:
+	0: ImmBorrowLoc[1](Arg1: Option<address>)
+	1: Call option::is_some<address>(&Option<address>): bool
+	2: BrFalse(10)
+B1:
+	3: CopyLoc[0](Arg0: &Pool<Ty0>)
+	4: ImmBorrowFieldGeneric[0](Pool.partner_fee_configs: VecMap<address, FeeConfig>)
+	5: ImmBorrowLoc[1](Arg1: Option<address>)
+	6: Call option::borrow<address>(&Option<address>): &address
+	7: Call vec_map::contains<address, FeeConfig>(&VecMap<address, FeeConfig>, &address): bool
+	8: StLoc[2](loc0: bool)
+	9: Branch(12)
+B2:
+	10: LdFalse
+	11: StLoc[2](loc0: bool)
+B3:
+	12: MoveLoc[2](loc0: bool)
+	13: BrFalse(23)
+B4:
+	14: MoveLoc[0](Arg0: &Pool<Ty0>)
+	15: ImmBorrowFieldGeneric[0](Pool.partner_fee_configs: VecMap<address, FeeConfig>)
+	16: ImmBorrowLoc[1](Arg1: Option<address>)
+	17: Call option::borrow<address>(&Option<address>): &address
+	18: Call vec_map::get<address, FeeConfig>(&VecMap<address, FeeConfig>, &address): &FeeConfig
+	19: ImmBorrowField[2](FeeConfig.swap_out_fee_rate: Float)
+	20: ReadRef
+	21: StLoc[3](loc1: Float)
+	22: Branch(28)
+B5:
+	23: MoveLoc[0](Arg0: &Pool<Ty0>)
+	24: ImmBorrowFieldGeneric[1](Pool.default_fee_config: FeeConfig)
+	25: ImmBorrowField[2](FeeConfig.swap_out_fee_rate: Float)
+	26: ReadRef
+	27: StLoc[3](loc1: Float)
+B6:
+	28: MoveLoc[3](loc1: Float)
+	29: Ret
+}
+
+public balance<Ty0>(Arg0: &Pool<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Pool<Ty0>)
+	1: ImmBorrowFieldGeneric[4](Pool.balance: Balance<Ty0>)
+	2: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	3: Ret
+}
+
+public balance_amount<Ty0>(Arg0: &Pool<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Pool<Ty0>)
+	1: ImmBorrowFieldGeneric[5](Pool.balance_amount: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public usdb_supply<Ty0>(Arg0: &Pool<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Pool<Ty0>)
+	1: ImmBorrowFieldGeneric[6](Pool.usdb_supply: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public price_tolerance<Ty0>(Arg0: &Pool<Ty0>): Float {
+B0:
+	0: MoveLoc[0](Arg0: &Pool<Ty0>)
+	1: ImmBorrowFieldGeneric[2](Pool.price_tolerance: Float)
+	2: ReadRef
+	3: Ret
+}
+
+swap_in_internal<Ty0>(Arg0: &mut Pool<Ty0>, Arg1: &mut Treasury, Arg2: Coin<Ty0>, Arg3: Float, Arg4: &mut TxContext): Coin<USDB> {
+L5:	loc0: bool
+L6:	loc1: u64
+L7:	loc2: Balance<USDB>
+L8:	loc3: u64
+L9:	loc4: Coin<USDB>
+L10:	loc5: u64
+B0:
+	0: ImmBorrowLoc[2](Arg2: Coin<Ty0>)
+	1: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	2: StLoc[6](loc1: u64)
+	3: CopyLoc[6](loc1: u64)
+	4: Call float::from(u64): Float
+	5: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	6: FreezeRef
+	7: Call conversion_rate<Ty0>(&Pool<Ty0>): Float
+	8: Call float::mul(Float, Float): Float
+	9: Call float::floor(Float): u64
+	10: StLoc[10](loc5: u64)
+	11: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	12: MutBorrowFieldGeneric[4](Pool.balance: Balance<Ty0>)
+	13: MoveLoc[2](Arg2: Coin<Ty0>)
+	14: Call coin::into_balance<Ty0>(Coin<Ty0>): Balance<Ty0>
+	15: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	16: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	17: MutBorrowFieldGeneric[5](Pool.balance_amount: u64)
+	18: WriteRef
+	19: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	20: ImmBorrowFieldGeneric[6](Pool.usdb_supply: u64)
+	21: ReadRef
+	22: CopyLoc[10](loc5: u64)
+	23: Add
+	24: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	25: MutBorrowFieldGeneric[6](Pool.usdb_supply: u64)
+	26: WriteRef
+	27: CopyLoc[6](loc1: u64)
+	28: LdU64(0)
+	29: Gt
+	30: BrFalse(34)
+B1:
+	31: LdTrue
+	32: StLoc[5](loc0: bool)
+	33: Branch(38)
+B2:
+	34: CopyLoc[10](loc5: u64)
+	35: LdU64(0)
+	36: Gt
+	37: StLoc[5](loc0: bool)
+B3:
+	38: MoveLoc[5](loc0: bool)
+	39: BrFalse(50)
+B4:
+	40: MoveLoc[6](loc1: u64)
+	41: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	42: ImmBorrowFieldGeneric[5](Pool.balance_amount: u64)
+	43: ReadRef
+	44: CopyLoc[10](loc5: u64)
+	45: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	46: ImmBorrowFieldGeneric[6](Pool.usdb_supply: u64)
+	47: ReadRef
+	48: Call events::emit_swap_in<Ty0>(u64, u64, u64, u64)
+	49: Branch(52)
+B5:
+	50: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	51: Pop
+B6:
+	52: CopyLoc[1](Arg1: &mut Treasury)
+	53: Call witness::witness(): BucketV2PSM
+	54: Call version::package_version(): u16
+	55: CopyLoc[10](loc5: u64)
+	56: MoveLoc[4](Arg4: &mut TxContext)
+	57: Call usdb::mint<BucketV2PSM>(&mut Treasury, BucketV2PSM, u16, u64, &mut TxContext): Coin<USDB>
+	58: StLoc[9](loc4: Coin<USDB>)
+	59: MoveLoc[3](Arg3: Float)
+	60: MoveLoc[10](loc5: u64)
+	61: Call float::mul_u64(Float, u64): Float
+	62: Call float::ceil(Float): u64
+	63: StLoc[8](loc3: u64)
+	64: MutBorrowLoc[9](loc4: Coin<USDB>)
+	65: Call coin::balance_mut<USDB>(&mut Coin<USDB>): &mut Balance<USDB>
+	66: MoveLoc[8](loc3: u64)
+	67: Call balance::split<USDB>(&mut Balance<USDB>, u64): Balance<USDB>
+	68: StLoc[7](loc2: Balance<USDB>)
+	69: MoveLoc[1](Arg1: &mut Treasury)
+	70: Call witness::witness(): BucketV2PSM
+	71: Call memo::swap_in(): String
+	72: MoveLoc[7](loc2: Balance<USDB>)
+	73: Call usdb::collect<USDB, BucketV2PSM>(&mut Treasury, BucketV2PSM, String, Balance<USDB>)
+	74: MoveLoc[9](loc4: Coin<USDB>)
+	75: Ret
+}
+
+swap_out_internal<Ty0>(Arg0: &mut Pool<Ty0>, Arg1: &mut Treasury, Arg2: Coin<USDB>, Arg3: Float, Arg4: &mut TxContext): Coin<Ty0> {
+L5:	loc0: bool
+L6:	loc1: Coin<Ty0>
+L7:	loc2: u64
+L8:	loc3: u64
+L9:	loc4: Balance<Ty0>
+L10:	loc5: u64
+L11:	loc6: u64
+B0:
+	0: ImmBorrowLoc[2](Arg2: Coin<USDB>)
+	1: Call coin::value<USDB>(&Coin<USDB>): u64
+	2: StLoc[11](loc6: u64)
+	3: CopyLoc[1](Arg1: &mut Treasury)
+	4: Call witness::witness(): BucketV2PSM
+	5: Call version::package_version(): u16
+	6: MoveLoc[2](Arg2: Coin<USDB>)
+	7: Call usdb::burn<BucketV2PSM>(&mut Treasury, BucketV2PSM, u16, Coin<USDB>)
+	8: CopyLoc[11](loc6: u64)
+	9: Call float::from(u64): Float
+	10: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	11: FreezeRef
+	12: Call conversion_rate<Ty0>(&Pool<Ty0>): Float
+	13: Call float::div(Float, Float): Float
+	14: Call float::floor(Float): u64
+	15: StLoc[8](loc3: u64)
+	16: CopyLoc[8](loc3: u64)
+	17: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	18: FreezeRef
+	19: Call balance<Ty0>(&Pool<Ty0>): u64
+	20: Gt
+	21: BrFalse(23)
+B1:
+	22: Call err_pool_not_enough()
+B2:
+	23: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	24: ImmBorrowFieldGeneric[6](Pool.usdb_supply: u64)
+	25: ReadRef
+	26: CopyLoc[11](loc6: u64)
+	27: Lt
+	28: BrFalse(30)
+B3:
+	29: Call err_pool_not_enough()
+B4:
+	30: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	31: ImmBorrowFieldGeneric[6](Pool.usdb_supply: u64)
+	32: ReadRef
+	33: CopyLoc[11](loc6: u64)
+	34: Sub
+	35: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	36: MutBorrowFieldGeneric[6](Pool.usdb_supply: u64)
+	37: WriteRef
+	38: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	39: MutBorrowFieldGeneric[4](Pool.balance: Balance<Ty0>)
+	40: CopyLoc[8](loc3: u64)
+	41: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	42: MoveLoc[4](Arg4: &mut TxContext)
+	43: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	44: StLoc[6](loc1: Coin<Ty0>)
+	45: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	46: ImmBorrowFieldGeneric[4](Pool.balance: Balance<Ty0>)
+	47: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	48: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	49: MutBorrowFieldGeneric[5](Pool.balance_amount: u64)
+	50: WriteRef
+	51: CopyLoc[11](loc6: u64)
+	52: LdU64(0)
+	53: Gt
+	54: BrFalse(58)
+B5:
+	55: LdTrue
+	56: StLoc[5](loc0: bool)
+	57: Branch(62)
+B6:
+	58: CopyLoc[8](loc3: u64)
+	59: LdU64(0)
+	60: Gt
+	61: StLoc[5](loc0: bool)
+B7:
+	62: MoveLoc[5](loc0: bool)
+	63: BrFalse(74)
+B8:
+	64: MoveLoc[11](loc6: u64)
+	65: CopyLoc[0](Arg0: &mut Pool<Ty0>)
+	66: ImmBorrowFieldGeneric[6](Pool.usdb_supply: u64)
+	67: ReadRef
+	68: MoveLoc[8](loc3: u64)
+	69: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	70: ImmBorrowFieldGeneric[5](Pool.balance_amount: u64)
+	71: ReadRef
+	72: Call events::emit_swap_out<Ty0>(u64, u64, u64, u64)
+	73: Branch(76)
+B9:
+	74: MoveLoc[0](Arg0: &mut Pool<Ty0>)
+	75: Pop
+B10:
+	76: ImmBorrowLoc[6](loc1: Coin<Ty0>)
+	77: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	78: StLoc[7](loc2: u64)
+	79: MoveLoc[3](Arg3: Float)
+	80: MoveLoc[7](loc2: u64)
+	81: Call float::mul_u64(Float, u64): Float
+	82: Call float::ceil(Float): u64
+	83: StLoc[10](loc5: u64)
+	84: MutBorrowLoc[6](loc1: Coin<Ty0>)
+	85: Call coin::balance_mut<Ty0>(&mut Coin<Ty0>): &mut Balance<Ty0>
+	86: MoveLoc[10](loc5: u64)
+	87: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	88: StLoc[9](loc4: Balance<Ty0>)
+	89: MoveLoc[1](Arg1: &mut Treasury)
+	90: Call witness::witness(): BucketV2PSM
+	91: Call memo::swap_out(): String
+	92: MoveLoc[9](loc4: Balance<Ty0>)
+	93: Call usdb::collect<Ty0, BucketV2PSM>(&mut Treasury, BucketV2PSM, String, Balance<Ty0>)
+	94: MoveLoc[6](loc1: Coin<Ty0>)
+	95: Ret
+}
+
+check_price<Ty0>(Arg0: &Pool<Ty0>, Arg1: &PriceResult<Ty0>) {
+B0:
+	0: MoveLoc[1](Arg1: &PriceResult<Ty0>)
+	1: Call result::aggregated_price<Ty0>(&PriceResult<Ty0>): Float
+	2: Call float::one(): Float
+	3: Call float::diff(Float, Float): Float
+	4: MoveLoc[0](Arg0: &Pool<Ty0>)
+	5: Call price_tolerance<Ty0>(&Pool<Ty0>): Float
+	6: Call float::gt(Float, Float): bool
+	7: BrFalse(9)
+B1:
+	8: Call err_fluctuating_price()
+B2:
+	9: Ret
+}
+
+Constants [
+	0 => u64: 401
+	1 => u64: 402
+]
+}

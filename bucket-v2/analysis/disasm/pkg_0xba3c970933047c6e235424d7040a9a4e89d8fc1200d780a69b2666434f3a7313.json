@@ -1,0 +1,41 @@
+{
+ "address": "0xba3c970933047c6e235424d7040a9a4e89d8fc1200d780a69b2666434f3a7313",
+ "version": 1,
+ "digest": "9QX2JBNKrFaqF3wwooBBmBv4nUEqHVNuYU1hzbWTaL9G",
+ "previousTransaction": {
+  "digest": "4aJ2mPsWZhZej4cJBDXwL2Q6jQBtSyr2fcrkqNbWNpQg"
+ },
+ "linkage": [
+  {
+   "originalId": "0x0000000000000000000000000000000000000000000000000000000000000001",
+   "upgradedId": "0x0000000000000000000000000000000000000000000000000000000000000001",
+   "version": 17
+  },
+  {
+   "originalId": "0x0000000000000000000000000000000000000000000000000000000000000002",
+   "upgradedId": "0x0000000000000000000000000000000000000000000000000000000000000002",
+   "version": 39
+  },
+  {
+   "originalId": "0x2f2226a22ebeb7a0e63ea39551829b238589d981d1c6dd454f01fcc513035593",
+   "upgradedId": "0x3de5d09944b30c9bca39de19b219e78cb60a719a8b3830a89b500b7f30fb3cc2",
+   "version": 19
+  },
+  {
+   "originalId": "0x665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc",
+   "upgradedId": "0x665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc",
+   "version": 1
+  },
+  {
+   "originalId": "0xf2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e",
+   "upgradedId": "0xf2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e",
+   "version": 1
+  }
+ ],
+ "modules": [
+  {
+   "name": "gcoin_rule",
+   "disassembly": "// Move bytecode v6\nmodule ba3c970933047c6e235424d7040a9a4e89d8fc1200d780a69b2666434f3a7313.gcoin_rule {\nuse 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::float;\nuse f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::collector;\nuse f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::listing;\nuse f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::result;\nuse 0000000000000000000000000000000000000000000000000000000000000001::option;\nuse 0000000000000000000000000000000000000000000000000000000000000001::type_name;\nuse 0000000000000000000000000000000000000000000000000000000000000002::object;\nuse 0000000000000000000000000000000000000000000000000000000000000002::transfer;\nuse 0000000000000000000000000000000000000000000000000000000000000002::tx_context;\nuse 0000000000000000000000000000000000000000000000000000000000000002::vec_map;\nuse 2f2226a22ebeb7a0e63ea39551829b238589d981d1c6dd454f01fcc513035593::house;\nuse 2f2226a22ebeb7a0e63ea39551829b238589d981d1c6dd454f01fcc513035593::unihouse;\n\nstruct GCoinRule has drop {\n\tdummy_field: bool\n}\n\nstruct Config has key {\n\tid: UID,\n\tunderlying_coin_map: VecMap<TypeName, TypeName>\n}\n\nerr_unsupported_gcoin_type() {\nB0:\n\t0: LdConst[0](u64: 1)\n\t1: Abort\n}\n\nerr_invalid_coin_type() {\nB0:\n\t0: LdConst[1](u64: 2)\n\t1: Abort\n}\n\ninit(Arg0: &mut TxContext) {\nB0:\n\t0: MoveLoc[0](Arg0: &mut TxContext)\n\t1: Call object::new(&mut TxContext): UID\n\t2: Call vec_map::empty<TypeName, TypeName>(): VecMap<TypeName, TypeName>\n\t3: Pack[1](Config)\n\t4: Call transfer::share_object<Config>(Config)\n\t5: Ret\n}\n\npublic add_gcoin_pair<Ty0, Ty1>(Arg0: &mut Config, Arg1: &ListingCap) {\nL2:\tloc0: TypeName\nB0:\n\t0: Call type_name::get<Ty0>(): TypeName\n\t1: StLoc[2](loc0: TypeName)\n\t2: CopyLoc[0](Arg0: &mut Config)\n\t3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)\n\t4: ImmBorrowLoc[2](loc0: TypeName)\n\t5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool\n\t6: BrFalse(14)\nB1:\n\t7: Call type_name::get<Ty1>(): TypeName\n\t8: MoveLoc[0](Arg0: &mut Config)\n\t9: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)\n\t10: ImmBorrowLoc[2](loc0: TypeName)\n\t11: Call vec_map::get_mut<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, &TypeName): &mut TypeName\n\t12: WriteRef\n\t13: Branch(19)\nB2:\n\t14: MoveLoc[0](Arg0: &mut Config)\n\t15: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)\n\t16: MoveLoc[2](loc0: TypeName)\n\t17: Call type_name::get<Ty1>(): TypeName\n\t18: Call vec_map::insert<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, TypeName, TypeName)\nB3:\n\t19: Ret\n}\n\npublic remove_gcoin_pair<Ty0>(Arg0: &mut Config, Arg1: &ListingCap) {\nL2:\tloc0: TypeName\nB0:\n\t0: Call type_name::get<Ty0>(): TypeName\n\t1: StLoc[2](loc0: TypeName)\n\t2: CopyLoc[0](Arg0: &mut Config)\n\t3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)\n\t4: ImmBorrowLoc[2](loc0: TypeName)\n\t5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool\n\t6: BrFalse(14)\nB1:\n\t7: MoveLoc[0](Arg0: &mut Config)\n\t8: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)\n\t9: ImmBorrowLoc[2](loc0: TypeName)\n\t10: Call vec_map::remove<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, &TypeName): TypeName * TypeName\n\t11: Pop\n\t12: Pop\n\t13: Branch(16)\nB2:\n\t14: MoveLoc[0](Arg0: &mut Config)\n\t15: Pop\nB3:\n\t16: Ret\n}\n\npublic feed<Ty0, Ty1>(Arg0: &mut PriceCollector<Ty0>, Arg1: &PriceResult<Ty1>, Arg2: &Config, Arg3: &Unihouse) {\nL4:\tloc0: Float\nL5:\tloc1: TypeName\nL6:\tloc2: Float\nL7:\tloc3: u64\nL8:\tloc4: TypeName\nL9:\tloc5: u64\nL10:\tloc6: u64\nB0:\n\t0: Call type_name::get<Ty0>(): TypeName\n\t1: StLoc[8](loc4: TypeName)\n\t2: CopyLoc[2](Arg2: &Config)\n\t3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)\n\t4: ImmBorrowLoc[8](loc4: TypeName)\n\t5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool\n\t6: Not\n\t7: BrFalse(9)\nB1:\n\t8: Call err_unsupported_gcoin_type()\nB2:\n\t9: Call type_name::get<Ty1>(): TypeName\n\t10: StLoc[5](loc1: TypeName)\n\t11: ImmBorrowLoc[5](loc1: TypeName)\n\t12: MoveLoc[2](Arg2: &Config)\n\t13: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)\n\t14: ImmBorrowLoc[8](loc4: TypeName)\n\t15: Call vec_map::get<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): &TypeName\n\t16: Neq\n\t17: BrFalse(19)\nB3:\n\t18: Call err_invalid_coin_type()\nB4:\n\t19: MoveLoc[1](Arg1: &PriceResult<Ty1>)\n\t20: Call result::aggregated_price<Ty1>(&PriceResult<Ty1>): Float\n\t21: StLoc[4](loc0: Float)\n\t22: MoveLoc[3](Arg3: &Unihouse)\n\t23: Call unihouse::borrow_house<Ty1>(&Unihouse): &House<Ty1>\n\t24: Call house::house_metadata<Ty1>(&House<Ty1>): u64 * u64 * u64 * u64 * u64 * u64\n\t25: Pop\n\t26: StLoc[9](loc5: u64)\n\t27: Pop\n\t28: StLoc[7](loc3: u64)\n\t29: Pop\n\t30: MoveLoc[9](loc5: u64)\n\t31: Add\n\t32: StLoc[10](loc6: u64)\n\t33: MoveLoc[4](loc0: Float)\n\t34: MoveLoc[10](loc6: u64)\n\t35: Call float::mul_u64(Float, u64): Float\n\t36: MoveLoc[7](loc3: u64)\n\t37: Call float::div_u64(Float, u64): Float\n\t38: StLoc[6](loc2: Float)\n\t39: MoveLoc[0](Arg0: &mut PriceCollector<Ty0>)\n\t40: LdFalse\n\t41: Pack[0](GCoinRule)\n\t42: MoveLoc[6](loc2: Float)\n\t43: Call option::some<Float>(Float): Option<Float>\n\t44: Call collector::collect<Ty0, GCoinRule>(&mut PriceCollector<Ty0>, GCoinRule, Option<Float>)\n\t45: Ret\n}\n\nConstants [\n\t0 => u64: 1\n\t1 => u64: 2\n]\n}\n"
+  }
+ ]
+}

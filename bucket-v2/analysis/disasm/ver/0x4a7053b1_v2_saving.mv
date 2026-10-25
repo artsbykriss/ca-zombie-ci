@@ -1,0 +1,1482 @@
+// module saving  version-object 0x4a7053b164754361822c46468ba49aa24ef256656679d40bec3ccf13b2d2f343 (v2)
+// Move bytecode v6
+module 872d08a70db3db498aa7853276acea8091fdd9871b2d86bc8dcb8524526df622.saving {
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::account;
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::double;
+use 872d08a70db3db498aa7853276acea8091fdd9871b2d86bc8dcb8524526df622::events;
+use 872d08a70db3db498aa7853276acea8091fdd9871b2d86bc8dcb8524526df622::version;
+use 872d08a70db3db498aa7853276acea8091fdd9871b2d86bc8dcb8524526df622::witness;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::admin;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::usdb;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::table;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_set;
+
+struct InterestConfig has store {
+	saving_rate: Double,
+	last_emitted: u64
+}
+
+struct Position<phantom Ty0> has store {
+	balance: Balance<Ty0>,
+	last_update_timestamp: u64
+}
+
+struct SavingPool<phantom Ty0> has store, key {
+	id: UID,
+	lp_supply: Supply<Ty0>,
+	deposit_cap_amount: Option<u64>,
+	usdb_reserve_balance: Balance<USDB>,
+	positions: Table<address, Position<Ty0>>,
+	saving_config: InterestConfig,
+	deposit_response_checklist: VecSet<TypeName>,
+	withdraw_response_checklist: VecSet<TypeName>,
+	position_locker: VecSet<address>
+}
+
+struct DepositResponse<phantom Ty0> {
+	account_address: address,
+	deposited_usdb_amount: u64,
+	minted_lp_amount: u64,
+	prev_lp_balance: u64,
+	prev_last_update_timestamp: u64,
+	witnesses: VecSet<TypeName>
+}
+
+struct WithdrawResponse<phantom Ty0> {
+	account_address: address,
+	burned_lp_amount: u64,
+	prev_lp_balance: u64,
+	prev_last_update_timestamp: u64,
+	withdrawal_usdb_amount: u64,
+	witnesses: VecSet<TypeName>
+}
+
+err_missing_deposit_response_witness() {
+B0:
+	0: LdConst[0](u64: 101)
+	1: Abort
+}
+
+err_missing_withdraw_response_witness() {
+B0:
+	0: LdConst[1](u64: 102)
+	1: Abort
+}
+
+err_witness_already_exists() {
+B0:
+	0: LdConst[2](u64: 103)
+	1: Abort
+}
+
+err_account_not_found() {
+B0:
+	0: LdConst[11](u64: 112)
+	1: Abort
+}
+
+err_exceed_deposit_cap() {
+B0:
+	0: LdConst[4](u64: 105)
+	1: Abort
+}
+
+err_ongoing_action() {
+B0:
+	0: LdConst[5](u64: 106)
+	1: Abort
+}
+
+err_exceed_max_saving_rate() {
+B0:
+	0: LdConst[6](u64: 107)
+	1: Abort
+}
+
+err_zero_withdrawal() {
+B0:
+	0: LdConst[7](u64: 108)
+	1: Abort
+}
+
+err_below_threshold() {
+B0:
+	0: LdConst[8](u64: 109)
+	1: Abort
+}
+
+err_below_minimum_liquidity() {
+B0:
+	0: LdConst[9](u64: 110)
+	1: Abort
+}
+
+err_insufficient_deposit() {
+B0:
+	0: LdConst[3](u64: 104)
+	1: Abort
+}
+
+err_non_zero_supply() {
+B0:
+	0: LdConst[10](u64: 111)
+	1: Abort
+}
+
+public ms_in_year(): u64 {
+B0:
+	0: LdConst[12](u64: 3144..)
+	1: Ret
+}
+
+public lp_supply<Ty0>(Arg0: &SavingPool<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[0](SavingPool.lp_supply: Supply<Ty0>)
+	2: Call balance::supply_value<Ty0>(&Supply<Ty0>): u64
+	3: Ret
+}
+
+public usdb_reserve<Ty0>(Arg0: &SavingPool<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[1](SavingPool.usdb_reserve_balance: Balance<USDB>)
+	2: Call balance::value<USDB>(&Balance<USDB>): u64
+	3: Ret
+}
+
+public deposit_cap_amount<Ty0>(Arg0: &SavingPool<Ty0>): Option<u64> {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[2](SavingPool.deposit_cap_amount: Option<u64>)
+	2: ReadRef
+	3: Ret
+}
+
+public lp_balance_of<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: address): u64 {
+L2:	loc0: u64
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: CopyLoc[1](Arg1: address)
+	2: Call position_exists<Ty0>(&SavingPool<Ty0>, address): bool
+	3: BrFalse(12)
+B1:
+	4: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	5: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	6: MoveLoc[1](Arg1: address)
+	7: Call table::borrow<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): &Position<Ty0>
+	8: ImmBorrowFieldGeneric[4](Position.balance: Balance<Ty0>)
+	9: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	10: StLoc[2](loc0: u64)
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	13: Pop
+	14: LdU64(0)
+	15: StLoc[2](loc0: u64)
+B3:
+	16: MoveLoc[2](loc0: u64)
+	17: Ret
+}
+
+public last_update<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: address): u64 {
+L2:	loc0: u64
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: CopyLoc[1](Arg1: address)
+	2: Call position_exists<Ty0>(&SavingPool<Ty0>, address): bool
+	3: BrFalse(12)
+B1:
+	4: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	5: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	6: MoveLoc[1](Arg1: address)
+	7: Call table::borrow<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): &Position<Ty0>
+	8: ImmBorrowFieldGeneric[5](Position.last_update_timestamp: u64)
+	9: ReadRef
+	10: StLoc[2](loc0: u64)
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	13: Pop
+	14: LdU64(0)
+	15: StLoc[2](loc0: u64)
+B3:
+	16: MoveLoc[2](loc0: u64)
+	17: Ret
+}
+
+public saving_rate<Ty0>(Arg0: &SavingPool<Ty0>): Double {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[6](SavingPool.saving_config: InterestConfig)
+	2: ImmBorrowField[7](InterestConfig.saving_rate: Double)
+	3: ReadRef
+	4: Ret
+}
+
+public last_emitted<Ty0>(Arg0: &SavingPool<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[6](SavingPool.saving_config: InterestConfig)
+	2: ImmBorrowField[8](InterestConfig.last_emitted: u64)
+	3: ReadRef
+	4: Ret
+}
+
+public deposit_response_checklist<Ty0>(Arg0: &SavingPool<Ty0>): &VecSet<TypeName> {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[7](SavingPool.deposit_response_checklist: VecSet<TypeName>)
+	2: Ret
+}
+
+public withdraw_response_checklist<Ty0>(Arg0: &SavingPool<Ty0>): &VecSet<TypeName> {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[8](SavingPool.withdraw_response_checklist: VecSet<TypeName>)
+	2: Ret
+}
+
+public position_locker<Ty0>(Arg0: &SavingPool<Ty0>): VecSet<address> {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[9](SavingPool.position_locker: VecSet<address>)
+	2: ReadRef
+	3: Ret
+}
+
+public deposit_response_account<Ty0>(Arg0: &DepositResponse<Ty0>): address {
+B0:
+	0: MoveLoc[0](Arg0: &DepositResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[10](DepositResponse.account_address: address)
+	2: ReadRef
+	3: Ret
+}
+
+public deposit_response_deposited_usdb_amount<Ty0>(Arg0: &DepositResponse<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &DepositResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[11](DepositResponse.deposited_usdb_amount: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public deposit_response_minted_lp_amount<Ty0>(Arg0: &DepositResponse<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &DepositResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[12](DepositResponse.minted_lp_amount: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public deposit_response_prev_lp_balance<Ty0>(Arg0: &DepositResponse<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &DepositResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[13](DepositResponse.prev_lp_balance: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public deposit_response_prev_last_update_timestamp<Ty0>(Arg0: &DepositResponse<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &DepositResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[14](DepositResponse.prev_last_update_timestamp: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public withdraw_response_account<Ty0>(Arg0: &WithdrawResponse<Ty0>): address {
+B0:
+	0: MoveLoc[0](Arg0: &WithdrawResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[15](WithdrawResponse.account_address: address)
+	2: ReadRef
+	3: Ret
+}
+
+public withdraw_response_burned_lp_amount<Ty0>(Arg0: &WithdrawResponse<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &WithdrawResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[16](WithdrawResponse.burned_lp_amount: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public withdraw_response_withdrawal_usdb_amount<Ty0>(Arg0: &WithdrawResponse<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &WithdrawResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[17](WithdrawResponse.withdrawal_usdb_amount: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public withdraw_response_prev_lp_balance<Ty0>(Arg0: &WithdrawResponse<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &WithdrawResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[18](WithdrawResponse.prev_lp_balance: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public withdraw_response_prev_last_update_timestamp<Ty0>(Arg0: &WithdrawResponse<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &WithdrawResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[19](WithdrawResponse.prev_last_update_timestamp: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public pending_interest<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: &Clock): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: Call saving_rate<Ty0>(&SavingPool<Ty0>): Double
+	2: Call double::to_scaled_val(Double): u256
+	3: LdU256(0)
+	4: Eq
+	5: BrFalse(12)
+B1:
+	6: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	7: Pop
+	8: MoveLoc[1](Arg1: &Clock)
+	9: Pop
+	10: LdU64(0)
+	11: Ret
+B2:
+	12: MoveLoc[1](Arg1: &Clock)
+	13: Call clock::timestamp_ms(&Clock): u64
+	14: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	15: Call last_emitted<Ty0>(&SavingPool<Ty0>): u64
+	16: Sub
+	17: Call double::from(u64): Double
+	18: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	19: ImmBorrowFieldGeneric[6](SavingPool.saving_config: InterestConfig)
+	20: ImmBorrowField[7](InterestConfig.saving_rate: Double)
+	21: ReadRef
+	22: Call double::mul(Double, Double): Double
+	23: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	24: Call usdb_reserve<Ty0>(&SavingPool<Ty0>): u64
+	25: Call double::mul_u64(Double, u64): Double
+	26: LdConst[12](u64: 3144..)
+	27: Call double::div_u64(Double, u64): Double
+	28: Call double::floor(Double): u64
+	29: Ret
+}
+
+public total_reserve<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: &Clock): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: Call usdb_reserve<Ty0>(&SavingPool<Ty0>): u64
+	2: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	3: MoveLoc[1](Arg1: &Clock)
+	4: Call pending_interest<Ty0>(&SavingPool<Ty0>, &Clock): u64
+	5: Add
+	6: Ret
+}
+
+public lp_token_ratio<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: &Clock): Double {
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: Call lp_supply<Ty0>(&SavingPool<Ty0>): u64
+	2: LdU64(0)
+	3: Eq
+	4: BrFalse(12)
+B1:
+	5: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	6: Pop
+	7: MoveLoc[1](Arg1: &Clock)
+	8: Pop
+	9: LdU64(1)
+	10: Call double::from(u64): Double
+	11: Ret
+B2:
+	12: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	13: MoveLoc[1](Arg1: &Clock)
+	14: Call total_reserve<Ty0>(&SavingPool<Ty0>, &Clock): u64
+	15: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	16: Call lp_supply<Ty0>(&SavingPool<Ty0>): u64
+	17: Call double::from_fraction(u64, u64): Double
+	18: Ret
+}
+
+public lp_token_value<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: u64, Arg2: &Clock): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: Call lp_supply<Ty0>(&SavingPool<Ty0>): u64
+	2: LdU64(0)
+	3: Eq
+	4: BrFalse(11)
+B1:
+	5: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	6: Pop
+	7: MoveLoc[2](Arg2: &Clock)
+	8: Pop
+	9: LdU64(0)
+	10: Ret
+B2:
+	11: MoveLoc[1](Arg1: u64)
+	12: Call double::from(u64): Double
+	13: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	14: MoveLoc[2](Arg2: &Clock)
+	15: Call total_reserve<Ty0>(&SavingPool<Ty0>, &Clock): u64
+	16: Call double::mul_u64(Double, u64): Double
+	17: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	18: Call lp_supply<Ty0>(&SavingPool<Ty0>): u64
+	19: Call double::div_u64(Double, u64): Double
+	20: Call double::floor(Double): u64
+	21: Ret
+}
+
+public lp_token_value_of<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: address, Arg2: &Clock): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	2: MoveLoc[1](Arg1: address)
+	3: Call lp_balance_of<Ty0>(&SavingPool<Ty0>, address): u64
+	4: MoveLoc[2](Arg2: &Clock)
+	5: Call lp_token_value<Ty0>(&SavingPool<Ty0>, u64, &Clock): u64
+	6: Ret
+}
+
+public calculate_lp_mint_amount<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: u64, Arg2: &Clock): u64 {
+L3:	loc0: u64
+L4:	loc1: u64
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: Call lp_supply<Ty0>(&SavingPool<Ty0>): u64
+	2: StLoc[4](loc1: u64)
+	3: CopyLoc[4](loc1: u64)
+	4: LdU64(0)
+	5: Eq
+	6: BrFalse(16)
+B1:
+	7: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	8: Pop
+	9: MoveLoc[2](Arg2: &Clock)
+	10: Pop
+	11: MoveLoc[1](Arg1: u64)
+	12: LdConst[14](u64: 1000)
+	13: Sub
+	14: StLoc[3](loc0: u64)
+	15: Branch(26)
+B2:
+	16: MoveLoc[1](Arg1: u64)
+	17: Call double::from(u64): Double
+	18: MoveLoc[4](loc1: u64)
+	19: Call double::mul_u64(Double, u64): Double
+	20: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	21: MoveLoc[2](Arg2: &Clock)
+	22: Call total_reserve<Ty0>(&SavingPool<Ty0>, &Clock): u64
+	23: Call double::div_u64(Double, u64): Double
+	24: Call double::floor(Double): u64
+	25: StLoc[3](loc0: u64)
+B3:
+	26: MoveLoc[3](loc0: u64)
+	27: Ret
+}
+
+public position_exists<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: address): bool {
+B0:
+	0: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	2: MoveLoc[1](Arg1: address)
+	3: Call table::contains<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): bool
+	4: Ret
+}
+
+public new<Ty0>(Arg0: &AdminCap, Arg1: TreasuryCap<Ty0>, Arg2: &mut TxContext): SavingPool<Ty0> {
+L3:	loc0: UID
+L4:	loc1: Supply<Ty0>
+L5:	loc2: Balance<USDB>
+L6:	loc3: Option<u64>
+L7:	loc4: Table<address, Position<Ty0>>
+L8:	loc5: InterestConfig
+L9:	loc6: VecSet<TypeName>
+L10:	loc7: VecSet<TypeName>
+L11:	loc8: VecSet<address>
+L12:	loc9: UID
+B0:
+	0: CopyLoc[2](Arg2: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: StLoc[12](loc9: UID)
+	3: ImmBorrowLoc[12](loc9: UID)
+	4: Call object::uid_to_inner(&UID): ID
+	5: Call events::emit_new_saving_pool_event<Ty0>(ID)
+	6: ImmBorrowLoc[1](Arg1: TreasuryCap<Ty0>)
+	7: Call coin::total_supply<Ty0>(&TreasuryCap<Ty0>): u64
+	8: LdU64(0)
+	9: Neq
+	10: BrFalse(12)
+B1:
+	11: Call err_non_zero_supply()
+B2:
+	12: MoveLoc[12](loc9: UID)
+	13: StLoc[3](loc0: UID)
+	14: MoveLoc[1](Arg1: TreasuryCap<Ty0>)
+	15: Call coin::treasury_into_supply<Ty0>(TreasuryCap<Ty0>): Supply<Ty0>
+	16: StLoc[4](loc1: Supply<Ty0>)
+	17: Call balance::zero<USDB>(): Balance<USDB>
+	18: StLoc[5](loc2: Balance<USDB>)
+	19: Call option::none<u64>(): Option<u64>
+	20: StLoc[6](loc3: Option<u64>)
+	21: MoveLoc[2](Arg2: &mut TxContext)
+	22: Call table::new<address, Position<Ty0>>(&mut TxContext): Table<address, Position<Ty0>>
+	23: StLoc[7](loc4: Table<address, Position<Ty0>>)
+	24: LdU64(0)
+	25: Call double::from_bps(u64): Double
+	26: LdU64(0)
+	27: Pack[0](InterestConfig)
+	28: StLoc[8](loc5: InterestConfig)
+	29: Call vec_set::empty<TypeName>(): VecSet<TypeName>
+	30: StLoc[9](loc6: VecSet<TypeName>)
+	31: Call vec_set::empty<TypeName>(): VecSet<TypeName>
+	32: StLoc[10](loc7: VecSet<TypeName>)
+	33: Call vec_set::empty<address>(): VecSet<address>
+	34: StLoc[11](loc8: VecSet<address>)
+	35: MoveLoc[3](loc0: UID)
+	36: MoveLoc[4](loc1: Supply<Ty0>)
+	37: MoveLoc[6](loc3: Option<u64>)
+	38: MoveLoc[5](loc2: Balance<USDB>)
+	39: MoveLoc[7](loc4: Table<address, Position<Ty0>>)
+	40: MoveLoc[8](loc5: InterestConfig)
+	41: MoveLoc[9](loc6: VecSet<TypeName>)
+	42: MoveLoc[10](loc7: VecSet<TypeName>)
+	43: MoveLoc[11](loc8: VecSet<address>)
+	44: PackGeneric[0](SavingPool<Ty0>)
+	45: Ret
+}
+
+public default<Ty0>(Arg0: &AdminCap, Arg1: TreasuryCap<Ty0>, Arg2: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &AdminCap)
+	1: MoveLoc[1](Arg1: TreasuryCap<Ty0>)
+	2: MoveLoc[2](Arg2: &mut TxContext)
+	3: Call new<Ty0>(&AdminCap, TreasuryCap<Ty0>, &mut TxContext): SavingPool<Ty0>
+	4: Call transfer::public_share_object<SavingPool<Ty0>>(SavingPool<Ty0>)
+	5: Ret
+}
+
+public update_saving_rate<Ty0>(Arg0: &mut SavingPool<Ty0>, Arg1: &AdminCap, Arg2: &mut Treasury, Arg3: u64, Arg4: &Clock, Arg5: &mut TxContext) {
+B0:
+	0: CopyLoc[2](Arg2: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: CopyLoc[3](Arg3: u64)
+	4: LdConst[13](u64: 10000)
+	5: Gt
+	6: BrFalse(8)
+B1:
+	7: Call err_exceed_max_saving_rate()
+B2:
+	8: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	9: MoveLoc[2](Arg2: &mut Treasury)
+	10: MoveLoc[4](Arg4: &Clock)
+	11: MoveLoc[5](Arg5: &mut TxContext)
+	12: Call distribute_interest<Ty0>(&mut SavingPool<Ty0>, &mut Treasury, &Clock, &mut TxContext)
+	13: CopyLoc[3](Arg3: u64)
+	14: Call double::from_bps(u64): Double
+	15: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	16: MutBorrowFieldGeneric[6](SavingPool.saving_config: InterestConfig)
+	17: MutBorrowField[7](InterestConfig.saving_rate: Double)
+	18: WriteRef
+	19: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	20: FreezeRef
+	21: Call object::id<SavingPool<Ty0>>(&SavingPool<Ty0>): ID
+	22: MoveLoc[3](Arg3: u64)
+	23: Call events::emit_update_saving_rate_event<Ty0>(ID, u64)
+	24: Ret
+}
+
+public update_deposit_cap<Ty0>(Arg0: &mut SavingPool<Ty0>, Arg1: &AdminCap, Arg2: Option<u64>) {
+B0:
+	0: CopyLoc[2](Arg2: Option<u64>)
+	1: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	2: MutBorrowFieldGeneric[2](SavingPool.deposit_cap_amount: Option<u64>)
+	3: WriteRef
+	4: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	5: FreezeRef
+	6: Call object::id<SavingPool<Ty0>>(&SavingPool<Ty0>): ID
+	7: MoveLoc[2](Arg2: Option<u64>)
+	8: Call events::emit_update_deposit_cap_event<Ty0>(ID, Option<u64>)
+	9: Ret
+}
+
+public add_deposit_response_check<Ty0, Ty1: drop>(Arg0: &mut SavingPool<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	3: ImmBorrowFieldGeneric[7](SavingPool.deposit_response_checklist: VecSet<TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	6: Not
+	7: BrFalse(13)
+B1:
+	8: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	9: MutBorrowFieldGeneric[7](SavingPool.deposit_response_checklist: VecSet<TypeName>)
+	10: MoveLoc[2](loc0: TypeName)
+	11: Call vec_set::insert<TypeName>(&mut VecSet<TypeName>, TypeName)
+	12: Branch(15)
+B2:
+	13: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	14: Pop
+B3:
+	15: Ret
+}
+
+public remove_deposit_response_check<Ty0, Ty1: drop>(Arg0: &mut SavingPool<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	3: ImmBorrowFieldGeneric[7](SavingPool.deposit_response_checklist: VecSet<TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	6: BrFalse(12)
+B1:
+	7: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	8: MutBorrowFieldGeneric[7](SavingPool.deposit_response_checklist: VecSet<TypeName>)
+	9: ImmBorrowLoc[2](loc0: TypeName)
+	10: Call vec_set::remove<TypeName>(&mut VecSet<TypeName>, &TypeName)
+	11: Branch(14)
+B2:
+	12: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	13: Pop
+B3:
+	14: Ret
+}
+
+public add_withdraw_response_check<Ty0, Ty1: drop>(Arg0: &mut SavingPool<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	3: ImmBorrowFieldGeneric[8](SavingPool.withdraw_response_checklist: VecSet<TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	6: Not
+	7: BrFalse(13)
+B1:
+	8: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	9: MutBorrowFieldGeneric[8](SavingPool.withdraw_response_checklist: VecSet<TypeName>)
+	10: MoveLoc[2](loc0: TypeName)
+	11: Call vec_set::insert<TypeName>(&mut VecSet<TypeName>, TypeName)
+	12: Branch(15)
+B2:
+	13: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	14: Pop
+B3:
+	15: Ret
+}
+
+public remove_withdraw_response_check<Ty0, Ty1: drop>(Arg0: &mut SavingPool<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	3: ImmBorrowFieldGeneric[8](SavingPool.withdraw_response_checklist: VecSet<TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	6: BrFalse(12)
+B1:
+	7: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	8: MutBorrowFieldGeneric[8](SavingPool.withdraw_response_checklist: VecSet<TypeName>)
+	9: ImmBorrowLoc[2](loc0: TypeName)
+	10: Call vec_set::remove<TypeName>(&mut VecSet<TypeName>, &TypeName)
+	11: Branch(14)
+B2:
+	12: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	13: Pop
+B3:
+	14: Ret
+}
+
+public burn(Arg0: &mut Treasury, Arg1: &AdminCap, Arg2: Coin<USDB>) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Treasury)
+	1: Call witness::witness(): BucketV2Saving
+	2: Call version::package_version(): u16
+	3: MoveLoc[2](Arg2: Coin<USDB>)
+	4: Call usdb::burn<BucketV2Saving>(&mut Treasury, BucketV2Saving, u16, Coin<USDB>)
+	5: Ret
+}
+
+public check_deposit_response<Ty0>(Arg0: DepositResponse<Ty0>, Arg1: &mut SavingPool<Ty0>, Arg2: &Treasury) {
+L3:	loc0: u64
+L4:	loc1: bool
+L5:	loc2: address
+L6:	loc3: u64
+L7:	loc4: u64
+L8:	loc5: &TypeName
+L9:	loc6: u64
+L10:	loc7: &vector<TypeName>
+L11:	loc8: VecSet<TypeName>
+B0:
+	0: MoveLoc[2](Arg2: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: MoveLoc[0](Arg0: DepositResponse<Ty0>)
+	3: UnpackGeneric[1](DepositResponse<Ty0>)
+	4: StLoc[11](loc8: VecSet<TypeName>)
+	5: Pop
+	6: Pop
+	7: Pop
+	8: Pop
+	9: StLoc[5](loc2: address)
+	10: CopyLoc[1](Arg1: &mut SavingPool<Ty0>)
+	11: ImmBorrowFieldGeneric[7](SavingPool.deposit_response_checklist: VecSet<TypeName>)
+	12: Call vec_set::keys<TypeName>(&VecSet<TypeName>): &vector<TypeName>
+	13: StLoc[10](loc7: &vector<TypeName>)
+	14: CopyLoc[10](loc7: &vector<TypeName>)
+	15: VecLen(59)
+	16: StLoc[3](loc0: u64)
+	17: LdU64(0)
+	18: StLoc[7](loc4: u64)
+	19: MoveLoc[3](loc0: u64)
+	20: StLoc[9](loc6: u64)
+B1:
+	21: CopyLoc[7](loc4: u64)
+	22: CopyLoc[9](loc6: u64)
+	23: Lt
+	24: BrFalse(46)
+B2:
+	25: CopyLoc[7](loc4: u64)
+	26: StLoc[6](loc3: u64)
+	27: CopyLoc[10](loc7: &vector<TypeName>)
+	28: MoveLoc[6](loc3: u64)
+	29: VecImmBorrow(59)
+	30: StLoc[8](loc5: &TypeName)
+	31: ImmBorrowLoc[11](loc8: VecSet<TypeName>)
+	32: MoveLoc[8](loc5: &TypeName)
+	33: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	34: Not
+	35: BrFalse(41)
+B3:
+	36: MoveLoc[10](loc7: &vector<TypeName>)
+	37: Pop
+	38: LdFalse
+	39: StLoc[4](loc1: bool)
+	40: Branch(50)
+B4:
+	41: MoveLoc[7](loc4: u64)
+	42: LdU64(1)
+	43: Add
+	44: StLoc[7](loc4: u64)
+	45: Branch(21)
+B5:
+	46: MoveLoc[10](loc7: &vector<TypeName>)
+	47: Pop
+	48: LdTrue
+	49: StLoc[4](loc1: bool)
+B6:
+	50: MoveLoc[4](loc1: bool)
+	51: Not
+	52: BrFalse(55)
+B7:
+	53: Call err_missing_deposit_response_witness()
+	54: Branch(55)
+B8:
+	55: MoveLoc[1](Arg1: &mut SavingPool<Ty0>)
+	56: MutBorrowFieldGeneric[9](SavingPool.position_locker: VecSet<address>)
+	57: ImmBorrowLoc[5](loc2: address)
+	58: Call vec_set::remove<address>(&mut VecSet<address>, &address)
+	59: Ret
+}
+
+public check_withdraw_response<Ty0>(Arg0: WithdrawResponse<Ty0>, Arg1: &mut SavingPool<Ty0>, Arg2: &Treasury) {
+L3:	loc0: u64
+L4:	loc1: bool
+L5:	loc2: address
+L6:	loc3: u64
+L7:	loc4: u64
+L8:	loc5: &TypeName
+L9:	loc6: u64
+L10:	loc7: &vector<TypeName>
+L11:	loc8: VecSet<TypeName>
+B0:
+	0: MoveLoc[2](Arg2: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: MoveLoc[0](Arg0: WithdrawResponse<Ty0>)
+	3: UnpackGeneric[2](WithdrawResponse<Ty0>)
+	4: StLoc[11](loc8: VecSet<TypeName>)
+	5: Pop
+	6: Pop
+	7: Pop
+	8: Pop
+	9: StLoc[5](loc2: address)
+	10: CopyLoc[1](Arg1: &mut SavingPool<Ty0>)
+	11: ImmBorrowFieldGeneric[8](SavingPool.withdraw_response_checklist: VecSet<TypeName>)
+	12: Call vec_set::keys<TypeName>(&VecSet<TypeName>): &vector<TypeName>
+	13: StLoc[10](loc7: &vector<TypeName>)
+	14: CopyLoc[10](loc7: &vector<TypeName>)
+	15: VecLen(59)
+	16: StLoc[3](loc0: u64)
+	17: LdU64(0)
+	18: StLoc[7](loc4: u64)
+	19: MoveLoc[3](loc0: u64)
+	20: StLoc[9](loc6: u64)
+B1:
+	21: CopyLoc[7](loc4: u64)
+	22: CopyLoc[9](loc6: u64)
+	23: Lt
+	24: BrFalse(46)
+B2:
+	25: CopyLoc[7](loc4: u64)
+	26: StLoc[6](loc3: u64)
+	27: CopyLoc[10](loc7: &vector<TypeName>)
+	28: MoveLoc[6](loc3: u64)
+	29: VecImmBorrow(59)
+	30: StLoc[8](loc5: &TypeName)
+	31: ImmBorrowLoc[11](loc8: VecSet<TypeName>)
+	32: MoveLoc[8](loc5: &TypeName)
+	33: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	34: Not
+	35: BrFalse(41)
+B3:
+	36: MoveLoc[10](loc7: &vector<TypeName>)
+	37: Pop
+	38: LdFalse
+	39: StLoc[4](loc1: bool)
+	40: Branch(50)
+B4:
+	41: MoveLoc[7](loc4: u64)
+	42: LdU64(1)
+	43: Add
+	44: StLoc[7](loc4: u64)
+	45: Branch(21)
+B5:
+	46: MoveLoc[10](loc7: &vector<TypeName>)
+	47: Pop
+	48: LdTrue
+	49: StLoc[4](loc1: bool)
+B6:
+	50: MoveLoc[4](loc1: bool)
+	51: Not
+	52: BrFalse(55)
+B7:
+	53: Call err_missing_withdraw_response_witness()
+	54: Branch(55)
+B8:
+	55: MoveLoc[1](Arg1: &mut SavingPool<Ty0>)
+	56: MutBorrowFieldGeneric[9](SavingPool.position_locker: VecSet<address>)
+	57: ImmBorrowLoc[5](loc2: address)
+	58: Call vec_set::remove<address>(&mut VecSet<address>, &address)
+	59: Ret
+}
+
+public add_deposit_witness<Ty0, Ty1: drop>(Arg0: &mut DepositResponse<Ty0>, Arg1: Ty1) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut DepositResponse<Ty0>)
+	3: ImmBorrowFieldGeneric[20](DepositResponse.witnesses: VecSet<TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	6: BrFalse(8)
+B1:
+	7: Call err_witness_already_exists()
+B2:
+	8: MoveLoc[0](Arg0: &mut DepositResponse<Ty0>)
+	9: MutBorrowFieldGeneric[20](DepositResponse.witnesses: VecSet<TypeName>)
+	10: MoveLoc[2](loc0: TypeName)
+	11: Call vec_set::insert<TypeName>(&mut VecSet<TypeName>, TypeName)
+	12: Ret
+}
+
+public add_withdraw_witness<Ty0, Ty1: drop>(Arg0: &mut WithdrawResponse<Ty0>, Arg1: Ty1) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut WithdrawResponse<Ty0>)
+	3: ImmBorrowFieldGeneric[21](WithdrawResponse.witnesses: VecSet<TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	6: BrFalse(8)
+B1:
+	7: Call err_witness_already_exists()
+B2:
+	8: MoveLoc[0](Arg0: &mut WithdrawResponse<Ty0>)
+	9: MutBorrowFieldGeneric[21](WithdrawResponse.witnesses: VecSet<TypeName>)
+	10: MoveLoc[2](loc0: TypeName)
+	11: Call vec_set::insert<TypeName>(&mut VecSet<TypeName>, TypeName)
+	12: Ret
+}
+
+public deposit<Ty0>(Arg0: &mut SavingPool<Ty0>, Arg1: &mut Treasury, Arg2: address, Arg3: Coin<USDB>, Arg4: &Clock, Arg5: &mut TxContext): DepositResponse<Ty0> {
+L6:	loc0: u64
+L7:	loc1: u64
+L8:	loc2: u64
+L9:	loc3: Balance<Ty0>
+L10:	loc4: u64
+L11:	loc5: u64
+L12:	loc6: u64
+L13:	loc7: u64
+L14:	loc8: u64
+B0:
+	0: CopyLoc[1](Arg1: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	4: MoveLoc[1](Arg1: &mut Treasury)
+	5: CopyLoc[4](Arg4: &Clock)
+	6: MoveLoc[5](Arg5: &mut TxContext)
+	7: Call distribute_interest<Ty0>(&mut SavingPool<Ty0>, &mut Treasury, &Clock, &mut TxContext)
+	8: ImmBorrowLoc[3](Arg3: Coin<USDB>)
+	9: Call coin::value<USDB>(&Coin<USDB>): u64
+	10: StLoc[8](loc2: u64)
+	11: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	12: MoveLoc[3](Arg3: Coin<USDB>)
+	13: Call coin::into_balance<USDB>(Coin<USDB>): Balance<USDB>
+	14: CopyLoc[4](Arg4: &Clock)
+	15: Call deposit_<Ty0>(&mut SavingPool<Ty0>, Balance<USDB>, &Clock): Balance<Ty0>
+	16: StLoc[9](loc3: Balance<Ty0>)
+	17: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	18: FreezeRef
+	19: CopyLoc[4](Arg4: &Clock)
+	20: Call assert_deposit_cap<Ty0>(&SavingPool<Ty0>, &Clock)
+	21: ImmBorrowLoc[9](loc3: Balance<Ty0>)
+	22: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	23: StLoc[10](loc4: u64)
+	24: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	25: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	26: CopyLoc[2](Arg2: address)
+	27: Call table::contains<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): bool
+	28: BrFalse(56)
+B1:
+	29: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	30: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	31: CopyLoc[2](Arg2: address)
+	32: Call table::borrow<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): &Position<Ty0>
+	33: ImmBorrowFieldGeneric[4](Position.balance: Balance<Ty0>)
+	34: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	35: StLoc[13](loc7: u64)
+	36: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	37: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	38: CopyLoc[2](Arg2: address)
+	39: Call table::borrow<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): &Position<Ty0>
+	40: ImmBorrowFieldGeneric[5](Position.last_update_timestamp: u64)
+	41: ReadRef
+	42: StLoc[11](loc5: u64)
+	43: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	44: MutBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	45: CopyLoc[2](Arg2: address)
+	46: Call table::borrow_mut<address, Position<Ty0>>(&mut Table<address, Position<Ty0>>, address): &mut Position<Ty0>
+	47: MutBorrowFieldGeneric[4](Position.balance: Balance<Ty0>)
+	48: MoveLoc[9](loc3: Balance<Ty0>)
+	49: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	50: Pop
+	51: MoveLoc[13](loc7: u64)
+	52: MoveLoc[11](loc5: u64)
+	53: StLoc[7](loc1: u64)
+	54: StLoc[6](loc0: u64)
+	55: Branch(68)
+B2:
+	56: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	57: MutBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	58: CopyLoc[2](Arg2: address)
+	59: MoveLoc[9](loc3: Balance<Ty0>)
+	60: CopyLoc[4](Arg4: &Clock)
+	61: Call clock::timestamp_ms(&Clock): u64
+	62: PackGeneric[3](Position<Ty0>)
+	63: Call table::add<address, Position<Ty0>>(&mut Table<address, Position<Ty0>>, address, Position<Ty0>)
+	64: LdU64(0)
+	65: LdU64(0)
+	66: StLoc[7](loc1: u64)
+	67: StLoc[6](loc0: u64)
+B3:
+	68: MoveLoc[6](loc0: u64)
+	69: MoveLoc[7](loc1: u64)
+	70: StLoc[12](loc6: u64)
+	71: StLoc[14](loc8: u64)
+	72: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	73: FreezeRef
+	74: Call object::id<SavingPool<Ty0>>(&SavingPool<Ty0>): ID
+	75: CopyLoc[2](Arg2: address)
+	76: CopyLoc[8](loc2: u64)
+	77: CopyLoc[10](loc4: u64)
+	78: Call events::emit_deposit_event<Ty0>(ID, address, u64, u64)
+	79: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	80: ImmBorrowFieldGeneric[9](SavingPool.position_locker: VecSet<address>)
+	81: Call vec_set::is_empty<address>(&VecSet<address>): bool
+	82: Not
+	83: BrFalse(85)
+B4:
+	84: Call err_ongoing_action()
+B5:
+	85: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	86: MutBorrowFieldGeneric[9](SavingPool.position_locker: VecSet<address>)
+	87: CopyLoc[2](Arg2: address)
+	88: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	89: MoveLoc[4](Arg4: &Clock)
+	90: Call clock::timestamp_ms(&Clock): u64
+	91: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	92: MutBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	93: CopyLoc[2](Arg2: address)
+	94: Call table::borrow_mut<address, Position<Ty0>>(&mut Table<address, Position<Ty0>>, address): &mut Position<Ty0>
+	95: MutBorrowFieldGeneric[5](Position.last_update_timestamp: u64)
+	96: WriteRef
+	97: MoveLoc[2](Arg2: address)
+	98: MoveLoc[8](loc2: u64)
+	99: MoveLoc[10](loc4: u64)
+	100: MoveLoc[14](loc8: u64)
+	101: MoveLoc[12](loc6: u64)
+	102: Call vec_set::empty<TypeName>(): VecSet<TypeName>
+	103: PackGeneric[1](DepositResponse<Ty0>)
+	104: Ret
+}
+
+public withdraw<Ty0>(Arg0: &mut SavingPool<Ty0>, Arg1: &mut Treasury, Arg2: &AccountRequest, Arg3: u64, Arg4: &Clock, Arg5: &mut TxContext): Coin<USDB> * WithdrawResponse<Ty0> {
+L6:	loc0: address
+L7:	loc1: Balance<Ty0>
+L8:	loc2: u64
+L9:	loc3: u64
+L10:	loc4: Coin<USDB>
+L11:	loc5: WithdrawResponse<Ty0>
+B0:
+	0: CopyLoc[1](Arg1: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: MoveLoc[2](Arg2: &AccountRequest)
+	4: Call account::request_address(&AccountRequest): address
+	5: StLoc[6](loc0: address)
+	6: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	7: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	8: CopyLoc[6](loc0: address)
+	9: Call table::contains<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): bool
+	10: Not
+	11: BrFalse(13)
+B1:
+	12: Call err_account_not_found()
+B2:
+	13: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	14: MoveLoc[1](Arg1: &mut Treasury)
+	15: CopyLoc[4](Arg4: &Clock)
+	16: CopyLoc[5](Arg5: &mut TxContext)
+	17: Call distribute_interest<Ty0>(&mut SavingPool<Ty0>, &mut Treasury, &Clock, &mut TxContext)
+	18: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	19: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	20: CopyLoc[6](loc0: address)
+	21: Call table::borrow<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): &Position<Ty0>
+	22: ImmBorrowFieldGeneric[4](Position.balance: Balance<Ty0>)
+	23: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	24: StLoc[9](loc3: u64)
+	25: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	26: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	27: CopyLoc[6](loc0: address)
+	28: Call table::borrow<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): &Position<Ty0>
+	29: ImmBorrowFieldGeneric[5](Position.last_update_timestamp: u64)
+	30: ReadRef
+	31: StLoc[8](loc2: u64)
+	32: MoveLoc[4](Arg4: &Clock)
+	33: Call clock::timestamp_ms(&Clock): u64
+	34: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	35: MutBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	36: CopyLoc[6](loc0: address)
+	37: Call table::borrow_mut<address, Position<Ty0>>(&mut Table<address, Position<Ty0>>, address): &mut Position<Ty0>
+	38: MutBorrowFieldGeneric[5](Position.last_update_timestamp: u64)
+	39: WriteRef
+	40: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	41: MutBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	42: CopyLoc[6](loc0: address)
+	43: Call table::borrow_mut<address, Position<Ty0>>(&mut Table<address, Position<Ty0>>, address): &mut Position<Ty0>
+	44: MutBorrowFieldGeneric[4](Position.balance: Balance<Ty0>)
+	45: CopyLoc[3](Arg3: u64)
+	46: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	47: StLoc[7](loc1: Balance<Ty0>)
+	48: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	49: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	50: CopyLoc[6](loc0: address)
+	51: Call table::borrow<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): &Position<Ty0>
+	52: ImmBorrowFieldGeneric[4](Position.balance: Balance<Ty0>)
+	53: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	54: LdU64(0)
+	55: Eq
+	56: BrFalse(64)
+B3:
+	57: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	58: MutBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	59: CopyLoc[6](loc0: address)
+	60: Call table::remove<address, Position<Ty0>>(&mut Table<address, Position<Ty0>>, address): Position<Ty0>
+	61: UnpackGeneric[3](Position<Ty0>)
+	62: Pop
+	63: Call balance::destroy_zero<Ty0>(Balance<Ty0>)
+B4:
+	64: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	65: MoveLoc[7](loc1: Balance<Ty0>)
+	66: Call withdraw_<Ty0>(&mut SavingPool<Ty0>, Balance<Ty0>): Balance<USDB>
+	67: MoveLoc[5](Arg5: &mut TxContext)
+	68: Call coin::from_balance<USDB>(Balance<USDB>, &mut TxContext): Coin<USDB>
+	69: StLoc[10](loc4: Coin<USDB>)
+	70: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	71: FreezeRef
+	72: Call object::id<SavingPool<Ty0>>(&SavingPool<Ty0>): ID
+	73: CopyLoc[6](loc0: address)
+	74: CopyLoc[3](Arg3: u64)
+	75: ImmBorrowLoc[10](loc4: Coin<USDB>)
+	76: Call coin::value<USDB>(&Coin<USDB>): u64
+	77: Call events::emit_withdraw_event<Ty0>(ID, address, u64, u64)
+	78: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	79: ImmBorrowFieldGeneric[9](SavingPool.position_locker: VecSet<address>)
+	80: Call vec_set::is_empty<address>(&VecSet<address>): bool
+	81: Not
+	82: BrFalse(84)
+B5:
+	83: Call err_ongoing_action()
+B6:
+	84: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	85: MutBorrowFieldGeneric[9](SavingPool.position_locker: VecSet<address>)
+	86: CopyLoc[6](loc0: address)
+	87: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	88: MoveLoc[6](loc0: address)
+	89: MoveLoc[3](Arg3: u64)
+	90: MoveLoc[9](loc3: u64)
+	91: MoveLoc[8](loc2: u64)
+	92: ImmBorrowLoc[10](loc4: Coin<USDB>)
+	93: Call coin::value<USDB>(&Coin<USDB>): u64
+	94: Call vec_set::empty<TypeName>(): VecSet<TypeName>
+	95: PackGeneric[2](WithdrawResponse<Ty0>)
+	96: StLoc[11](loc5: WithdrawResponse<Ty0>)
+	97: MoveLoc[10](loc4: Coin<USDB>)
+	98: MoveLoc[11](loc5: WithdrawResponse<Ty0>)
+	99: Ret
+}
+
+public assert_minted_lp_minimum<Ty0>(Arg0: &DepositResponse<Ty0>, Arg1: u64) {
+B0:
+	0: MoveLoc[0](Arg0: &DepositResponse<Ty0>)
+	1: ImmBorrowFieldGeneric[12](DepositResponse.minted_lp_amount: u64)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: u64)
+	4: Lt
+	5: BrFalse(7)
+B1:
+	6: Call err_below_threshold()
+B2:
+	7: Ret
+}
+
+public assert_coin_minimum<Ty0>(Arg0: &Coin<Ty0>, Arg1: u64) {
+B0:
+	0: MoveLoc[0](Arg0: &Coin<Ty0>)
+	1: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	2: MoveLoc[1](Arg1: u64)
+	3: Lt
+	4: BrFalse(6)
+B1:
+	5: Call err_below_threshold()
+B2:
+	6: Ret
+}
+
+public supply<Ty0>(Arg0: &mut SavingPool<Ty0>, Arg1: Balance<USDB>) {
+B0:
+	0: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	1: FreezeRef
+	2: Call object::id<SavingPool<Ty0>>(&SavingPool<Ty0>): ID
+	3: ImmBorrowLoc[1](Arg1: Balance<USDB>)
+	4: Call balance::value<USDB>(&Balance<USDB>): u64
+	5: Call events::emit_supply_event<Ty0>(ID, u64)
+	6: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	7: MutBorrowFieldGeneric[1](SavingPool.usdb_reserve_balance: Balance<USDB>)
+	8: MoveLoc[1](Arg1: Balance<USDB>)
+	9: Call balance::join<USDB>(&mut Balance<USDB>, Balance<USDB>): u64
+	10: Pop
+	11: Ret
+}
+
+assert_deposit_cap<Ty0>(Arg0: &SavingPool<Ty0>, Arg1: &Clock) {
+L2:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	1: ImmBorrowFieldGeneric[2](SavingPool.deposit_cap_amount: Option<u64>)
+	2: Call option::is_some<u64>(&Option<u64>): bool
+	3: BrFalse(14)
+B1:
+	4: CopyLoc[0](Arg0: &SavingPool<Ty0>)
+	5: MoveLoc[1](Arg1: &Clock)
+	6: Call total_reserve<Ty0>(&SavingPool<Ty0>, &Clock): u64
+	7: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	8: ImmBorrowFieldGeneric[2](SavingPool.deposit_cap_amount: Option<u64>)
+	9: Call option::borrow<u64>(&Option<u64>): &u64
+	10: ReadRef
+	11: Gt
+	12: StLoc[2](loc0: bool)
+	13: Branch(20)
+B2:
+	14: MoveLoc[0](Arg0: &SavingPool<Ty0>)
+	15: Pop
+	16: MoveLoc[1](Arg1: &Clock)
+	17: Pop
+	18: LdFalse
+	19: StLoc[2](loc0: bool)
+B3:
+	20: MoveLoc[2](loc0: bool)
+	21: BrFalse(23)
+B4:
+	22: Call err_exceed_deposit_cap()
+B5:
+	23: Ret
+}
+
+distribute_interest<Ty0>(Arg0: &mut SavingPool<Ty0>, Arg1: &mut Treasury, Arg2: &Clock, Arg3: &mut TxContext) {
+L4:	loc0: u64
+L5:	loc1: Balance<USDB>
+B0:
+	0: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	1: FreezeRef
+	2: Call saving_rate<Ty0>(&SavingPool<Ty0>): Double
+	3: Call double::to_scaled_val(Double): u256
+	4: LdU256(0)
+	5: Eq
+	6: BrFalse(13)
+B1:
+	7: CopyLoc[2](Arg2: &Clock)
+	8: Call clock::timestamp_ms(&Clock): u64
+	9: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	10: MutBorrowFieldGeneric[6](SavingPool.saving_config: InterestConfig)
+	11: MutBorrowField[8](InterestConfig.last_emitted: u64)
+	12: WriteRef
+B2:
+	13: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	14: FreezeRef
+	15: Call saving_rate<Ty0>(&SavingPool<Ty0>): Double
+	16: Call double::to_scaled_val(Double): u256
+	17: LdU256(0)
+	18: Gt
+	19: BrFalse(63)
+B3:
+	20: CopyLoc[2](Arg2: &Clock)
+	21: Call clock::timestamp_ms(&Clock): u64
+	22: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	23: FreezeRef
+	24: Call last_emitted<Ty0>(&SavingPool<Ty0>): u64
+	25: Sub
+	26: Call double::from(u64): Double
+	27: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	28: ImmBorrowFieldGeneric[6](SavingPool.saving_config: InterestConfig)
+	29: ImmBorrowField[7](InterestConfig.saving_rate: Double)
+	30: ReadRef
+	31: Call double::mul(Double, Double): Double
+	32: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	33: FreezeRef
+	34: Call usdb_reserve<Ty0>(&SavingPool<Ty0>): u64
+	35: Call double::mul_u64(Double, u64): Double
+	36: LdConst[12](u64: 3144..)
+	37: Call double::div_u64(Double, u64): Double
+	38: Call double::floor(Double): u64
+	39: StLoc[4](loc0: u64)
+	40: CopyLoc[4](loc0: u64)
+	41: LdU64(0)
+	42: Gt
+	43: BrFalse(58)
+B4:
+	44: MoveLoc[1](Arg1: &mut Treasury)
+	45: Call witness::witness(): BucketV2Saving
+	46: Call version::package_version(): u16
+	47: MoveLoc[4](loc0: u64)
+	48: MoveLoc[3](Arg3: &mut TxContext)
+	49: Call usdb::mint<BucketV2Saving>(&mut Treasury, BucketV2Saving, u16, u64, &mut TxContext): Coin<USDB>
+	50: Call coin::into_balance<USDB>(Coin<USDB>): Balance<USDB>
+	51: StLoc[5](loc1: Balance<USDB>)
+	52: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	53: MutBorrowFieldGeneric[1](SavingPool.usdb_reserve_balance: Balance<USDB>)
+	54: MoveLoc[5](loc1: Balance<USDB>)
+	55: Call balance::join<USDB>(&mut Balance<USDB>, Balance<USDB>): u64
+	56: Pop
+	57: Branch(67)
+B5:
+	58: MoveLoc[1](Arg1: &mut Treasury)
+	59: Pop
+	60: MoveLoc[3](Arg3: &mut TxContext)
+	61: Pop
+	62: Branch(67)
+B6:
+	63: MoveLoc[1](Arg1: &mut Treasury)
+	64: Pop
+	65: MoveLoc[3](Arg3: &mut TxContext)
+	66: Pop
+B7:
+	67: MoveLoc[2](Arg2: &Clock)
+	68: Call clock::timestamp_ms(&Clock): u64
+	69: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	70: MutBorrowFieldGeneric[6](SavingPool.saving_config: InterestConfig)
+	71: MutBorrowField[8](InterestConfig.last_emitted: u64)
+	72: WriteRef
+	73: Ret
+}
+
+deposit_<Ty0>(Arg0: &mut SavingPool<Ty0>, Arg1: Balance<USDB>, Arg2: &Clock): Balance<Ty0> {
+L3:	loc0: u64
+L4:	loc1: u64
+L5:	loc2: Balance<Ty0>
+L6:	loc3: Balance<Ty0>
+L7:	loc4: u64
+L8:	loc5: u64
+L9:	loc6: address
+B0:
+	0: ImmBorrowLoc[1](Arg1: Balance<USDB>)
+	1: Call balance::value<USDB>(&Balance<USDB>): u64
+	2: StLoc[4](loc1: u64)
+	3: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	4: FreezeRef
+	5: Call lp_supply<Ty0>(&SavingPool<Ty0>): u64
+	6: StLoc[8](loc5: u64)
+	7: CopyLoc[8](loc5: u64)
+	8: LdU64(0)
+	9: Eq
+	10: BrFalse(14)
+B1:
+	11: MoveLoc[4](loc1: u64)
+	12: StLoc[3](loc0: u64)
+	13: Branch(24)
+B2:
+	14: MoveLoc[4](loc1: u64)
+	15: Call double::from(u64): Double
+	16: CopyLoc[8](loc5: u64)
+	17: Call double::mul_u64(Double, u64): Double
+	18: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	19: FreezeRef
+	20: Call usdb_reserve<Ty0>(&SavingPool<Ty0>): u64
+	21: Call double::div_u64(Double, u64): Double
+	22: Call double::floor(Double): u64
+	23: StLoc[3](loc0: u64)
+B3:
+	24: MoveLoc[3](loc0: u64)
+	25: StLoc[7](loc4: u64)
+	26: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	27: MutBorrowFieldGeneric[1](SavingPool.usdb_reserve_balance: Balance<USDB>)
+	28: MoveLoc[1](Arg1: Balance<USDB>)
+	29: Call balance::join<USDB>(&mut Balance<USDB>, Balance<USDB>): u64
+	30: Pop
+	31: CopyLoc[7](loc4: u64)
+	32: LdU64(0)
+	33: Eq
+	34: BrFalse(36)
+B4:
+	35: Call err_insufficient_deposit()
+B5:
+	36: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	37: MutBorrowFieldGeneric[0](SavingPool.lp_supply: Supply<Ty0>)
+	38: CopyLoc[7](loc4: u64)
+	39: Call balance::increase_supply<Ty0>(&mut Supply<Ty0>, u64): Balance<Ty0>
+	40: StLoc[6](loc3: Balance<Ty0>)
+	41: MoveLoc[8](loc5: u64)
+	42: LdU64(0)
+	43: Eq
+	44: BrFalse(81)
+B6:
+	45: MoveLoc[7](loc4: u64)
+	46: LdConst[14](u64: 1000)
+	47: Lt
+	48: BrFalse(50)
+B7:
+	49: Call err_below_minimum_liquidity()
+B8:
+	50: LdConst[15](address: 0x00..)
+	51: StLoc[9](loc6: address)
+	52: MutBorrowLoc[6](loc3: Balance<Ty0>)
+	53: LdConst[14](u64: 1000)
+	54: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	55: StLoc[5](loc2: Balance<Ty0>)
+	56: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	57: ImmBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	58: CopyLoc[9](loc6: address)
+	59: Call table::contains<address, Position<Ty0>>(&Table<address, Position<Ty0>>, address): bool
+	60: BrFalse(72)
+B9:
+	61: MoveLoc[2](Arg2: &Clock)
+	62: Pop
+	63: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	64: MutBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	65: MoveLoc[9](loc6: address)
+	66: Call table::borrow_mut<address, Position<Ty0>>(&mut Table<address, Position<Ty0>>, address): &mut Position<Ty0>
+	67: MutBorrowFieldGeneric[4](Position.balance: Balance<Ty0>)
+	68: MoveLoc[5](loc2: Balance<Ty0>)
+	69: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	70: Pop
+	71: Branch(85)
+B10:
+	72: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	73: MutBorrowFieldGeneric[3](SavingPool.positions: Table<address, Position<Ty0>>)
+	74: MoveLoc[9](loc6: address)
+	75: MoveLoc[5](loc2: Balance<Ty0>)
+	76: MoveLoc[2](Arg2: &Clock)
+	77: Call clock::timestamp_ms(&Clock): u64
+	78: PackGeneric[3](Position<Ty0>)
+	79: Call table::add<address, Position<Ty0>>(&mut Table<address, Position<Ty0>>, address, Position<Ty0>)
+	80: Branch(85)
+B11:
+	81: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	82: Pop
+	83: MoveLoc[2](Arg2: &Clock)
+	84: Pop
+B12:
+	85: MoveLoc[6](loc3: Balance<Ty0>)
+	86: Ret
+}
+
+withdraw_<Ty0>(Arg0: &mut SavingPool<Ty0>, Arg1: Balance<Ty0>): Balance<USDB> {
+L2:	loc0: u64
+B0:
+	0: ImmBorrowLoc[1](Arg1: Balance<Ty0>)
+	1: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	2: Call double::from(u64): Double
+	3: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	4: FreezeRef
+	5: Call usdb_reserve<Ty0>(&SavingPool<Ty0>): u64
+	6: Call double::mul_u64(Double, u64): Double
+	7: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	8: FreezeRef
+	9: Call lp_supply<Ty0>(&SavingPool<Ty0>): u64
+	10: Call double::div_u64(Double, u64): Double
+	11: Call double::floor(Double): u64
+	12: StLoc[2](loc0: u64)
+	13: CopyLoc[2](loc0: u64)
+	14: LdU64(0)
+	15: Eq
+	16: BrFalse(18)
+B1:
+	17: Call err_zero_withdrawal()
+B2:
+	18: CopyLoc[0](Arg0: &mut SavingPool<Ty0>)
+	19: MutBorrowFieldGeneric[0](SavingPool.lp_supply: Supply<Ty0>)
+	20: MoveLoc[1](Arg1: Balance<Ty0>)
+	21: Call balance::decrease_supply<Ty0>(&mut Supply<Ty0>, Balance<Ty0>): u64
+	22: Pop
+	23: MoveLoc[0](Arg0: &mut SavingPool<Ty0>)
+	24: MutBorrowFieldGeneric[1](SavingPool.usdb_reserve_balance: Balance<USDB>)
+	25: MoveLoc[2](loc0: u64)
+	26: Call balance::split<USDB>(&mut Balance<USDB>, u64): Balance<USDB>
+	27: Ret
+}
+
+Constants [
+	0 => u64: 101
+	1 => u64: 102
+	2 => u64: 103
+	3 => u64: 104
+	4 => u64: 105
+	5 => u64: 106
+	6 => u64: 107
+	7 => u64: 108
+	8 => u64: 109
+	9 => u64: 110
+	10 => u64: 111
+	11 => u64: 112
+	12 => u64: 31449600000
+	13 => u64: 10000
+	14 => u64: 1000
+	15 => address: 0x0000000000000000000000000000000000000000000000000000000000000000
+]
+}

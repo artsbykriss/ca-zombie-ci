@@ -1,0 +1,338 @@
+// module liquidation_rule  package 0xbe1457c92f8e8c39e85fa4f77bfcd8cfbda30d1861286ba64c76a94773138b5d (v1)
+// Move bytecode v6
+module be1457c92f8e8c39e85fa4f77bfcd8cfbda30d1861286ba64c76a94773138b5d.liquidation_rule {
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::request;
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::vault;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::result;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::admin;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::usdb;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_set;
+
+struct LiquidationRule has drop {
+	dummy_field: bool
+}
+
+struct Config has store, key {
+	id: UID,
+	liquidators: VecSet<address>,
+	unswappable_coin_types: VecSet<TypeName>,
+	protected_debtors: VecSet<address>,
+	versions: VecSet<u16>
+}
+
+public package_version(): u16 {
+B0:
+	0: LdConst[0](u16: 1)
+	1: Ret
+}
+
+err_invalid_package_version() {
+B0:
+	0: LdConst[1](u64: 0)
+	1: Abort
+}
+
+err_invalid_liquidator() {
+B0:
+	0: LdConst[2](u64: 1)
+	1: Abort
+}
+
+err_invalid_coin_type() {
+B0:
+	0: LdConst[3](u64: 2)
+	1: Abort
+}
+
+err_debtor_is_protected() {
+B0:
+	0: LdConst[4](u64: 3)
+	1: Abort
+}
+
+init(Arg0: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: Call vec_set::empty<address>(): VecSet<address>
+	3: Call vec_set::empty<TypeName>(): VecSet<TypeName>
+	4: Call vec_set::empty<address>(): VecSet<address>
+	5: Call package_version(): u16
+	6: Call vec_set::singleton<u16>(u16): VecSet<u16>
+	7: Pack[1](Config)
+	8: Call transfer::share_object<Config>(Config)
+	9: Ret
+}
+
+assert_valid_package_version(Arg0: &Config) {
+L1:	loc0: u16
+L2:	loc1: &VecSet<u16>
+B0:
+	0: MoveLoc[0](Arg0: &Config)
+	1: Call versions(&Config): &VecSet<u16>
+	2: StLoc[2](loc1: &VecSet<u16>)
+	3: Call package_version(): u16
+	4: StLoc[1](loc0: u16)
+	5: MoveLoc[2](loc1: &VecSet<u16>)
+	6: ImmBorrowLoc[1](loc0: u16)
+	7: Call vec_set::contains<u16>(&VecSet<u16>, &u16): bool
+	8: Not
+	9: BrFalse(11)
+B1:
+	10: Call err_invalid_package_version()
+B2:
+	11: Ret
+}
+
+assert_invalid_liquidator(Arg0: &Config, Arg1: &address) {
+B0:
+	0: MoveLoc[0](Arg0: &Config)
+	1: Call liquidators(&Config): &VecSet<address>
+	2: MoveLoc[1](Arg1: &address)
+	3: Call vec_set::contains<address>(&VecSet<address>, &address): bool
+	4: Not
+	5: BrFalse(7)
+B1:
+	6: Call err_invalid_liquidator()
+B2:
+	7: Ret
+}
+
+assert_protected_debtor(Arg0: &Config, Arg1: &address) {
+B0:
+	0: MoveLoc[0](Arg0: &Config)
+	1: ImmBorrowField[0](Config.protected_debtors: VecSet<address>)
+	2: MoveLoc[1](Arg1: &address)
+	3: Call vec_set::contains<address>(&VecSet<address>, &address): bool
+	4: BrFalse(6)
+B1:
+	5: Call err_debtor_is_protected()
+B2:
+	6: Ret
+}
+
+assert_invalid_unswappable_coin_type<Ty0>(Arg0: &Config) {
+L1:	loc0: TypeName
+L2:	loc1: &VecSet<TypeName>
+B0:
+	0: MoveLoc[0](Arg0: &Config)
+	1: ImmBorrowField[1](Config.unswappable_coin_types: VecSet<TypeName>)
+	2: StLoc[2](loc1: &VecSet<TypeName>)
+	3: Call type_name::with_defining_ids<Ty0>(): TypeName
+	4: StLoc[1](loc0: TypeName)
+	5: MoveLoc[2](loc1: &VecSet<TypeName>)
+	6: ImmBorrowLoc[1](loc0: TypeName)
+	7: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	8: Not
+	9: BrFalse(11)
+B1:
+	10: Call err_invalid_coin_type()
+B2:
+	11: Ret
+}
+
+public add_liquidator(Arg0: &mut Config, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Config)
+	1: FreezeRef
+	2: Call assert_valid_package_version(&Config)
+	3: MoveLoc[0](Arg0: &mut Config)
+	4: MutBorrowField[2](Config.liquidators: VecSet<address>)
+	5: MoveLoc[2](Arg2: address)
+	6: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	7: Ret
+}
+
+public remove_liquidator(Arg0: &mut Config, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Config)
+	1: FreezeRef
+	2: Call assert_valid_package_version(&Config)
+	3: MoveLoc[0](Arg0: &mut Config)
+	4: MutBorrowField[2](Config.liquidators: VecSet<address>)
+	5: ImmBorrowLoc[2](Arg2: address)
+	6: Call vec_set::remove<address>(&mut VecSet<address>, &address)
+	7: Ret
+}
+
+public add_unswappable_coin_type<Ty0>(Arg0: &mut Config, Arg1: &AdminCap) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Config)
+	1: FreezeRef
+	2: Call assert_valid_package_version(&Config)
+	3: MoveLoc[0](Arg0: &mut Config)
+	4: MutBorrowField[1](Config.unswappable_coin_types: VecSet<TypeName>)
+	5: Call type_name::with_defining_ids<Ty0>(): TypeName
+	6: Call vec_set::insert<TypeName>(&mut VecSet<TypeName>, TypeName)
+	7: Ret
+}
+
+public remove_unswappable_coin_type<Ty0>(Arg0: &mut Config, Arg1: &AdminCap) {
+L2:	loc0: TypeName
+L3:	loc1: &mut VecSet<TypeName>
+B0:
+	0: CopyLoc[0](Arg0: &mut Config)
+	1: FreezeRef
+	2: Call assert_valid_package_version(&Config)
+	3: MoveLoc[0](Arg0: &mut Config)
+	4: MutBorrowField[1](Config.unswappable_coin_types: VecSet<TypeName>)
+	5: StLoc[3](loc1: &mut VecSet<TypeName>)
+	6: Call type_name::with_defining_ids<Ty0>(): TypeName
+	7: StLoc[2](loc0: TypeName)
+	8: MoveLoc[3](loc1: &mut VecSet<TypeName>)
+	9: ImmBorrowLoc[2](loc0: TypeName)
+	10: Call vec_set::remove<TypeName>(&mut VecSet<TypeName>, &TypeName)
+	11: Ret
+}
+
+public add_protected_debtor(Arg0: &mut Config, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Config)
+	1: FreezeRef
+	2: Call assert_valid_package_version(&Config)
+	3: MoveLoc[0](Arg0: &mut Config)
+	4: MutBorrowField[0](Config.protected_debtors: VecSet<address>)
+	5: MoveLoc[2](Arg2: address)
+	6: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	7: Ret
+}
+
+public remove_protected_debtor(Arg0: &mut Config, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Config)
+	1: FreezeRef
+	2: Call assert_valid_package_version(&Config)
+	3: MoveLoc[0](Arg0: &mut Config)
+	4: MutBorrowField[0](Config.protected_debtors: VecSet<address>)
+	5: ImmBorrowLoc[2](Arg2: address)
+	6: Call vec_set::remove<address>(&mut VecSet<address>, &address)
+	7: Ret
+}
+
+public add_version(Arg0: &mut Config, Arg1: &AdminCap, Arg2: u16) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Config)
+	1: MutBorrowField[3](Config.versions: VecSet<u16>)
+	2: MoveLoc[2](Arg2: u16)
+	3: Call vec_set::insert<u16>(&mut VecSet<u16>, u16)
+	4: Ret
+}
+
+public remove_version(Arg0: &mut Config, Arg1: &AdminCap, Arg2: u16) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Config)
+	1: MutBorrowField[3](Config.versions: VecSet<u16>)
+	2: ImmBorrowLoc[2](Arg2: u16)
+	3: Call vec_set::remove<u16>(&mut VecSet<u16>, &u16)
+	4: Ret
+}
+
+public liquidate<Ty0>(Arg0: &Config, Arg1: &mut Vault<Ty0>, Arg2: &Treasury, Arg3: &Clock, Arg4: &PriceResult<Ty0>, Arg5: address, Arg6: Coin<USDB>, Arg7: &mut TxContext): UpdateRequest<Ty0> {
+L8:	loc0: address
+L9:	loc1: &Config
+B0:
+	0: CopyLoc[0](Arg0: &Config)
+	1: Call assert_valid_package_version(&Config)
+	2: CopyLoc[0](Arg0: &Config)
+	3: StLoc[9](loc1: &Config)
+	4: CopyLoc[7](Arg7: &mut TxContext)
+	5: FreezeRef
+	6: Call tx_context::sender(&TxContext): address
+	7: StLoc[8](loc0: address)
+	8: MoveLoc[9](loc1: &Config)
+	9: ImmBorrowLoc[8](loc0: address)
+	10: Call assert_invalid_liquidator(&Config, &address)
+	11: MoveLoc[0](Arg0: &Config)
+	12: ImmBorrowLoc[5](Arg5: address)
+	13: Call assert_protected_debtor(&Config, &address)
+	14: MoveLoc[1](Arg1: &mut Vault<Ty0>)
+	15: MoveLoc[2](Arg2: &Treasury)
+	16: MoveLoc[3](Arg3: &Clock)
+	17: MoveLoc[4](Arg4: &PriceResult<Ty0>)
+	18: MoveLoc[5](Arg5: address)
+	19: MoveLoc[6](Arg6: Coin<USDB>)
+	20: LdFalse
+	21: Pack[0](LiquidationRule)
+	22: MoveLoc[7](Arg7: &mut TxContext)
+	23: Call vault::liquidate<Ty0, LiquidationRule>(&mut Vault<Ty0>, &Treasury, &Clock, &PriceResult<Ty0>, address, Coin<USDB>, LiquidationRule, &mut TxContext): UpdateRequest<Ty0>
+	24: Ret
+}
+
+public liquidate_unswappable<Ty0>(Arg0: &Config, Arg1: &mut Vault<Ty0>, Arg2: &mut Treasury, Arg3: &Clock, Arg4: &PriceResult<Ty0>, Arg5: address, Arg6: u64, Arg7: &mut TxContext): UpdateRequest<Ty0> {
+L8:	loc0: address
+L9:	loc1: &Config
+L10:	loc2: Coin<USDB>
+B0:
+	0: CopyLoc[0](Arg0: &Config)
+	1: Call assert_valid_package_version(&Config)
+	2: CopyLoc[0](Arg0: &Config)
+	3: StLoc[9](loc1: &Config)
+	4: CopyLoc[7](Arg7: &mut TxContext)
+	5: FreezeRef
+	6: Call tx_context::sender(&TxContext): address
+	7: StLoc[8](loc0: address)
+	8: MoveLoc[9](loc1: &Config)
+	9: ImmBorrowLoc[8](loc0: address)
+	10: Call assert_invalid_liquidator(&Config, &address)
+	11: CopyLoc[0](Arg0: &Config)
+	12: ImmBorrowLoc[5](Arg5: address)
+	13: Call assert_protected_debtor(&Config, &address)
+	14: MoveLoc[0](Arg0: &Config)
+	15: Call assert_invalid_unswappable_coin_type<Ty0>(&Config)
+	16: CopyLoc[2](Arg2: &mut Treasury)
+	17: LdFalse
+	18: Pack[0](LiquidationRule)
+	19: Call package_version(): u16
+	20: MoveLoc[6](Arg6: u64)
+	21: CopyLoc[7](Arg7: &mut TxContext)
+	22: Call usdb::mint<LiquidationRule>(&mut Treasury, LiquidationRule, u16, u64, &mut TxContext): Coin<USDB>
+	23: StLoc[10](loc2: Coin<USDB>)
+	24: MoveLoc[1](Arg1: &mut Vault<Ty0>)
+	25: MoveLoc[2](Arg2: &mut Treasury)
+	26: FreezeRef
+	27: MoveLoc[3](Arg3: &Clock)
+	28: MoveLoc[4](Arg4: &PriceResult<Ty0>)
+	29: MoveLoc[5](Arg5: address)
+	30: MoveLoc[10](loc2: Coin<USDB>)
+	31: LdFalse
+	32: Pack[0](LiquidationRule)
+	33: MoveLoc[7](Arg7: &mut TxContext)
+	34: Call vault::liquidate<Ty0, LiquidationRule>(&mut Vault<Ty0>, &Treasury, &Clock, &PriceResult<Ty0>, address, Coin<USDB>, LiquidationRule, &mut TxContext): UpdateRequest<Ty0>
+	35: Ret
+}
+
+public versions(Arg0: &Config): &VecSet<u16> {
+B0:
+	0: MoveLoc[0](Arg0: &Config)
+	1: ImmBorrowField[3](Config.versions: VecSet<u16>)
+	2: Ret
+}
+
+public liquidators(Arg0: &Config): &VecSet<address> {
+B0:
+	0: MoveLoc[0](Arg0: &Config)
+	1: ImmBorrowField[2](Config.liquidators: VecSet<address>)
+	2: Ret
+}
+
+public protected_debtors(Arg0: &Config): &VecSet<address> {
+B0:
+	0: MoveLoc[0](Arg0: &Config)
+	1: ImmBorrowField[0](Config.protected_debtors: VecSet<address>)
+	2: Ret
+}
+
+Constants [
+	0 => u16: 1
+	1 => u64: 0
+	2 => u64: 1
+	3 => u64: 2
+	4 => u64: 3
+]
+}

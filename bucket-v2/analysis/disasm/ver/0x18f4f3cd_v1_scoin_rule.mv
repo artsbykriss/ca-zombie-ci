@@ -1,0 +1,160 @@
+// module scoin_rule  version-object 0x18f4f3cd05ab7ff6dc0c41c692e3caae925927cc096f1de3de81d85a89f87aca (v1)
+// Move bytecode v6
+module 18f4f3cd05ab7ff6dc0c41c692e3caae925927cc096f1de3de81d85a89f87aca.scoin_rule {
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::float;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::collector;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::listing;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::result;
+use efe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf::market;
+use efe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf::version;
+use 18f4f3cd05ab7ff6dc0c41c692e3caae925927cc096f1de3de81d85a89f87aca::utils;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct SCoinRule has drop {
+	dummy_field: bool
+}
+
+struct Config has key {
+	id: UID,
+	underlying_coin_map: VecMap<TypeName, TypeName>
+}
+
+err_unsupported_scoin_type() {
+B0:
+	0: LdConst[0](u64: 1)
+	1: Abort
+}
+
+err_invalid_coin_type() {
+B0:
+	0: LdConst[1](u64: 2)
+	1: Abort
+}
+
+init(Arg0: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: Call vec_map::empty<TypeName, TypeName>(): VecMap<TypeName, TypeName>
+	3: Pack[1](Config)
+	4: Call transfer::share_object<Config>(Config)
+	5: Ret
+}
+
+public add_scoin_pair<Ty0, Ty1>(Arg0: &mut Config, Arg1: &ListingCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut Config)
+	3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool
+	6: BrFalse(14)
+B1:
+	7: Call type_name::get<Ty1>(): TypeName
+	8: MoveLoc[0](Arg0: &mut Config)
+	9: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	10: ImmBorrowLoc[2](loc0: TypeName)
+	11: Call vec_map::get_mut<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, &TypeName): &mut TypeName
+	12: WriteRef
+	13: Branch(19)
+B2:
+	14: MoveLoc[0](Arg0: &mut Config)
+	15: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	16: MoveLoc[2](loc0: TypeName)
+	17: Call type_name::get<Ty1>(): TypeName
+	18: Call vec_map::insert<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, TypeName, TypeName)
+B3:
+	19: Ret
+}
+
+public remove_scoin_pair<Ty0>(Arg0: &mut Config, Arg1: &ListingCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut Config)
+	3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool
+	6: BrFalse(14)
+B1:
+	7: MoveLoc[0](Arg0: &mut Config)
+	8: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	9: ImmBorrowLoc[2](loc0: TypeName)
+	10: Call vec_map::remove<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, &TypeName): TypeName * TypeName
+	11: Pop
+	12: Pop
+	13: Branch(16)
+B2:
+	14: MoveLoc[0](Arg0: &mut Config)
+	15: Pop
+B3:
+	16: Ret
+}
+
+public feed<Ty0, Ty1>(Arg0: &mut PriceCollector<Ty0>, Arg1: &Config, Arg2: &PriceResult<Ty1>, Arg3: &Version, Arg4: &mut Market, Arg5: &Clock) {
+L6:	loc0: Float
+L7:	loc1: TypeName
+L8:	loc2: Float
+L9:	loc3: TypeName
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: StLoc[9](loc3: TypeName)
+	2: CopyLoc[1](Arg1: &Config)
+	3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	4: ImmBorrowLoc[9](loc3: TypeName)
+	5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool
+	6: Not
+	7: BrFalse(9)
+B1:
+	8: Call err_unsupported_scoin_type()
+B2:
+	9: Call type_name::get<Ty1>(): TypeName
+	10: StLoc[7](loc1: TypeName)
+	11: ImmBorrowLoc[7](loc1: TypeName)
+	12: MoveLoc[1](Arg1: &Config)
+	13: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	14: ImmBorrowLoc[9](loc3: TypeName)
+	15: Call vec_map::get<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): &TypeName
+	16: Neq
+	17: BrFalse(19)
+B3:
+	18: Call err_invalid_coin_type()
+B4:
+	19: MoveLoc[2](Arg2: &PriceResult<Ty1>)
+	20: Call result::aggregated_price<Ty1>(&PriceResult<Ty1>): Float
+	21: StLoc[6](loc0: Float)
+	22: MoveLoc[3](Arg3: &Version)
+	23: MoveLoc[4](Arg4: &mut Market)
+	24: MoveLoc[7](loc1: TypeName)
+	25: MoveLoc[5](Arg5: &Clock)
+	26: Call float::precision(): u128
+	27: CastU64
+	28: Call utils::calc_coin_to_scoin(&Version, &mut Market, TypeName, &Clock, u64): u64
+	29: CastU128
+	30: Call float::from_scaled_val(u128): Float
+	31: StLoc[8](loc2: Float)
+	32: MoveLoc[0](Arg0: &mut PriceCollector<Ty0>)
+	33: LdFalse
+	34: Pack[0](SCoinRule)
+	35: MoveLoc[6](loc0: Float)
+	36: MoveLoc[8](loc2: Float)
+	37: Call float::div(Float, Float): Float
+	38: Call option::some<Float>(Float): Option<Float>
+	39: Call collector::collect<Ty0, SCoinRule>(&mut PriceCollector<Ty0>, SCoinRule, Option<Float>)
+	40: Ret
+}
+
+Constants [
+	0 => u64: 1
+	1 => u64: 2
+]
+}

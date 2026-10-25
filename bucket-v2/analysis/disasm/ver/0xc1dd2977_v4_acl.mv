@@ -1,0 +1,99 @@
+// module acl  version-object 0xc1dd29778f3fccd19a4ac79d1c35a14bf9d65a0b48f1c5bba98a949cacc53e26 (v4)
+// Move bytecode v6
+module 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e.acl {
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct Acl has store {
+	managers: VecMap<address, u8>
+}
+
+err_invalid_role() {
+B0:
+	0: LdConst[0](u64: 201)
+	1: Abort
+}
+
+public(friend) new(): Acl {
+B0:
+	0: Call vec_map::empty<address, u8>(): VecMap<address, u8>
+	1: Pack[0](Acl)
+	2: Ret
+}
+
+public(friend) set_role(Arg0: &mut Acl, Arg1: address, Arg2: u8) {
+B0:
+	0: CopyLoc[2](Arg2: u8)
+	1: LdU8(0)
+	2: Eq
+	3: BrFalse(5)
+B1:
+	4: Call err_invalid_role()
+B2:
+	5: CopyLoc[0](Arg0: &mut Acl)
+	6: ImmBorrowField[0](Acl.managers: VecMap<address, u8>)
+	7: ImmBorrowLoc[1](Arg1: address)
+	8: Call vec_map::contains<address, u8>(&VecMap<address, u8>, &address): bool
+	9: BrFalse(17)
+B3:
+	10: MoveLoc[2](Arg2: u8)
+	11: MoveLoc[0](Arg0: &mut Acl)
+	12: MutBorrowField[0](Acl.managers: VecMap<address, u8>)
+	13: ImmBorrowLoc[1](Arg1: address)
+	14: Call vec_map::get_mut<address, u8>(&mut VecMap<address, u8>, &address): &mut u8
+	15: WriteRef
+	16: Branch(22)
+B4:
+	17: MoveLoc[0](Arg0: &mut Acl)
+	18: MutBorrowField[0](Acl.managers: VecMap<address, u8>)
+	19: MoveLoc[1](Arg1: address)
+	20: MoveLoc[2](Arg2: u8)
+	21: Call vec_map::insert<address, u8>(&mut VecMap<address, u8>, address, u8)
+B5:
+	22: Ret
+}
+
+public(friend) remove_role(Arg0: &mut Acl, Arg1: address) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Acl)
+	1: ImmBorrowField[0](Acl.managers: VecMap<address, u8>)
+	2: ImmBorrowLoc[1](Arg1: address)
+	3: Call vec_map::contains<address, u8>(&VecMap<address, u8>, &address): bool
+	4: BrFalse(12)
+B1:
+	5: MoveLoc[0](Arg0: &mut Acl)
+	6: MutBorrowField[0](Acl.managers: VecMap<address, u8>)
+	7: ImmBorrowLoc[1](Arg1: address)
+	8: Call vec_map::remove<address, u8>(&mut VecMap<address, u8>, &address): address * u8
+	9: Pop
+	10: Pop
+	11: Branch(14)
+B2:
+	12: MoveLoc[0](Arg0: &mut Acl)
+	13: Pop
+B3:
+	14: Ret
+}
+
+public(friend) exists_role(Arg0: &Acl, Arg1: address): bool {
+B0:
+	0: MoveLoc[0](Arg0: &Acl)
+	1: ImmBorrowField[0](Acl.managers: VecMap<address, u8>)
+	2: ImmBorrowLoc[1](Arg1: address)
+	3: Call vec_map::contains<address, u8>(&VecMap<address, u8>, &address): bool
+	4: Ret
+}
+
+public role_level(Arg0: &Acl, Arg1: address): u8 {
+B0:
+	0: MoveLoc[0](Arg0: &Acl)
+	1: ImmBorrowField[0](Acl.managers: VecMap<address, u8>)
+	2: ImmBorrowLoc[1](Arg1: address)
+	3: Call vec_map::get<address, u8>(&VecMap<address, u8>, &address): &u8
+	4: ReadRef
+	5: Ret
+}
+
+Constants [
+	0 => u64: 201
+]
+}

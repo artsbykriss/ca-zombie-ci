@@ -1,0 +1,136 @@
+// module request  version-object 0xc1dd29778f3fccd19a4ac79d1c35a14bf9d65a0b48f1c5bba98a949cacc53e26 (v4)
+// Move bytecode v6
+module 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e.request {
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::usdb;
+use 0000000000000000000000000000000000000000000000000000000000000001::string;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_set;
+
+struct UpdateRequest<phantom Ty0> {
+	vault_id: ID,
+	account: address,
+	deposit: Coin<Ty0>,
+	borrow_amount: u64,
+	repayment: Coin<USDB>,
+	withdraw_amount: u64,
+	witnesses: VecSet<TypeName>,
+	memo: String
+}
+
+err_witness_already_exists() {
+B0:
+	0: LdConst[0](u64: 201)
+	1: Abort
+}
+
+public add_witness<Ty0, Ty1: drop>(Arg0: &mut UpdateRequest<Ty0>, Arg1: Ty1) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut UpdateRequest<Ty0>)
+	3: FreezeRef
+	4: Call witnesses<Ty0>(&UpdateRequest<Ty0>): &VecSet<TypeName>
+	5: ImmBorrowLoc[2](loc0: TypeName)
+	6: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	7: BrFalse(9)
+B1:
+	8: Call err_witness_already_exists()
+B2:
+	9: MoveLoc[0](Arg0: &mut UpdateRequest<Ty0>)
+	10: MutBorrowFieldGeneric[0](UpdateRequest.witnesses: VecSet<TypeName>)
+	11: MoveLoc[2](loc0: TypeName)
+	12: Call vec_set::insert<TypeName>(&mut VecSet<TypeName>, TypeName)
+	13: Ret
+}
+
+public(friend) destroy<Ty0>(Arg0: UpdateRequest<Ty0>): ID * address * Coin<Ty0> * u64 * Coin<USDB> * u64 * VecSet<TypeName> * String {
+B0:
+	0: MoveLoc[0](Arg0: UpdateRequest<Ty0>)
+	1: UnpackGeneric[0](UpdateRequest<Ty0>)
+	2: Ret
+}
+
+public vault_id<Ty0>(Arg0: &UpdateRequest<Ty0>): ID {
+B0:
+	0: MoveLoc[0](Arg0: &UpdateRequest<Ty0>)
+	1: ImmBorrowFieldGeneric[1](UpdateRequest.vault_id: ID)
+	2: ReadRef
+	3: Ret
+}
+
+public account<Ty0>(Arg0: &UpdateRequest<Ty0>): address {
+B0:
+	0: MoveLoc[0](Arg0: &UpdateRequest<Ty0>)
+	1: ImmBorrowFieldGeneric[2](UpdateRequest.account: address)
+	2: ReadRef
+	3: Ret
+}
+
+public deposit_amount<Ty0>(Arg0: &UpdateRequest<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &UpdateRequest<Ty0>)
+	1: ImmBorrowFieldGeneric[3](UpdateRequest.deposit: Coin<Ty0>)
+	2: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	3: Ret
+}
+
+public repay_amount<Ty0>(Arg0: &UpdateRequest<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &UpdateRequest<Ty0>)
+	1: ImmBorrowFieldGeneric[4](UpdateRequest.repayment: Coin<USDB>)
+	2: Call coin::value<USDB>(&Coin<USDB>): u64
+	3: Ret
+}
+
+public borrow_amount<Ty0>(Arg0: &UpdateRequest<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &UpdateRequest<Ty0>)
+	1: ImmBorrowFieldGeneric[5](UpdateRequest.borrow_amount: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public withdraw_amount<Ty0>(Arg0: &UpdateRequest<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &UpdateRequest<Ty0>)
+	1: ImmBorrowFieldGeneric[6](UpdateRequest.withdraw_amount: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public memo<Ty0>(Arg0: &UpdateRequest<Ty0>): String {
+B0:
+	0: MoveLoc[0](Arg0: &UpdateRequest<Ty0>)
+	1: ImmBorrowFieldGeneric[7](UpdateRequest.memo: String)
+	2: ReadRef
+	3: Ret
+}
+
+public witnesses<Ty0>(Arg0: &UpdateRequest<Ty0>): &VecSet<TypeName> {
+B0:
+	0: MoveLoc[0](Arg0: &UpdateRequest<Ty0>)
+	1: ImmBorrowFieldGeneric[0](UpdateRequest.witnesses: VecSet<TypeName>)
+	2: Ret
+}
+
+public(friend) new<Ty0>(Arg0: ID, Arg1: address, Arg2: Coin<Ty0>, Arg3: u64, Arg4: Coin<USDB>, Arg5: u64, Arg6: String): UpdateRequest<Ty0> {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: MoveLoc[1](Arg1: address)
+	2: MoveLoc[2](Arg2: Coin<Ty0>)
+	3: MoveLoc[3](Arg3: u64)
+	4: MoveLoc[4](Arg4: Coin<USDB>)
+	5: MoveLoc[5](Arg5: u64)
+	6: Call vec_set::empty<TypeName>(): VecSet<TypeName>
+	7: MoveLoc[6](Arg6: String)
+	8: PackGeneric[0](UpdateRequest<Ty0>)
+	9: Ret
+}
+
+Constants [
+	0 => u64: 201
+]
+}

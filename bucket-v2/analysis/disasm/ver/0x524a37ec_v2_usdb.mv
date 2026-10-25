@@ -1,0 +1,675 @@
+// module usdb  version-object 0x524a37ec411ba112f284508d9cd98265b796bea85db9450c84a42c8b5268885d (v2)
+// Move bytecode v6
+module e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd.usdb {
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::account;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::admin;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::limited_supply;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::treasury;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::string;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_field;
+use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_object_field;
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::url;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_set;
+
+struct Mint<phantom Ty0> has copy, drop {
+	amount: u64,
+	module_supply: u64,
+	total_supply: u64
+}
+
+struct Burn<phantom Ty0> has copy, drop {
+	amount: u64,
+	module_supply: u64,
+	total_supply: u64
+}
+
+struct USDB has drop {
+	dummy_field: bool
+}
+
+struct CapKey has copy, drop, store {
+	dummy_field: bool
+}
+
+struct ModuleConfig has store {
+	valid_versions: VecSet<u16>,
+	limited_supply: LimitedSupply
+}
+
+struct Treasury has key {
+	id: UID,
+	module_config_map: VecMap<TypeName, ModuleConfig>,
+	beneficiary_address: address
+}
+
+err_invalid_module() {
+B0:
+	0: LdConst[0](u64: 201)
+	1: Abort
+}
+
+err_invalid_module_version() {
+B0:
+	0: LdConst[1](u64: 202)
+	1: Abort
+}
+
+err_not_beneficiary() {
+B0:
+	0: LdConst[2](u64: 203)
+	1: Abort
+}
+
+err_coin_type_not_found() {
+B0:
+	0: LdConst[3](u64: 204)
+	1: Abort
+}
+
+init(Arg0: USDB, Arg1: &mut TxContext) {
+L2:	loc0: TreasuryCap<USDB>
+L3:	loc1: UID
+L4:	loc2: CoinMetadata<USDB>
+B0:
+	0: MoveLoc[0](Arg0: USDB)
+	1: Call decimal(): u8
+	2: LdConst[4](vector<u8>: "USD..)
+	3: LdConst[5](vector<u8>: "Buc..)
+	4: LdConst[6](vector<u8>: "USD..)
+	5: LdConst[7](vector<u8>: "htt..)
+	6: Call url::new_unsafe_from_bytes(vector<u8>): Url
+	7: Call option::some<Url>(Url): Option<Url>
+	8: CopyLoc[1](Arg1: &mut TxContext)
+	9: Call coin::create_currency<USDB>(USDB, u8, vector<u8>, vector<u8>, vector<u8>, Option<Url>, &mut TxContext): TreasuryCap<USDB> * CoinMetadata<USDB>
+	10: StLoc[4](loc2: CoinMetadata<USDB>)
+	11: StLoc[2](loc0: TreasuryCap<USDB>)
+	12: MoveLoc[4](loc2: CoinMetadata<USDB>)
+	13: Call transfer::public_share_object<CoinMetadata<USDB>>(CoinMetadata<USDB>)
+	14: CopyLoc[1](Arg1: &mut TxContext)
+	15: Call object::new(&mut TxContext): UID
+	16: StLoc[3](loc1: UID)
+	17: MutBorrowLoc[3](loc1: UID)
+	18: Call cap_key(): CapKey
+	19: MoveLoc[2](loc0: TreasuryCap<USDB>)
+	20: Call dynamic_object_field::add<CapKey, TreasuryCap<USDB>>(&mut UID, CapKey, TreasuryCap<USDB>)
+	21: MoveLoc[3](loc1: UID)
+	22: Call vec_map::empty<TypeName, ModuleConfig>(): VecMap<TypeName, ModuleConfig>
+	23: MoveLoc[1](Arg1: &mut TxContext)
+	24: FreezeRef
+	25: Call tx_context::sender(&TxContext): address
+	26: Pack[5](Treasury)
+	27: Call transfer::share_object<Treasury>(Treasury)
+	28: Ret
+}
+
+public set_beneficiary_address(Arg0: &mut Treasury, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: MoveLoc[2](Arg2: address)
+	1: MoveLoc[0](Arg0: &mut Treasury)
+	2: MutBorrowField[0](Treasury.beneficiary_address: address)
+	3: WriteRef
+	4: Ret
+}
+
+public set_supply_limit<Ty0: drop>(Arg0: &mut Treasury, Arg1: &AdminCap, Arg2: u64) {
+L3:	loc0: LimitedSupply
+L4:	loc1: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[4](loc1: TypeName)
+	2: CopyLoc[0](Arg0: &mut Treasury)
+	3: FreezeRef
+	4: Call module_config_map(&Treasury): &VecMap<TypeName, ModuleConfig>
+	5: ImmBorrowLoc[4](loc1: TypeName)
+	6: Call vec_map::contains<TypeName, ModuleConfig>(&VecMap<TypeName, ModuleConfig>, &TypeName): bool
+	7: BrFalse(16)
+B1:
+	8: MoveLoc[0](Arg0: &mut Treasury)
+	9: MutBorrowField[1](Treasury.module_config_map: VecMap<TypeName, ModuleConfig>)
+	10: ImmBorrowLoc[4](loc1: TypeName)
+	11: Call vec_map::get_mut<TypeName, ModuleConfig>(&mut VecMap<TypeName, ModuleConfig>, &TypeName): &mut ModuleConfig
+	12: MutBorrowField[2](ModuleConfig.limited_supply: LimitedSupply)
+	13: MoveLoc[2](Arg2: u64)
+	14: Call limited_supply::set_limit(&mut LimitedSupply, u64)
+	15: Branch(26)
+B2:
+	16: MoveLoc[2](Arg2: u64)
+	17: Call limited_supply::new(u64): LimitedSupply
+	18: StLoc[3](loc0: LimitedSupply)
+	19: MoveLoc[0](Arg0: &mut Treasury)
+	20: MutBorrowField[1](Treasury.module_config_map: VecMap<TypeName, ModuleConfig>)
+	21: MoveLoc[4](loc1: TypeName)
+	22: Call vec_set::empty<u16>(): VecSet<u16>
+	23: MoveLoc[3](loc0: LimitedSupply)
+	24: Pack[4](ModuleConfig)
+	25: Call vec_map::insert<TypeName, ModuleConfig>(&mut VecMap<TypeName, ModuleConfig>, TypeName, ModuleConfig)
+B3:
+	26: Ret
+}
+
+public add_version<Ty0: drop>(Arg0: &mut Treasury, Arg1: &AdminCap, Arg2: u16) {
+L3:	loc0: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[3](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut Treasury)
+	3: FreezeRef
+	4: Call module_config_map(&Treasury): &VecMap<TypeName, ModuleConfig>
+	5: ImmBorrowLoc[3](loc0: TypeName)
+	6: Call vec_map::contains<TypeName, ModuleConfig>(&VecMap<TypeName, ModuleConfig>, &TypeName): bool
+	7: BrFalse(16)
+B1:
+	8: MoveLoc[0](Arg0: &mut Treasury)
+	9: MutBorrowField[1](Treasury.module_config_map: VecMap<TypeName, ModuleConfig>)
+	10: ImmBorrowLoc[3](loc0: TypeName)
+	11: Call vec_map::get_mut<TypeName, ModuleConfig>(&mut VecMap<TypeName, ModuleConfig>, &TypeName): &mut ModuleConfig
+	12: MutBorrowField[3](ModuleConfig.valid_versions: VecSet<u16>)
+	13: MoveLoc[2](Arg2: u16)
+	14: Call vec_set::insert<u16>(&mut VecSet<u16>, u16)
+	15: Branch(25)
+B2:
+	16: MoveLoc[0](Arg0: &mut Treasury)
+	17: MutBorrowField[1](Treasury.module_config_map: VecMap<TypeName, ModuleConfig>)
+	18: MoveLoc[3](loc0: TypeName)
+	19: MoveLoc[2](Arg2: u16)
+	20: Call vec_set::singleton<u16>(u16): VecSet<u16>
+	21: LdU64(0)
+	22: Call limited_supply::new(u64): LimitedSupply
+	23: Pack[4](ModuleConfig)
+	24: Call vec_map::insert<TypeName, ModuleConfig>(&mut VecMap<TypeName, ModuleConfig>, TypeName, ModuleConfig)
+B3:
+	25: Ret
+}
+
+public remove_version<Ty0: drop>(Arg0: &mut Treasury, Arg1: &AdminCap, Arg2: u16) {
+L3:	loc0: bool
+L4:	loc1: &VecMap<TypeName, ModuleConfig>
+L5:	loc2: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[5](loc2: TypeName)
+	2: CopyLoc[0](Arg0: &mut Treasury)
+	3: FreezeRef
+	4: Call module_config_map(&Treasury): &VecMap<TypeName, ModuleConfig>
+	5: StLoc[4](loc1: &VecMap<TypeName, ModuleConfig>)
+	6: CopyLoc[4](loc1: &VecMap<TypeName, ModuleConfig>)
+	7: ImmBorrowLoc[5](loc2: TypeName)
+	8: Call vec_map::contains<TypeName, ModuleConfig>(&VecMap<TypeName, ModuleConfig>, &TypeName): bool
+	9: BrFalse(18)
+B1:
+	10: MoveLoc[4](loc1: &VecMap<TypeName, ModuleConfig>)
+	11: ImmBorrowLoc[5](loc2: TypeName)
+	12: Call vec_map::get<TypeName, ModuleConfig>(&VecMap<TypeName, ModuleConfig>, &TypeName): &ModuleConfig
+	13: Call valid_versions(&ModuleConfig): &VecSet<u16>
+	14: ImmBorrowLoc[2](Arg2: u16)
+	15: Call vec_set::contains<u16>(&VecSet<u16>, &u16): bool
+	16: StLoc[3](loc0: bool)
+	17: Branch(22)
+B2:
+	18: MoveLoc[4](loc1: &VecMap<TypeName, ModuleConfig>)
+	19: Pop
+	20: LdFalse
+	21: StLoc[3](loc0: bool)
+B3:
+	22: MoveLoc[3](loc0: bool)
+	23: BrFalse(32)
+B4:
+	24: MoveLoc[0](Arg0: &mut Treasury)
+	25: MutBorrowField[1](Treasury.module_config_map: VecMap<TypeName, ModuleConfig>)
+	26: ImmBorrowLoc[5](loc2: TypeName)
+	27: Call vec_map::get_mut<TypeName, ModuleConfig>(&mut VecMap<TypeName, ModuleConfig>, &TypeName): &mut ModuleConfig
+	28: MutBorrowField[3](ModuleConfig.valid_versions: VecSet<u16>)
+	29: ImmBorrowLoc[2](Arg2: u16)
+	30: Call vec_set::remove<u16>(&mut VecSet<u16>, &u16)
+	31: Branch(34)
+B5:
+	32: MoveLoc[0](Arg0: &mut Treasury)
+	33: Pop
+B6:
+	34: Ret
+}
+
+public remove_module<Ty0: drop>(Arg0: &mut Treasury, Arg1: &AdminCap) {
+L2:	loc0: ModuleConfig
+L3:	loc1: LimitedSupply
+L4:	loc2: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[4](loc2: TypeName)
+	2: CopyLoc[0](Arg0: &mut Treasury)
+	3: FreezeRef
+	4: Call module_config_map(&Treasury): &VecMap<TypeName, ModuleConfig>
+	5: ImmBorrowLoc[4](loc2: TypeName)
+	6: Call vec_map::contains<TypeName, ModuleConfig>(&VecMap<TypeName, ModuleConfig>, &TypeName): bool
+	7: BrFalse(21)
+B1:
+	8: MoveLoc[0](Arg0: &mut Treasury)
+	9: MutBorrowField[1](Treasury.module_config_map: VecMap<TypeName, ModuleConfig>)
+	10: ImmBorrowLoc[4](loc2: TypeName)
+	11: Call vec_map::remove<TypeName, ModuleConfig>(&mut VecMap<TypeName, ModuleConfig>, &TypeName): TypeName * ModuleConfig
+	12: StLoc[2](loc0: ModuleConfig)
+	13: Pop
+	14: MoveLoc[2](loc0: ModuleConfig)
+	15: Unpack[4](ModuleConfig)
+	16: StLoc[3](loc1: LimitedSupply)
+	17: Pop
+	18: MoveLoc[3](loc1: LimitedSupply)
+	19: Call limited_supply::destroy(LimitedSupply)
+	20: Branch(23)
+B2:
+	21: MoveLoc[0](Arg0: &mut Treasury)
+	22: Pop
+B3:
+	23: Ret
+}
+
+public mint<Ty0: drop>(Arg0: &mut Treasury, Arg1: Ty0, Arg2: u16, Arg3: u64, Arg4: &mut TxContext): Coin<USDB> {
+L5:	loc0: Coin<USDB>
+L6:	loc1: u64
+L7:	loc2: Coin<USDB>
+B0:
+	0: CopyLoc[0](Arg0: &mut Treasury)
+	1: FreezeRef
+	2: MoveLoc[2](Arg2: u16)
+	3: Call assert_valid_module_version<Ty0>(&Treasury, u16): TypeName
+	4: Pop
+	5: CopyLoc[3](Arg3: u64)
+	6: LdU64(0)
+	7: Gt
+	8: BrFalse(30)
+B1:
+	9: CopyLoc[0](Arg0: &mut Treasury)
+	10: Call borrow_supply_mut<Ty0>(&mut Treasury): &mut LimitedSupply
+	11: CopyLoc[3](Arg3: u64)
+	12: Call limited_supply::increase(&mut LimitedSupply, u64): u64
+	13: StLoc[6](loc1: u64)
+	14: CopyLoc[0](Arg0: &mut Treasury)
+	15: Call borrow_cap_mut(&mut Treasury): &mut TreasuryCap<USDB>
+	16: CopyLoc[3](Arg3: u64)
+	17: MoveLoc[4](Arg4: &mut TxContext)
+	18: Call coin::mint<USDB>(&mut TreasuryCap<USDB>, u64, &mut TxContext): Coin<USDB>
+	19: StLoc[7](loc2: Coin<USDB>)
+	20: MoveLoc[3](Arg3: u64)
+	21: MoveLoc[6](loc1: u64)
+	22: MoveLoc[0](Arg0: &mut Treasury)
+	23: FreezeRef
+	24: Call total_supply(&Treasury): u64
+	25: PackGeneric[0](Mint<Ty0>)
+	26: Call event::emit<Mint<Ty0>>(Mint<Ty0>)
+	27: MoveLoc[7](loc2: Coin<USDB>)
+	28: StLoc[5](loc0: Coin<USDB>)
+	29: Branch(35)
+B2:
+	30: MoveLoc[0](Arg0: &mut Treasury)
+	31: Pop
+	32: MoveLoc[4](Arg4: &mut TxContext)
+	33: Call coin::zero<USDB>(&mut TxContext): Coin<USDB>
+	34: StLoc[5](loc0: Coin<USDB>)
+B3:
+	35: MoveLoc[5](loc0: Coin<USDB>)
+	36: Ret
+}
+
+public burn<Ty0: drop>(Arg0: &mut Treasury, Arg1: Ty0, Arg2: u16, Arg3: Coin<USDB>) {
+L4:	loc0: u64
+L5:	loc1: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut Treasury)
+	1: FreezeRef
+	2: MoveLoc[2](Arg2: u16)
+	3: Call assert_valid_module_version<Ty0>(&Treasury, u16): TypeName
+	4: Pop
+	5: ImmBorrowLoc[3](Arg3: Coin<USDB>)
+	6: Call coin::value<USDB>(&Coin<USDB>): u64
+	7: StLoc[4](loc0: u64)
+	8: CopyLoc[4](loc0: u64)
+	9: LdU64(0)
+	10: Gt
+	11: BrFalse(30)
+B1:
+	12: CopyLoc[0](Arg0: &mut Treasury)
+	13: Call borrow_supply_mut<Ty0>(&mut Treasury): &mut LimitedSupply
+	14: CopyLoc[4](loc0: u64)
+	15: Call limited_supply::decrease(&mut LimitedSupply, u64): u64
+	16: StLoc[5](loc1: u64)
+	17: CopyLoc[0](Arg0: &mut Treasury)
+	18: Call borrow_cap_mut(&mut Treasury): &mut TreasuryCap<USDB>
+	19: MoveLoc[3](Arg3: Coin<USDB>)
+	20: Call coin::burn<USDB>(&mut TreasuryCap<USDB>, Coin<USDB>): u64
+	21: Pop
+	22: MoveLoc[4](loc0: u64)
+	23: MoveLoc[5](loc1: u64)
+	24: MoveLoc[0](Arg0: &mut Treasury)
+	25: FreezeRef
+	26: Call total_supply(&Treasury): u64
+	27: PackGeneric[1](Burn<Ty0>)
+	28: Call event::emit<Burn<Ty0>>(Burn<Ty0>)
+	29: Branch(34)
+B2:
+	30: MoveLoc[0](Arg0: &mut Treasury)
+	31: Pop
+	32: MoveLoc[3](Arg3: Coin<USDB>)
+	33: Call coin::destroy_zero<USDB>(Coin<USDB>)
+B3:
+	34: Ret
+}
+
+public collect<Ty0, Ty1: drop>(Arg0: &mut Treasury, Arg1: Ty1, Arg2: String, Arg3: Balance<Ty0>) {
+L4:	loc0: u64
+L5:	loc1: &mut VecMap<TypeName, Balance<Ty0>>
+L6:	loc2: TypeName
+L7:	loc3: TypeName
+L8:	loc4: &mut UID
+B0:
+	0: ImmBorrowLoc[3](Arg3: Balance<Ty0>)
+	1: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	2: StLoc[4](loc0: u64)
+	3: CopyLoc[4](loc0: u64)
+	4: LdU64(0)
+	5: Gt
+	6: BrFalse(48)
+B1:
+	7: MoveLoc[0](Arg0: &mut Treasury)
+	8: MutBorrowField[4](Treasury.id: UID)
+	9: StLoc[8](loc4: &mut UID)
+	10: Call type_name::with_defining_ids<Ty0>(): TypeName
+	11: StLoc[6](loc2: TypeName)
+	12: CopyLoc[8](loc4: &mut UID)
+	13: FreezeRef
+	14: CopyLoc[6](loc2: TypeName)
+	15: Call dynamic_field::exists_with_type<TypeName, VecMap<TypeName, Balance<Ty0>>>(&UID, TypeName): bool
+	16: Not
+	17: BrFalse(22)
+B2:
+	18: CopyLoc[8](loc4: &mut UID)
+	19: CopyLoc[6](loc2: TypeName)
+	20: Call vec_map::empty<TypeName, Balance<Ty0>>(): VecMap<TypeName, Balance<Ty0>>
+	21: Call dynamic_field::add<TypeName, VecMap<TypeName, Balance<Ty0>>>(&mut UID, TypeName, VecMap<TypeName, Balance<Ty0>>)
+B3:
+	22: MoveLoc[8](loc4: &mut UID)
+	23: MoveLoc[6](loc2: TypeName)
+	24: Call dynamic_field::borrow_mut<TypeName, VecMap<TypeName, Balance<Ty0>>>(&mut UID, TypeName): &mut VecMap<TypeName, Balance<Ty0>>
+	25: StLoc[5](loc1: &mut VecMap<TypeName, Balance<Ty0>>)
+	26: Call type_name::with_defining_ids<Ty1>(): TypeName
+	27: StLoc[7](loc3: TypeName)
+	28: CopyLoc[5](loc1: &mut VecMap<TypeName, Balance<Ty0>>)
+	29: FreezeRef
+	30: ImmBorrowLoc[7](loc3: TypeName)
+	31: Call vec_map::contains<TypeName, Balance<Ty0>>(&VecMap<TypeName, Balance<Ty0>>, &TypeName): bool
+	32: Not
+	33: BrFalse(38)
+B4:
+	34: CopyLoc[5](loc1: &mut VecMap<TypeName, Balance<Ty0>>)
+	35: CopyLoc[7](loc3: TypeName)
+	36: Call balance::zero<Ty0>(): Balance<Ty0>
+	37: Call vec_map::insert<TypeName, Balance<Ty0>>(&mut VecMap<TypeName, Balance<Ty0>>, TypeName, Balance<Ty0>)
+B5:
+	38: MoveLoc[2](Arg2: String)
+	39: MoveLoc[4](loc0: u64)
+	40: Call treasury::emit_collect_fee<Ty0, Ty1>(String, u64)
+	41: MoveLoc[5](loc1: &mut VecMap<TypeName, Balance<Ty0>>)
+	42: ImmBorrowLoc[7](loc3: TypeName)
+	43: Call vec_map::get_mut<TypeName, Balance<Ty0>>(&mut VecMap<TypeName, Balance<Ty0>>, &TypeName): &mut Balance<Ty0>
+	44: MoveLoc[3](Arg3: Balance<Ty0>)
+	45: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	46: Pop
+	47: Branch(52)
+B6:
+	48: MoveLoc[0](Arg0: &mut Treasury)
+	49: Pop
+	50: MoveLoc[3](Arg3: Balance<Ty0>)
+	51: Call balance::destroy_zero<Ty0>(Balance<Ty0>)
+B7:
+	52: Ret
+}
+
+public claim<Ty0, Ty1: drop>(Arg0: &mut Treasury, Arg1: &AccountRequest, Arg2: &mut TxContext): Option<Coin<Ty0>> {
+L3:	loc0: &mut VecMap<TypeName, Balance<Ty0>>
+L4:	loc1: TypeName
+L5:	loc2: TypeName
+L6:	loc3: Balance<Ty0>
+L7:	loc4: Coin<Ty0>
+L8:	loc5: &mut UID
+B0:
+	0: CopyLoc[0](Arg0: &mut Treasury)
+	1: FreezeRef
+	2: Call beneficiary_address(&Treasury): address
+	3: MoveLoc[1](Arg1: &AccountRequest)
+	4: Call account::request_address(&AccountRequest): address
+	5: Neq
+	6: BrFalse(8)
+B1:
+	7: Call err_not_beneficiary()
+B2:
+	8: MoveLoc[0](Arg0: &mut Treasury)
+	9: MutBorrowField[4](Treasury.id: UID)
+	10: StLoc[8](loc5: &mut UID)
+	11: Call type_name::with_defining_ids<Ty0>(): TypeName
+	12: StLoc[4](loc1: TypeName)
+	13: CopyLoc[8](loc5: &mut UID)
+	14: FreezeRef
+	15: CopyLoc[4](loc1: TypeName)
+	16: Call dynamic_field::exists_with_type<TypeName, VecMap<TypeName, Balance<Ty0>>>(&UID, TypeName): bool
+	17: Not
+	18: BrFalse(25)
+B3:
+	19: MoveLoc[8](loc5: &mut UID)
+	20: Pop
+	21: MoveLoc[2](Arg2: &mut TxContext)
+	22: Pop
+	23: Call option::none<Coin<Ty0>>(): Option<Coin<Ty0>>
+	24: Ret
+B4:
+	25: MoveLoc[8](loc5: &mut UID)
+	26: MoveLoc[4](loc1: TypeName)
+	27: Call dynamic_field::borrow_mut<TypeName, VecMap<TypeName, Balance<Ty0>>>(&mut UID, TypeName): &mut VecMap<TypeName, Balance<Ty0>>
+	28: StLoc[3](loc0: &mut VecMap<TypeName, Balance<Ty0>>)
+	29: Call type_name::with_defining_ids<Ty1>(): TypeName
+	30: StLoc[5](loc2: TypeName)
+	31: CopyLoc[3](loc0: &mut VecMap<TypeName, Balance<Ty0>>)
+	32: FreezeRef
+	33: ImmBorrowLoc[5](loc2: TypeName)
+	34: Call vec_map::contains<TypeName, Balance<Ty0>>(&VecMap<TypeName, Balance<Ty0>>, &TypeName): bool
+	35: Not
+	36: BrFalse(43)
+B5:
+	37: MoveLoc[2](Arg2: &mut TxContext)
+	38: Pop
+	39: MoveLoc[3](loc0: &mut VecMap<TypeName, Balance<Ty0>>)
+	40: Pop
+	41: Call option::none<Coin<Ty0>>(): Option<Coin<Ty0>>
+	42: Ret
+B6:
+	43: MoveLoc[3](loc0: &mut VecMap<TypeName, Balance<Ty0>>)
+	44: ImmBorrowLoc[5](loc2: TypeName)
+	45: Call vec_map::remove<TypeName, Balance<Ty0>>(&mut VecMap<TypeName, Balance<Ty0>>, &TypeName): TypeName * Balance<Ty0>
+	46: StLoc[6](loc3: Balance<Ty0>)
+	47: Pop
+	48: MoveLoc[6](loc3: Balance<Ty0>)
+	49: MoveLoc[2](Arg2: &mut TxContext)
+	50: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	51: StLoc[7](loc4: Coin<Ty0>)
+	52: ImmBorrowLoc[7](loc4: Coin<Ty0>)
+	53: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	54: LdU64(0)
+	55: Gt
+	56: BrFalse(60)
+B7:
+	57: ImmBorrowLoc[7](loc4: Coin<Ty0>)
+	58: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	59: Call treasury::emit_claim_fee<Ty0, Ty1>(u64)
+B8:
+	60: MoveLoc[7](loc4: Coin<Ty0>)
+	61: Call option::some<Coin<Ty0>>(Coin<Ty0>): Option<Coin<Ty0>>
+	62: Ret
+}
+
+public decimal(): u8 {
+B0:
+	0: LdU8(6)
+	1: Ret
+}
+
+public total_supply(Arg0: &Treasury): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: Call borrow_cap(&Treasury): &TreasuryCap<USDB>
+	2: Call coin::total_supply<USDB>(&TreasuryCap<USDB>): u64
+	3: Ret
+}
+
+public module_config_map(Arg0: &Treasury): &VecMap<TypeName, ModuleConfig> {
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: ImmBorrowField[1](Treasury.module_config_map: VecMap<TypeName, ModuleConfig>)
+	2: Ret
+}
+
+public limited_supply(Arg0: &ModuleConfig): &LimitedSupply {
+B0:
+	0: MoveLoc[0](Arg0: &ModuleConfig)
+	1: ImmBorrowField[2](ModuleConfig.limited_supply: LimitedSupply)
+	2: Ret
+}
+
+public valid_versions(Arg0: &ModuleConfig): &VecSet<u16> {
+B0:
+	0: MoveLoc[0](Arg0: &ModuleConfig)
+	1: ImmBorrowField[3](ModuleConfig.valid_versions: VecSet<u16>)
+	2: Ret
+}
+
+public beneficiary_address(Arg0: &Treasury): address {
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: ImmBorrowField[0](Treasury.beneficiary_address: address)
+	2: ReadRef
+	3: Ret
+}
+
+public is_claimable_map_exists_type<Ty0>(Arg0: &Treasury): bool {
+L1:	loc0: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[1](loc0: TypeName)
+	2: MoveLoc[0](Arg0: &Treasury)
+	3: ImmBorrowField[4](Treasury.id: UID)
+	4: MoveLoc[1](loc0: TypeName)
+	5: Call dynamic_field::exists_with_type<TypeName, VecMap<TypeName, Balance<Ty0>>>(&UID, TypeName): bool
+	6: Ret
+}
+
+public claimable_map<Ty0>(Arg0: &Treasury): &VecMap<TypeName, Balance<Ty0>> {
+L1:	loc0: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[1](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &Treasury)
+	3: ImmBorrowField[4](Treasury.id: UID)
+	4: MoveLoc[1](loc0: TypeName)
+	5: Call dynamic_field::exists_with_type<TypeName, VecMap<TypeName, Balance<Ty0>>>(&UID, TypeName): bool
+	6: Not
+	7: BrFalse(9)
+B1:
+	8: Call err_coin_type_not_found()
+B2:
+	9: MoveLoc[0](Arg0: &Treasury)
+	10: ImmBorrowField[4](Treasury.id: UID)
+	11: Call type_name::with_defining_ids<Ty0>(): TypeName
+	12: Call dynamic_field::borrow<TypeName, VecMap<TypeName, Balance<Ty0>>>(&UID, TypeName): &VecMap<TypeName, Balance<Ty0>>
+	13: Ret
+}
+
+public assert_valid_module_version<Ty0>(Arg0: &Treasury, Arg1: u16): TypeName {
+L2:	loc0: &VecMap<TypeName, ModuleConfig>
+L3:	loc1: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[3](loc1: TypeName)
+	2: MoveLoc[0](Arg0: &Treasury)
+	3: Call module_config_map(&Treasury): &VecMap<TypeName, ModuleConfig>
+	4: StLoc[2](loc0: &VecMap<TypeName, ModuleConfig>)
+	5: CopyLoc[2](loc0: &VecMap<TypeName, ModuleConfig>)
+	6: ImmBorrowLoc[3](loc1: TypeName)
+	7: Call vec_map::contains<TypeName, ModuleConfig>(&VecMap<TypeName, ModuleConfig>, &TypeName): bool
+	8: Not
+	9: BrFalse(11)
+B1:
+	10: Call err_invalid_module()
+B2:
+	11: MoveLoc[2](loc0: &VecMap<TypeName, ModuleConfig>)
+	12: ImmBorrowLoc[3](loc1: TypeName)
+	13: Call vec_map::get<TypeName, ModuleConfig>(&VecMap<TypeName, ModuleConfig>, &TypeName): &ModuleConfig
+	14: Call valid_versions(&ModuleConfig): &VecSet<u16>
+	15: ImmBorrowLoc[1](Arg1: u16)
+	16: Call vec_set::contains<u16>(&VecSet<u16>, &u16): bool
+	17: Not
+	18: BrFalse(20)
+B3:
+	19: Call err_invalid_module_version()
+B4:
+	20: MoveLoc[3](loc1: TypeName)
+	21: Ret
+}
+
+cap_key(): CapKey {
+B0:
+	0: LdFalse
+	1: Pack[3](CapKey)
+	2: Ret
+}
+
+borrow_cap_mut(Arg0: &mut Treasury): &mut TreasuryCap<USDB> {
+B0:
+	0: MoveLoc[0](Arg0: &mut Treasury)
+	1: MutBorrowField[4](Treasury.id: UID)
+	2: Call cap_key(): CapKey
+	3: Call dynamic_object_field::borrow_mut<CapKey, TreasuryCap<USDB>>(&mut UID, CapKey): &mut TreasuryCap<USDB>
+	4: Ret
+}
+
+borrow_cap(Arg0: &Treasury): &TreasuryCap<USDB> {
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: ImmBorrowField[4](Treasury.id: UID)
+	2: Call cap_key(): CapKey
+	3: Call dynamic_object_field::borrow<CapKey, TreasuryCap<USDB>>(&UID, CapKey): &TreasuryCap<USDB>
+	4: Ret
+}
+
+borrow_supply_mut<Ty0>(Arg0: &mut Treasury): &mut LimitedSupply {
+L1:	loc0: TypeName
+L2:	loc1: &mut VecMap<TypeName, ModuleConfig>
+B0:
+	0: MoveLoc[0](Arg0: &mut Treasury)
+	1: MutBorrowField[1](Treasury.module_config_map: VecMap<TypeName, ModuleConfig>)
+	2: StLoc[2](loc1: &mut VecMap<TypeName, ModuleConfig>)
+	3: Call type_name::with_defining_ids<Ty0>(): TypeName
+	4: StLoc[1](loc0: TypeName)
+	5: MoveLoc[2](loc1: &mut VecMap<TypeName, ModuleConfig>)
+	6: ImmBorrowLoc[1](loc0: TypeName)
+	7: Call vec_map::get_mut<TypeName, ModuleConfig>(&mut VecMap<TypeName, ModuleConfig>, &TypeName): &mut ModuleConfig
+	8: MutBorrowField[2](ModuleConfig.limited_supply: LimitedSupply)
+	9: Ret
+}
+
+Constants [
+	0 => u64: 201
+	1 => u64: 202
+	2 => u64: 203
+	3 => u64: 204
+	4 => vector<u8>: "USDB" // interpreted as UTF8 string
+	5 => vector<u8>: "Bucket USD" // interpreted as UTF8 string
+	6 => vector<u8>: "USDB is a decentralized, overcollateralized stablecoin of bucketprotocol.io, pegged to 1 USD and backed by crypto assets via CDP and PSM mechanisms." // interpreted as UTF8 string
+	7 => vector<u8>: "https://www.bucketprotocol.io/icons/USDB.svg" // interpreted as UTF8 string
+]
+}

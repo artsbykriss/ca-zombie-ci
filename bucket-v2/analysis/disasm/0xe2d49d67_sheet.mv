@@ -1,0 +1,784 @@
+// module sheet  package 0xe2d49d67ff42dc500275f2d84841bf35632aa6c1abdb70af66a10e1de93a4400 (v2)
+// Move bytecode v6
+module 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc.sheet {
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::liability;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000001::vector;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_set;
+
+struct Entity has copy, drop, store {
+	pos0: TypeName
+}
+
+struct Sheet<phantom Ty0, phantom Ty1: drop> has store {
+	credits: VecMap<Entity, Credit<Ty0>>,
+	debts: VecMap<Entity, Debt<Ty0>>,
+	blacklist: VecSet<Entity>
+}
+
+struct Loan<phantom Ty0, phantom Ty1, phantom Ty2> {
+	balance: Balance<Ty0>,
+	debt: Debt<Ty0>
+}
+
+struct Request<phantom Ty0, phantom Ty1> {
+	requirement: u64,
+	balance: Balance<Ty0>,
+	checklist: Option<vector<Entity>>,
+	payer_debts: VecMap<Entity, Debt<Ty0>>
+}
+
+err_invalid_entity_for_debt() {
+B0:
+	0: LdConst[0](u64: 501)
+	1: Abort
+}
+
+err_invalid_entity_for_credit() {
+B0:
+	0: LdConst[1](u64: 502)
+	1: Abort
+}
+
+err_pay_too_much() {
+B0:
+	0: LdConst[2](u64: 503)
+	1: Abort
+}
+
+err_checklist_not_fulfill() {
+B0:
+	0: LdConst[3](u64: 504)
+	1: Abort
+}
+
+public new<Ty0, Ty1: drop>(Arg0: Ty1): Sheet<Ty0, Ty1> {
+B0:
+	0: Call vec_map::empty<Entity, Credit<Ty0>>(): VecMap<Entity, Credit<Ty0>>
+	1: Call vec_map::empty<Entity, Debt<Ty0>>(): VecMap<Entity, Debt<Ty0>>
+	2: Call vec_set::empty<Entity>(): VecSet<Entity>
+	3: PackGeneric[0](Sheet<Ty0, Ty1>)
+	4: Ret
+}
+
+public lend<Ty0, Ty1: drop, Ty2>(Arg0: &mut Sheet<Ty0, Ty1>, Arg1: Balance<Ty0>, Arg2: Ty1): Loan<Ty0, Ty1, Ty2> {
+L3:	loc0: Credit<Ty0>
+L4:	loc1: Debt<Ty0>
+L5:	loc2: Entity
+B0:
+	0: ImmBorrowLoc[1](Arg1: Balance<Ty0>)
+	1: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	2: Call liability::new<Ty0>(u64): Credit<Ty0> * Debt<Ty0>
+	3: StLoc[4](loc1: Debt<Ty0>)
+	4: StLoc[3](loc0: Credit<Ty0>)
+	5: Call entity<Ty2>(): Entity
+	6: StLoc[5](loc2: Entity)
+	7: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	8: ImmBorrowLoc[5](loc2: Entity)
+	9: Call credit_against<Ty0, Ty1>(&mut Sheet<Ty0, Ty1>, &Entity): &mut Credit<Ty0>
+	10: MoveLoc[3](loc0: Credit<Ty0>)
+	11: Call liability::add_credit<Ty0>(&mut Credit<Ty0>, Credit<Ty0>): u64
+	12: Pop
+	13: MoveLoc[1](Arg1: Balance<Ty0>)
+	14: MoveLoc[4](loc1: Debt<Ty0>)
+	15: PackGeneric[1](Loan<Ty0, Ty1, Ty2>)
+	16: Ret
+}
+
+public receive<Ty0, Ty1, Ty2: drop>(Arg0: &mut Sheet<Ty0, Ty2>, Arg1: Loan<Ty0, Ty1, Ty2>, Arg2: Ty2): Balance<Ty0> {
+L3:	loc0: Balance<Ty0>
+L4:	loc1: Debt<Ty0>
+L5:	loc2: Entity
+B0:
+	0: MoveLoc[1](Arg1: Loan<Ty0, Ty1, Ty2>)
+	1: UnpackGeneric[1](Loan<Ty0, Ty1, Ty2>)
+	2: StLoc[4](loc1: Debt<Ty0>)
+	3: StLoc[3](loc0: Balance<Ty0>)
+	4: Call entity<Ty1>(): Entity
+	5: StLoc[5](loc2: Entity)
+	6: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty2>)
+	7: ImmBorrowLoc[5](loc2: Entity)
+	8: Call debt_against<Ty0, Ty2>(&mut Sheet<Ty0, Ty2>, &Entity): &mut Debt<Ty0>
+	9: MoveLoc[4](loc1: Debt<Ty0>)
+	10: Call liability::add_debt<Ty0>(&mut Debt<Ty0>, Debt<Ty0>): u64
+	11: Pop
+	12: MoveLoc[3](loc0: Balance<Ty0>)
+	13: Ret
+}
+
+public request<Ty0, Ty1: drop>(Arg0: u64, Arg1: Option<vector<Entity>>, Arg2: Ty1): Request<Ty0, Ty1> {
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: Call balance::zero<Ty0>(): Balance<Ty0>
+	2: MoveLoc[1](Arg1: Option<vector<Entity>>)
+	3: Call vec_map::empty<Entity, Debt<Ty0>>(): VecMap<Entity, Debt<Ty0>>
+	4: PackGeneric[2](Request<Ty0, Ty1>)
+	5: Ret
+}
+
+public pay<Ty0, Ty1, Ty2: drop>(Arg0: &mut Sheet<Ty0, Ty2>, Arg1: &mut Request<Ty0, Ty1>, Arg2: Balance<Ty0>, Arg3: Ty2) {
+L4:	loc0: Option<Credit<Ty0>>
+L5:	loc1: u64
+L6:	loc2: Entity
+L7:	loc3: Credit<Ty0>
+L8:	loc4: Option<Credit<Ty0>>
+L9:	loc5: Debt<Ty0>
+L10:	loc6: Entity
+B0:
+	0: ImmBorrowLoc[2](Arg2: Balance<Ty0>)
+	1: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	2: StLoc[5](loc1: u64)
+	3: CopyLoc[5](loc1: u64)
+	4: CopyLoc[1](Arg1: &mut Request<Ty0, Ty1>)
+	5: FreezeRef
+	6: Call shortage<Ty0, Ty1>(&Request<Ty0, Ty1>): u64
+	7: Gt
+	8: BrFalse(10)
+B1:
+	9: Call err_pay_too_much()
+B2:
+	10: CopyLoc[1](Arg1: &mut Request<Ty0, Ty1>)
+	11: MutBorrowFieldGeneric[0](Request.balance: Balance<Ty0>)
+	12: MoveLoc[2](Arg2: Balance<Ty0>)
+	13: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	14: Pop
+	15: MoveLoc[5](loc1: u64)
+	16: Call liability::new<Ty0>(u64): Credit<Ty0> * Debt<Ty0>
+	17: StLoc[9](loc5: Debt<Ty0>)
+	18: StLoc[7](loc3: Credit<Ty0>)
+	19: Call entity<Ty1>(): Entity
+	20: StLoc[6](loc2: Entity)
+	21: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty2>)
+	22: FreezeRef
+	23: Call debts<Ty0, Ty2>(&Sheet<Ty0, Ty2>): &VecMap<Entity, Debt<Ty0>>
+	24: ImmBorrowLoc[6](loc2: Entity)
+	25: Call vec_map::contains<Entity, Debt<Ty0>>(&VecMap<Entity, Debt<Ty0>>, &Entity): bool
+	26: BrFalse(34)
+B3:
+	27: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty2>)
+	28: ImmBorrowLoc[6](loc2: Entity)
+	29: Call debt_against<Ty0, Ty2>(&mut Sheet<Ty0, Ty2>, &Entity): &mut Debt<Ty0>
+	30: MoveLoc[7](loc3: Credit<Ty0>)
+	31: Call liability::settle_credit<Ty0>(&mut Debt<Ty0>, Credit<Ty0>): Option<Credit<Ty0>>
+	32: StLoc[4](loc0: Option<Credit<Ty0>>)
+	33: Branch(37)
+B4:
+	34: MoveLoc[7](loc3: Credit<Ty0>)
+	35: Call option::some<Credit<Ty0>>(Credit<Ty0>): Option<Credit<Ty0>>
+	36: StLoc[4](loc0: Option<Credit<Ty0>>)
+B5:
+	37: MoveLoc[4](loc0: Option<Credit<Ty0>>)
+	38: StLoc[8](loc4: Option<Credit<Ty0>>)
+	39: ImmBorrowLoc[8](loc4: Option<Credit<Ty0>>)
+	40: Call option::is_some<Credit<Ty0>>(&Option<Credit<Ty0>>): bool
+	41: BrFalse(50)
+B6:
+	42: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty2>)
+	43: ImmBorrowLoc[6](loc2: Entity)
+	44: Call credit_against<Ty0, Ty2>(&mut Sheet<Ty0, Ty2>, &Entity): &mut Credit<Ty0>
+	45: MoveLoc[8](loc4: Option<Credit<Ty0>>)
+	46: Call option::destroy_some<Credit<Ty0>>(Option<Credit<Ty0>>): Credit<Ty0>
+	47: Call liability::add_credit<Ty0>(&mut Credit<Ty0>, Credit<Ty0>): u64
+	48: Pop
+	49: Branch(54)
+B7:
+	50: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty2>)
+	51: Pop
+	52: MoveLoc[8](loc4: Option<Credit<Ty0>>)
+	53: Call option::destroy_none<Credit<Ty0>>(Option<Credit<Ty0>>)
+B8:
+	54: Call entity<Ty2>(): Entity
+	55: StLoc[10](loc6: Entity)
+	56: CopyLoc[1](Arg1: &mut Request<Ty0, Ty1>)
+	57: FreezeRef
+	58: Call payer_debts<Ty0, Ty1>(&Request<Ty0, Ty1>): &VecMap<Entity, Debt<Ty0>>
+	59: ImmBorrowLoc[10](loc6: Entity)
+	60: Call vec_map::contains<Entity, Debt<Ty0>>(&VecMap<Entity, Debt<Ty0>>, &Entity): bool
+	61: BrFalse(70)
+B9:
+	62: MoveLoc[1](Arg1: &mut Request<Ty0, Ty1>)
+	63: MutBorrowFieldGeneric[1](Request.payer_debts: VecMap<Entity, Debt<Ty0>>)
+	64: ImmBorrowLoc[10](loc6: Entity)
+	65: Call vec_map::get_mut<Entity, Debt<Ty0>>(&mut VecMap<Entity, Debt<Ty0>>, &Entity): &mut Debt<Ty0>
+	66: MoveLoc[9](loc5: Debt<Ty0>)
+	67: Call liability::add_debt<Ty0>(&mut Debt<Ty0>, Debt<Ty0>): u64
+	68: Pop
+	69: Branch(75)
+B10:
+	70: MoveLoc[1](Arg1: &mut Request<Ty0, Ty1>)
+	71: MutBorrowFieldGeneric[1](Request.payer_debts: VecMap<Entity, Debt<Ty0>>)
+	72: MoveLoc[10](loc6: Entity)
+	73: MoveLoc[9](loc5: Debt<Ty0>)
+	74: Call vec_map::insert<Entity, Debt<Ty0>>(&mut VecMap<Entity, Debt<Ty0>>, Entity, Debt<Ty0>)
+B11:
+	75: Ret
+}
+
+public collect<Ty0, Ty1: drop>(Arg0: &mut Sheet<Ty0, Ty1>, Arg1: Request<Ty0, Ty1>, Arg2: Ty1): Balance<Ty0> {
+L3:	loc0: bool
+L4:	loc1: Option<Debt<Ty0>>
+L5:	loc2: Balance<Ty0>
+L6:	loc3: Option<vector<Entity>>
+L7:	loc4: Debt<Ty0>
+L8:	loc5: Option<Debt<Ty0>>
+L9:	loc6: Entity
+L10:	loc7: VecMap<Entity, Debt<Ty0>>
+B0:
+	0: MoveLoc[1](Arg1: Request<Ty0, Ty1>)
+	1: UnpackGeneric[2](Request<Ty0, Ty1>)
+	2: StLoc[10](loc7: VecMap<Entity, Debt<Ty0>>)
+	3: StLoc[6](loc3: Option<vector<Entity>>)
+	4: StLoc[5](loc2: Balance<Ty0>)
+	5: Pop
+	6: ImmBorrowLoc[6](loc3: Option<vector<Entity>>)
+	7: Call option::is_some<vector<Entity>>(&Option<vector<Entity>>): bool
+	8: BrFalse(16)
+B1:
+	9: MoveLoc[6](loc3: Option<vector<Entity>>)
+	10: Call option::destroy_some<vector<Entity>>(Option<vector<Entity>>): vector<Entity>
+	11: ImmBorrowLoc[10](loc7: VecMap<Entity, Debt<Ty0>>)
+	12: Call vec_map::keys<Entity, Debt<Ty0>>(&VecMap<Entity, Debt<Ty0>>): vector<Entity>
+	13: Neq
+	14: StLoc[3](loc0: bool)
+	15: Branch(18)
+B2:
+	16: LdFalse
+	17: StLoc[3](loc0: bool)
+B3:
+	18: MoveLoc[3](loc0: bool)
+	19: BrFalse(21)
+B4:
+	20: Call err_checklist_not_fulfill()
+B5:
+	21: ImmBorrowLoc[10](loc7: VecMap<Entity, Debt<Ty0>>)
+	22: Call vec_map::is_empty<Entity, Debt<Ty0>>(&VecMap<Entity, Debt<Ty0>>): bool
+	23: Not
+	24: BrFalse(61)
+B6:
+	25: MutBorrowLoc[10](loc7: VecMap<Entity, Debt<Ty0>>)
+	26: Call vec_map::pop<Entity, Debt<Ty0>>(&mut VecMap<Entity, Debt<Ty0>>): Entity * Debt<Ty0>
+	27: StLoc[7](loc4: Debt<Ty0>)
+	28: StLoc[9](loc6: Entity)
+	29: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	30: FreezeRef
+	31: Call credits<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Credit<Ty0>>
+	32: ImmBorrowLoc[9](loc6: Entity)
+	33: Call vec_map::contains<Entity, Credit<Ty0>>(&VecMap<Entity, Credit<Ty0>>, &Entity): bool
+	34: BrFalse(42)
+B7:
+	35: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	36: ImmBorrowLoc[9](loc6: Entity)
+	37: Call credit_against<Ty0, Ty1>(&mut Sheet<Ty0, Ty1>, &Entity): &mut Credit<Ty0>
+	38: MoveLoc[7](loc4: Debt<Ty0>)
+	39: Call liability::settle_debt<Ty0>(&mut Credit<Ty0>, Debt<Ty0>): Option<Debt<Ty0>>
+	40: StLoc[4](loc1: Option<Debt<Ty0>>)
+	41: Branch(45)
+B8:
+	42: MoveLoc[7](loc4: Debt<Ty0>)
+	43: Call option::some<Debt<Ty0>>(Debt<Ty0>): Option<Debt<Ty0>>
+	44: StLoc[4](loc1: Option<Debt<Ty0>>)
+B9:
+	45: MoveLoc[4](loc1: Option<Debt<Ty0>>)
+	46: StLoc[8](loc5: Option<Debt<Ty0>>)
+	47: ImmBorrowLoc[8](loc5: Option<Debt<Ty0>>)
+	48: Call option::is_some<Debt<Ty0>>(&Option<Debt<Ty0>>): bool
+	49: BrFalse(58)
+B10:
+	50: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	51: ImmBorrowLoc[9](loc6: Entity)
+	52: Call debt_against<Ty0, Ty1>(&mut Sheet<Ty0, Ty1>, &Entity): &mut Debt<Ty0>
+	53: MoveLoc[8](loc5: Option<Debt<Ty0>>)
+	54: Call option::destroy_some<Debt<Ty0>>(Option<Debt<Ty0>>): Debt<Ty0>
+	55: Call liability::add_debt<Ty0>(&mut Debt<Ty0>, Debt<Ty0>): u64
+	56: Pop
+	57: Branch(21)
+B11:
+	58: MoveLoc[8](loc5: Option<Debt<Ty0>>)
+	59: Call option::destroy_none<Debt<Ty0>>(Option<Debt<Ty0>>)
+	60: Branch(21)
+B12:
+	61: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	62: Pop
+	63: MoveLoc[10](loc7: VecMap<Entity, Debt<Ty0>>)
+	64: Call vec_map::destroy_empty<Entity, Debt<Ty0>>(VecMap<Entity, Debt<Ty0>>)
+	65: MoveLoc[5](loc2: Balance<Ty0>)
+	66: Ret
+}
+
+public add_debtor<Ty0, Ty1: drop>(Arg0: &mut Sheet<Ty0, Ty1>, Arg1: Entity, Arg2: Ty1) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call credits<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Credit<Ty0>>
+	3: ImmBorrowLoc[1](Arg1: Entity)
+	4: Call vec_map::contains<Entity, Credit<Ty0>>(&VecMap<Entity, Credit<Ty0>>, &Entity): bool
+	5: Not
+	6: BrFalse(13)
+B1:
+	7: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	8: MutBorrowFieldGeneric[2](Sheet.credits: VecMap<Entity, Credit<Ty0>>)
+	9: MoveLoc[1](Arg1: Entity)
+	10: Call liability::zero_credit<Ty0>(): Credit<Ty0>
+	11: Call vec_map::insert<Entity, Credit<Ty0>>(&mut VecMap<Entity, Credit<Ty0>>, Entity, Credit<Ty0>)
+	12: Branch(15)
+B2:
+	13: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	14: Pop
+B3:
+	15: Ret
+}
+
+public add_creditor<Ty0, Ty1: drop>(Arg0: &mut Sheet<Ty0, Ty1>, Arg1: Entity, Arg2: Ty1) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call debts<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Debt<Ty0>>
+	3: ImmBorrowLoc[1](Arg1: Entity)
+	4: Call vec_map::contains<Entity, Debt<Ty0>>(&VecMap<Entity, Debt<Ty0>>, &Entity): bool
+	5: Not
+	6: BrFalse(13)
+B1:
+	7: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	8: MutBorrowFieldGeneric[3](Sheet.debts: VecMap<Entity, Debt<Ty0>>)
+	9: MoveLoc[1](Arg1: Entity)
+	10: Call liability::zero_debt<Ty0>(): Debt<Ty0>
+	11: Call vec_map::insert<Entity, Debt<Ty0>>(&mut VecMap<Entity, Debt<Ty0>>, Entity, Debt<Ty0>)
+	12: Branch(15)
+B2:
+	13: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	14: Pop
+B3:
+	15: Ret
+}
+
+public ban<Ty0, Ty1: drop>(Arg0: &mut Sheet<Ty0, Ty1>, Arg1: Entity, Arg2: Ty1) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[4](Sheet.blacklist: VecSet<Entity>)
+	2: ImmBorrowLoc[1](Arg1: Entity)
+	3: Call vec_set::contains<Entity>(&VecSet<Entity>, &Entity): bool
+	4: Not
+	5: BrFalse(11)
+B1:
+	6: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	7: MutBorrowFieldGeneric[4](Sheet.blacklist: VecSet<Entity>)
+	8: MoveLoc[1](Arg1: Entity)
+	9: Call vec_set::insert<Entity>(&mut VecSet<Entity>, Entity)
+	10: Branch(13)
+B2:
+	11: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	12: Pop
+B3:
+	13: Ret
+}
+
+public unban<Ty0, Ty1: drop>(Arg0: &mut Sheet<Ty0, Ty1>, Arg1: Entity, Arg2: Ty1) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[4](Sheet.blacklist: VecSet<Entity>)
+	2: ImmBorrowLoc[1](Arg1: Entity)
+	3: Call vec_set::contains<Entity>(&VecSet<Entity>, &Entity): bool
+	4: BrFalse(10)
+B1:
+	5: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	6: MutBorrowFieldGeneric[4](Sheet.blacklist: VecSet<Entity>)
+	7: ImmBorrowLoc[1](Arg1: Entity)
+	8: Call vec_set::remove<Entity>(&mut VecSet<Entity>, &Entity)
+	9: Branch(12)
+B2:
+	10: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	11: Pop
+B3:
+	12: Ret
+}
+
+public entity<Ty0>(): Entity {
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: Pack[0](Entity)
+	2: Ret
+}
+
+public credits<Ty0, Ty1: drop>(Arg0: &Sheet<Ty0, Ty1>): &VecMap<Entity, Credit<Ty0>> {
+B0:
+	0: MoveLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[2](Sheet.credits: VecMap<Entity, Credit<Ty0>>)
+	2: Ret
+}
+
+public debts<Ty0, Ty1: drop>(Arg0: &Sheet<Ty0, Ty1>): &VecMap<Entity, Debt<Ty0>> {
+B0:
+	0: MoveLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[3](Sheet.debts: VecMap<Entity, Debt<Ty0>>)
+	2: Ret
+}
+
+public blacklist<Ty0, Ty1: drop>(Arg0: &Sheet<Ty0, Ty1>): &VecSet<Entity> {
+B0:
+	0: MoveLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[4](Sheet.blacklist: VecSet<Entity>)
+	2: Ret
+}
+
+public total_credit<Ty0, Ty1: drop>(Arg0: &Sheet<Ty0, Ty1>): u64 {
+L1:	loc0: u64
+L2:	loc1: u64
+L3:	loc2: vector<Entity>
+L4:	loc3: u64
+L5:	loc4: &mut vector<u64>
+L6:	loc5: u64
+L7:	loc6: &Entity
+L8:	loc7: &Entity
+L9:	loc8: u64
+L10:	loc9: u64
+L11:	loc10: u64
+L12:	loc11: u64
+L13:	loc12: vector<u64>
+L14:	loc13: u64
+L15:	loc14: u64
+L16:	loc15: &vector<Entity>
+L17:	loc16: vector<u64>
+L18:	loc17: vector<u64>
+L19:	loc18: &vector<Entity>
+L20:	loc19: u64
+L21:	loc20: u64
+B0:
+	0: CopyLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	1: Call credits<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Credit<Ty0>>
+	2: Call vec_map::keys<Entity, Credit<Ty0>>(&VecMap<Entity, Credit<Ty0>>): vector<Entity>
+	3: StLoc[3](loc2: vector<Entity>)
+	4: ImmBorrowLoc[3](loc2: vector<Entity>)
+	5: StLoc[16](loc15: &vector<Entity>)
+	6: LdConst[4](vector<u64>: 00)
+	7: StLoc[13](loc12: vector<u64>)
+	8: MoveLoc[16](loc15: &vector<Entity>)
+	9: StLoc[19](loc18: &vector<Entity>)
+	10: CopyLoc[19](loc18: &vector<Entity>)
+	11: VecLen(12)
+	12: StLoc[2](loc1: u64)
+	13: LdU64(0)
+	14: StLoc[12](loc11: u64)
+	15: MoveLoc[2](loc1: u64)
+	16: StLoc[15](loc14: u64)
+B1:
+	17: CopyLoc[12](loc11: u64)
+	18: CopyLoc[15](loc14: u64)
+	19: Lt
+	20: BrFalse(45)
+B2:
+	21: CopyLoc[12](loc11: u64)
+	22: StLoc[10](loc9: u64)
+	23: CopyLoc[19](loc18: &vector<Entity>)
+	24: MoveLoc[10](loc9: u64)
+	25: VecImmBorrow(12)
+	26: StLoc[7](loc6: &Entity)
+	27: MutBorrowLoc[13](loc12: vector<u64>)
+	28: StLoc[5](loc4: &mut vector<u64>)
+	29: MoveLoc[7](loc6: &Entity)
+	30: StLoc[8](loc7: &Entity)
+	31: CopyLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	32: Call credits<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Credit<Ty0>>
+	33: MoveLoc[8](loc7: &Entity)
+	34: Call vec_map::get<Entity, Credit<Ty0>>(&VecMap<Entity, Credit<Ty0>>, &Entity): &Credit<Ty0>
+	35: Call liability::credit_value<Ty0>(&Credit<Ty0>): u64
+	36: StLoc[4](loc3: u64)
+	37: MoveLoc[5](loc4: &mut vector<u64>)
+	38: MoveLoc[4](loc3: u64)
+	39: VecPushBack(17)
+	40: MoveLoc[12](loc11: u64)
+	41: LdU64(1)
+	42: Add
+	43: StLoc[12](loc11: u64)
+	44: Branch(17)
+B3:
+	45: MoveLoc[19](loc18: &vector<Entity>)
+	46: Pop
+	47: MoveLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	48: Pop
+	49: MoveLoc[13](loc12: vector<u64>)
+	50: StLoc[17](loc16: vector<u64>)
+	51: LdU64(0)
+	52: StLoc[6](loc5: u64)
+	53: MoveLoc[17](loc16: vector<u64>)
+	54: StLoc[18](loc17: vector<u64>)
+	55: MutBorrowLoc[18](loc17: vector<u64>)
+	56: Call vector::reverse<u64>(&mut vector<u64>)
+	57: ImmBorrowLoc[18](loc17: vector<u64>)
+	58: VecLen(17)
+	59: StLoc[1](loc0: u64)
+	60: LdU64(0)
+	61: StLoc[11](loc10: u64)
+	62: MoveLoc[1](loc0: u64)
+	63: StLoc[14](loc13: u64)
+B4:
+	64: CopyLoc[11](loc10: u64)
+	65: CopyLoc[14](loc13: u64)
+	66: Lt
+	67: BrFalse(86)
+B5:
+	68: CopyLoc[11](loc10: u64)
+	69: Pop
+	70: MutBorrowLoc[18](loc17: vector<u64>)
+	71: VecPopBack(17)
+	72: StLoc[9](loc8: u64)
+	73: MoveLoc[6](loc5: u64)
+	74: StLoc[20](loc19: u64)
+	75: MoveLoc[9](loc8: u64)
+	76: StLoc[21](loc20: u64)
+	77: MoveLoc[20](loc19: u64)
+	78: MoveLoc[21](loc20: u64)
+	79: Add
+	80: StLoc[6](loc5: u64)
+	81: MoveLoc[11](loc10: u64)
+	82: LdU64(1)
+	83: Add
+	84: StLoc[11](loc10: u64)
+	85: Branch(64)
+B6:
+	86: MoveLoc[18](loc17: vector<u64>)
+	87: VecUnpack(17, 0)
+	88: MoveLoc[6](loc5: u64)
+	89: Ret
+}
+
+public total_debt<Ty0, Ty1: drop>(Arg0: &Sheet<Ty0, Ty1>): u64 {
+L1:	loc0: u64
+L2:	loc1: u64
+L3:	loc2: vector<Entity>
+L4:	loc3: u64
+L5:	loc4: &mut vector<u64>
+L6:	loc5: u64
+L7:	loc6: &Entity
+L8:	loc7: &Entity
+L9:	loc8: u64
+L10:	loc9: u64
+L11:	loc10: u64
+L12:	loc11: u64
+L13:	loc12: vector<u64>
+L14:	loc13: u64
+L15:	loc14: u64
+L16:	loc15: &vector<Entity>
+L17:	loc16: vector<u64>
+L18:	loc17: vector<u64>
+L19:	loc18: &vector<Entity>
+L20:	loc19: u64
+L21:	loc20: u64
+B0:
+	0: CopyLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	1: Call debts<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Debt<Ty0>>
+	2: Call vec_map::keys<Entity, Debt<Ty0>>(&VecMap<Entity, Debt<Ty0>>): vector<Entity>
+	3: StLoc[3](loc2: vector<Entity>)
+	4: ImmBorrowLoc[3](loc2: vector<Entity>)
+	5: StLoc[16](loc15: &vector<Entity>)
+	6: LdConst[4](vector<u64>: 00)
+	7: StLoc[13](loc12: vector<u64>)
+	8: MoveLoc[16](loc15: &vector<Entity>)
+	9: StLoc[19](loc18: &vector<Entity>)
+	10: CopyLoc[19](loc18: &vector<Entity>)
+	11: VecLen(12)
+	12: StLoc[2](loc1: u64)
+	13: LdU64(0)
+	14: StLoc[12](loc11: u64)
+	15: MoveLoc[2](loc1: u64)
+	16: StLoc[15](loc14: u64)
+B1:
+	17: CopyLoc[12](loc11: u64)
+	18: CopyLoc[15](loc14: u64)
+	19: Lt
+	20: BrFalse(45)
+B2:
+	21: CopyLoc[12](loc11: u64)
+	22: StLoc[10](loc9: u64)
+	23: CopyLoc[19](loc18: &vector<Entity>)
+	24: MoveLoc[10](loc9: u64)
+	25: VecImmBorrow(12)
+	26: StLoc[7](loc6: &Entity)
+	27: MutBorrowLoc[13](loc12: vector<u64>)
+	28: StLoc[5](loc4: &mut vector<u64>)
+	29: MoveLoc[7](loc6: &Entity)
+	30: StLoc[8](loc7: &Entity)
+	31: CopyLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	32: Call debts<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Debt<Ty0>>
+	33: MoveLoc[8](loc7: &Entity)
+	34: Call vec_map::get<Entity, Debt<Ty0>>(&VecMap<Entity, Debt<Ty0>>, &Entity): &Debt<Ty0>
+	35: Call liability::debt_value<Ty0>(&Debt<Ty0>): u64
+	36: StLoc[4](loc3: u64)
+	37: MoveLoc[5](loc4: &mut vector<u64>)
+	38: MoveLoc[4](loc3: u64)
+	39: VecPushBack(17)
+	40: MoveLoc[12](loc11: u64)
+	41: LdU64(1)
+	42: Add
+	43: StLoc[12](loc11: u64)
+	44: Branch(17)
+B3:
+	45: MoveLoc[19](loc18: &vector<Entity>)
+	46: Pop
+	47: MoveLoc[0](Arg0: &Sheet<Ty0, Ty1>)
+	48: Pop
+	49: MoveLoc[13](loc12: vector<u64>)
+	50: StLoc[17](loc16: vector<u64>)
+	51: LdU64(0)
+	52: StLoc[6](loc5: u64)
+	53: MoveLoc[17](loc16: vector<u64>)
+	54: StLoc[18](loc17: vector<u64>)
+	55: MutBorrowLoc[18](loc17: vector<u64>)
+	56: Call vector::reverse<u64>(&mut vector<u64>)
+	57: ImmBorrowLoc[18](loc17: vector<u64>)
+	58: VecLen(17)
+	59: StLoc[1](loc0: u64)
+	60: LdU64(0)
+	61: StLoc[11](loc10: u64)
+	62: MoveLoc[1](loc0: u64)
+	63: StLoc[14](loc13: u64)
+B4:
+	64: CopyLoc[11](loc10: u64)
+	65: CopyLoc[14](loc13: u64)
+	66: Lt
+	67: BrFalse(86)
+B5:
+	68: CopyLoc[11](loc10: u64)
+	69: Pop
+	70: MutBorrowLoc[18](loc17: vector<u64>)
+	71: VecPopBack(17)
+	72: StLoc[9](loc8: u64)
+	73: MoveLoc[6](loc5: u64)
+	74: StLoc[20](loc19: u64)
+	75: MoveLoc[9](loc8: u64)
+	76: StLoc[21](loc20: u64)
+	77: MoveLoc[20](loc19: u64)
+	78: MoveLoc[21](loc20: u64)
+	79: Add
+	80: StLoc[6](loc5: u64)
+	81: MoveLoc[11](loc10: u64)
+	82: LdU64(1)
+	83: Add
+	84: StLoc[11](loc10: u64)
+	85: Branch(64)
+B6:
+	86: MoveLoc[18](loc17: vector<u64>)
+	87: VecUnpack(17, 0)
+	88: MoveLoc[6](loc5: u64)
+	89: Ret
+}
+
+public loan_value<Ty0, Ty1, Ty2>(Arg0: &Loan<Ty1, Ty2, Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Loan<Ty1, Ty2, Ty0>)
+	1: ImmBorrowFieldGeneric[5](Loan.balance: Balance<Ty1>)
+	2: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	3: Ret
+}
+
+public requirement<Ty0, Ty1>(Arg0: &Request<Ty0, Ty1>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Request<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[6](Request.requirement: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public balance<Ty0, Ty1>(Arg0: &Request<Ty0, Ty1>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Request<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[0](Request.balance: Balance<Ty0>)
+	2: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	3: Ret
+}
+
+public shortage<Ty0, Ty1>(Arg0: &Request<Ty0, Ty1>): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &Request<Ty0, Ty1>)
+	1: Call requirement<Ty0, Ty1>(&Request<Ty0, Ty1>): u64
+	2: MoveLoc[0](Arg0: &Request<Ty0, Ty1>)
+	3: Call balance<Ty0, Ty1>(&Request<Ty0, Ty1>): u64
+	4: Sub
+	5: Ret
+}
+
+public payer_debts<Ty0, Ty1>(Arg0: &Request<Ty0, Ty1>): &VecMap<Entity, Debt<Ty0>> {
+B0:
+	0: MoveLoc[0](Arg0: &Request<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[1](Request.payer_debts: VecMap<Entity, Debt<Ty0>>)
+	2: Ret
+}
+
+debt_against<Ty0, Ty1: drop>(Arg0: &mut Sheet<Ty0, Ty1>, Arg1: &Entity): &mut Debt<Ty0> {
+L2:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call debts<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Debt<Ty0>>
+	3: CopyLoc[1](Arg1: &Entity)
+	4: Call vec_map::contains<Entity, Debt<Ty0>>(&VecMap<Entity, Debt<Ty0>>, &Entity): bool
+	5: Not
+	6: BrFalse(10)
+B1:
+	7: LdTrue
+	8: StLoc[2](loc0: bool)
+	9: Branch(16)
+B2:
+	10: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	11: FreezeRef
+	12: Call blacklist<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecSet<Entity>
+	13: CopyLoc[1](Arg1: &Entity)
+	14: Call vec_set::contains<Entity>(&VecSet<Entity>, &Entity): bool
+	15: StLoc[2](loc0: bool)
+B3:
+	16: MoveLoc[2](loc0: bool)
+	17: BrFalse(19)
+B4:
+	18: Call err_invalid_entity_for_debt()
+B5:
+	19: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	20: MutBorrowFieldGeneric[3](Sheet.debts: VecMap<Entity, Debt<Ty0>>)
+	21: MoveLoc[1](Arg1: &Entity)
+	22: Call vec_map::get_mut<Entity, Debt<Ty0>>(&mut VecMap<Entity, Debt<Ty0>>, &Entity): &mut Debt<Ty0>
+	23: Ret
+}
+
+credit_against<Ty0, Ty1: drop>(Arg0: &mut Sheet<Ty0, Ty1>, Arg1: &Entity): &mut Credit<Ty0> {
+L2:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call credits<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecMap<Entity, Credit<Ty0>>
+	3: CopyLoc[1](Arg1: &Entity)
+	4: Call vec_map::contains<Entity, Credit<Ty0>>(&VecMap<Entity, Credit<Ty0>>, &Entity): bool
+	5: Not
+	6: BrFalse(10)
+B1:
+	7: LdTrue
+	8: StLoc[2](loc0: bool)
+	9: Branch(16)
+B2:
+	10: CopyLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	11: FreezeRef
+	12: Call blacklist<Ty0, Ty1>(&Sheet<Ty0, Ty1>): &VecSet<Entity>
+	13: CopyLoc[1](Arg1: &Entity)
+	14: Call vec_set::contains<Entity>(&VecSet<Entity>, &Entity): bool
+	15: StLoc[2](loc0: bool)
+B3:
+	16: MoveLoc[2](loc0: bool)
+	17: BrFalse(19)
+B4:
+	18: Call err_invalid_entity_for_credit()
+B5:
+	19: MoveLoc[0](Arg0: &mut Sheet<Ty0, Ty1>)
+	20: MutBorrowFieldGeneric[2](Sheet.credits: VecMap<Entity, Credit<Ty0>>)
+	21: MoveLoc[1](Arg1: &Entity)
+	22: Call vec_map::get_mut<Entity, Credit<Ty0>>(&mut VecMap<Entity, Credit<Ty0>>, &Entity): &mut Credit<Ty0>
+	23: Ret
+}
+
+Constants [
+	0 => u64: 501
+	1 => u64: 502
+	2 => u64: 503
+	3 => u64: 504
+	4 => vector<u64>: 00
+]
+}

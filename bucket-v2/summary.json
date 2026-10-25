@@ -1,0 +1,31 @@
+{
+  "finding": "ZH4-PASS7-bucket-v2",
+  "title": "Bucket Protocol V2 — Sui CDP v2 (version/import + oracle + liquidation)",
+  "chains": ["sui"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 1061340251,
+  "block_numbers": {"sui": 1061340251},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "explicit on-chain version gate: usdb::assert_valid_module_version<T>(&Treasury, v) rejects versions not in valid_versions",
+    "value movement is a witness-gated request/response flow; liquidate only builds an UpdateRequest (no transfer)",
+    "v1->v4 bytecode diff is rounding/bookkeeping, not gating"
+  ],
+  "poc": {"tests_passed": 5, "tests_total": 5, "ci_run_urls": []},
+  "key_facts": [
+    "live custody: CDP collateral ~$25.37M across 21 Vault<T>; PSM pools ~$2.46M; total ~$27.8M (DL $27.84M)",
+    "Treasury 0x4de1c29a89d6888ebf8f7ae20364571dce4e1e42b9c9221f7df924ad6f9e617d module_config_map: BucketV2CDP valid_versions=[2,1]",
+    "version gate present from v1 (package_version()=1) and in v4 (=2); vault calls assert_valid_package 7x in v1, 9x in v4",
+    "structs byte-identical v1->v4 (layout gate does not protect old code)",
+    "biggest vault 0x7438e8ca... ~$19.55M (BTC-like collateral)"
+  ],
+  "caveats": [
+    "the CDP allow-list still authorises version 1 — latent, not a proven drain",
+    "vault::update_position (16.7KB->17.3KB) not fully diffed",
+    "point-in-time 2026-10-25"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from Bucket Protocol V2 ($27.8M custody); the version/import primitive is mitigated by an explicit version gate bound to the Treasury, though the CDP allow-list still authorises package version 1 (latent risk)."
+}

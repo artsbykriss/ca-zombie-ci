@@ -1,0 +1,253 @@
+// module liability  version-object 0x665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc (v1)
+// Move bytecode v6
+module 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc.liability {
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+
+struct Credit<phantom Ty0> has store {
+	value: u64
+}
+
+struct Debt<phantom Ty0> has store {
+	value: u64
+}
+
+err_destroy_not_zero_credit() {
+B0:
+	0: LdConst[0](u64: 401)
+	1: Abort
+}
+
+err_destroy_not_zero_debt() {
+B0:
+	0: LdConst[1](u64: 402)
+	1: Abort
+}
+
+public new<Ty0>(Arg0: u64): Credit<Ty0> * Debt<Ty0> {
+B0:
+	0: CopyLoc[0](Arg0: u64)
+	1: PackGeneric[0](Credit<Ty0>)
+	2: MoveLoc[0](Arg0: u64)
+	3: PackGeneric[1](Debt<Ty0>)
+	4: Ret
+}
+
+public zero_credit<Ty0>(): Credit<Ty0> {
+B0:
+	0: LdU64(0)
+	1: PackGeneric[0](Credit<Ty0>)
+	2: Ret
+}
+
+public zero_debt<Ty0>(): Debt<Ty0> {
+B0:
+	0: LdU64(0)
+	1: PackGeneric[1](Debt<Ty0>)
+	2: Ret
+}
+
+public destroy_zero_credit<Ty0>(Arg0: Credit<Ty0>) {
+B0:
+	0: MoveLoc[0](Arg0: Credit<Ty0>)
+	1: UnpackGeneric[0](Credit<Ty0>)
+	2: LdU64(0)
+	3: Gt
+	4: BrFalse(6)
+B1:
+	5: Call err_destroy_not_zero_credit()
+B2:
+	6: Ret
+}
+
+public destroy_zero_debt<Ty0>(Arg0: Debt<Ty0>) {
+B0:
+	0: MoveLoc[0](Arg0: Debt<Ty0>)
+	1: UnpackGeneric[1](Debt<Ty0>)
+	2: LdU64(0)
+	3: Gt
+	4: BrFalse(6)
+B1:
+	5: Call err_destroy_not_zero_debt()
+B2:
+	6: Ret
+}
+
+public add_credit<Ty0>(Arg0: &mut Credit<Ty0>, Arg1: Credit<Ty0>): u64 {
+L2:	loc0: u64
+L3:	loc1: u64
+B0:
+	0: MoveLoc[1](Arg1: Credit<Ty0>)
+	1: UnpackGeneric[0](Credit<Ty0>)
+	2: StLoc[3](loc1: u64)
+	3: CopyLoc[0](Arg0: &mut Credit<Ty0>)
+	4: FreezeRef
+	5: Call credit_value<Ty0>(&Credit<Ty0>): u64
+	6: MoveLoc[3](loc1: u64)
+	7: Add
+	8: StLoc[2](loc0: u64)
+	9: CopyLoc[2](loc0: u64)
+	10: MoveLoc[0](Arg0: &mut Credit<Ty0>)
+	11: MutBorrowFieldGeneric[0](Credit.value: u64)
+	12: WriteRef
+	13: MoveLoc[2](loc0: u64)
+	14: Ret
+}
+
+public add_debt<Ty0>(Arg0: &mut Debt<Ty0>, Arg1: Debt<Ty0>): u64 {
+L2:	loc0: u64
+L3:	loc1: u64
+B0:
+	0: MoveLoc[1](Arg1: Debt<Ty0>)
+	1: UnpackGeneric[1](Debt<Ty0>)
+	2: StLoc[3](loc1: u64)
+	3: CopyLoc[0](Arg0: &mut Debt<Ty0>)
+	4: FreezeRef
+	5: Call debt_value<Ty0>(&Debt<Ty0>): u64
+	6: MoveLoc[3](loc1: u64)
+	7: Add
+	8: StLoc[2](loc0: u64)
+	9: CopyLoc[2](loc0: u64)
+	10: MoveLoc[0](Arg0: &mut Debt<Ty0>)
+	11: MutBorrowFieldGeneric[1](Debt.value: u64)
+	12: WriteRef
+	13: MoveLoc[2](loc0: u64)
+	14: Ret
+}
+
+public auto_settle<Ty0>(Arg0: &mut Credit<Ty0>, Arg1: &mut Debt<Ty0>): u64 * u64 {
+L2:	loc0: u64
+L3:	loc1: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut Credit<Ty0>)
+	1: FreezeRef
+	2: Call credit_value<Ty0>(&Credit<Ty0>): u64
+	3: StLoc[2](loc0: u64)
+	4: CopyLoc[1](Arg1: &mut Debt<Ty0>)
+	5: FreezeRef
+	6: Call debt_value<Ty0>(&Debt<Ty0>): u64
+	7: StLoc[3](loc1: u64)
+	8: CopyLoc[2](loc0: u64)
+	9: CopyLoc[3](loc1: u64)
+	10: Ge
+	11: BrFalse(23)
+B1:
+	12: MoveLoc[2](loc0: u64)
+	13: MoveLoc[3](loc1: u64)
+	14: Sub
+	15: CopyLoc[0](Arg0: &mut Credit<Ty0>)
+	16: MutBorrowFieldGeneric[0](Credit.value: u64)
+	17: WriteRef
+	18: LdU64(0)
+	19: CopyLoc[1](Arg1: &mut Debt<Ty0>)
+	20: MutBorrowFieldGeneric[1](Debt.value: u64)
+	21: WriteRef
+	22: Branch(33)
+B2:
+	23: MoveLoc[3](loc1: u64)
+	24: MoveLoc[2](loc0: u64)
+	25: Sub
+	26: CopyLoc[1](Arg1: &mut Debt<Ty0>)
+	27: MutBorrowFieldGeneric[1](Debt.value: u64)
+	28: WriteRef
+	29: LdU64(0)
+	30: CopyLoc[0](Arg0: &mut Credit<Ty0>)
+	31: MutBorrowFieldGeneric[0](Credit.value: u64)
+	32: WriteRef
+B3:
+	33: MoveLoc[0](Arg0: &mut Credit<Ty0>)
+	34: FreezeRef
+	35: Call credit_value<Ty0>(&Credit<Ty0>): u64
+	36: MoveLoc[1](Arg1: &mut Debt<Ty0>)
+	37: FreezeRef
+	38: Call debt_value<Ty0>(&Debt<Ty0>): u64
+	39: Ret
+}
+
+public settle_debt<Ty0>(Arg0: &mut Credit<Ty0>, Arg1: Debt<Ty0>): Option<Debt<Ty0>> {
+L2:	loc0: Option<Debt<Ty0>>
+L3:	loc1: u64
+B0:
+	0: MoveLoc[0](Arg0: &mut Credit<Ty0>)
+	1: MutBorrowLoc[1](Arg1: Debt<Ty0>)
+	2: Call auto_settle<Ty0>(&mut Credit<Ty0>, &mut Debt<Ty0>): u64 * u64
+	3: StLoc[3](loc1: u64)
+	4: Pop
+	5: MoveLoc[3](loc1: u64)
+	6: LdU64(0)
+	7: Gt
+	8: BrFalse(13)
+B1:
+	9: MoveLoc[1](Arg1: Debt<Ty0>)
+	10: Call option::some<Debt<Ty0>>(Debt<Ty0>): Option<Debt<Ty0>>
+	11: StLoc[2](loc0: Option<Debt<Ty0>>)
+	12: Branch(17)
+B2:
+	13: MoveLoc[1](Arg1: Debt<Ty0>)
+	14: Call destroy_zero_debt<Ty0>(Debt<Ty0>)
+	15: Call option::none<Debt<Ty0>>(): Option<Debt<Ty0>>
+	16: StLoc[2](loc0: Option<Debt<Ty0>>)
+B3:
+	17: MoveLoc[2](loc0: Option<Debt<Ty0>>)
+	18: Ret
+}
+
+public settle_credit<Ty0>(Arg0: &mut Debt<Ty0>, Arg1: Credit<Ty0>): Option<Credit<Ty0>> {
+L2:	loc0: Option<Credit<Ty0>>
+B0:
+	0: MutBorrowLoc[1](Arg1: Credit<Ty0>)
+	1: MoveLoc[0](Arg0: &mut Debt<Ty0>)
+	2: Call auto_settle<Ty0>(&mut Credit<Ty0>, &mut Debt<Ty0>): u64 * u64
+	3: Pop
+	4: LdU64(0)
+	5: Gt
+	6: BrFalse(11)
+B1:
+	7: MoveLoc[1](Arg1: Credit<Ty0>)
+	8: Call option::some<Credit<Ty0>>(Credit<Ty0>): Option<Credit<Ty0>>
+	9: StLoc[2](loc0: Option<Credit<Ty0>>)
+	10: Branch(15)
+B2:
+	11: MoveLoc[1](Arg1: Credit<Ty0>)
+	12: Call destroy_zero_credit<Ty0>(Credit<Ty0>)
+	13: Call option::none<Credit<Ty0>>(): Option<Credit<Ty0>>
+	14: StLoc[2](loc0: Option<Credit<Ty0>>)
+B3:
+	15: MoveLoc[2](loc0: Option<Credit<Ty0>>)
+	16: Ret
+}
+
+public credit_value<Ty0>(Arg0: &Credit<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Credit<Ty0>)
+	1: ImmBorrowFieldGeneric[0](Credit.value: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public debt_value<Ty0>(Arg0: &Debt<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Debt<Ty0>)
+	1: ImmBorrowFieldGeneric[1](Debt.value: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public destroy_credit_for_testing<Ty0>(Arg0: Credit<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: Credit<Ty0>)
+	1: UnpackGeneric[0](Credit<Ty0>)
+	2: Ret
+}
+
+public destroy_debt_for_testing<Ty0>(Arg0: Debt<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: Debt<Ty0>)
+	1: UnpackGeneric[1](Debt<Ty0>)
+	2: Ret
+}
+
+Constants [
+	0 => u64: 401
+	1 => u64: 402
+]
+}

@@ -1,0 +1,112 @@
+// module events  version-object 0x4a7053b164754361822c46468ba49aa24ef256656679d40bec3ccf13b2d2f343 (v2)
+// Move bytecode v6
+module 872d08a70db3db498aa7853276acea8091fdd9871b2d86bc8dcb8524526df622.events {
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+
+struct NewSavingPoolEvent<phantom Ty0> has copy, drop {
+	saving_pool_id: ID
+}
+
+struct UpdateSavingRateEvent<phantom Ty0> has copy, drop {
+	saving_pool_id: ID,
+	saving_rate_bps: u64
+}
+
+struct UpdateDepositCapEvent<phantom Ty0> has copy, drop {
+	saving_pool_id: ID,
+	deposit_cap_amount: Option<u64>
+}
+
+struct DepositEvent<phantom Ty0> has copy, drop {
+	saving_pool_id: ID,
+	account_address: address,
+	deposited_usdb_amount: u64,
+	minted_lp_amount: u64
+}
+
+struct WithdrawEvent<phantom Ty0> has copy, drop {
+	saving_pool_id: ID,
+	account_address: address,
+	burned_lp_amount: u64,
+	withdrawal_usdb_amount: u64
+}
+
+struct SupplyEvent<phantom Ty0> has copy, drop {
+	saving_pool_id: ID,
+	amount: u64
+}
+
+struct InterestEmittedEvent<phantom Ty0> has copy, drop {
+	saving_pool_id: ID,
+	interest_amount: u64
+}
+
+public(friend) emit_new_saving_pool_event<Ty0>(Arg0: ID) {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: PackGeneric[0](NewSavingPoolEvent<Ty0>)
+	2: Call event::emit<NewSavingPoolEvent<Ty0>>(NewSavingPoolEvent<Ty0>)
+	3: Ret
+}
+
+public(friend) emit_update_saving_rate_event<Ty0>(Arg0: ID, Arg1: u64) {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: MoveLoc[1](Arg1: u64)
+	2: PackGeneric[1](UpdateSavingRateEvent<Ty0>)
+	3: Call event::emit<UpdateSavingRateEvent<Ty0>>(UpdateSavingRateEvent<Ty0>)
+	4: Ret
+}
+
+public(friend) emit_update_deposit_cap_event<Ty0>(Arg0: ID, Arg1: Option<u64>) {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: MoveLoc[1](Arg1: Option<u64>)
+	2: PackGeneric[2](UpdateDepositCapEvent<Ty0>)
+	3: Call event::emit<UpdateDepositCapEvent<Ty0>>(UpdateDepositCapEvent<Ty0>)
+	4: Ret
+}
+
+public(friend) emit_deposit_event<Ty0>(Arg0: ID, Arg1: address, Arg2: u64, Arg3: u64) {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: MoveLoc[1](Arg1: address)
+	2: MoveLoc[2](Arg2: u64)
+	3: MoveLoc[3](Arg3: u64)
+	4: PackGeneric[3](DepositEvent<Ty0>)
+	5: Call event::emit<DepositEvent<Ty0>>(DepositEvent<Ty0>)
+	6: Ret
+}
+
+public(friend) emit_withdraw_event<Ty0>(Arg0: ID, Arg1: address, Arg2: u64, Arg3: u64) {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: MoveLoc[1](Arg1: address)
+	2: MoveLoc[2](Arg2: u64)
+	3: MoveLoc[3](Arg3: u64)
+	4: PackGeneric[4](WithdrawEvent<Ty0>)
+	5: Call event::emit<WithdrawEvent<Ty0>>(WithdrawEvent<Ty0>)
+	6: Ret
+}
+
+public(friend) emit_supply_event<Ty0>(Arg0: ID, Arg1: u64) {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: MoveLoc[1](Arg1: u64)
+	2: PackGeneric[5](SupplyEvent<Ty0>)
+	3: Call event::emit<SupplyEvent<Ty0>>(SupplyEvent<Ty0>)
+	4: Ret
+}
+
+public(friend) emit_interest_emitted_event<Ty0>(Arg0: ID, Arg1: u64) {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: MoveLoc[1](Arg1: u64)
+	2: PackGeneric[6](InterestEmittedEvent<Ty0>)
+	3: Call event::emit<InterestEmittedEvent<Ty0>>(InterestEmittedEvent<Ty0>)
+	4: Ret
+}
+
+}

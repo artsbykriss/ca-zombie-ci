@@ -1,0 +1,166 @@
+// module gcoin_rule  package 0xba3c970933047c6e235424d7040a9a4e89d8fc1200d780a69b2666434f3a7313 (v1)
+// Move bytecode v6
+module ba3c970933047c6e235424d7040a9a4e89d8fc1200d780a69b2666434f3a7313.gcoin_rule {
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::float;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::collector;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::listing;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::result;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+use 2f2226a22ebeb7a0e63ea39551829b238589d981d1c6dd454f01fcc513035593::house;
+use 2f2226a22ebeb7a0e63ea39551829b238589d981d1c6dd454f01fcc513035593::unihouse;
+
+struct GCoinRule has drop {
+	dummy_field: bool
+}
+
+struct Config has key {
+	id: UID,
+	underlying_coin_map: VecMap<TypeName, TypeName>
+}
+
+err_unsupported_gcoin_type() {
+B0:
+	0: LdConst[0](u64: 1)
+	1: Abort
+}
+
+err_invalid_coin_type() {
+B0:
+	0: LdConst[1](u64: 2)
+	1: Abort
+}
+
+init(Arg0: &mut TxContext) {
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: Call vec_map::empty<TypeName, TypeName>(): VecMap<TypeName, TypeName>
+	3: Pack[1](Config)
+	4: Call transfer::share_object<Config>(Config)
+	5: Ret
+}
+
+public add_gcoin_pair<Ty0, Ty1>(Arg0: &mut Config, Arg1: &ListingCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut Config)
+	3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool
+	6: BrFalse(14)
+B1:
+	7: Call type_name::get<Ty1>(): TypeName
+	8: MoveLoc[0](Arg0: &mut Config)
+	9: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	10: ImmBorrowLoc[2](loc0: TypeName)
+	11: Call vec_map::get_mut<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, &TypeName): &mut TypeName
+	12: WriteRef
+	13: Branch(19)
+B2:
+	14: MoveLoc[0](Arg0: &mut Config)
+	15: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	16: MoveLoc[2](loc0: TypeName)
+	17: Call type_name::get<Ty1>(): TypeName
+	18: Call vec_map::insert<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, TypeName, TypeName)
+B3:
+	19: Ret
+}
+
+public remove_gcoin_pair<Ty0>(Arg0: &mut Config, Arg1: &ListingCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut Config)
+	3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool
+	6: BrFalse(14)
+B1:
+	7: MoveLoc[0](Arg0: &mut Config)
+	8: MutBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	9: ImmBorrowLoc[2](loc0: TypeName)
+	10: Call vec_map::remove<TypeName, TypeName>(&mut VecMap<TypeName, TypeName>, &TypeName): TypeName * TypeName
+	11: Pop
+	12: Pop
+	13: Branch(16)
+B2:
+	14: MoveLoc[0](Arg0: &mut Config)
+	15: Pop
+B3:
+	16: Ret
+}
+
+public feed<Ty0, Ty1>(Arg0: &mut PriceCollector<Ty0>, Arg1: &PriceResult<Ty1>, Arg2: &Config, Arg3: &Unihouse) {
+L4:	loc0: Float
+L5:	loc1: TypeName
+L6:	loc2: Float
+L7:	loc3: u64
+L8:	loc4: TypeName
+L9:	loc5: u64
+L10:	loc6: u64
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: StLoc[8](loc4: TypeName)
+	2: CopyLoc[2](Arg2: &Config)
+	3: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	4: ImmBorrowLoc[8](loc4: TypeName)
+	5: Call vec_map::contains<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): bool
+	6: Not
+	7: BrFalse(9)
+B1:
+	8: Call err_unsupported_gcoin_type()
+B2:
+	9: Call type_name::get<Ty1>(): TypeName
+	10: StLoc[5](loc1: TypeName)
+	11: ImmBorrowLoc[5](loc1: TypeName)
+	12: MoveLoc[2](Arg2: &Config)
+	13: ImmBorrowField[0](Config.underlying_coin_map: VecMap<TypeName, TypeName>)
+	14: ImmBorrowLoc[8](loc4: TypeName)
+	15: Call vec_map::get<TypeName, TypeName>(&VecMap<TypeName, TypeName>, &TypeName): &TypeName
+	16: Neq
+	17: BrFalse(19)
+B3:
+	18: Call err_invalid_coin_type()
+B4:
+	19: MoveLoc[1](Arg1: &PriceResult<Ty1>)
+	20: Call result::aggregated_price<Ty1>(&PriceResult<Ty1>): Float
+	21: StLoc[4](loc0: Float)
+	22: MoveLoc[3](Arg3: &Unihouse)
+	23: Call unihouse::borrow_house<Ty1>(&Unihouse): &House<Ty1>
+	24: Call house::house_metadata<Ty1>(&House<Ty1>): u64 * u64 * u64 * u64 * u64 * u64
+	25: Pop
+	26: StLoc[9](loc5: u64)
+	27: Pop
+	28: StLoc[7](loc3: u64)
+	29: Pop
+	30: MoveLoc[9](loc5: u64)
+	31: Add
+	32: StLoc[10](loc6: u64)
+	33: MoveLoc[4](loc0: Float)
+	34: MoveLoc[10](loc6: u64)
+	35: Call float::mul_u64(Float, u64): Float
+	36: MoveLoc[7](loc3: u64)
+	37: Call float::div_u64(Float, u64): Float
+	38: StLoc[6](loc2: Float)
+	39: MoveLoc[0](Arg0: &mut PriceCollector<Ty0>)
+	40: LdFalse
+	41: Pack[0](GCoinRule)
+	42: MoveLoc[6](loc2: Float)
+	43: Call option::some<Float>(Float): Option<Float>
+	44: Call collector::collect<Ty0, GCoinRule>(&mut PriceCollector<Ty0>, GCoinRule, Option<Float>)
+	45: Ret
+}
+
+Constants [
+	0 => u64: 1
+	1 => u64: 2
+]
+}

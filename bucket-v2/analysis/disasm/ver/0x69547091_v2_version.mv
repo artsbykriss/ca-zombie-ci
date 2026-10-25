@@ -1,0 +1,26 @@
+// module version  version-object 0x695470911f9bec43a0f9d926f2f652e05ef58c57077234af666028f36380e640 (v2)
+// Move bytecode v6
+module c2ae6693383e4a81285136effc8190c7baaf0e75aafa36d1c69cd2170cfc3803.version {
+use c2ae6693383e4a81285136effc8190c7baaf0e75aafa36d1c69cd2170cfc3803::witness;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::usdb;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+
+public package_version(): u16 {
+B0:
+	0: LdConst[0](u16: 1)
+	1: Ret
+}
+
+public(friend) assert_valid_package(Arg0: &Treasury) {
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: Call package_version(): u16
+	2: Call usdb::assert_valid_module_version<BucketV2PSM>(&Treasury, u16): TypeName
+	3: Pop
+	4: Ret
+}
+
+Constants [
+	0 => u16: 1
+]
+}

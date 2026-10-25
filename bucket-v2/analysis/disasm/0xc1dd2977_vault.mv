@@ -1,0 +1,2317 @@
+// module vault  package 0xc1dd29778f3fccd19a4ac79d1c35a14bf9d65a0b48f1c5bba98a949cacc53e26 (v4)
+// Move bytecode v6
+module 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e.vault {
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::acl;
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::events;
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::memo;
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::request;
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::response;
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::version;
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::witness;
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::account;
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::double;
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::float;
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::linked_table;
+use 665188033384920a5bb5dcfb2ef21f54b4568d08b431718b97e02e5c184b92cc::sheet;
+use f2ab9aa60c5e879675351a1a89f47131de9dea7cc927327dd0e7282e295c7f5e::result;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::admin;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::limited_supply;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::usdb;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::string;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000001::u64;
+use 0000000000000000000000000000000000000000000000000000000000000001::vector;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_set;
+
+struct Position has copy, drop, store {
+	coll_amount: u64,
+	debt_amount: u64,
+	interest_unit: Double
+}
+
+struct Vault<phantom Ty0> has store, key {
+	id: UID,
+	security_level: Option<u8>,
+	access_control: Acl,
+	decimal: u8,
+	interest_rate: Double,
+	interest_unit: Double,
+	timestamp: u64,
+	total_pending_interest_amount: u64,
+	limited_supply: LimitedSupply,
+	total_coll_amount: u64,
+	total_debt_amount: u64,
+	min_collateral_ratio: Float,
+	liquidation_rule: TypeName,
+	request_checklist: vector<TypeName>,
+	response_checklist: vector<TypeName>,
+	position_table: LinkedTable<address, Position>,
+	balance: Balance<Ty0>,
+	position_locker: VecSet<address>,
+	sheet: Sheet<Ty0, BucketV2CDP>
+}
+
+struct PositionData has copy, drop {
+	debtor: address,
+	coll_amount: u64,
+	debt_amount: u64
+}
+
+struct AccessControl has key {
+	id: UID,
+	managers: VecSet<address>
+}
+
+err_missing_request_witness() {
+B0:
+	0: LdConst[0](u64: 401)
+	1: Abort
+}
+
+err_missing_response_witness() {
+B0:
+	0: LdConst[1](u64: 402)
+	1: Abort
+}
+
+err_oracle_price_is_required() {
+B0:
+	0: LdConst[2](u64: 403)
+	1: Abort
+}
+
+err_position_is_not_healthy() {
+B0:
+	0: LdConst[3](u64: 404)
+	1: Abort
+}
+
+err_position_is_healthy() {
+B0:
+	0: LdConst[4](u64: 405)
+	1: Abort
+}
+
+err_invalid_liquidation() {
+B0:
+	0: LdConst[5](u64: 406)
+	1: Abort
+}
+
+err_debtor_not_found() {
+B0:
+	0: LdConst[6](u64: 407)
+	1: Abort
+}
+
+err_repay_too_much() {
+B0:
+	0: LdConst[7](u64: 408)
+	1: Abort
+}
+
+err_withdraw_too_much() {
+B0:
+	0: LdConst[8](u64: 409)
+	1: Abort
+}
+
+err_wrong_vault_id() {
+B0:
+	0: LdConst[9](u64: 410)
+	1: Abort
+}
+
+err_invalid_vault_settings() {
+B0:
+	0: LdConst[10](u64: 411)
+	1: Abort
+}
+
+err_against_security_level() {
+B0:
+	0: LdConst[11](u64: 412)
+	1: Abort
+}
+
+err_not_manager() {
+B0:
+	0: LdConst[12](u64: 413)
+	1: Abort
+}
+
+err_position_is_locked() {
+B0:
+	0: LdConst[13](u64: 414)
+	1: Abort
+}
+
+err_invalid_min_collateral_ratio() {
+B0:
+	0: LdConst[14](u64: 415)
+	1: Abort
+}
+
+err_invalid_security_level() {
+B0:
+	0: LdConst[15](u64: 416)
+	1: Abort
+}
+
+public min_collateral_ratio_percentage(): u8 {
+B0:
+	0: LdConst[16](u8: 110)
+	1: Ret
+}
+
+public new<Ty0, Ty1: drop>(Arg0: &Treasury, Arg1: &AdminCap, Arg2: u8, Arg3: Double, Arg4: u64, Arg5: Float, Arg6: &mut TxContext): Vault<Ty0> {
+L7:	loc0: UID
+L8:	loc1: LimitedSupply
+L9:	loc2: ID
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: CopyLoc[4](Arg4: u64)
+	3: Call limited_supply::new(u64): LimitedSupply
+	4: StLoc[8](loc1: LimitedSupply)
+	5: CopyLoc[6](Arg6: &mut TxContext)
+	6: Call object::new(&mut TxContext): UID
+	7: StLoc[7](loc0: UID)
+	8: ImmBorrowLoc[7](loc0: UID)
+	9: Call object::uid_to_inner(&UID): ID
+	10: StLoc[9](loc2: ID)
+	11: CopyLoc[3](Arg3: Double)
+	12: LdU64(1)
+	13: Call double::from(u64): Double
+	14: Call double::gt(Double, Double): bool
+	15: BrFalse(17)
+B1:
+	16: Call err_invalid_vault_settings()
+B2:
+	17: CopyLoc[5](Arg5: Float)
+	18: LdU64(1)
+	19: Call float::from(u64): Float
+	20: Call float::lte(Float, Float): bool
+	21: BrFalse(23)
+B3:
+	22: Call err_invalid_vault_settings()
+B4:
+	23: MoveLoc[9](loc2: ID)
+	24: CopyLoc[3](Arg3: Double)
+	25: MoveLoc[4](Arg4: u64)
+	26: CopyLoc[5](Arg5: Float)
+	27: Call events::emit_vault_created<Ty0>(ID, Double, u64, Float)
+	28: MoveLoc[7](loc0: UID)
+	29: Call option::none<u8>(): Option<u8>
+	30: Call acl::new(): Acl
+	31: MoveLoc[2](Arg2: u8)
+	32: MoveLoc[3](Arg3: Double)
+	33: Call double::zero(): Double
+	34: LdU64(0)
+	35: LdU64(0)
+	36: MoveLoc[8](loc1: LimitedSupply)
+	37: LdU64(0)
+	38: LdU64(0)
+	39: MoveLoc[5](Arg5: Float)
+	40: Call type_name::with_defining_ids<Ty1>(): TypeName
+	41: VecPack(26, 0)
+	42: VecPack(26, 0)
+	43: MoveLoc[6](Arg6: &mut TxContext)
+	44: Call linked_table::new<address, Position>(&mut TxContext): LinkedTable<address, Position>
+	45: Call balance::zero<Ty0>(): Balance<Ty0>
+	46: Call vec_set::empty<address>(): VecSet<address>
+	47: Call witness::witness(): BucketV2CDP
+	48: Call sheet::new<Ty0, BucketV2CDP>(BucketV2CDP): Sheet<Ty0, BucketV2CDP>
+	49: PackGeneric[0](Vault<Ty0>)
+	50: Ret
+}
+
+entry create<Ty0, Ty1: drop>(Arg0: &Treasury, Arg1: &AdminCap, Arg2: u8, Arg3: u64, Arg4: u64, Arg5: u64, Arg6: &mut TxContext) {
+L7:	loc0: Float
+B0:
+	0: MoveLoc[5](Arg5: u64)
+	1: Call float::from_bps(u64): Float
+	2: StLoc[7](loc0: Float)
+	3: CopyLoc[7](loc0: Float)
+	4: Call min_collateral_ratio_percentage(): u8
+	5: Call float::from_percent(u8): Float
+	6: Call float::lt(Float, Float): bool
+	7: BrFalse(9)
+B1:
+	8: Call err_invalid_min_collateral_ratio()
+B2:
+	9: MoveLoc[0](Arg0: &Treasury)
+	10: MoveLoc[1](Arg1: &AdminCap)
+	11: MoveLoc[2](Arg2: u8)
+	12: MoveLoc[3](Arg3: u64)
+	13: Call double::from_bps(u64): Double
+	14: MoveLoc[4](Arg4: u64)
+	15: MoveLoc[7](loc0: Float)
+	16: MoveLoc[6](Arg6: &mut TxContext)
+	17: Call new<Ty0, Ty1>(&Treasury, &AdminCap, u8, Double, u64, Float, &mut TxContext): Vault<Ty0>
+	18: Call transfer::share_object<Vault<Ty0>>(Vault<Ty0>)
+	19: Ret
+}
+
+public set_supply_limit<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap, Arg2: u64) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	1: FreezeRef
+	2: Call object::id<Vault<Ty0>>(&Vault<Ty0>): ID
+	3: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	4: FreezeRef
+	5: Call limited_supply<Ty0>(&Vault<Ty0>): &LimitedSupply
+	6: Call limited_supply::limit(&LimitedSupply): u64
+	7: CopyLoc[2](Arg2: u64)
+	8: Call events::emit_supply_limit_updated<Ty0>(ID, u64, u64)
+	9: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	10: MutBorrowFieldGeneric[0](Vault.limited_supply: LimitedSupply)
+	11: MoveLoc[2](Arg2: u64)
+	12: Call limited_supply::set_limit(&mut LimitedSupply, u64)
+	13: Ret
+}
+
+public set_interest_rate<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &mut Treasury, Arg2: &AdminCap, Arg3: &Clock, Arg4: u64, Arg5: &mut TxContext) {
+B0:
+	0: CopyLoc[1](Arg1: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	4: MoveLoc[1](Arg1: &mut Treasury)
+	5: MoveLoc[3](Arg3: &Clock)
+	6: MoveLoc[5](Arg5: &mut TxContext)
+	7: Call collect_interest<Ty0>(&mut Vault<Ty0>, &mut Treasury, &Clock, &mut TxContext): Double
+	8: Pop
+	9: CopyLoc[4](Arg4: u64)
+	10: Call double::from_bps(u64): Double
+	11: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	12: MutBorrowFieldGeneric[1](Vault.interest_rate: Double)
+	13: WriteRef
+	14: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	15: FreezeRef
+	16: Call object::id<Vault<Ty0>>(&Vault<Ty0>): ID
+	17: MoveLoc[4](Arg4: u64)
+	18: Call events::emit_interest_rate_updated<Ty0>(ID, u64)
+	19: Ret
+}
+
+public set_liquidation_rule<Ty0, Ty1: drop>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: FreezeRef
+	4: Call object::id<Vault<Ty0>>(&Vault<Ty0>): ID
+	5: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	6: FreezeRef
+	7: Call liquidation_rule<Ty0>(&Vault<Ty0>): TypeName
+	8: CopyLoc[2](loc0: TypeName)
+	9: Call events::emit_liquidation_rule_updated<Ty0>(ID, TypeName, TypeName)
+	10: MoveLoc[2](loc0: TypeName)
+	11: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	12: MutBorrowFieldGeneric[2](Vault.liquidation_rule: TypeName)
+	13: WriteRef
+	14: Ret
+}
+
+public add_request_check<Ty0, Ty1: drop>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: FreezeRef
+	4: Call request_checklist<Ty0>(&Vault<Ty0>): &vector<TypeName>
+	5: ImmBorrowLoc[2](loc0: TypeName)
+	6: Call vector::contains<TypeName>(&vector<TypeName>, &TypeName): bool
+	7: Not
+	8: BrFalse(14)
+B1:
+	9: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	10: MutBorrowFieldGeneric[3](Vault.request_checklist: vector<TypeName>)
+	11: MoveLoc[2](loc0: TypeName)
+	12: VecPushBack(26)
+	13: Branch(16)
+B2:
+	14: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	15: Pop
+B3:
+	16: Ret
+}
+
+public remove_request_check<Ty0, Ty1: drop>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: u64
+L3:	loc1: Option<u64>
+L4:	loc2: u64
+L5:	loc3: u64
+L6:	loc4: u64
+L7:	loc5: Option<u64>
+L8:	loc6: u64
+L9:	loc7: &vector<TypeName>
+L10:	loc8: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty1>(): TypeName
+	1: StLoc[10](loc8: TypeName)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: FreezeRef
+	4: Call request_checklist<Ty0>(&Vault<Ty0>): &vector<TypeName>
+	5: StLoc[9](loc7: &vector<TypeName>)
+	6: CopyLoc[9](loc7: &vector<TypeName>)
+	7: VecLen(26)
+	8: StLoc[2](loc0: u64)
+	9: LdU64(0)
+	10: StLoc[4](loc2: u64)
+	11: MoveLoc[2](loc0: u64)
+	12: StLoc[8](loc6: u64)
+B1:
+	13: CopyLoc[4](loc2: u64)
+	14: CopyLoc[8](loc6: u64)
+	15: Lt
+	16: BrFalse(36)
+B2:
+	17: CopyLoc[4](loc2: u64)
+	18: StLoc[5](loc3: u64)
+	19: CopyLoc[9](loc7: &vector<TypeName>)
+	20: CopyLoc[5](loc3: u64)
+	21: VecImmBorrow(26)
+	22: ImmBorrowLoc[10](loc8: TypeName)
+	23: Eq
+	24: BrFalse(31)
+B3:
+	25: MoveLoc[9](loc7: &vector<TypeName>)
+	26: Pop
+	27: MoveLoc[5](loc3: u64)
+	28: Call option::some<u64>(u64): Option<u64>
+	29: StLoc[3](loc1: Option<u64>)
+	30: Branch(40)
+B4:
+	31: MoveLoc[4](loc2: u64)
+	32: LdU64(1)
+	33: Add
+	34: StLoc[4](loc2: u64)
+	35: Branch(13)
+B5:
+	36: MoveLoc[9](loc7: &vector<TypeName>)
+	37: Pop
+	38: Call option::none<u64>(): Option<u64>
+	39: StLoc[3](loc1: Option<u64>)
+B6:
+	40: MoveLoc[3](loc1: Option<u64>)
+	41: StLoc[7](loc5: Option<u64>)
+	42: ImmBorrowLoc[7](loc5: Option<u64>)
+	43: Call option::is_some<u64>(&Option<u64>): bool
+	44: BrFalse(54)
+B7:
+	45: MoveLoc[7](loc5: Option<u64>)
+	46: Call option::destroy_some<u64>(Option<u64>): u64
+	47: StLoc[6](loc4: u64)
+	48: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	49: MutBorrowFieldGeneric[3](Vault.request_checklist: vector<TypeName>)
+	50: MoveLoc[6](loc4: u64)
+	51: Call vector::swap_remove<TypeName>(&mut vector<TypeName>, u64): TypeName
+	52: Pop
+	53: Branch(58)
+B8:
+	54: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	55: Pop
+	56: MoveLoc[7](loc5: Option<u64>)
+	57: Call option::destroy_none<u64>(Option<u64>)
+B9:
+	58: Ret
+}
+
+public add_response_check<Ty0, Ty1: drop>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty1>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: FreezeRef
+	4: Call response_checklist<Ty0>(&Vault<Ty0>): &vector<TypeName>
+	5: ImmBorrowLoc[2](loc0: TypeName)
+	6: Call vector::contains<TypeName>(&vector<TypeName>, &TypeName): bool
+	7: Not
+	8: BrFalse(14)
+B1:
+	9: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	10: MutBorrowFieldGeneric[4](Vault.response_checklist: vector<TypeName>)
+	11: MoveLoc[2](loc0: TypeName)
+	12: VecPushBack(26)
+	13: Branch(16)
+B2:
+	14: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	15: Pop
+B3:
+	16: Ret
+}
+
+public remove_response_check<Ty0, Ty1: drop>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: u64
+L3:	loc1: Option<u64>
+L4:	loc2: u64
+L5:	loc3: u64
+L6:	loc4: u64
+L7:	loc5: Option<u64>
+L8:	loc6: u64
+L9:	loc7: &vector<TypeName>
+L10:	loc8: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty1>(): TypeName
+	1: StLoc[10](loc8: TypeName)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: FreezeRef
+	4: Call response_checklist<Ty0>(&Vault<Ty0>): &vector<TypeName>
+	5: StLoc[9](loc7: &vector<TypeName>)
+	6: CopyLoc[9](loc7: &vector<TypeName>)
+	7: VecLen(26)
+	8: StLoc[2](loc0: u64)
+	9: LdU64(0)
+	10: StLoc[4](loc2: u64)
+	11: MoveLoc[2](loc0: u64)
+	12: StLoc[8](loc6: u64)
+B1:
+	13: CopyLoc[4](loc2: u64)
+	14: CopyLoc[8](loc6: u64)
+	15: Lt
+	16: BrFalse(36)
+B2:
+	17: CopyLoc[4](loc2: u64)
+	18: StLoc[5](loc3: u64)
+	19: CopyLoc[9](loc7: &vector<TypeName>)
+	20: CopyLoc[5](loc3: u64)
+	21: VecImmBorrow(26)
+	22: ImmBorrowLoc[10](loc8: TypeName)
+	23: Eq
+	24: BrFalse(31)
+B3:
+	25: MoveLoc[9](loc7: &vector<TypeName>)
+	26: Pop
+	27: MoveLoc[5](loc3: u64)
+	28: Call option::some<u64>(u64): Option<u64>
+	29: StLoc[3](loc1: Option<u64>)
+	30: Branch(40)
+B4:
+	31: MoveLoc[4](loc2: u64)
+	32: LdU64(1)
+	33: Add
+	34: StLoc[4](loc2: u64)
+	35: Branch(13)
+B5:
+	36: MoveLoc[9](loc7: &vector<TypeName>)
+	37: Pop
+	38: Call option::none<u64>(): Option<u64>
+	39: StLoc[3](loc1: Option<u64>)
+B6:
+	40: MoveLoc[3](loc1: Option<u64>)
+	41: StLoc[7](loc5: Option<u64>)
+	42: ImmBorrowLoc[7](loc5: Option<u64>)
+	43: Call option::is_some<u64>(&Option<u64>): bool
+	44: BrFalse(54)
+B7:
+	45: MoveLoc[7](loc5: Option<u64>)
+	46: Call option::destroy_some<u64>(Option<u64>): u64
+	47: StLoc[6](loc4: u64)
+	48: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	49: MutBorrowFieldGeneric[4](Vault.response_checklist: vector<TypeName>)
+	50: MoveLoc[6](loc4: u64)
+	51: Call vector::swap_remove<TypeName>(&mut vector<TypeName>, u64): TypeName
+	52: Pop
+	53: Branch(58)
+B8:
+	54: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	55: Pop
+	56: MoveLoc[7](loc5: Option<u64>)
+	57: Call option::destroy_none<u64>(Option<u64>)
+B9:
+	58: Ret
+}
+
+public set_manager_role<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap, Arg2: address, Arg3: u8) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	1: MutBorrowFieldGeneric[5](Vault.access_control: Acl)
+	2: MoveLoc[2](Arg2: address)
+	3: MoveLoc[3](Arg3: u8)
+	4: Call acl::set_role(&mut Acl, address, u8)
+	5: Ret
+}
+
+public remove_manager_role<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	1: MutBorrowFieldGeneric[5](Vault.access_control: Acl)
+	2: MoveLoc[2](Arg2: address)
+	3: Call acl::remove_role(&mut Acl, address)
+	4: Ret
+}
+
+public set_security_by_admin<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap, Arg2: Option<u8>, Arg3: &TxContext) {
+L4:	loc0: bool
+B0:
+	0: ImmBorrowLoc[2](Arg2: Option<u8>)
+	1: Call option::is_some<u8>(&Option<u8>): bool
+	2: BrFalse(10)
+B1:
+	3: ImmBorrowLoc[2](Arg2: Option<u8>)
+	4: Call option::borrow<u8>(&Option<u8>): &u8
+	5: ReadRef
+	6: LdU8(0)
+	7: Eq
+	8: StLoc[4](loc0: bool)
+	9: Branch(12)
+B2:
+	10: LdFalse
+	11: StLoc[4](loc0: bool)
+B3:
+	12: MoveLoc[4](loc0: bool)
+	13: BrFalse(15)
+B4:
+	14: Call err_invalid_security_level()
+B5:
+	15: CopyLoc[2](Arg2: Option<u8>)
+	16: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	17: MutBorrowFieldGeneric[6](Vault.security_level: Option<u8>)
+	18: WriteRef
+	19: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	20: FreezeRef
+	21: Call object::id<Vault<Ty0>>(&Vault<Ty0>): ID
+	22: MoveLoc[3](Arg3: &TxContext)
+	23: Call tx_context::sender(&TxContext): address
+	24: MoveLoc[2](Arg2: Option<u8>)
+	25: Call events::emit_set_security_level<Ty0>(ID, address, Option<u8>)
+	26: Ret
+}
+
+public set_security_by_manager<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: u8, Arg2: &TxContext) {
+L3:	loc0: bool
+L4:	loc1: u8
+L5:	loc2: address
+B0:
+	0: CopyLoc[2](Arg2: &TxContext)
+	1: Call tx_context::sender(&TxContext): address
+	2: StLoc[5](loc2: address)
+	3: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	4: ImmBorrowFieldGeneric[5](Vault.access_control: Acl)
+	5: CopyLoc[5](loc2: address)
+	6: Call acl::exists_role(&Acl, address): bool
+	7: Not
+	8: BrFalse(10)
+B1:
+	9: Call err_not_manager()
+B2:
+	10: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	11: ImmBorrowFieldGeneric[5](Vault.access_control: Acl)
+	12: MoveLoc[5](loc2: address)
+	13: Call acl::role_level(&Acl, address): u8
+	14: StLoc[4](loc1: u8)
+	15: CopyLoc[1](Arg1: u8)
+	16: LdU8(0)
+	17: Eq
+	18: BrFalse(22)
+B3:
+	19: LdTrue
+	20: StLoc[3](loc0: bool)
+	21: Branch(26)
+B4:
+	22: CopyLoc[1](Arg1: u8)
+	23: MoveLoc[4](loc1: u8)
+	24: Lt
+	25: StLoc[3](loc0: bool)
+B5:
+	26: MoveLoc[3](loc0: bool)
+	27: BrFalse(29)
+B6:
+	28: Call err_invalid_security_level()
+B7:
+	29: CopyLoc[1](Arg1: u8)
+	30: Call option::some<u8>(u8): Option<u8>
+	31: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	32: MutBorrowFieldGeneric[6](Vault.security_level: Option<u8>)
+	33: WriteRef
+	34: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	35: FreezeRef
+	36: Call object::id<Vault<Ty0>>(&Vault<Ty0>): ID
+	37: MoveLoc[2](Arg2: &TxContext)
+	38: Call tx_context::sender(&TxContext): address
+	39: MoveLoc[1](Arg1: u8)
+	40: Call option::some<u8>(u8): Option<u8>
+	41: Call events::emit_set_security_level<Ty0>(ID, address, Option<u8>)
+	42: Ret
+}
+
+public close_position_by_admin<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &mut Treasury, Arg2: &AdminCap, Arg3: &Clock, Arg4: address, Arg5: Coin<USDB>, Arg6: &mut TxContext): UpdateRequest<Ty0> {
+L7:	loc0: u64
+B0:
+	0: MoveLoc[1](Arg1: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	4: FreezeRef
+	5: CopyLoc[4](Arg4: address)
+	6: Call assert_position_is_not_locked<Ty0>(&Vault<Ty0>, address)
+	7: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	8: MutBorrowFieldGeneric[7](Vault.position_locker: VecSet<address>)
+	9: CopyLoc[4](Arg4: address)
+	10: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	11: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	12: FreezeRef
+	13: CopyLoc[4](Arg4: address)
+	14: MoveLoc[3](Arg3: &Clock)
+	15: Call get_position_data<Ty0>(&Vault<Ty0>, address, &Clock): u64 * u64
+	16: Pop
+	17: StLoc[7](loc0: u64)
+	18: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	19: FreezeRef
+	20: Call id<Ty0>(&Vault<Ty0>): ID
+	21: MoveLoc[4](Arg4: address)
+	22: MoveLoc[6](Arg6: &mut TxContext)
+	23: Call coin::zero<Ty0>(&mut TxContext): Coin<Ty0>
+	24: LdU64(0)
+	25: MoveLoc[5](Arg5: Coin<USDB>)
+	26: MoveLoc[7](loc0: u64)
+	27: Call memo::liquidate(): String
+	28: Call request::new<Ty0>(ID, address, Coin<Ty0>, u64, Coin<USDB>, u64, String): UpdateRequest<Ty0>
+	29: Ret
+}
+
+public open_position_by_admin<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &mut Treasury, Arg2: &AdminCap, Arg3: address, Arg4: Coin<Ty0>, Arg5: u64, Arg6: &mut TxContext): UpdateRequest<Ty0> {
+B0:
+	0: MoveLoc[1](Arg1: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	4: FreezeRef
+	5: CopyLoc[3](Arg3: address)
+	6: Call assert_position_is_not_locked<Ty0>(&Vault<Ty0>, address)
+	7: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	8: MutBorrowFieldGeneric[7](Vault.position_locker: VecSet<address>)
+	9: CopyLoc[3](Arg3: address)
+	10: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	11: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	12: FreezeRef
+	13: Call id<Ty0>(&Vault<Ty0>): ID
+	14: MoveLoc[3](Arg3: address)
+	15: MoveLoc[4](Arg4: Coin<Ty0>)
+	16: MoveLoc[5](Arg5: u64)
+	17: MoveLoc[6](Arg6: &mut TxContext)
+	18: Call coin::zero<USDB>(&mut TxContext): Coin<USDB>
+	19: LdU64(0)
+	20: Call memo::manage(): String
+	21: Call request::new<Ty0>(ID, address, Coin<Ty0>, u64, Coin<USDB>, u64, String): UpdateRequest<Ty0>
+	22: Ret
+}
+
+public update_position<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &mut Treasury, Arg2: &Clock, Arg3: &Option<PriceResult<Ty0>>, Arg4: UpdateRequest<Ty0>, Arg5: &mut TxContext): Coin<Ty0> * Coin<USDB> * UpdateResponse<Ty0> {
+L6:	loc0: u64
+L7:	loc1: Position
+L8:	loc2: bool
+L9:	loc3: bool
+L10:	loc4: bool
+L11:	loc5: Coin<USDB>
+L12:	loc6: u64
+L13:	loc7: Option<address>
+L14:	loc8: bool
+L15:	loc9: u64
+L16:	loc10: u64
+L17:	loc11: bool
+L18:	loc12: address
+L19:	loc13: u64
+L20:	loc14: Balance<USDB>
+L21:	loc15: u64
+L22:	loc16: u64
+L23:	loc17: Coin<Ty0>
+L24:	loc18: u64
+L25:	loc19: address
+L26:	loc20: Coin<Ty0>
+L27:	loc21: u64
+L28:	loc22: u64
+L29:	loc23: u64
+L30:	loc24: u64
+L31:	loc25: u64
+L32:	loc26: String
+L33:	loc27: Option<address>
+L34:	loc28: Option<address>
+L35:	loc29: &mut LinkedTable<address, Position>
+L36:	loc30: Position
+L37:	loc31: Position
+L38:	loc32: u64
+L39:	loc33: Coin<USDB>
+L40:	loc34: UpdateResponse<Ty0>
+L41:	loc35: &TypeName
+L42:	loc36: u64
+L43:	loc37: Coin<USDB>
+L44:	loc38: Coin<USDB>
+L45:	loc39: Coin<USDB>
+L46:	loc40: &vector<TypeName>
+L47:	loc41: u64
+L48:	loc42: VecSet<TypeName>
+B0:
+	0: CopyLoc[1](Arg1: &mut Treasury)
+	1: FreezeRef
+	2: Call version::assert_valid_package(&Treasury)
+	3: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	4: Call request::account<Ty0>(&UpdateRequest<Ty0>): address
+	5: StLoc[25](loc19: address)
+	6: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	7: Call request::memo<Ty0>(&UpdateRequest<Ty0>): String
+	8: Call memo::liquidate(): String
+	9: Neq
+	10: BrFalse(47)
+B1:
+	11: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	12: Call request::deposit_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	13: LdU64(0)
+	14: Gt
+	15: BrFalse(20)
+B2:
+	16: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	17: FreezeRef
+	18: LdU8(1)
+	19: Call check_security_level<Ty0>(&Vault<Ty0>, u8)
+B3:
+	20: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	21: Call request::borrow_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	22: LdU64(0)
+	23: Gt
+	24: BrFalse(29)
+B4:
+	25: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	26: FreezeRef
+	27: LdU8(2)
+	28: Call check_security_level<Ty0>(&Vault<Ty0>, u8)
+B5:
+	29: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	30: Call request::withdraw_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	31: LdU64(0)
+	32: Gt
+	33: BrFalse(38)
+B6:
+	34: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	35: FreezeRef
+	36: LdU8(2)
+	37: Call check_security_level<Ty0>(&Vault<Ty0>, u8)
+B7:
+	38: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	39: Call request::repay_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	40: LdU64(0)
+	41: Gt
+	42: BrFalse(47)
+B8:
+	43: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	44: FreezeRef
+	45: LdU8(2)
+	46: Call check_security_level<Ty0>(&Vault<Ty0>, u8)
+B9:
+	47: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	48: MutBorrowFieldGeneric[8](Vault.position_table: LinkedTable<address, Position>)
+	49: StLoc[35](loc29: &mut LinkedTable<address, Position>)
+	50: CopyLoc[35](loc29: &mut LinkedTable<address, Position>)
+	51: FreezeRef
+	52: CopyLoc[25](loc19: address)
+	53: Call linked_table::contains<address, Position>(&LinkedTable<address, Position>, address): bool
+	54: BrFalse(79)
+B10:
+	55: CopyLoc[35](loc29: &mut LinkedTable<address, Position>)
+	56: FreezeRef
+	57: CopyLoc[25](loc19: address)
+	58: Call linked_table::next<address, Position>(&LinkedTable<address, Position>, address): &Option<address>
+	59: ReadRef
+	60: StLoc[33](loc27: Option<address>)
+	61: MoveLoc[35](loc29: &mut LinkedTable<address, Position>)
+	62: CopyLoc[25](loc19: address)
+	63: Call linked_table::remove<address, Position>(&mut LinkedTable<address, Position>, address): Position
+	64: StLoc[36](loc30: Position)
+	65: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	66: MutBorrowLoc[36](loc30: Position)
+	67: CopyLoc[1](Arg1: &mut Treasury)
+	68: CopyLoc[2](Arg2: &Clock)
+	69: CopyLoc[5](Arg5: &mut TxContext)
+	70: Call accrue_interest<Ty0>(&mut Vault<Ty0>, &mut Position, &mut Treasury, &Clock, &mut TxContext): u64
+	71: StLoc[30](loc24: u64)
+	72: MoveLoc[36](loc30: Position)
+	73: MoveLoc[30](loc24: u64)
+	74: MoveLoc[33](loc27: Option<address>)
+	75: StLoc[13](loc7: Option<address>)
+	76: StLoc[12](loc6: u64)
+	77: StLoc[7](loc1: Position)
+	78: Branch(99)
+B11:
+	79: MoveLoc[35](loc29: &mut LinkedTable<address, Position>)
+	80: Pop
+	81: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	82: CopyLoc[1](Arg1: &mut Treasury)
+	83: CopyLoc[2](Arg2: &Clock)
+	84: CopyLoc[5](Arg5: &mut TxContext)
+	85: Call collect_interest<Ty0>(&mut Vault<Ty0>, &mut Treasury, &Clock, &mut TxContext): Double
+	86: Pop
+	87: LdU64(0)
+	88: LdU64(0)
+	89: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	90: FreezeRef
+	91: CopyLoc[2](Arg2: &Clock)
+	92: Call current_vault_interest_unit<Ty0>(&Vault<Ty0>, &Clock): Double
+	93: Pack[0](Position)
+	94: LdU64(0)
+	95: Call option::none<address>(): Option<address>
+	96: StLoc[13](loc7: Option<address>)
+	97: StLoc[12](loc6: u64)
+	98: StLoc[7](loc1: Position)
+B12:
+	99: MoveLoc[7](loc1: Position)
+	100: MoveLoc[12](loc6: u64)
+	101: MoveLoc[13](loc7: Option<address>)
+	102: StLoc[34](loc28: Option<address>)
+	103: StLoc[31](loc25: u64)
+	104: StLoc[37](loc31: Position)
+	105: ImmBorrowLoc[37](loc31: Position)
+	106: ImmBorrowField[9](Position.coll_amount: u64)
+	107: ReadRef
+	108: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	109: Call request::deposit_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	110: Add
+	111: MutBorrowLoc[37](loc31: Position)
+	112: MutBorrowField[9](Position.coll_amount: u64)
+	113: WriteRef
+	114: ImmBorrowLoc[37](loc31: Position)
+	115: ImmBorrowField[10](Position.debt_amount: u64)
+	116: ReadRef
+	117: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	118: Call request::borrow_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	119: Add
+	120: MutBorrowLoc[37](loc31: Position)
+	121: MutBorrowField[10](Position.debt_amount: u64)
+	122: WriteRef
+	123: ImmBorrowLoc[37](loc31: Position)
+	124: ImmBorrowField[10](Position.debt_amount: u64)
+	125: ReadRef
+	126: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	127: Call request::repay_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	128: Lt
+	129: BrFalse(131)
+B13:
+	130: Call err_repay_too_much()
+B14:
+	131: ImmBorrowLoc[37](loc31: Position)
+	132: ImmBorrowField[10](Position.debt_amount: u64)
+	133: ReadRef
+	134: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	135: Call request::repay_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	136: Sub
+	137: MutBorrowLoc[37](loc31: Position)
+	138: MutBorrowField[10](Position.debt_amount: u64)
+	139: WriteRef
+	140: ImmBorrowLoc[37](loc31: Position)
+	141: ImmBorrowField[9](Position.coll_amount: u64)
+	142: ReadRef
+	143: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	144: Call request::withdraw_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	145: Lt
+	146: BrFalse(148)
+B15:
+	147: Call err_withdraw_too_much()
+B16:
+	148: ImmBorrowLoc[37](loc31: Position)
+	149: ImmBorrowField[9](Position.coll_amount: u64)
+	150: ReadRef
+	151: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	152: Call request::withdraw_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	153: Sub
+	154: MutBorrowLoc[37](loc31: Position)
+	155: MutBorrowField[9](Position.coll_amount: u64)
+	156: WriteRef
+	157: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	158: Call request::repay_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	159: StLoc[38](loc32: u64)
+	160: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	161: ImmBorrowFieldGeneric[9](Vault.total_debt_amount: u64)
+	162: ReadRef
+	163: ImmBorrowLoc[4](Arg4: UpdateRequest<Ty0>)
+	164: Call request::borrow_amount<Ty0>(&UpdateRequest<Ty0>): u64
+	165: Add
+	166: CopyLoc[38](loc32: u64)
+	167: Call u64::max(u64, u64): u64
+	168: MoveLoc[38](loc32: u64)
+	169: Sub
+	170: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	171: MutBorrowFieldGeneric[9](Vault.total_debt_amount: u64)
+	172: WriteRef
+	173: ImmBorrowLoc[37](loc31: Position)
+	174: ImmBorrowField[9](Position.coll_amount: u64)
+	175: ReadRef
+	176: LdU64(0)
+	177: Eq
+	178: BrFalse(186)
+B17:
+	179: ImmBorrowLoc[37](loc31: Position)
+	180: ImmBorrowField[10](Position.debt_amount: u64)
+	181: ReadRef
+	182: LdU64(0)
+	183: Eq
+	184: StLoc[14](loc8: bool)
+	185: Branch(188)
+B18:
+	186: LdFalse
+	187: StLoc[14](loc8: bool)
+B19:
+	188: MoveLoc[14](loc8: bool)
+	189: BrFalse(196)
+B20:
+	190: MoveLoc[37](loc31: Position)
+	191: Unpack[0](Position)
+	192: Pop
+	193: StLoc[16](loc10: u64)
+	194: StLoc[15](loc9: u64)
+	195: Branch(209)
+B21:
+	196: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	197: MutBorrowFieldGeneric[8](Vault.position_table: LinkedTable<address, Position>)
+	198: MoveLoc[34](loc28: Option<address>)
+	199: CopyLoc[25](loc19: address)
+	200: MoveLoc[37](loc31: Position)
+	201: Call linked_table::insert_front<address, Position>(&mut LinkedTable<address, Position>, Option<address>, address, Position)
+	202: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	203: FreezeRef
+	204: CopyLoc[25](loc19: address)
+	205: CopyLoc[2](Arg2: &Clock)
+	206: Call get_position_data<Ty0>(&Vault<Ty0>, address, &Clock): u64 * u64
+	207: StLoc[16](loc10: u64)
+	208: StLoc[15](loc9: u64)
+B22:
+	209: MoveLoc[15](loc9: u64)
+	210: MoveLoc[16](loc10: u64)
+	211: StLoc[24](loc18: u64)
+	212: StLoc[22](loc16: u64)
+	213: MoveLoc[4](Arg4: UpdateRequest<Ty0>)
+	214: Call request::destroy<Ty0>(UpdateRequest<Ty0>): ID * address * Coin<Ty0> * u64 * Coin<USDB> * u64 * VecSet<TypeName> * String
+	215: StLoc[32](loc26: String)
+	216: StLoc[48](loc42: VecSet<TypeName>)
+	217: StLoc[47](loc41: u64)
+	218: StLoc[39](loc33: Coin<USDB>)
+	219: StLoc[19](loc13: u64)
+	220: StLoc[26](loc20: Coin<Ty0>)
+	221: StLoc[18](loc12: address)
+	222: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	223: FreezeRef
+	224: Call id<Ty0>(&Vault<Ty0>): ID
+	225: Neq
+	226: BrFalse(228)
+B23:
+	227: Call err_wrong_vault_id()
+B24:
+	228: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	229: FreezeRef
+	230: Call request_checklist<Ty0>(&Vault<Ty0>): &vector<TypeName>
+	231: StLoc[46](loc40: &vector<TypeName>)
+	232: CopyLoc[46](loc40: &vector<TypeName>)
+	233: VecLen(26)
+	234: StLoc[6](loc0: u64)
+	235: LdU64(0)
+	236: StLoc[29](loc23: u64)
+	237: MoveLoc[6](loc0: u64)
+	238: StLoc[42](loc36: u64)
+B25:
+	239: CopyLoc[29](loc23: u64)
+	240: CopyLoc[42](loc36: u64)
+	241: Lt
+	242: BrFalse(264)
+B26:
+	243: CopyLoc[29](loc23: u64)
+	244: StLoc[28](loc22: u64)
+	245: CopyLoc[46](loc40: &vector<TypeName>)
+	246: MoveLoc[28](loc22: u64)
+	247: VecImmBorrow(26)
+	248: StLoc[41](loc35: &TypeName)
+	249: ImmBorrowLoc[48](loc42: VecSet<TypeName>)
+	250: MoveLoc[41](loc35: &TypeName)
+	251: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	252: Not
+	253: BrFalse(259)
+B27:
+	254: MoveLoc[46](loc40: &vector<TypeName>)
+	255: Pop
+	256: LdFalse
+	257: StLoc[17](loc11: bool)
+	258: Branch(268)
+B28:
+	259: MoveLoc[29](loc23: u64)
+	260: LdU64(1)
+	261: Add
+	262: StLoc[29](loc23: u64)
+	263: Branch(239)
+B29:
+	264: MoveLoc[46](loc40: &vector<TypeName>)
+	265: Pop
+	266: LdTrue
+	267: StLoc[17](loc11: bool)
+B30:
+	268: MoveLoc[17](loc11: bool)
+	269: Not
+	270: BrFalse(272)
+B31:
+	271: Call err_missing_request_witness()
+B32:
+	272: CopyLoc[32](loc26: String)
+	273: Call memo::manage(): String
+	274: Eq
+	275: BrFalse(299)
+B33:
+	276: CopyLoc[19](loc13: u64)
+	277: LdU64(0)
+	278: Gt
+	279: BrFalse(283)
+B34:
+	280: LdTrue
+	281: StLoc[9](loc3: bool)
+	282: Branch(296)
+B35:
+	283: CopyLoc[47](loc41: u64)
+	284: LdU64(0)
+	285: Gt
+	286: BrFalse(292)
+B36:
+	287: CopyLoc[24](loc18: u64)
+	288: LdU64(0)
+	289: Gt
+	290: StLoc[10](loc4: bool)
+	291: Branch(294)
+B37:
+	292: LdFalse
+	293: StLoc[10](loc4: bool)
+B38:
+	294: MoveLoc[10](loc4: bool)
+	295: StLoc[9](loc3: bool)
+B39:
+	296: MoveLoc[9](loc3: bool)
+	297: StLoc[8](loc2: bool)
+	298: Branch(302)
+B40:
+	299: LdFalse
+	300: StLoc[8](loc2: bool)
+	301: Branch(302)
+B41:
+	302: MoveLoc[8](loc2: bool)
+	303: BrFalse(324)
+B42:
+	304: CopyLoc[3](Arg3: &Option<PriceResult<Ty0>>)
+	305: Call option::is_some<PriceResult<Ty0>>(&Option<PriceResult<Ty0>>): bool
+	306: BrFalse(318)
+B43:
+	307: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	308: FreezeRef
+	309: CopyLoc[25](loc19: address)
+	310: MoveLoc[2](Arg2: &Clock)
+	311: MoveLoc[3](Arg3: &Option<PriceResult<Ty0>>)
+	312: Call option::borrow<PriceResult<Ty0>>(&Option<PriceResult<Ty0>>): &PriceResult<Ty0>
+	313: Call position_is_healthy<Ty0>(&Vault<Ty0>, address, &Clock, &PriceResult<Ty0>): bool
+	314: Not
+	315: BrFalse(328)
+B44:
+	316: Call err_position_is_not_healthy()
+	317: Branch(328)
+B45:
+	318: MoveLoc[3](Arg3: &Option<PriceResult<Ty0>>)
+	319: Pop
+	320: MoveLoc[2](Arg2: &Clock)
+	321: Pop
+	322: Call err_oracle_price_is_required()
+	323: Branch(328)
+B46:
+	324: MoveLoc[3](Arg3: &Option<PriceResult<Ty0>>)
+	325: Pop
+	326: MoveLoc[2](Arg2: &Clock)
+	327: Pop
+B47:
+	328: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	329: FreezeRef
+	330: Call object::id<Vault<Ty0>>(&Vault<Ty0>): ID
+	331: MoveLoc[18](loc12: address)
+	332: ImmBorrowLoc[26](loc20: Coin<Ty0>)
+	333: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	334: CopyLoc[19](loc13: u64)
+	335: ImmBorrowLoc[39](loc33: Coin<USDB>)
+	336: Call coin::value<USDB>(&Coin<USDB>): u64
+	337: CopyLoc[47](loc41: u64)
+	338: CopyLoc[31](loc25: u64)
+	339: CopyLoc[22](loc16: u64)
+	340: CopyLoc[24](loc18: u64)
+	341: MoveLoc[32](loc26: String)
+	342: Call events::emit_position_updated<Ty0>(ID, address, u64, u64, u64, u64, u64, u64, u64, String)
+	343: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	344: ImmBorrowFieldGeneric[10](Vault.total_coll_amount: u64)
+	345: ReadRef
+	346: ImmBorrowLoc[26](loc20: Coin<Ty0>)
+	347: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	348: Add
+	349: CopyLoc[47](loc41: u64)
+	350: Sub
+	351: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	352: MutBorrowFieldGeneric[10](Vault.total_coll_amount: u64)
+	353: WriteRef
+	354: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	355: MutBorrowFieldGeneric[11](Vault.balance: Balance<Ty0>)
+	356: MoveLoc[26](loc20: Coin<Ty0>)
+	357: Call coin::into_balance<Ty0>(Coin<Ty0>): Balance<Ty0>
+	358: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	359: Pop
+	360: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	361: ImmBorrowFieldGeneric[11](Vault.balance: Balance<Ty0>)
+	362: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	363: CopyLoc[47](loc41: u64)
+	364: Lt
+	365: BrFalse(367)
+B48:
+	366: Call err_vault_balance_not_enough()
+B49:
+	367: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	368: MutBorrowFieldGeneric[11](Vault.balance: Balance<Ty0>)
+	369: MoveLoc[47](loc41: u64)
+	370: CopyLoc[5](Arg5: &mut TxContext)
+	371: Call coin::take<Ty0>(&mut Balance<Ty0>, u64, &mut TxContext): Coin<Ty0>
+	372: StLoc[23](loc17: Coin<Ty0>)
+	373: CopyLoc[19](loc13: u64)
+	374: ImmBorrowLoc[39](loc33: Coin<USDB>)
+	375: Call coin::value<USDB>(&Coin<USDB>): u64
+	376: Gt
+	377: BrFalse(395)
+B50:
+	378: MoveLoc[19](loc13: u64)
+	379: ImmBorrowLoc[39](loc33: Coin<USDB>)
+	380: Call coin::value<USDB>(&Coin<USDB>): u64
+	381: Sub
+	382: StLoc[27](loc21: u64)
+	383: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	384: MoveLoc[1](Arg1: &mut Treasury)
+	385: MoveLoc[27](loc21: u64)
+	386: MoveLoc[5](Arg5: &mut TxContext)
+	387: Call mint_usdb<Ty0>(&mut Vault<Ty0>, &mut Treasury, u64, &mut TxContext): Coin<USDB>
+	388: StLoc[43](loc37: Coin<USDB>)
+	389: MutBorrowLoc[43](loc37: Coin<USDB>)
+	390: MoveLoc[39](loc33: Coin<USDB>)
+	391: Call coin::join<USDB>(&mut Coin<USDB>, Coin<USDB>)
+	392: MoveLoc[43](loc37: Coin<USDB>)
+	393: StLoc[11](loc5: Coin<USDB>)
+	394: Branch(445)
+B51:
+	395: MutBorrowLoc[39](loc33: Coin<USDB>)
+	396: MoveLoc[19](loc13: u64)
+	397: MoveLoc[5](Arg5: &mut TxContext)
+	398: Call coin::split<USDB>(&mut Coin<USDB>, u64, &mut TxContext): Coin<USDB>
+	399: StLoc[44](loc38: Coin<USDB>)
+	400: ImmBorrowLoc[39](loc33: Coin<USDB>)
+	401: Call coin::value<USDB>(&Coin<USDB>): u64
+	402: LdU64(0)
+	403: Gt
+	404: BrFalse(439)
+B52:
+	405: ImmBorrowLoc[39](loc33: Coin<USDB>)
+	406: Call coin::value<USDB>(&Coin<USDB>): u64
+	407: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	408: ImmBorrowFieldGeneric[12](Vault.total_pending_interest_amount: u64)
+	409: ReadRef
+	410: Call u64::min(u64, u64): u64
+	411: StLoc[21](loc15: u64)
+	412: CopyLoc[21](loc15: u64)
+	413: LdU64(0)
+	414: Gt
+	415: BrFalse(434)
+B53:
+	416: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	417: ImmBorrowFieldGeneric[12](Vault.total_pending_interest_amount: u64)
+	418: ReadRef
+	419: CopyLoc[21](loc15: u64)
+	420: Sub
+	421: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	422: MutBorrowFieldGeneric[12](Vault.total_pending_interest_amount: u64)
+	423: WriteRef
+	424: MutBorrowLoc[39](loc33: Coin<USDB>)
+	425: Call coin::balance_mut<USDB>(&mut Coin<USDB>): &mut Balance<USDB>
+	426: MoveLoc[21](loc15: u64)
+	427: Call balance::split<USDB>(&mut Balance<USDB>, u64): Balance<USDB>
+	428: StLoc[20](loc14: Balance<USDB>)
+	429: CopyLoc[1](Arg1: &mut Treasury)
+	430: Call witness::witness(): BucketV2CDP
+	431: Call memo::interest(): String
+	432: MoveLoc[20](loc14: Balance<USDB>)
+	433: Call usdb::collect<USDB, BucketV2CDP>(&mut Treasury, BucketV2CDP, String, Balance<USDB>)
+B54:
+	434: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	435: MoveLoc[1](Arg1: &mut Treasury)
+	436: MoveLoc[39](loc33: Coin<USDB>)
+	437: Call burn_usdb<Ty0>(&mut Vault<Ty0>, &mut Treasury, Coin<USDB>)
+	438: Branch(443)
+B55:
+	439: MoveLoc[1](Arg1: &mut Treasury)
+	440: Pop
+	441: MoveLoc[39](loc33: Coin<USDB>)
+	442: Call coin::destroy_zero<USDB>(Coin<USDB>)
+B56:
+	443: MoveLoc[44](loc38: Coin<USDB>)
+	444: StLoc[11](loc5: Coin<USDB>)
+B57:
+	445: MoveLoc[11](loc5: Coin<USDB>)
+	446: StLoc[45](loc39: Coin<USDB>)
+	447: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	448: FreezeRef
+	449: Call id<Ty0>(&Vault<Ty0>): ID
+	450: MoveLoc[25](loc19: address)
+	451: MoveLoc[22](loc16: u64)
+	452: MoveLoc[24](loc18: u64)
+	453: MoveLoc[31](loc25: u64)
+	454: Call response::new<Ty0>(ID, address, u64, u64, u64): UpdateResponse<Ty0>
+	455: StLoc[40](loc34: UpdateResponse<Ty0>)
+	456: MoveLoc[23](loc17: Coin<Ty0>)
+	457: MoveLoc[45](loc39: Coin<USDB>)
+	458: MoveLoc[40](loc34: UpdateResponse<Ty0>)
+	459: Ret
+}
+
+public destroy_response<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &Treasury, Arg2: UpdateResponse<Ty0>) {
+L3:	loc0: u64
+L4:	loc1: address
+L5:	loc2: &mut VecSet<address>
+L6:	loc3: bool
+L7:	loc4: u64
+L8:	loc5: u64
+L9:	loc6: &TypeName
+L10:	loc7: u64
+L11:	loc8: &vector<TypeName>
+L12:	loc9: VecSet<TypeName>
+B0:
+	0: MoveLoc[1](Arg1: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: MutBorrowFieldGeneric[7](Vault.position_locker: VecSet<address>)
+	4: StLoc[5](loc2: &mut VecSet<address>)
+	5: ImmBorrowLoc[2](Arg2: UpdateResponse<Ty0>)
+	6: Call response::account<Ty0>(&UpdateResponse<Ty0>): address
+	7: StLoc[4](loc1: address)
+	8: MoveLoc[5](loc2: &mut VecSet<address>)
+	9: ImmBorrowLoc[4](loc1: address)
+	10: Call vec_set::remove<address>(&mut VecSet<address>, &address)
+	11: MoveLoc[2](Arg2: UpdateResponse<Ty0>)
+	12: Call response::destroy<Ty0>(UpdateResponse<Ty0>): ID * address * u64 * u64 * u64 * VecSet<TypeName>
+	13: StLoc[12](loc9: VecSet<TypeName>)
+	14: Pop
+	15: Pop
+	16: Pop
+	17: Pop
+	18: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	19: FreezeRef
+	20: Call id<Ty0>(&Vault<Ty0>): ID
+	21: Neq
+	22: BrFalse(24)
+B1:
+	23: Call err_wrong_vault_id()
+B2:
+	24: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	25: FreezeRef
+	26: Call response_checklist<Ty0>(&Vault<Ty0>): &vector<TypeName>
+	27: StLoc[11](loc8: &vector<TypeName>)
+	28: CopyLoc[11](loc8: &vector<TypeName>)
+	29: VecLen(26)
+	30: StLoc[3](loc0: u64)
+	31: LdU64(0)
+	32: StLoc[8](loc5: u64)
+	33: MoveLoc[3](loc0: u64)
+	34: StLoc[10](loc7: u64)
+B3:
+	35: CopyLoc[8](loc5: u64)
+	36: CopyLoc[10](loc7: u64)
+	37: Lt
+	38: BrFalse(60)
+B4:
+	39: CopyLoc[8](loc5: u64)
+	40: StLoc[7](loc4: u64)
+	41: CopyLoc[11](loc8: &vector<TypeName>)
+	42: MoveLoc[7](loc4: u64)
+	43: VecImmBorrow(26)
+	44: StLoc[9](loc6: &TypeName)
+	45: ImmBorrowLoc[12](loc9: VecSet<TypeName>)
+	46: MoveLoc[9](loc6: &TypeName)
+	47: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	48: Not
+	49: BrFalse(55)
+B5:
+	50: MoveLoc[11](loc8: &vector<TypeName>)
+	51: Pop
+	52: LdFalse
+	53: StLoc[6](loc3: bool)
+	54: Branch(64)
+B6:
+	55: MoveLoc[8](loc5: u64)
+	56: LdU64(1)
+	57: Add
+	58: StLoc[8](loc5: u64)
+	59: Branch(35)
+B7:
+	60: MoveLoc[11](loc8: &vector<TypeName>)
+	61: Pop
+	62: LdTrue
+	63: StLoc[6](loc3: bool)
+B8:
+	64: MoveLoc[6](loc3: bool)
+	65: Not
+	66: BrFalse(68)
+B9:
+	67: Call err_missing_response_witness()
+B10:
+	68: Ret
+}
+
+public debtor_request<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &AccountRequest, Arg2: &Treasury, Arg3: Coin<Ty0>, Arg4: u64, Arg5: Coin<USDB>, Arg6: u64): UpdateRequest<Ty0> {
+L7:	loc0: address
+B0:
+	0: MoveLoc[2](Arg2: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: MoveLoc[1](Arg1: &AccountRequest)
+	3: Call account::request_address(&AccountRequest): address
+	4: StLoc[7](loc0: address)
+	5: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	6: FreezeRef
+	7: CopyLoc[7](loc0: address)
+	8: Call assert_position_is_not_locked<Ty0>(&Vault<Ty0>, address)
+	9: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	10: MutBorrowFieldGeneric[7](Vault.position_locker: VecSet<address>)
+	11: CopyLoc[7](loc0: address)
+	12: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	13: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	14: FreezeRef
+	15: Call id<Ty0>(&Vault<Ty0>): ID
+	16: MoveLoc[7](loc0: address)
+	17: MoveLoc[3](Arg3: Coin<Ty0>)
+	18: MoveLoc[4](Arg4: u64)
+	19: MoveLoc[5](Arg5: Coin<USDB>)
+	20: MoveLoc[6](Arg6: u64)
+	21: Call memo::manage(): String
+	22: Call request::new<Ty0>(ID, address, Coin<Ty0>, u64, Coin<USDB>, u64, String): UpdateRequest<Ty0>
+	23: Ret
+}
+
+public donor_request<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &Treasury, Arg2: address, Arg3: Coin<Ty0>, Arg4: Coin<USDB>): UpdateRequest<Ty0> {
+B0:
+	0: MoveLoc[1](Arg1: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: FreezeRef
+	4: CopyLoc[2](Arg2: address)
+	5: Call assert_position_is_not_locked<Ty0>(&Vault<Ty0>, address)
+	6: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	7: MutBorrowFieldGeneric[7](Vault.position_locker: VecSet<address>)
+	8: CopyLoc[2](Arg2: address)
+	9: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	10: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	11: FreezeRef
+	12: Call id<Ty0>(&Vault<Ty0>): ID
+	13: MoveLoc[2](Arg2: address)
+	14: MoveLoc[3](Arg3: Coin<Ty0>)
+	15: LdU64(0)
+	16: MoveLoc[4](Arg4: Coin<USDB>)
+	17: LdU64(0)
+	18: Call memo::donate(): String
+	19: Call request::new<Ty0>(ID, address, Coin<Ty0>, u64, Coin<USDB>, u64, String): UpdateRequest<Ty0>
+	20: Ret
+}
+
+public liquidate<Ty0, Ty1: drop>(Arg0: &mut Vault<Ty0>, Arg1: &Treasury, Arg2: &Clock, Arg3: &PriceResult<Ty0>, Arg4: address, Arg5: Coin<USDB>, Arg6: Ty1, Arg7: &mut TxContext): UpdateRequest<Ty0> {
+L8:	loc0: u64
+L9:	loc1: u64
+L10:	loc2: u64
+L11:	loc3: u64
+B0:
+	0: MoveLoc[1](Arg1: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: FreezeRef
+	4: CopyLoc[4](Arg4: address)
+	5: Call assert_position_is_not_locked<Ty0>(&Vault<Ty0>, address)
+	6: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	7: MutBorrowFieldGeneric[7](Vault.position_locker: VecSet<address>)
+	8: CopyLoc[4](Arg4: address)
+	9: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	10: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	11: ImmBorrowFieldGeneric[2](Vault.liquidation_rule: TypeName)
+	12: ReadRef
+	13: Call type_name::with_defining_ids<Ty1>(): TypeName
+	14: Neq
+	15: BrFalse(17)
+B1:
+	16: Call err_invalid_liquidation()
+B2:
+	17: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	18: FreezeRef
+	19: LdU8(1)
+	20: Call check_security_level<Ty0>(&Vault<Ty0>, u8)
+	21: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	22: FreezeRef
+	23: CopyLoc[4](Arg4: address)
+	24: CopyLoc[2](Arg2: &Clock)
+	25: MoveLoc[3](Arg3: &PriceResult<Ty0>)
+	26: Call position_is_healthy<Ty0>(&Vault<Ty0>, address, &Clock, &PriceResult<Ty0>): bool
+	27: BrFalse(29)
+B3:
+	28: Call err_position_is_healthy()
+B4:
+	29: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	30: FreezeRef
+	31: CopyLoc[4](Arg4: address)
+	32: MoveLoc[2](Arg2: &Clock)
+	33: Call get_position_data<Ty0>(&Vault<Ty0>, address, &Clock): u64 * u64
+	34: StLoc[10](loc2: u64)
+	35: StLoc[9](loc1: u64)
+	36: ImmBorrowLoc[5](Arg5: Coin<USDB>)
+	37: Call coin::value<USDB>(&Coin<USDB>): u64
+	38: CopyLoc[10](loc2: u64)
+	39: Gt
+	40: BrFalse(42)
+B5:
+	41: Call err_invalid_liquidation()
+B6:
+	42: ImmBorrowLoc[5](Arg5: Coin<USDB>)
+	43: Call coin::value<USDB>(&Coin<USDB>): u64
+	44: CopyLoc[10](loc2: u64)
+	45: Eq
+	46: BrFalse(50)
+B7:
+	47: MoveLoc[9](loc1: u64)
+	48: StLoc[8](loc0: u64)
+	49: Branch(59)
+B8:
+	50: ImmBorrowLoc[5](Arg5: Coin<USDB>)
+	51: Call coin::value<USDB>(&Coin<USDB>): u64
+	52: Call double::from(u64): Double
+	53: MoveLoc[9](loc1: u64)
+	54: Call double::mul_u64(Double, u64): Double
+	55: MoveLoc[10](loc2: u64)
+	56: Call double::div_u64(Double, u64): Double
+	57: Call double::floor(Double): u64
+	58: StLoc[8](loc0: u64)
+B9:
+	59: MoveLoc[8](loc0: u64)
+	60: StLoc[11](loc3: u64)
+	61: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	62: FreezeRef
+	63: Call id<Ty0>(&Vault<Ty0>): ID
+	64: MoveLoc[4](Arg4: address)
+	65: MoveLoc[7](Arg7: &mut TxContext)
+	66: Call coin::zero<Ty0>(&mut TxContext): Coin<Ty0>
+	67: LdU64(0)
+	68: MoveLoc[5](Arg5: Coin<USDB>)
+	69: MoveLoc[11](loc3: u64)
+	70: Call memo::liquidate(): String
+	71: Call request::new<Ty0>(ID, address, Coin<Ty0>, u64, Coin<USDB>, u64, String): UpdateRequest<Ty0>
+	72: Ret
+}
+
+public collect_interest<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &mut Treasury, Arg2: &Clock, Arg3: &mut TxContext): Double {
+L4:	loc0: Double
+L5:	loc1: Coin<USDB>
+L6:	loc2: u64
+L7:	loc3: u64
+L8:	loc4: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	1: FreezeRef
+	2: CopyLoc[2](Arg2: &Clock)
+	3: Call current_vault_interest_unit<Ty0>(&Vault<Ty0>, &Clock): Double
+	4: StLoc[4](loc0: Double)
+	5: CopyLoc[4](loc0: Double)
+	6: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	7: ImmBorrowFieldGeneric[13](Vault.interest_unit: Double)
+	8: ReadRef
+	9: Call double::sub(Double, Double): Double
+	10: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	11: ImmBorrowFieldGeneric[9](Vault.total_debt_amount: u64)
+	12: ReadRef
+	13: Call double::mul_u64(Double, u64): Double
+	14: Call double::round(Double): u64
+	15: StLoc[8](loc4: u64)
+	16: CopyLoc[8](loc4: u64)
+	17: LdU64(0)
+	18: Gt
+	19: BrFalse(73)
+B1:
+	20: CopyLoc[8](loc4: u64)
+	21: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	22: FreezeRef
+	23: Call limited_supply<Ty0>(&Vault<Ty0>): &LimitedSupply
+	24: Call limited_supply::increasable_amount(&LimitedSupply): u64
+	25: Call u64::min(u64, u64): u64
+	26: StLoc[6](loc2: u64)
+	27: CopyLoc[8](loc4: u64)
+	28: CopyLoc[6](loc2: u64)
+	29: Sub
+	30: StLoc[7](loc3: u64)
+	31: CopyLoc[6](loc2: u64)
+	32: LdU64(0)
+	33: Gt
+	34: BrFalse(48)
+B2:
+	35: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	36: CopyLoc[1](Arg1: &mut Treasury)
+	37: MoveLoc[6](loc2: u64)
+	38: MoveLoc[3](Arg3: &mut TxContext)
+	39: Call mint_usdb<Ty0>(&mut Vault<Ty0>, &mut Treasury, u64, &mut TxContext): Coin<USDB>
+	40: StLoc[5](loc1: Coin<USDB>)
+	41: MoveLoc[1](Arg1: &mut Treasury)
+	42: Call witness::witness(): BucketV2CDP
+	43: Call memo::interest(): String
+	44: MoveLoc[5](loc1: Coin<USDB>)
+	45: Call coin::into_balance<USDB>(Coin<USDB>): Balance<USDB>
+	46: Call usdb::collect<USDB, BucketV2CDP>(&mut Treasury, BucketV2CDP, String, Balance<USDB>)
+	47: Branch(52)
+B3:
+	48: MoveLoc[1](Arg1: &mut Treasury)
+	49: Pop
+	50: MoveLoc[3](Arg3: &mut TxContext)
+	51: Pop
+B4:
+	52: CopyLoc[7](loc3: u64)
+	53: LdU64(0)
+	54: Gt
+	55: BrFalse(64)
+B5:
+	56: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	57: ImmBorrowFieldGeneric[12](Vault.total_pending_interest_amount: u64)
+	58: ReadRef
+	59: MoveLoc[7](loc3: u64)
+	60: Add
+	61: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	62: MutBorrowFieldGeneric[12](Vault.total_pending_interest_amount: u64)
+	63: WriteRef
+B6:
+	64: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	65: ImmBorrowFieldGeneric[9](Vault.total_debt_amount: u64)
+	66: ReadRef
+	67: MoveLoc[8](loc4: u64)
+	68: Add
+	69: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	70: MutBorrowFieldGeneric[9](Vault.total_debt_amount: u64)
+	71: WriteRef
+	72: Branch(77)
+B7:
+	73: MoveLoc[1](Arg1: &mut Treasury)
+	74: Pop
+	75: MoveLoc[3](Arg3: &mut TxContext)
+	76: Pop
+B8:
+	77: CopyLoc[4](loc0: Double)
+	78: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	79: MutBorrowFieldGeneric[13](Vault.interest_unit: Double)
+	80: WriteRef
+	81: MoveLoc[2](Arg2: &Clock)
+	82: Call clock::timestamp_ms(&Clock): u64
+	83: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	84: MutBorrowFieldGeneric[14](Vault.timestamp: u64)
+	85: WriteRef
+	86: MoveLoc[4](loc0: Double)
+	87: Ret
+}
+
+public decimal<Ty0>(Arg0: &Vault<Ty0>): u8 {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[15](Vault.decimal: u8)
+	2: ReadRef
+	3: Ret
+}
+
+public interest_rate<Ty0>(Arg0: &Vault<Ty0>): Double {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[1](Vault.interest_rate: Double)
+	2: ReadRef
+	3: Ret
+}
+
+public limited_supply<Ty0>(Arg0: &Vault<Ty0>): &LimitedSupply {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[0](Vault.limited_supply: LimitedSupply)
+	2: Ret
+}
+
+public min_collateral_ratio<Ty0>(Arg0: &Vault<Ty0>): Float {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[16](Vault.min_collateral_ratio: Float)
+	2: ReadRef
+	3: Ret
+}
+
+public liquidation_rule<Ty0>(Arg0: &Vault<Ty0>): TypeName {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[2](Vault.liquidation_rule: TypeName)
+	2: ReadRef
+	3: Ret
+}
+
+public request_checklist<Ty0>(Arg0: &Vault<Ty0>): &vector<TypeName> {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[3](Vault.request_checklist: vector<TypeName>)
+	2: Ret
+}
+
+public response_checklist<Ty0>(Arg0: &Vault<Ty0>): &vector<TypeName> {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[4](Vault.response_checklist: vector<TypeName>)
+	2: Ret
+}
+
+public position_table<Ty0>(Arg0: &Vault<Ty0>): &LinkedTable<address, Position> {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[8](Vault.position_table: LinkedTable<address, Position>)
+	2: Ret
+}
+
+public position_exists<Ty0>(Arg0: &Vault<Ty0>, Arg1: address): bool {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: Call position_table<Ty0>(&Vault<Ty0>): &LinkedTable<address, Position>
+	2: MoveLoc[1](Arg1: address)
+	3: Call linked_table::contains<address, Position>(&LinkedTable<address, Position>, address): bool
+	4: Ret
+}
+
+public position_is_healthy<Ty0>(Arg0: &Vault<Ty0>, Arg1: address, Arg2: &Clock, Arg3: &PriceResult<Ty0>): bool {
+L4:	loc0: bool
+L5:	loc1: u64
+L6:	loc2: Float
+L7:	loc3: u64
+L8:	loc4: Float
+L9:	loc5: u64
+L10:	loc6: Float
+L11:	loc7: u64
+L12:	loc8: u64
+B0:
+	0: CopyLoc[0](Arg0: &Vault<Ty0>)
+	1: MoveLoc[1](Arg1: address)
+	2: MoveLoc[2](Arg2: &Clock)
+	3: Call get_position_data<Ty0>(&Vault<Ty0>, address, &Clock): u64 * u64
+	4: StLoc[9](loc5: u64)
+	5: StLoc[5](loc1: u64)
+	6: CopyLoc[9](loc5: u64)
+	7: LdU64(0)
+	8: Gt
+	9: BrFalse(43)
+B1:
+	10: LdU64(10)
+	11: StLoc[11](loc7: u64)
+	12: CopyLoc[11](loc7: u64)
+	13: CopyLoc[0](Arg0: &Vault<Ty0>)
+	14: Call decimal<Ty0>(&Vault<Ty0>): u8
+	15: Call u64::pow(u64, u8): u64
+	16: StLoc[7](loc3: u64)
+	17: MoveLoc[11](loc7: u64)
+	18: Call usdb::decimal(): u8
+	19: Call u64::pow(u64, u8): u64
+	20: StLoc[12](loc8: u64)
+	21: MoveLoc[5](loc1: u64)
+	22: MoveLoc[7](loc3: u64)
+	23: Call float::from_fraction(u64, u64): Float
+	24: StLoc[6](loc2: Float)
+	25: MoveLoc[9](loc5: u64)
+	26: MoveLoc[12](loc8: u64)
+	27: Call float::from_fraction(u64, u64): Float
+	28: StLoc[10](loc6: Float)
+	29: MoveLoc[3](Arg3: &PriceResult<Ty0>)
+	30: Call result::aggregated_price<Ty0>(&PriceResult<Ty0>): Float
+	31: StLoc[8](loc4: Float)
+	32: MoveLoc[6](loc2: Float)
+	33: MoveLoc[8](loc4: Float)
+	34: Call float::mul(Float, Float): Float
+	35: MoveLoc[10](loc6: Float)
+	36: Call float::div(Float, Float): Float
+	37: MoveLoc[0](Arg0: &Vault<Ty0>)
+	38: ImmBorrowFieldGeneric[16](Vault.min_collateral_ratio: Float)
+	39: ReadRef
+	40: Call float::gte(Float, Float): bool
+	41: StLoc[4](loc0: bool)
+	42: Branch(49)
+B2:
+	43: MoveLoc[0](Arg0: &Vault<Ty0>)
+	44: Pop
+	45: MoveLoc[3](Arg3: &PriceResult<Ty0>)
+	46: Pop
+	47: LdTrue
+	48: StLoc[4](loc0: bool)
+B3:
+	49: MoveLoc[4](loc0: bool)
+	50: Ret
+}
+
+public get_position_data<Ty0>(Arg0: &Vault<Ty0>, Arg1: address, Arg2: &Clock): u64 * u64 {
+L3:	loc0: Double
+L4:	loc1: &Position
+B0:
+	0: CopyLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[8](Vault.position_table: LinkedTable<address, Position>)
+	2: CopyLoc[1](Arg1: address)
+	3: Call linked_table::contains<address, Position>(&LinkedTable<address, Position>, address): bool
+	4: Not
+	5: BrFalse(7)
+B1:
+	6: Call err_debtor_not_found()
+B2:
+	7: CopyLoc[0](Arg0: &Vault<Ty0>)
+	8: MoveLoc[2](Arg2: &Clock)
+	9: Call current_vault_interest_unit<Ty0>(&Vault<Ty0>, &Clock): Double
+	10: StLoc[3](loc0: Double)
+	11: MoveLoc[0](Arg0: &Vault<Ty0>)
+	12: ImmBorrowFieldGeneric[8](Vault.position_table: LinkedTable<address, Position>)
+	13: MoveLoc[1](Arg1: address)
+	14: Call linked_table::borrow<address, Position>(&LinkedTable<address, Position>, address): &Position
+	15: StLoc[4](loc1: &Position)
+	16: CopyLoc[4](loc1: &Position)
+	17: ImmBorrowField[9](Position.coll_amount: u64)
+	18: ReadRef
+	19: CopyLoc[4](loc1: &Position)
+	20: ImmBorrowField[10](Position.debt_amount: u64)
+	21: ReadRef
+	22: MoveLoc[4](loc1: &Position)
+	23: MoveLoc[3](loc0: Double)
+	24: Call interest_amount(&Position, Double): u64
+	25: Add
+	26: Ret
+}
+
+public try_get_position_data<Ty0>(Arg0: &Vault<Ty0>, Arg1: address, Arg2: &Clock): u64 * u64 {
+L3:	loc0: u64
+L4:	loc1: u64
+L5:	loc2: Double
+L6:	loc3: &Position
+B0:
+	0: CopyLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[8](Vault.position_table: LinkedTable<address, Position>)
+	2: CopyLoc[1](Arg1: address)
+	3: Call linked_table::contains<address, Position>(&LinkedTable<address, Position>, address): bool
+	4: BrFalse(27)
+B1:
+	5: CopyLoc[0](Arg0: &Vault<Ty0>)
+	6: MoveLoc[2](Arg2: &Clock)
+	7: Call current_vault_interest_unit<Ty0>(&Vault<Ty0>, &Clock): Double
+	8: StLoc[5](loc2: Double)
+	9: MoveLoc[0](Arg0: &Vault<Ty0>)
+	10: ImmBorrowFieldGeneric[8](Vault.position_table: LinkedTable<address, Position>)
+	11: MoveLoc[1](Arg1: address)
+	12: Call linked_table::borrow<address, Position>(&LinkedTable<address, Position>, address): &Position
+	13: StLoc[6](loc3: &Position)
+	14: CopyLoc[6](loc3: &Position)
+	15: ImmBorrowField[9](Position.coll_amount: u64)
+	16: ReadRef
+	17: CopyLoc[6](loc3: &Position)
+	18: ImmBorrowField[10](Position.debt_amount: u64)
+	19: ReadRef
+	20: MoveLoc[6](loc3: &Position)
+	21: MoveLoc[5](loc2: Double)
+	22: Call interest_amount(&Position, Double): u64
+	23: Add
+	24: StLoc[4](loc1: u64)
+	25: StLoc[3](loc0: u64)
+	26: Branch(35)
+B2:
+	27: MoveLoc[0](Arg0: &Vault<Ty0>)
+	28: Pop
+	29: MoveLoc[2](Arg2: &Clock)
+	30: Pop
+	31: LdU64(0)
+	32: LdU64(0)
+	33: StLoc[4](loc1: u64)
+	34: StLoc[3](loc0: u64)
+B3:
+	35: MoveLoc[3](loc0: u64)
+	36: MoveLoc[4](loc1: u64)
+	37: Ret
+}
+
+public get_raw_position_data<Ty0>(Arg0: &Vault<Ty0>, Arg1: address): u64 * u64 * Double {
+L2:	loc0: &Position
+L3:	loc1: &LinkedTable<address, Position>
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: Call position_table<Ty0>(&Vault<Ty0>): &LinkedTable<address, Position>
+	2: StLoc[3](loc1: &LinkedTable<address, Position>)
+	3: CopyLoc[3](loc1: &LinkedTable<address, Position>)
+	4: CopyLoc[1](Arg1: address)
+	5: Call linked_table::contains<address, Position>(&LinkedTable<address, Position>, address): bool
+	6: Not
+	7: BrFalse(9)
+B1:
+	8: Call err_debtor_not_found()
+B2:
+	9: MoveLoc[3](loc1: &LinkedTable<address, Position>)
+	10: MoveLoc[1](Arg1: address)
+	11: Call linked_table::borrow<address, Position>(&LinkedTable<address, Position>, address): &Position
+	12: StLoc[2](loc0: &Position)
+	13: CopyLoc[2](loc0: &Position)
+	14: ImmBorrowField[9](Position.coll_amount: u64)
+	15: ReadRef
+	16: CopyLoc[2](loc0: &Position)
+	17: ImmBorrowField[10](Position.debt_amount: u64)
+	18: ReadRef
+	19: MoveLoc[2](loc0: &Position)
+	20: ImmBorrowField[19](Position.interest_unit: Double)
+	21: ReadRef
+	22: Ret
+}
+
+public id<Ty0>(Arg0: &Vault<Ty0>): ID {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: Call object::id<Vault<Ty0>>(&Vault<Ty0>): ID
+	2: Ret
+}
+
+public get_positions<Ty0>(Arg0: &Vault<Ty0>, Arg1: &Clock, Arg2: Option<address>, Arg3: u64): vector<PositionData> * Option<address> {
+L4:	loc0: bool
+L5:	loc1: u64
+L6:	loc2: u64
+L7:	loc3: u64
+L8:	loc4: address
+L9:	loc5: vector<PositionData>
+L10:	loc6: &LinkedTable<address, Position>
+B0:
+	0: VecPack(137, 0)
+	1: StLoc[9](loc5: vector<PositionData>)
+	2: CopyLoc[0](Arg0: &Vault<Ty0>)
+	3: ImmBorrowFieldGeneric[8](Vault.position_table: LinkedTable<address, Position>)
+	4: StLoc[10](loc6: &LinkedTable<address, Position>)
+	5: ImmBorrowLoc[2](Arg2: Option<address>)
+	6: Call option::is_none<address>(&Option<address>): bool
+	7: BrFalse(12)
+B1:
+	8: CopyLoc[10](loc6: &LinkedTable<address, Position>)
+	9: Call linked_table::front<address, Position>(&LinkedTable<address, Position>): &Option<address>
+	10: ReadRef
+	11: StLoc[2](Arg2: Option<address>)
+B2:
+	12: LdU64(0)
+	13: StLoc[6](loc2: u64)
+B3:
+	14: ImmBorrowLoc[2](Arg2: Option<address>)
+	15: Call option::is_some<address>(&Option<address>): bool
+	16: BrFalse(22)
+B4:
+	17: CopyLoc[6](loc2: u64)
+	18: CopyLoc[3](Arg3: u64)
+	19: Lt
+	20: StLoc[4](loc0: bool)
+	21: Branch(24)
+B5:
+	22: LdFalse
+	23: StLoc[4](loc0: bool)
+B6:
+	24: MoveLoc[4](loc0: bool)
+	25: BrFalse(52)
+B7:
+	26: ImmBorrowLoc[2](Arg2: Option<address>)
+	27: Call option::borrow<address>(&Option<address>): &address
+	28: ReadRef
+	29: StLoc[8](loc4: address)
+	30: CopyLoc[0](Arg0: &Vault<Ty0>)
+	31: CopyLoc[8](loc4: address)
+	32: CopyLoc[1](Arg1: &Clock)
+	33: Call get_position_data<Ty0>(&Vault<Ty0>, address, &Clock): u64 * u64
+	34: StLoc[7](loc3: u64)
+	35: StLoc[5](loc1: u64)
+	36: MutBorrowLoc[9](loc5: vector<PositionData>)
+	37: CopyLoc[8](loc4: address)
+	38: MoveLoc[5](loc1: u64)
+	39: MoveLoc[7](loc3: u64)
+	40: Pack[2](PositionData)
+	41: VecPushBack(137)
+	42: MoveLoc[6](loc2: u64)
+	43: LdU64(1)
+	44: Add
+	45: StLoc[6](loc2: u64)
+	46: CopyLoc[10](loc6: &LinkedTable<address, Position>)
+	47: MoveLoc[8](loc4: address)
+	48: Call linked_table::next<address, Position>(&LinkedTable<address, Position>, address): &Option<address>
+	49: ReadRef
+	50: StLoc[2](Arg2: Option<address>)
+	51: Branch(14)
+B8:
+	52: MoveLoc[0](Arg0: &Vault<Ty0>)
+	53: Pop
+	54: MoveLoc[10](loc6: &LinkedTable<address, Position>)
+	55: Pop
+	56: MoveLoc[1](Arg1: &Clock)
+	57: Pop
+	58: MoveLoc[9](loc5: vector<PositionData>)
+	59: MoveLoc[2](Arg2: Option<address>)
+	60: Ret
+}
+
+public position_data(Arg0: &PositionData): address * u64 * u64 {
+B0:
+	0: CopyLoc[0](Arg0: &PositionData)
+	1: ImmBorrowField[20](PositionData.debtor: address)
+	2: ReadRef
+	3: CopyLoc[0](Arg0: &PositionData)
+	4: ImmBorrowField[21](PositionData.coll_amount: u64)
+	5: ReadRef
+	6: MoveLoc[0](Arg0: &PositionData)
+	7: ImmBorrowField[22](PositionData.debt_amount: u64)
+	8: ReadRef
+	9: Ret
+}
+
+mint_usdb<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &mut Treasury, Arg2: u64, Arg3: &mut TxContext): Coin<USDB> {
+B0:
+	0: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	1: MutBorrowFieldGeneric[0](Vault.limited_supply: LimitedSupply)
+	2: CopyLoc[2](Arg2: u64)
+	3: Call limited_supply::increase(&mut LimitedSupply, u64): u64
+	4: Pop
+	5: MoveLoc[1](Arg1: &mut Treasury)
+	6: Call witness::witness(): BucketV2CDP
+	7: Call version::package_version(): u16
+	8: MoveLoc[2](Arg2: u64)
+	9: MoveLoc[3](Arg3: &mut TxContext)
+	10: Call usdb::mint<BucketV2CDP>(&mut Treasury, BucketV2CDP, u16, u64, &mut TxContext): Coin<USDB>
+	11: Ret
+}
+
+burn_usdb<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &mut Treasury, Arg2: Coin<USDB>) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	1: MutBorrowFieldGeneric[0](Vault.limited_supply: LimitedSupply)
+	2: ImmBorrowLoc[2](Arg2: Coin<USDB>)
+	3: Call coin::value<USDB>(&Coin<USDB>): u64
+	4: Call limited_supply::decrease(&mut LimitedSupply, u64): u64
+	5: Pop
+	6: MoveLoc[1](Arg1: &mut Treasury)
+	7: Call witness::witness(): BucketV2CDP
+	8: Call version::package_version(): u16
+	9: MoveLoc[2](Arg2: Coin<USDB>)
+	10: Call usdb::burn<BucketV2CDP>(&mut Treasury, BucketV2CDP, u16, Coin<USDB>)
+	11: Ret
+}
+
+current_vault_interest_unit<Ty0>(Arg0: &Vault<Ty0>, Arg1: &Clock): Double {
+L2:	loc0: Double
+L3:	loc1: u64
+B0:
+	0: CopyLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[9](Vault.total_debt_amount: u64)
+	2: ReadRef
+	3: LdU64(0)
+	4: Gt
+	5: BrFalse(26)
+B1:
+	6: MoveLoc[1](Arg1: &Clock)
+	7: Call clock::timestamp_ms(&Clock): u64
+	8: CopyLoc[0](Arg0: &Vault<Ty0>)
+	9: ImmBorrowFieldGeneric[14](Vault.timestamp: u64)
+	10: ReadRef
+	11: Sub
+	12: StLoc[3](loc1: u64)
+	13: CopyLoc[0](Arg0: &Vault<Ty0>)
+	14: ImmBorrowFieldGeneric[13](Vault.interest_unit: Double)
+	15: ReadRef
+	16: MoveLoc[0](Arg0: &Vault<Ty0>)
+	17: ImmBorrowFieldGeneric[1](Vault.interest_rate: Double)
+	18: ReadRef
+	19: MoveLoc[3](loc1: u64)
+	20: Call one_year(): u64
+	21: Call double::from_fraction(u64, u64): Double
+	22: Call double::mul(Double, Double): Double
+	23: Call double::add(Double, Double): Double
+	24: StLoc[2](loc0: Double)
+	25: Branch(32)
+B2:
+	26: MoveLoc[1](Arg1: &Clock)
+	27: Pop
+	28: MoveLoc[0](Arg0: &Vault<Ty0>)
+	29: ImmBorrowFieldGeneric[13](Vault.interest_unit: Double)
+	30: ReadRef
+	31: StLoc[2](loc0: Double)
+B3:
+	32: MoveLoc[2](loc0: Double)
+	33: Ret
+}
+
+interest_amount(Arg0: &Position, Arg1: Double): u64 {
+B0:
+	0: MoveLoc[1](Arg1: Double)
+	1: CopyLoc[0](Arg0: &Position)
+	2: ImmBorrowField[19](Position.interest_unit: Double)
+	3: ReadRef
+	4: Call double::sub(Double, Double): Double
+	5: MoveLoc[0](Arg0: &Position)
+	6: ImmBorrowField[10](Position.debt_amount: u64)
+	7: ReadRef
+	8: Call double::mul_u64(Double, u64): Double
+	9: Call double::ceil(Double): u64
+	10: Ret
+}
+
+accrue_interest<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &mut Position, Arg2: &mut Treasury, Arg3: &Clock, Arg4: &mut TxContext): u64 {
+L5:	loc0: Double
+L6:	loc1: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	1: MoveLoc[2](Arg2: &mut Treasury)
+	2: CopyLoc[3](Arg3: &Clock)
+	3: MoveLoc[4](Arg4: &mut TxContext)
+	4: Call collect_interest<Ty0>(&mut Vault<Ty0>, &mut Treasury, &Clock, &mut TxContext): Double
+	5: StLoc[5](loc0: Double)
+	6: CopyLoc[1](Arg1: &mut Position)
+	7: FreezeRef
+	8: MoveLoc[5](loc0: Double)
+	9: Call interest_amount(&Position, Double): u64
+	10: StLoc[6](loc1: u64)
+	11: CopyLoc[1](Arg1: &mut Position)
+	12: ImmBorrowField[10](Position.debt_amount: u64)
+	13: ReadRef
+	14: CopyLoc[6](loc1: u64)
+	15: Add
+	16: CopyLoc[1](Arg1: &mut Position)
+	17: MutBorrowField[10](Position.debt_amount: u64)
+	18: WriteRef
+	19: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	20: FreezeRef
+	21: MoveLoc[3](Arg3: &Clock)
+	22: Call current_vault_interest_unit<Ty0>(&Vault<Ty0>, &Clock): Double
+	23: MoveLoc[1](Arg1: &mut Position)
+	24: MutBorrowField[19](Position.interest_unit: Double)
+	25: WriteRef
+	26: MoveLoc[6](loc1: u64)
+	27: Ret
+}
+
+one_year(): u64 {
+B0:
+	0: LdU64(31536000000)
+	1: Ret
+}
+
+check_security_level<Ty0>(Arg0: &Vault<Ty0>, Arg1: u8) {
+L2:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[6](Vault.security_level: Option<u8>)
+	2: Call option::is_some<u8>(&Option<u8>): bool
+	3: BrFalse(12)
+B1:
+	4: MoveLoc[1](Arg1: u8)
+	5: MoveLoc[0](Arg0: &Vault<Ty0>)
+	6: ImmBorrowFieldGeneric[6](Vault.security_level: Option<u8>)
+	7: Call option::borrow<u8>(&Option<u8>): &u8
+	8: ReadRef
+	9: Ge
+	10: StLoc[2](loc0: bool)
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &Vault<Ty0>)
+	13: Pop
+	14: LdFalse
+	15: StLoc[2](loc0: bool)
+B3:
+	16: MoveLoc[2](loc0: bool)
+	17: BrFalse(19)
+B4:
+	18: Call err_against_security_level()
+B5:
+	19: Ret
+}
+
+assert_position_is_not_locked<Ty0>(Arg0: &Vault<Ty0>, Arg1: address) {
+B0:
+	0: MoveLoc[0](Arg0: &Vault<Ty0>)
+	1: ImmBorrowFieldGeneric[7](Vault.position_locker: VecSet<address>)
+	2: ImmBorrowLoc[1](Arg1: address)
+	3: Call vec_set::contains<address>(&VecSet<address>, &address): bool
+	4: BrFalse(6)
+B1:
+	5: Call err_position_is_locked()
+B2:
+	6: Ret
+}
+
+err_sender_is_not_sheet_manager() {
+B0:
+	0: LdConst[17](u64: 417)
+	1: Abort
+}
+
+err_vault_balance_not_enough() {
+B0:
+	0: LdConst[18](u64: 418)
+	1: Abort
+}
+
+public add_debtor<Ty0, Ty1>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: Entity
+B0:
+	0: Call sheet::entity<Ty1>(): Entity
+	1: StLoc[2](loc0: Entity)
+	2: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	3: MutBorrowFieldGeneric[17](Vault.sheet: Sheet<Ty0, BucketV2CDP>)
+	4: MoveLoc[2](loc0: Entity)
+	5: Call witness::witness(): BucketV2CDP
+	6: Call sheet::add_debtor<Ty0, BucketV2CDP>(&mut Sheet<Ty0, BucketV2CDP>, Entity, BucketV2CDP)
+	7: Ret
+}
+
+public ban_debtor<Ty0, Ty1>(Arg0: &mut Vault<Ty0>, Arg1: &AdminCap) {
+L2:	loc0: Entity
+B0:
+	0: Call sheet::entity<Ty1>(): Entity
+	1: StLoc[2](loc0: Entity)
+	2: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	3: MutBorrowFieldGeneric[17](Vault.sheet: Sheet<Ty0, BucketV2CDP>)
+	4: MoveLoc[2](loc0: Entity)
+	5: Call witness::witness(): BucketV2CDP
+	6: Call sheet::ban<Ty0, BucketV2CDP>(&mut Sheet<Ty0, BucketV2CDP>, Entity, BucketV2CDP)
+	7: Ret
+}
+
+public create_acl(Arg0: &AdminCap, Arg1: &mut TxContext) {
+B0:
+	0: CopyLoc[1](Arg1: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: MoveLoc[1](Arg1: &mut TxContext)
+	3: FreezeRef
+	4: Call tx_context::sender(&TxContext): address
+	5: Call vec_set::singleton<address>(address): VecSet<address>
+	6: Pack[3](AccessControl)
+	7: Call transfer::share_object<AccessControl>(AccessControl)
+	8: Ret
+}
+
+public add_manager(Arg0: &mut AccessControl, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: MoveLoc[0](Arg0: &mut AccessControl)
+	1: MutBorrowField[24](AccessControl.managers: VecSet<address>)
+	2: MoveLoc[2](Arg2: address)
+	3: Call vec_set::insert<address>(&mut VecSet<address>, address)
+	4: Ret
+}
+
+public remove_manager(Arg0: &mut AccessControl, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: MoveLoc[0](Arg0: &mut AccessControl)
+	1: MutBorrowField[24](AccessControl.managers: VecSet<address>)
+	2: ImmBorrowLoc[2](Arg2: address)
+	3: Call vec_set::remove<address>(&mut VecSet<address>, &address)
+	4: Ret
+}
+
+public loan<Ty0, Ty1>(Arg0: &mut Vault<Ty0>, Arg1: &Treasury, Arg2: &AccessControl, Arg3: &AccountRequest, Arg4: u64): Loan<Ty0, BucketV2CDP, Ty1> {
+L5:	loc0: Balance<Ty0>
+B0:
+	0: MoveLoc[1](Arg1: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: MoveLoc[2](Arg2: &AccessControl)
+	3: MoveLoc[3](Arg3: &AccountRequest)
+	4: Call assert_sender_is_sheet_manager(&AccessControl, &AccountRequest)
+	5: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	6: ImmBorrowFieldGeneric[11](Vault.balance: Balance<Ty0>)
+	7: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	8: CopyLoc[4](Arg4: u64)
+	9: Lt
+	10: BrFalse(12)
+B1:
+	11: Call err_vault_balance_not_enough()
+B2:
+	12: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	13: MutBorrowFieldGeneric[11](Vault.balance: Balance<Ty0>)
+	14: MoveLoc[4](Arg4: u64)
+	15: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	16: StLoc[5](loc0: Balance<Ty0>)
+	17: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	18: MutBorrowFieldGeneric[17](Vault.sheet: Sheet<Ty0, BucketV2CDP>)
+	19: MoveLoc[5](loc0: Balance<Ty0>)
+	20: Call witness::witness(): BucketV2CDP
+	21: Call sheet::lend<Ty0, BucketV2CDP, Ty1>(&mut Sheet<Ty0, BucketV2CDP>, Balance<Ty0>, BucketV2CDP): Loan<Ty0, BucketV2CDP, Ty1>
+	22: Ret
+}
+
+public request_repayment<Ty0>(Arg0: &Treasury, Arg1: &AccessControl, Arg2: &AccountRequest, Arg3: u64): Request<Ty0, BucketV2CDP> {
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: MoveLoc[1](Arg1: &AccessControl)
+	3: MoveLoc[2](Arg2: &AccountRequest)
+	4: Call assert_sender_is_sheet_manager(&AccessControl, &AccountRequest)
+	5: MoveLoc[3](Arg3: u64)
+	6: Call option::none<vector<Entity>>(): Option<vector<Entity>>
+	7: Call witness::witness(): BucketV2CDP
+	8: Call sheet::request<Ty0, BucketV2CDP>(u64, Option<vector<Entity>>, BucketV2CDP): Request<Ty0, BucketV2CDP>
+	9: Ret
+}
+
+public collect_repayment<Ty0>(Arg0: &mut Vault<Ty0>, Arg1: &Treasury, Arg2: Request<Ty0, BucketV2CDP>) {
+L3:	loc0: Balance<Ty0>
+B0:
+	0: MoveLoc[1](Arg1: &Treasury)
+	1: Call version::assert_valid_package(&Treasury)
+	2: CopyLoc[0](Arg0: &mut Vault<Ty0>)
+	3: MutBorrowFieldGeneric[17](Vault.sheet: Sheet<Ty0, BucketV2CDP>)
+	4: MoveLoc[2](Arg2: Request<Ty0, BucketV2CDP>)
+	5: Call witness::witness(): BucketV2CDP
+	6: Call sheet::collect<Ty0, BucketV2CDP>(&mut Sheet<Ty0, BucketV2CDP>, Request<Ty0, BucketV2CDP>, BucketV2CDP): Balance<Ty0>
+	7: StLoc[3](loc0: Balance<Ty0>)
+	8: MoveLoc[0](Arg0: &mut Vault<Ty0>)
+	9: MutBorrowFieldGeneric[11](Vault.balance: Balance<Ty0>)
+	10: MoveLoc[3](loc0: Balance<Ty0>)
+	11: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	12: Pop
+	13: Ret
+}
+
+assert_sender_is_sheet_manager(Arg0: &AccessControl, Arg1: &AccountRequest) {
+L2:	loc0: address
+L3:	loc1: &VecSet<address>
+B0:
+	0: MoveLoc[0](Arg0: &AccessControl)
+	1: ImmBorrowField[24](AccessControl.managers: VecSet<address>)
+	2: StLoc[3](loc1: &VecSet<address>)
+	3: MoveLoc[1](Arg1: &AccountRequest)
+	4: Call account::request_address(&AccountRequest): address
+	5: StLoc[2](loc0: address)
+	6: MoveLoc[3](loc1: &VecSet<address>)
+	7: ImmBorrowLoc[2](loc0: address)
+	8: Call vec_set::contains<address>(&VecSet<address>, &address): bool
+	9: Not
+	10: BrFalse(12)
+B1:
+	11: Call err_sender_is_not_sheet_manager()
+B2:
+	12: Ret
+}
+
+Constants [
+	0 => u64: 401
+	1 => u64: 402
+	2 => u64: 403
+	3 => u64: 404
+	4 => u64: 405
+	5 => u64: 406
+	6 => u64: 407
+	7 => u64: 408
+	8 => u64: 409
+	9 => u64: 410
+	10 => u64: 411
+	11 => u64: 412
+	12 => u64: 413
+	13 => u64: 414
+	14 => u64: 415
+	15 => u64: 416
+	16 => u8: 110
+	17 => u64: 417
+	18 => u64: 418
+]
+}

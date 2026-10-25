@@ -1,0 +1,26 @@
+// module version  package 0xc1dd29778f3fccd19a4ac79d1c35a14bf9d65a0b48f1c5bba98a949cacc53e26 (v4)
+// Move bytecode v6
+module 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e.version {
+use 9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e::witness;
+use e14726c336e81b32328e92afc37345d159f5b550b09fa92bd43640cfdd0a0cfd::usdb;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+
+public package_version(): u16 {
+B0:
+	0: LdConst[0](u16: 2)
+	1: Ret
+}
+
+public(friend) assert_valid_package(Arg0: &Treasury) {
+B0:
+	0: MoveLoc[0](Arg0: &Treasury)
+	1: Call package_version(): u16
+	2: Call usdb::assert_valid_module_version<BucketV2CDP>(&Treasury, u16): TypeName
+	3: Pop
+	4: Ret
+}
+
+Constants [
+	0 => u16: 2
+]
+}
