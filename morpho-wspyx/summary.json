@@ -1,0 +1,39 @@
+{
+  "finding": "P7-LOW-1 (TARGET 1)",
+  "title": "Morpho Blue wSPYx/AUSD — MorphoPythOracle x donation-inflatable ERC-4626",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "e_u_hard_cap_usd": 1306.99,
+  "latest_block": 26271822,
+  "block_numbers": {"ethereum": 26271822},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "The oracle can only be over-valued via a SPYx donation to wSPYx (totalAssets()=asset.balanceOf(this)); the donation is a pro-rata loss the attacker cannot recover, so borrow-and-default net is always negative",
+    "LLTV=0.86 => borrowing against own collateral loses 16.3% of the borrowed amount unless the oracle over-values the collateral, which the donation cannot achieve profitably",
+    "Market free liquidity is only $1,306.99, the hard cap on any single-market extraction"
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40228619820"]
+  },
+  "key_facts": [
+    "oracle 0x01Fd716a703eD6A54922b1F2C8cc2Ed5a018bAC5 = MorphoPythOracle; price = SCALE_FACTOR(1e10) * convertToAssets(wSPYx,1e6) * Pyth(SPY); QUOTE_VAULT=0",
+    "wSPYx 0xc88FcD8B874fDb3256E8B55b3decB8c24EAb4c02 totalAssets()=asset.balanceOf(this) (OZ ERC4626Upgradeable) => donation-inflatable, read spot with no TWAP",
+    "fork-proven: 100 SPYx donation raised oracle price 7.6734e26 -> 8.8221e26 (+14.97%, exactly pro-rata)",
+    "market id 0xbf0432567b44ef5ce013ffcd7dd756c522252503f7986a406e780715b32c74fc: totalSupply 9321.286667 AUSD, totalBorrow 8014.301183 AUSD, free liquidity 1306.985484 AUSD, LLTV 86%",
+    "collateral 621.173294736568809505 wSPYx (~$477-479k) across ~18 positions, all massively over-collateralized (market-wide HF ~51x); market is dust ($9.3k supplied)",
+    "fork-proven: borrow(free+1) reverts, borrow(free=1306985484) succeeds; no-donation attack net -$220.50; with 668 SPYx donation net -$510,400.93; best of 25-combo sweep -$110.46",
+    "E-U conditional is also $0: the net<0 bound is independent of free liquidity (borrow <= 0.86x inflated collateral value <= outlay); a re-arm needs a different vault bug, not more liquidity",
+    "Pyth SPY feed 0x2817b784... exp -8, PRICE_FEED_MAX_AGE 3600s, fresh (< 1h); pull oracle cannot be replayed to an older publishTime"
+  ],
+  "caveats": [
+    "Point-in-time 2026-10-25; re-read live state before acting",
+    "SPYx is a rebasing BackedAutoFeeToken proxy; the fork PoC funds the attacker by impersonating a real large holder (0xf3C20F98..., 3842 SPYx) instead of deal",
+    "MorphoPythOracle is a generic primitive: a wrapper whose NAV can be inflated below the oracle gain would be E-U; not the case here"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Morpho wSPYx/AUSD; the Pyth x donation-inflatable ERC-4626 oracle primitive is real and fork-proven but economically closed (donation costs more than it yields; borrow-and-default loses the 86% LLTV haircut) and the hard cap is the $1,306.99 free liquidity."
+}
