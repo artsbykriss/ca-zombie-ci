@@ -1,0 +1,61 @@
+{
+  "finding": "O5",
+  "title": "Wager Predict (BSC) \u2014 LMSR prediction market + LP Vault + USDW wrapper",
+  "chains": [
+    "bsc"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "headline_conditional_usd": 236.56,
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 236.56,
+    "H-O": 0,
+    "P": 203893.1,
+    "S": 0
+  },
+  "latest_block": 129703426,
+  "block_numbers": {
+    "bsc": 129703426,
+    "bsc_first_read": 129591335
+  },
+  "targets_checked": 21,
+  "live_targets": 6,
+  "closed_reasons": [
+    "USDW mint/burn/lock/process are role-gated; ISSUER_ROLE has NO holder (RoleGranted log + hasRole probes) -> no free mint",
+    "USDW.deposit is permissionless but par-capped by a Chainlink oracle (only approved input stable is Binance-Peg USDC) -> 1 USDC = 1 USDW, no leak",
+    "USDW backing (203,882.64 aBnbUSDC) sits in a plain EOA depositRecipient 0x255E92b8 with ZERO allowances to any protocol contract",
+    "SpotEngine LMSR is solvent (collateral >= max(qYes,qNo)/1e12) and charges 200 bps each way -> buy->sell round trips lose ~4%; fork fuzz found no overshoot",
+    "All 21 markets are Listed/open (endDates 2027-02..2028-11) -> no settlement exists to attack",
+    "ResolutionModule.propose requires RESOLVER/GOVERNANCE because config.permissionlessResolution()=false -> no stranger resolution",
+    "Graduation unreachable (needs $500k rolling volume; best is ~$553) and migrationGate 0xF00Da26D returns false (fail-closed)",
+    "Vault is empty (totalPrincipal=0, positionCount=0); leverage engine is a 0-returning stub (LEVERAGE_ROLE unassigned)",
+    "EIP-7702 redemptionSource 0x959b4a9a holds only 0.2139 USDC-BSC"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "USDW impl 0x7169d192b5e2add3268651cf598886af42518cd8 is VERIFIED (LockMint20; permissioned mint/redeem)",
+    "No ISSUER_ROLE holder -> USDW.mint/burn/lockTokens/unlockTokens/spendAllowance are dead; only deposit() mints, at par",
+    "PriceOracle feed 0x51597f405303C4377E36123cBc172b13269EA163 = 0.99983535 (16.5bps) -> quoteUsdwMint(USDC,1e18)=1e6",
+    "depositRecipient EOA 0x255E92b8e79800349f137d5b8EA70c0B658fd397 holds 203893.095 aBnbUSDC (0x00901a07...) ~= $203.9k; 0 allowances",
+    "SpotEngine 0x76b91e83f2A12dc52E33f856eeA300E5B3A62c0c holds 175889.930252 USDW (173362.94 @129591335); usdc()=USDW; fees 100/10/80/10 bps",
+    "Vault 0x88d163d40D6BFe0Ad2b17f4a90A03053fEbf3014 holds 236.555097 USDW as feeBuffer with totalFeeShares=0 -> first LP captures it",
+    "ResolutionModule.permissionlessResolution()=false; RESOLVER_ROLE=Gov Safe 0xF39342C6758156df432fc47cDfF0cDd593E6CcC0",
+    "AccessController 0x108b97C4d76B8753232301196796B44Ad2F27bcE: LEVERAGE_ROLE and MM_ROLE unassigned",
+    "redemptionSource 0x959b4a9Ad2dD1beBfD2579121325a75768C4D024 is an EIP-7702 EOA -> delegate 0x03a46a241aa7073552652032aba85be46f647795 (smart account)",
+    "USDW Administrator 0xc2Dc9aad79Ab63D2772fb65Ce106584979DF610e owner EOA 0xd873d9a8... holds OPERATOR+GOVERNOR; timelock delay still 0"
+  ],
+  "caveats": [
+    "Point-in-time 2026-10-25 (block 129591335); re-read before acting",
+    "The $233 E-U-conditional figure is the live Vault feeBuffer and grows with trading volume; capture requires a fee-distribution event",
+    "ISSUER_ROLE is unassigned today; a future grant (timelock delay is still 0) would re-arm a privileged mint",
+    "permissionlessResolution=false today; governance can flip it later, re-opening the bonded-resolution surface",
+    "Alchemy was used for one token-balance read only; all stored scripts/dumps use keyless public RPCs",
+    "No mainnet transaction was signed or sent"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 (plus a conditional ~$233 Vault LP fee-buffer capture) live from Wager Predict; the previously-unread USDW wrapper is a permissioned par-capped stablecoin with no ISSUER holder, the LMSR engine is solvent/fee-negative, resolution is trusted-only, graduation is inert, and the ~$203.9k backing sits in an EOA with no allowances."
+}
