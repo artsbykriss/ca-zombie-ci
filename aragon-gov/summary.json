@@ -1,0 +1,36 @@
+{
+  "finding": "ZH4-PASS7 P7-01",
+  "title": "Aragon-legacy governance — ACL permission-manager escalation (grantPermission -> transfer)",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 299086.02, "S": 235380.06},
+  "latest_block": 26271795,
+  "block_numbers": {"ethereum": 26271795},
+  "targets_checked": 2202,
+  "live_targets": 2002,
+  "closed_reasons": [
+    "vote creation is gated: CREATE_VOTES_ROLE is held by the DAO's TokenManager (holder-gated forward) or an EOA, not ANY, in the overwhelming majority of DAOs",
+    "governance tokens are illiquid: no funded DAO token has an AMM pool deep enough to buy minAQ*totalSupply; the top minAQ=0 candidates have no pool at all (DexScreener: no pairs)",
+    "voting power uses a block-1 snapshot (balanceOfAt(block.number-1)) so the quorum is not flash-loanable in one transaction",
+    "the 46 DAOs whose governance token totalSupply==0 (incl. the 100-ETH DAP) are permanently stuck (S)"
+  ],
+  "poc": {"tests_passed": 6, "tests_total": 6, "ci_run_urls": []},
+  "key_facts": [
+    "The Voting app IS the ACL permission-manager for the holding app's TRANSFER_ROLE on 2,002 of 2,202 funded DAOs (227.3013 ETH); an executed proposal can grantPermission(voting, holding, TRANSFER_ROLE) then holding.transfer(...) - fork-proven (2 ETH moved from Agent 0xbcd768c5)",
+    "Independent sample re-read: 107/116 (92.2%) manager - consistent with 2,002/2,202 (90.9%)",
+    "TokenManager.forward(bytes) lets any token holder create a vote (TokenManager holds CREATE_VOTES_ROLE on 1,941/2,002 funded DAOs); ANY-open newVote exists on a minority",
+    "E-U-conditional exposure = 227.3013 ETH (~$534,466 at $2,351.36/ETH); of this 100.104 ETH (~$235,380) is stuck (S, 46 DAOs) and 127.197 ETH (~$299,086) is governance-movable (P)",
+    "Closest cases: DAO 0xf6b32eee (1.71 ETH, token BBIZ supply=2, minAQ=0, TokenManager) needs only 1 token; 0xa323b631 (0.30 ETH, minAQ=0); the ANT DAO 0x2de83b50 (2.20 ETH, liquid ANT, minAQ=0) is creation-gated (no TokenManager, CREATE_VOTES_ROLE on EOA 0xcafE1A77)",
+    "Largest funded with an existing but empty pool: 0x001cd74c (14.024 ETH, token SHILL, minAQ=30%); its Uni V2 WETH pool holds 0.0856 SHILL of the 75,674 needed",
+    "Prior verdict reconciliation: our $0 number was correct, but our mechanism/trigger was wrong - we tested direct holding.transfer (APP_AUTH_FAILED, the pre-escalation state) and relied on '0 voteTime=0', which is true but non-decisive; the real trigger is a token AMM listing"
+  ],
+  "caveats": [
+    "The PoC's end-to-end tests simulate token acquisition by minting the governance token from its controller; they prove the mechanism, not that the tokens are acquirable today",
+    "The attack spans multiple blocks and voteTime (6-48h); it is buyable-if-listed, not atomic",
+    "46 custom-appId Aragon apps (Lido/API3) are outside the standard-voting census; none is a funded holding app with the escalation relationship",
+    "Point-in-time reads 2026-10-25; re-read all state before acting",
+    "DexScreener cross-check is rate-limited; the exhaustive pool scan uses Uniswap V2/V3 + Sushi factories only"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Aragon-legacy DAOs today; the ACL escalation (Voting grants itself the holding app's TRANSFER_ROLE, then transfers) is real and fork-proven on 2,002/2,202 funded DAOs (227.3 ETH ~ $534k), but is gated by token illiquidity + vote-creation + a 1-block snapshot - it re-arms the moment any affected DAO token gets an AMM listing. Our prior $0 was right but for the wrong reason."
+}
