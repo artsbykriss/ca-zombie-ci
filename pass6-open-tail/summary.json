@@ -1,0 +1,66 @@
+{
+  "finding": "ZH4-PASS6-OPEN-TAIL",
+  "title": "pass6 OPEN residuals O11-O21 located and dispositioned (ChimeraQuoteHook404, BondingCurveManager, DiversiFi, Overpass, Zodial, Sat Rush, Loyal Earn, TRUE DEX, Pascal, N1 Bridge, Byzanlink)",
+  "date": "2026-10-25",
+  "mode": "read-only; no transactions signed/sent; fork + simulateTransaction only; no keyed RPC URLs or secrets in folder files",
+  "chains": ["ink", "ronin", "solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 319415, "P": 8149156, "S": 0},
+  "latest_block": 62707425,
+  "block_numbers": {"ink": 59385227, "ronin": 62707425, "solana_slot": 461324233},
+  "targets_checked": 11,
+  "live_targets": 11,
+  "located_targets": 11,
+  "unlocated_targets": 0,
+  "closed_reasons": [
+    "O11 ChimeraQuoteHook404: quote hook has ZERO registered pools (only 2 QuoteAllowed logs) -> no fee vaults, $0; config paths platform/installer-gated; fee vaults credit-accounted so claim()/claimFor(r) only ever pay r",
+    "O12 BondingCurveManager: sell requires prior buy via boughtFromCurve provenance (non-transferable); buy->sell round trip value-negative (fork 7/7 + 2x5000 fuzz runs); buyFor/registerLaunch/closeCurve/admin gated",
+    "O13 DiversiFi: update_oracle proven gated (control success vs attacker Custom 2012); deposit/withdraw also gated",
+    "O14 Overpass: attacker substituted into the authority slot fails a seeds/PDA constraint (Custom 2015)",
+    "O15 Zodial: only live ix is the by-design permissionless lending_pool_pulse_bank_price_cache (moves no value)",
+    "O16 Sat Rush: all custody is program-PDA; exits are user-claim or admin; one shared upgrade key",
+    "O17 Loyal Earn: no proprietary program exists - per-user Squads vaults + Kamino obligations (holder-only)",
+    "O18 TRUE DEX: zk-verifier custody (VerifyBlock/RecoverCustody/RotateWithdrawalExecutor/StageProgramVkey gated)",
+    "O19 Pascal: custody is a program PDA; single-key upgrade",
+    "O20 N1 Exchange Bridge: zk/STARK consensus bridge (validator ACL, challenge window, effect nullifiers, withdrawal rate limit)",
+    "O21 Byzanlink: Kamino kvault fork with queued withdrawals + whitelist-gated invest"
+  ],
+  "poc": {
+    "tests_passed": 13,
+    "tests_total": 13,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40211830489"],
+    "ci_validation": "conclusion=success; 3 suites, 13 tests passed, 0 failed; O12 math replica 2x5000 fuzz runs"
+  },
+  "key_facts": [
+    "all 11 pass6 OPEN residuals O11-O21 are now LOCATED (10 with a resolved contract/program ID; O17 confirmed to have no proprietary program at all)",
+    "external-unprivileged extractable today = $0 across all 11 (unchanged honest result)",
+    "O11 ChimeraQuoteHook404 (Ink) is dormant: the hook has had exactly one tx and zero registered pools; the only funded sibling fee vaults hold 0.1338 WETH (~$313) credit-accounted to fixed destinations",
+    "O12 BondingCurveManager (Ronin) holds 9,926,811.26 RONKE (~$10,028) for graduation + 190 launch tokens; sell is provenance-gated and round trips are value-negative",
+    "O16 Sat Rush custody ~$2.25M (cbBTC 10.563 + RUSH 15,857) sits in PDAs of two programs sharing one upgrade key",
+    "O19 Pascal (~$2.33M USDC) and O20 N1 (~$1.38M USDC) are the largest single Solana residuals; both are program-PDA custody",
+    "O21 Byzanlink's Solana vault program is a fork of Kamino kvault (ELF source paths programs/kvault/src/...)",
+    "every Solana program in scope is BPFLoaderUpgradeable with a single-key upgrade authority"
+  ],
+  "caveats": [
+    "O20 N1 Withdraw proof-binding was NOT decompiled (low confidence) - the one genuinely open residual",
+    "O19 Pascal's instruction surface is stripped of Anchor names; value paths unread",
+    "O13/O14/O15 residual instructions (rebalance, update_weights, Create*Wrapper, UpdateCreatorFee/ClaimCreatorFees, lending_pool_add_bank_permissionless) were never observed live and are not decompiled",
+    "instruction surfaces were recovered from ELF strings, not published IDLs; a program's behaviour can differ from its instruction names",
+    "point-in-time 2026-10-25; re-read live state before acting; nothing here is an instruction to transact"
+  ],
+  "per_target": {
+    "O11": {"chain": "ink", "located": true, "addresses": ["0xD723B53D1A651D8BfD6b4C8876D51b68E26128CC"], "custody_usd": 313.42, "verdict": "E-U $0 (P $313)", "confidence": "high"},
+    "O12": {"chain": "ronin", "located": true, "addresses": ["0xCF6Aa3d88431D73C76b9650e64a995a5edDb5f54"], "custody_usd": 10053, "verdict": "E-U $0 (H-O ~$10k)", "confidence": "medium-high"},
+    "O13": {"chain": "solana", "located": true, "program": "3vyr9DRfMZb2KvUQdnps7YG3PY38XdguLBQaJ2DFkSxk", "custody_usd": 662851, "verdict": "E-U $0 (P)", "confidence": "medium"},
+    "O14": {"chain": "solana", "located": true, "program": "WRAPdXmxrH37RKUbH1QMnYrKdNe8w4Kz44t1cXmYeum", "custody_usd": 140409, "verdict": "E-U $0 (P)", "confidence": "medium"},
+    "O15": {"chain": "solana", "located": true, "program": "zod11Jzp72T6qBbGVJfR38y1pGY3dBK8nSuouD4mMkZ", "custody_usd": 198302, "verdict": "E-U $0 (P)", "confidence": "medium-low"},
+    "O16": {"chain": "solana", "located": true, "programs": ["satRushGBRY2vgapeTAkoxz26vL2cYqyPi6CnBj7Tco", "SaTsTaKpGdTfUEPSSwyYgLKkfnZu8uL3D1DbLXshdb7"], "custody_usd": 2247109, "verdict": "E-U $0 (P)", "confidence": "medium"},
+    "O17": {"chain": "solana", "located": true, "program": null, "custody_usd": 309387, "verdict": "E-U $0 (H-O)", "confidence": "medium-low"},
+    "O18": {"chain": "solana", "located": true, "programs": ["ttaiNybR4ncnBFsBCQKdVus8BNHepErToRp5cuULduL", "L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95"], "custody_usd": 289780, "verdict": "E-U $0 (P)", "confidence": "medium"},
+    "O19": {"chain": "solana", "located": true, "program": "3vCgc3aL1D6acmtiqtUgRSRDhep4PnVgs4jk86dGpg7j", "custody_usd": 2331738, "verdict": "E-U $0 (P)", "confidence": "medium"},
+    "O20": {"chain": "solana", "located": true, "program": "n1brh2AaBbnMPEjpoCDFs1fzWb5Pa8FC1o8yXp2fAqM", "custody_usd": 1380640, "verdict": "E-U $0 (P, low conf; Withdraw unread)", "confidence": "low"},
+    "O21": {"chain": "solana", "located": true, "programs": ["HyuZ17H9ScJ6GsMnJMYTCUZrw6Jz4AS4RGD9h3Pt4Se", "B9wHQVTeCkZ8KM8nZTBfHQyfQhJvuihhHa9SdWo4x77U"], "custody_usd": 898014, "verdict": "E-U $0 (P)", "confidence": "medium"}
+  },
+  "one_liner": "pass6 OPEN residuals O11-O21 are all located (10 resolved contract/program IDs, O17 has no proprietary program); external-unprivileged extractable today = $0 across ~$8.47M of gated custody; the only genuinely open item is N1's unread zk-bridge Withdraw path ($1.38M, low confidence)."
+}

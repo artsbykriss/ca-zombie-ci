@@ -1,0 +1,76 @@
+Compiling 22 files with Solc 0.8.28
+Solc 0.8.28 finished in 1.40s
+Compiler run successful with warnings:
+Warning (2018): Function state mutability can be restricted to pure
+  --> test/O12_MathReplica.t.sol:77:5:
+   |
+77 |     function testFuzz_roundtrip_never_profitable(
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to pure
+   --> test/O12_MathReplica.t.sol:121:5:
+    |
+121 |     function testFuzz_partial_fill_never_undercharges(
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+
+Ran 2 tests for test/O12_MathReplica.t.sol:O12_MathReplica
+[PASS] testFuzz_partial_fill_never_undercharges(uint256,uint256,uint256,uint256,uint256,uint256) (runs: 5000, μ: 28480, ~: 29132)
+Logs:
+  Bound result 999999999999999999999999999999
+  Bound result 462050470585348604928910564641
+  Bound result 463802870964763775301535362655
+  Bound result 198509032000794782949071550454
+  Bound result 46
+  Bound result 55033369179221216298098208564
+
+[PASS] testFuzz_roundtrip_never_profitable(uint256,uint256,uint256,uint256,uint256,uint256) (runs: 5000, μ: 32016, ~: 32617)
+Logs:
+  Bound result 999999999999999999999999999999
+  Bound result 462050470585348604928910564641
+  Bound result 463802870964763775301535362655
+  Bound result 198509032000794782949071550454
+  Bound result 46
+  Bound result 55033369179221216298098208564
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 3.05s (2.35s CPU time)
+
+Ran 4 tests for test/O11_InkChimeraQuote.t.sol:O11_InkChimeraQuote
+[PASS] test_live_state_no_pools_no_funds() (gas: 54371)
+[PASS] test_permissionless_distribute_is_noop() (gas: 56099)
+[PASS] test_stranger_cannot_swap_fabricated_pool() (gas: 365912)
+[PASS] test_stranger_cannot_touch_configuration() (gas: 130713)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 4.69s (2.96s CPU time)
+
+Ran 7 tests for test/O12_RoninBondingCurve.t.sol:O12_RoninBondingCurve
+[PASS] test_attacker_admin_paths_revert() (gas: 59753)
+[PASS] test_attacker_buyFor_reverts() (gas: 305117)
+[PASS] test_attacker_sell_without_buy_reverts() (gas: 307585)
+[PASS] test_live_state() (gas: 73875)
+Logs:
+  BCM RONKE balance (wei): 9659665036100197156104092
+
+[PASS] test_partial_fill_branch_no_profit() (gas: 627632)
+Logs:
+  spent: 3362726771920457363383693
+  back: 0
+
+[PASS] test_provenance_ledger_not_transferable() (gas: 640225)
+[PASS] test_roundtrip_never_profitable() (gas: 3601792)
+Logs:
+  amt: 1000000000000000000
+  out: 0
+  amt: 100000000000000000000
+  out: 0
+  amt: 1000000000000000000000
+  out: 0
+  amt: 10000000000000000000000
+  out: 0
+  amt: 100000000000000000000000
+  out: 0
+  amt: 1000000000000000000000000
+  out: 0
+
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 10.52s (16.46s CPU time)
+
+Ran 3 test suites in 10.76s (18.26s CPU time): 13 tests passed, 0 failed, 0 skipped (13 total tests)

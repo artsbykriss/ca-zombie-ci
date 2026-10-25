@@ -1,0 +1,19 @@
+[
+ {"id":"O13","name":"DiversiFi","status":"LOCATED","program_id":"3vyr9DRfMZb2KvUQdnps7YG3PY38XdguLBQaJ2DFkSxk","upgrade_authority":"single-key (upgradeable)","custody_usd":662851,"verdict":"P","confidence":"medium","tests":[
+   {"ix":"update_oracle","control":"success","attacker":"Custom 2012","result":"GATED"},
+   {"ix":"deposit","control":"Custom 6024","attacker":"Custom 2012","result":"gated"},
+   {"ix":"withdraw","control":"Custom 6020","attacker":"Custom 2012","result":"gated"},
+   {"ix":"initialize_deposit","control":"Custom 1","attacker":"Custom 2006","result":"gated"},
+   {"ix":"initialize_withdrawal","control":"Custom 1","attacker":"Custom 2006","result":"gated"},
+   {"ix":"rebalance/update_weights/update_manager/update_fee","control":"not observed in 1000 sigs","attacker":"untested","result":"residual"}],
+  "notes":"index/fund-of-funds vaults; user-creatable vaults; value path withdraw requires rightful signer; DL TVL $662,851"},
+ {"id":"O14","name":"Overpass","status":"LOCATED","program_id":"WRAPdXmxrH37RKUbH1QMnYrKdNe8w4Kz44t1cXmYeum","upgrade_authority":"single-key (upgradeable)","custody_usd":140409,"verdict":"P","confidence":"medium","tests":[
+   {"ix":"withdraw_kvault","control":"Custom 1 (insufficient funds)","attacker":"Custom 2015 (seeds/PDA constraint)","result":"GATED"},
+   {"ix":"deposit_kvault","control":"Custom 1","attacker":"Custom 2015","result":"GATED"},
+   {"ix":"withdraw_klend","control":"3012","attacker":"3012","result":"needs init ATA"},
+   {"ix":"deposit_marginfi","control":"Custom 1","attacker":"MissingAccount","result":"gated"}],
+  "notes":"wrapper factory over Lulo/Kamino/kvault/marginfi/save; wrapper PDAs bound to original owner; DL TVL $140,409"},
+ {"id":"O15","name":"Zodial","status":"LOCATED","program_id":"zod11Jzp72T6qBbGVJfR38y1pGY3dBK8nSuouD4mMkZ","upgrade_authority":"single-key (upgradeable)","custody_usd":198302,"verdict":"P","confidence":"medium-low","tests":[
+   {"ix":"lending_pool_pulse_bank_price_cache","control":"success","attacker":"success (err=null)","result":"PERMISSIONLESS-BY-DESIGN (no value moved)"}],
+  "notes":"marginfi fork; full upstream ix set present; only live ix is the permissionless price-cache crank; fork-drift residual on lending_pool_add_bank_permissionless (not observed/simulated); DL TVL $198,302 + $75,634 borrowed"}
+]
