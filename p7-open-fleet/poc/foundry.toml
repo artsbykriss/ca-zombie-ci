@@ -1,0 +1,20 @@
+# P7-OPEN-FLEET / O3 — Lazy Summer (Summer.fi) FleetCommander donation-NAV-inflation PoC
+#
+# Fork-only Foundry harness. No mainnet writes: every test runs against a read-only fork and
+# the only state changes happen inside the in-memory EVM.
+#
+# The parent CI workflow runs `forge test -vvv` in this directory.
+# Set FORK_RPC_URL (archive-capable) for Ethereum and ARB_RPC_URL (archive-capable) for Arbitrum.
+# If unset we fall back to public endpoints, which do NOT serve archive state and will fail.
+
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 200
+evm_version = "cancun"
+fuzz = { runs = 32 }
+# Fork tests hit a remote archive node; keep verbosity reasonable.
+verbosity = 2

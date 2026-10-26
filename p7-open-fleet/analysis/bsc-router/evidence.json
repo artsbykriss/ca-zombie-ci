@@ -1,0 +1,137 @@
+{
+  "schema": "zh4-pass7/bsc-router/live-evidence",
+  "generated_utc": "2026-10-26",
+  "mode": "READ-ONLY (eth_call / eth_getCode / eth_getStorageAt / eth_getLogs; local anvil fork sim only; no mainnet transactions)",
+  "chain": { "name": "BNB Smart Chain", "chainId": 56, "rpc_public": "https://bsc-rpc.publicnode.com", "rpc_archive": "nodereal public archive (keyless)" },
+  "target": {
+    "proxy": "0xa331fde028e6f17425ab9333c39ae43722340d24",
+    "name": "SwapX router (version string '1.9.1-bsc')",
+    "incident": {
+      "date": "2026-09-07",
+      "loss": "~62.28 WBNB (~$45.8k) across 29 victims",
+      "attack_tx": "0x40eb22369da422a8275d5679054aa3a8c8906d93abc0bac3a3f2cad879389319",
+      "attack_block": 120524634,
+      "attacker": "0xB929C7215c0ec8EbAD5fBf73b1Da63bccfFf1896",
+      "class": "fake V3 pool re-enters uniswapV3SwapCallback; caller-supplied `payer` in `data` drained via transferFrom"
+    }
+  },
+  "live_state": {
+    "head_block_at_read": 129804693,
+    "proxy": {
+      "code_size_bytes": 130,
+      "codehash": "0x681bb8a5dac52155c7c0299c9afe6d1275822bc8e9b64fb92942e561d4e9f57d",
+      "native_bnb_balance_wei": "0",
+      "eip1967_impl_slot": "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+      "eip1967_impl_slot_value": "0x000000000000000000000000c700cf8d7adf1782a53a4805d255cf17e126db7f",
+      "eip1967_admin_slot": "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103",
+      "eip1967_admin_slot_value": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "proxy_pattern": "ERC-1967 UUPS (impl exposes proxiableUUID 0x52d1902d + upgradeToAndCall 0x4f1ef286, onlyOwner)"
+    },
+    "implementation_current": {
+      "address": "0xc700cf8d7adf1782a53a4805d255cf17e126db7f",
+      "code_size_bytes": 22857,
+      "codehash": "0x4f9937e83f3059a78ce44bf400ad44e96f842904f1cb5a86443201ce58e2e812",
+      "native_bnb_balance_wei": "0",
+      "verified": false,
+      "sourcify_match": null
+    },
+    "getters": {
+      "factoryV3()": "0x0000000000000000000000000000000000000000",
+      "factoryV2()": "0x0000000000000000000000000000000000000000",
+      "WETH()": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+      "owner()": "0x2803E636498568182594F2909C8d6Cce8820BE15",
+      "version()": "1.9.1-bsc",
+      "paused()": false,
+      "factory()": "REVERT (no such function)"
+    },
+    "selector_presence_in_impl_bytecode": {
+      "0x33411b5e": { "present": true, "occ": 1, "role": "permissionless swap entry (Route[]) - calldata recovered from public PoC" },
+      "0x23a69e75": { "present": true, "occ": 1, "role": "pancakeV3SwapCallback(int256,int256,bytes)" },
+      "0xfa461e33": { "present": true, "occ": 1, "role": "uniswapV3SwapCallback(int256,int256,bytes)" },
+      "0x23b872dd": { "present": true, "occ": 3, "role": "ERC20 transferFrom" },
+      "0x128acb08": { "present": false, "role": "V3 pool swap(address,bool,int256,uint160,bytes) - NOT in impl (router reaches pool via caller-supplied route)" }
+    },
+    "impl_history_via_eip1967_slot": [
+      { "block": 120524634, "impl": "0x241f743e2c654d4119e8d84fb8b6d86442fb9ba9", "note": "impl at the incident block (prior-corpus vulnerable impl)" },
+      { "block": 120724905, "impl": "0x50c086653e129a03a25956f559b8ba44a38c01e3", "note": "intermediate impl" },
+      { "block": 120724906, "impl": "0xc700cf8d7adf1782a53a4805d255cf17e126db7f", "note": "current impl, first block" },
+      { "block": 129804693, "impl": "0xc700cf8d7adf1782a53a4805d255cf17e126db7f", "note": "head" }
+    ]
+  },
+  "callback_probe": {
+    "method": "eth_call (live, no tx)",
+    "direct_uniswapV3SwapCallback_from_random_EOA": {
+      "calldata": "0xfa461e33...(int256(1),int256(1),bytes(''))",
+      "result": "REVERT 'SwapX: Invalid pool' (0x08c379a0..len0x13 'SwapX: Invalid pool')"
+    },
+    "conclusion": "callback now requires msg.sender == a transient-storage (EIP-1153 TLOAD/TSTORE) pool address set by the router's own swap context; a direct external call (or a call from an unbound contract) reverts."
+  },
+  "fork_simulation": {
+    "harness": "foundry local anvil fork of BSC (no mainnet tx); test file: RouterProbe.t.sol",
+    "fork_block": 129801893,
+    "impl_at_fork": "0xc700cf8d7adf1782a53a4805d255cf17e126db7f",
+    "scenario": "Deploy a fake V3 pool implementing only swap(); call the real entry 0x33411b5e with Route{pool=fakePool, tokenIn=mock, tokenOut=WBNB}; fake pool re-enters router callback with data naming a VICTIM (0x..Beef01) as payer; a distinct address 0x..Ca11E2 is passed as the entry `recipient`; the entry caller (Exploit) holds the working-capital seed and approved the router.",
+    "result": {
+      "entry_call": "succeeds (ok=YES) for BOTH callbacks",
+      "transferFrom_observed": "MockToken.transferFrom(Exploit [router caller], FakePool [callback msg.sender], amount)",
+      "victim_drained_wei": "0",
+      "recipient_drained_wei": "0",
+      "attacker_drained_wei": "0 (tokens round-trip caller -> fakePool -> caller)",
+      "interpretation": "The callback's `from` (payer) is bound to the ROUTER'S SWAP CONTEXT (the entry's msg.sender), NOT to the caller-supplied `data`. The victim named inside the fake pool's callback data is IGNORED. Therefore the fake-pool substitution that powered the Sep-2026 exploit no longer works."
+    }
+  },
+  "decompile": {
+    "tool": "heimdall 0.9.2 (decompile --include-sol) + cast disassemble manual trace",
+    "artifacts": ["impl-decompiled.txt", "impl-disasm.txt", "impl-abi.json"],
+    "callback_0x23a69e75_body_offset": "0x040e",
+    "entry_0x33411b5e_body_offset": "0x0692",
+    "findings": [
+      "Callback body begins by TLOAD-ing a transient pool slot (code const @0x5794) and reverts 'SwapX: Invalid pool' unless the slot is non-zero AND msg.sender == that pool (0x042d..0x0446).",
+      "Additional transient slots hold the expected pay amount / payer / recipient; the callback enforces 'SwapX: v3 amountToPay exceeds expected'.",
+      "New guard strings absent from the old (unverified) impl: 'SwapX: Invalid pool', 'SwapX: invalid pool address', 'SwapX: v3 amountToPay exceeds expected', 'SwapX: v2 fee bps', 'SwapX: flap native refund failed', 'SwapX: flap native send failed'.",
+      "The entry still calls pool.swap() on a CALLER-CHOSEN pool with NO factory validation (factoryV3==0 and factoryV2==0), but the callback pays from the router's own caller - so the attacker can only move their own tokens.",
+      "Custom error 0x5274afe7 = Solady TransferFailed (used by the token-transfer helper)."
+    ]
+  },
+  "approval_census": {
+    "spender": "0xa331fde028e6f17425ab9333c39ae43722340d24",
+    "event": "Approval(address indexed owner, address indexed spender, uint256 value)",
+    "topic0": "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+    "topic2_filter": "0x000000000000000000000000a331fde028e6f17425ab9333c39ae43722340d24",
+    "scan_window": "126,804,572 -> 129,804,572 (last 3,000,000 blocks from head 129,804,572)",
+    "scan_details": {
+      "method": "chunked eth_getLogs, 5,000-block chunks, 601 requests, 0 misses (nodereal public archive)",
+      "raw_logs_found": 0,
+      "note": "ZERO Approval(owner, spender=router) events in the entire last-3M-block window. Independent spot checks with topic0-only and with an empty topic filter (all logs) over 127.2M, 128.0M, 128.5M, 129.0M, 129.5M, 129.7M also returned 0 - the router is completely inactive post-incident.",
+      "filter_positive_control": "same topic0+topic2 filter for spender=PancakeRouter 0x10ED43C7... returns thousands of events in a 5,000-block slice (filter syntax validated)"
+    },
+    "incident_window_scan": {
+      "window": "120,400,000 -> 120,800,000 (around incident block 120,524,634)",
+      "approval_events": 0,
+      "note": "the victims' approvals were granted long before the incident block; none are in this window"
+    },
+    "pre_incident_scan": {
+      "window": "118,000,000 -> 120,000,000 (2,000,000 blocks)",
+      "approval_events": 0
+    },
+    "distinct_tokens": [],
+    "funded_pairs_usd_gt_1000": [],
+    "conclusion": "No standing approvals to the router in the last 3,000,000 blocks; combined with the callback fix this makes live drainable value $0."
+  },
+  "prior_corpus": {
+    "pass4_census": {
+      "window": "127,018,993 - 129,018,993 (2,000,000 blocks)",
+      "pairs": 51,
+      "funded": 4,
+      "material": 0,
+      "note": "all 4 funded were worthless (a Froggie memecoin, 8.09 'StakingHEMI', 5.6e-10 USDT); the 3 PoC victims still hold infinite approvals to the router but zero token balances"
+    }
+  },
+  "verdict": {
+    "mechanism": "FIXED on the current impl 0xc700cf8d7adf1782a53a4805d255cf17e126db7f",
+    "live_drainable_usd": 0,
+    "confidence": "HIGH (decompile + live eth_call + local fork reproduction)",
+    "re_arm_trigger": "a NEW implementation upgrade (owner 0x2803E636498568182594F2909C8d6Cce8820BE15 calls upgradeToAndCall) that reintroduces data-supplied payer / removes the transient pool+payer binding",
+    "monitor": "watch EIP-1967 impl slot 0x360894a1.. for any change away from 0xc700cf8d7adf1782a53a4805d255cf17e126db7f, and Approval(owner,spender=router) events with a funded, non-zero-value token"
+  }
+}
