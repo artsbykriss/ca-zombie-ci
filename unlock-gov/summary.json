@@ -1,0 +1,39 @@
+{
+  "finding": "P7-LOW-6 UnlockProtocolGovernor",
+  "title": "Unlock Protocol governance capture (Base) — cheap 0.3% quorum + no guardian, but deterred by live governance turnout",
+  "chains": ["base"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium",
+  "headline_conditional_usd": 29085,
+  "headline_note": "The mechanism is fork-proven and the 0.3% quorum costs only $2,120, but the drain proposal must win a 6-day vote. Unlock governance is ACTIVE: recent turnout is 6.58M-13.85M UP (2.2x-4.6x the 3,000,000 quorum) and a single delegate 0x38b826a4426a0d4d9b4377ac57c9af0308281c5d already holds 3,420,169 UP (> quorum, > the attacker's 3M) and votes Against. Out-bidding the community needs >13.85M UP (~$44.5k with ~$35k non-recoverable price impact) > the ~$29k prize => net-negative. Conditional upside if the vote went unopposed: ~$29,085.",
+  "categories": {"E-U": 0, "E-U-conditional": 29085, "H-O": 0, "P": 38493, "S": 0},
+  "latest_block": 53084185,
+  "block_numbers": {"base": 53084185},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": ["governance turnout 6.58M-13.85M UP >> 3,000,000 quorum defeats the cheap-quorum path", "out-bidding the community (>13.85M UP) costs ~$44.5k > the ~$29k realizable prize (net-negative)"],
+  "poc": {
+    "tests_passed": 3,
+    "tests_total": 3,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40227629548", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40226914520"]
+  },
+  "key_facts": [
+    "UPGovernor 0x65bA0624403Fc5Ca2b20479e9F626eD4D78E0aD9 (impl 0x6ac91d932b575e16c3d724eb43fbc9ce7bf5f7f2) on Base: votingDelay=345600s (4d), votingPeriod=518400s (6d), proposalThreshold=50,000e18 UP, quorumNumerator=3/1000 = 0.30% (=3,000,000e18 UP), COUNTING_MODE support=bravo&quorum=for,abstain, guardian() reverts (none).",
+    "UPTimelock 0xB34567C4cA697b39F72e1a8478f285329A98ed1b: getMinDelay=172800s (2d), PROPOSER_ROLE(governor)=true, CANCELLER_ROLE(governor)=false, TIMELOCK_ADMIN_ROLE(self)=true, EXECUTOR_ROLE(address(0))=true. No on-chain cancel exists (UPTimelock.cancel is onlyRole(CANCELLER_ROLE)); both ProxyAdmins have owner()==the timelock => no off-chain team counter.",
+    "Timelock holdings at block 53083993: 27,171,281.4096 UP + 6.431220781 ETH + 3,997.402409 USDC + 0.497088301 WETH = ~$38,493 nominal; realizable ~$29,205 (ETH+USDC+WETH $20,305 + UP-dump ~$8,900).",
+    "Fork-measured acquisition cost: buying exactly 3,000,000 UP via Uniswap V3 SwapRouter02 exactOutputSingle on the live UP/WETH 0.3% pool costs 0.900505509506934864 WETH = $2,119.55; selling back after the snapshot recovers ~$2,002 => net ~$118.",
+    "Fork-proven end-to-end: with quorum-level votes the attacker proposes, votes For, queues, executes and the timelock ends at 0 UP / 0 USDC / 0 WETH / 0 ETH. CI runs 40227629548 and 40226914520, 3/3 PASS.",
+    "DECISIVE: last ~600k Base blocks (14d) the governor had 3 proposals with turnout FOR 13,851,479 / AGAINST 6,578,303 / FOR 10,678,655 UP — 2.2x-4.6x the 3,000,000 quorum.",
+    "DECISIVE: delegate 0x38b826a4426a0d4d9b4377ac57c9af0308281c5d currently has 3,420,168.69 UP of votes (EOA) — more than the quorum and more than the attacker's 3M — and voted AGAINST on proposal 11790216226306. Buying UP from the pool does not reduce this delegate's holdings.",
+    "To out-bid the observed max turnout (>13.85M UP) from the 18.31M-UP / 6.156-WETH pool costs ~18.9 WETH (~$44.5k) with ~$35k non-recoverable price impact (the stake must survive the 4-day snapshot; no flash loan) => net-negative vs the ~$29k prize.",
+    "UP token owner() == the timelock => a passed proposal also controls the token (mint/transferOwnership) and both ProxyAdmins (full upgrade authority over governor, timelock, token).",
+    "The timelock's own 27.17M UP is undelegated (UP.getVotes(timelock)=0)."
+  ],
+  "caveats": [
+    "Governance behaviour is not code: if all active delegates abstain for the specific 6-day voting window, the conditional ~$29k capture becomes live. Confidence MEDIUM, not HIGH.",
+    "The UP leg is illiquid: 27.17M UP dumped into ~$15.3k of pool WETH realises only ~$8.9k (single-shot AMM estimate, before MEV/slippage).",
+    "The quorum stake must be held from before propose() until the snapshot (4 days); it is NOT flash-loanable (ERC20Votes past-vote + past-total-supply snapshot).",
+    "12-day elapsed window (4d delay + 6d vote + 2d timelock); re-read all live state before acting."
+  ],
+  "one_liner": "Unlock Protocol's Base governor has a 0.3% quorum (~$2,120, fork-measured), no guardian, no on-chain cancel and timelock-owned ProxyAdmins, and the mechanism is fork-proven — but the drain proposal must win a 6-day vote and live turnout is 6.58M-13.85M UP with one delegate already holding 3.42M UP and voting Against, so out-bidding costs ~$44.5k > the ~$29k prize => E-U ~ $0 (conditional upside ~$29k)."
+}

@@ -1,0 +1,56 @@
+{
+  "purpose": "Unlock Protocol governance turnout over the last ~600k Base blocks (~14 days, block ~53,084,185) — the decisive evidence that the cheap-quorum capture is deterred.",
+  "method": "eth_getLogs on UPGovernor 0x65bA0624403Fc5Ca2b20479e9F626eD4D78E0aD9 for ProposalCreated (topic0 0x7d84a626…) and VoteCast (topic0 0xb8e13888…), decoded weight from the non-indexed data.",
+  "quorum_UP": "3000000000000000000000000",
+  "proposals": [
+    {
+      "proposalId_prefix": "11278527723677…",
+      "voters": 6,
+      "for_UP": "13851479", "against_UP": "0", "abstain_UP": "0",
+      "result": "passed quorum",
+      "individual": [
+        {"voter":"0x38b826a4426a0d4d9b4377ac57c9af0308281c5d","support":"FOR","UP":"3420169"},
+        {"voter":"0x9ded35aef86f3c826ff8fe9240f9e7a9fb2094e5","support":"FOR","UP":"2591263"},
+        {"voter":"0x34c2871c3d539c473e40a09158bdff522202e2d5","support":"FOR","UP":"2398485"},
+        {"voter":"0xca7632327567796e51920f6b16373e92c7823854","support":"FOR","UP":"2383795"},
+        {"voter":"0x79f16606e9a64edb8ba09c55ee1375bda883c032","support":"FOR","UP":"2283429"},
+        {"voter":"0x676efef0dc8be574fb8f67e272259e7d213d3577","support":"FOR","UP":"774339"}
+      ]
+    },
+    {
+      "proposalId_prefix": "11790216226306…",
+      "voters": 3,
+      "for_UP": "0", "against_UP": "6578303", "abstain_UP": "0",
+      "result": "defeated (below quorum)",
+      "individual": [
+        {"voter":"0x38b826a4426a0d4d9b4377ac57c9af0308281c5d","support":"AGAINST","UP":"3420169"},
+        {"voter":"0xca7632327567796e51920f6b16373e92c7823854","support":"AGAINST","UP":"2383795"},
+        {"voter":"0x676efef0dc8be574fb8f67e272259e7d213d3577","support":"AGAINST","UP":"774339"}
+      ]
+    },
+    {
+      "proposalId_prefix": "49741031545790…",
+      "voters": 4,
+      "for_UP": "10678655", "against_UP": "0", "abstain_UP": "0",
+      "result": "passed quorum",
+      "individual": [
+        {"voter":"0x38b826a4426a0d4d9b4377ac57c9af0308281c5d","support":"FOR","UP":"3420169"},
+        {"voter":"0x9ded35aef86f3c826ff8fe9240f9e7a9fb2094e5","support":"FOR","UP":"2591263"},
+        {"voter":"0xca7632327567796e51920f6b16373e92c7823854","support":"FOR","UP":"2383795"},
+        {"voter":"0x79f16606e9a64edb8ba09c55ee1375bda883c032","support":"FOR","UP":"2283429"}
+      ]
+    }
+  ],
+  "live_delegate_votes_now": {
+    "0x38b826a4426a0d4d9b4377ac57c9af0308281c5d": "3420168687558954149098283 (EOA, code size 3) — MORE than the 3,000,000 quorum",
+    "0x9ded35aef86f3c826ff8fe9240f9e7a9fb2094e5": "2441262602375527219899128",
+    "0xca7632327567796e51920f6b16373e92c7823854": "2383794505436979424398000 (EOA)"
+  },
+  "implication": [
+    "Observed turnout is 6.58M AGAINST to 13.85M FOR — i.e. 2.2x to 4.6x the 3,000,000 quorum.",
+    "A SINGLE delegate (0x38b826a4…) already holds 3.42M UP of voting power (> quorum, > the attacker's 3M) and demonstrably votes AGAINST proposals it dislikes (prop 11790216226306).",
+    "Buying 3M UP from the pool does NOT reduce these delegates' holdings, so the attacker's 3M would be outvoted by one attentive delegate.",
+    "To be safe the attacker would need >13.85M UP; buying 13.85M from the UP/WETH 0.3% pool (18.31M UP / 6.156 WETH) costs ~18.9 WETH = ~$44.5k with a ~$35k non-recoverable price impact (the stake must be held 4 days through the snapshot, so it cannot be flash-loaned or round-tripped) — net-negative versus the ~$29k realizable prize.",
+    "=> the cheap-quorum capture is deterred; E-U ~ $0. The residual is a governance-behaviour risk (if all active delegates abstain for the 6-day window) plus a liquidity risk (deeper UP pools would make >13.9M cheap to acquire)."
+  ]
+}
