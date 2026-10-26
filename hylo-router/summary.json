@@ -1,0 +1,45 @@
+{
+ "finding": "ZH4-PASS7-T3-12",
+ "title": "Hylo router \u2014 caller-supplied-account substitution on `route` (0-declared-account CPI proxy)",
+ "chains": [
+  "solana"
+ ],
+ "headline_extractable_usd": 0.0,
+ "headline_confidence": "high",
+ "categories": {
+  "E-U": 0.0,
+  "H-O": 0.0,
+  "P": 0.0,
+  "S": 0.0
+ },
+ "latest_block": 461384770,
+ "block_numbers": {
+  "solana": 461384770
+ },
+ "targets_checked": 1,
+ "live_targets": 1,
+ "closed_reasons": [
+  "route is a CPI proxy with a hard-coded target program (substituting the program account => MissingAccount)",
+  "every forwarded account is re-validated by the Hylo exchange: 2006 ConstraintSeeds, 2003 ConstraintRaw, 2003 ConstraintRaw, 2006 ConstraintSeeds, 2014 ConstraintTokenMint, 2015 ConstraintTokenOwner, 3010 AccountNotSigner, 3012 AccountNotInitialized",
+  "router rejects unsupported/ mismatched pairs itself: 6000 UnsupportedPair",
+  "router signs nothing and holds nothing: EXO_REGISTRY and EVENT_AUTH PDAs do not exist; 0 token accounts owned by the router program or its PDAs",
+  "router PDAs are router::ID PDAs and can never satisfy exchange::ID PDA constraints"
+ ],
+ "poc": {
+  "tests_passed": 1,
+  "tests_total": 13,
+  "ci_run_urls": []
+ },
+ "key_facts": [
+  "live instruction is route v1 (disc e517cb977ae3ad2a); route_v2's exo_registry PDA F7BfTbic9AyaNKT7e4eoSbgZC7yxJvutA6S4VzosASg9 does not exist",
+  "real mainnet route CPI replayed as positive control => SUCCESS; 12 substitutions all rejected",
+  "router ELF 240376 B sha256 25f88987c8223775fd4e0fd8e7a2a3bf85503f7b5b3112fe801d30cfac80d415, upgrade authority GzyhwK4y7EKPEevAMc2TEpgi1Y3znwj14FUzkHmCMiNP, deployed slot 439863765",
+  "exchange custody measured $58,538,018.64 (JITOSOL vault $30.20M, earn-pool hyUSD $20.56M, cbBTC $3.36M, hySOL $2.39M, HYPE $2.04M) \u2014 reachable only via the exchange program"
+ ],
+ "caveats": [
+  "router source is not public; account-resolution inferred from the project's published IDL + live behaviour (the empirical result does not depend on it)",
+  "sigVerify:false simulation; H13 (no user signer => AccountNotSigner) shows the exchange really requires the user's signature",
+  "point-in-time 2026-10-25"
+ ],
+ "one_liner": "external unprivileged attacker can extract ~$0 live from the Hylo router; `route` is a hard-coded-target CPI proxy whose accounts are re-validated by the exchange and which signs nothing/holds nothing"
+}

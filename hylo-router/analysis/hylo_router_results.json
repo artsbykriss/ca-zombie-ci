@@ -1,0 +1,148 @@
+[
+ {
+  "label": "H1_CONTROL_route_1000atoms",
+  "result": "{'InstructionError': [0, {'Custom': 1}]}",
+  "note": "replay real route, small amount",
+  "logs": [
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: Error: insufficient funds",
+   "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA failed: custom program error: 0x1",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x1",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x1"
+  ]
+ },
+ {
+  "label": "H2_programAcct_substituted",
+  "result": "{'InstructionError': [0, 'MissingAccount']}",
+  "note": "CPI target substitution",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: An account required by the instruction is missing"
+  ]
+ },
+ {
+  "label": "H3_hyloPDA_substituted",
+  "result": "{'InstructionError': [0, {'Custom': 3012}]}",
+  "note": "hylo substitution",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: hylo. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+  ]
+ },
+ {
+  "label": "H4_exoPair_substituted",
+  "result": "{'InstructionError': [0, {'Custom': 3012}]}",
+  "note": "exo_pair substitution",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: exo_pair. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+  ]
+ },
+ {
+  "label": "H5_collateralMint_substituted",
+  "result": "{'InstructionError': [0, {'Custom': 3012}]}",
+  "note": "collateral_mint substitution",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: collateral_mint. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+  ]
+ },
+ {
+  "label": "H6_pythFeed_substituted",
+  "result": "{'InstructionError': [0, {'Custom': 3012}]}",
+  "note": "pyth feed substitution",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: collateral_usd_pyth_feed. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+  ]
+ },
+ {
+  "label": "H7_userLevercoinTa_substituted",
+  "result": "{'InstructionError': [0, {'Custom': 3012}]}",
+  "note": "user levercoin ATA substitution",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: user_levercoin_ta. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+  ]
+ },
+ {
+  "label": "H8_user_substituted_attacker",
+  "result": "{'InstructionError': [0, {'Custom': 2015}]}",
+  "note": "user substitution",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError occurred. Error Code: ConstraintTokenOwner. Error Number: 2015. Error Message: A token owner constraint was violated.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7df",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7df"
+  ]
+ },
+ {
+  "label": "H9_misroute_arg_tokenB_changed",
+  "result": "{'InstructionError': [0, {'Custom': 6000}]}",
+  "note": "arg change, accounts same",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: AnchorError occurred. Error Code: UnsupportedPair. Error Number: 6000. Error Message: No valid route for given tokens..",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x1770"
+  ]
+ },
+ {
+  "label": "H10_unsupportedPair",
+  "result": "{'InstructionError': [0, {'Custom': 6000}]}",
+  "note": "unsupported pair",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: AnchorError occurred. Error Code: UnsupportedPair. Error Number: 6000. Error Message: No valid route for given tokens..",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x1770"
+  ]
+ },
+ {
+  "label": "H11_shortAccountList",
+  "result": "{'InstructionError': [0, 'MissingAccount']}",
+  "note": "missing account",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: An account required by the instruction is missing"
+  ]
+ },
+ {
+  "label": "H12_extraAccounts",
+  "result": "{'InstructionError': [0, {'Custom': 1}]}",
+  "note": "extra account",
+  "logs": [
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: Error: insufficient funds",
+   "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA failed: custom program error: 0x1",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x1",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x1"
+  ]
+ },
+ {
+  "label": "H13_noUserSigner",
+  "result": "{'InstructionError': [0, {'Custom': 3010}]}",
+  "note": "user not signer",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: user. Error Code: AccountNotSigner. Error Number: 3010. Error Message: The given account did not sign.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc2",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc2"
+  ]
+ }
+]

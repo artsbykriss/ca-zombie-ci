@@ -1,0 +1,77 @@
+[
+ {
+  "label": "H1_CONTROL_route_amount100",
+  "result": "SUCCESS",
+  "note": "control, amount<=balance(170)",
+  "logs": [
+   "Program log: Instruction: Route",
+   "Program log: Instruction: ConvertStableToLeverExo"
+  ]
+ },
+ {
+  "label": "H3b_hyloPDA_validAccountSub",
+  "result": "{'InstructionError': [0, {'Custom': 3012}]}",
+  "note": "hylo->valid other EXCH pda",
+  "logs": [
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: hylo. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+  ]
+ },
+ {
+  "label": "H4b_exoPair_otherPairSub",
+  "result": "{'InstructionError': [0, {'Custom': 3012}]}",
+  "note": "exo_pair->WETH pair pda",
+  "logs": [
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: exo_pair. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+  ]
+ },
+ {
+  "label": "H5b_collateralMint_WETH_sub",
+  "result": "{'InstructionError': [0, {'Custom': 3012}]}",
+  "note": "collateral->WETH (valid pair)",
+  "logs": [
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: levercoin_mint. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+  ]
+ },
+ {
+  "label": "H6b_pythFeed_validOtherFeed",
+  "result": "{'InstructionError': [0, {'Custom': 2003}]}",
+  "note": "pyth feed->SOL/USD",
+  "logs": [
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError caused by account: collateral_usd_pyth_feed. Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7d3",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7d3"
+  ]
+ },
+ {
+  "label": "H7b_userLevercoinTa_wrongMint",
+  "result": "{'InstructionError': [0, {'Custom': 2014}]}",
+  "note": "ATA mint substitution",
+  "logs": [
+   "Program log: Instruction: ConvertStableToLeverExo",
+   "Program log: AnchorError occurred. Error Code: ConstraintTokenMint. Error Number: 2014. Error Message: A token mint constraint was violated.",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7de",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7de"
+  ]
+ },
+ {
+  "label": "H14_eventAuthority_sub",
+  "result": "{'InstructionError': [0, {'Custom': 2006}]}",
+  "note": "event authority substitution",
+  "logs": [
+   "Program log: Right:",
+   "Program log: 4VzpNE51Be5vD5Yg8MC3z6TVHq5gGbLJptjv18QbD6WP",
+   "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7d6",
+   "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7d6"
+  ]
+ }
+]

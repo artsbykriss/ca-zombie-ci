@@ -1,0 +1,37 @@
+=== Part 1: structural ===
+router program exists: True owner: BPFLoaderUpgradeab1e11111111111111111111111 len: 36
+EXO_REGISTRY F7BfTbic9AyaNKT7e4eoSbgZC7yxJvutA6S4VzosASg9 exists=False owner=None len=0 token_accts(Token)=0 token_accts(T22)=0
+EVENT_AUTH DsRFnNGgyQCpSH7dDHi6ZC2YnYGnG1J2cEPSyeomDwyj exists=False owner=None len=0 token_accts(Token)=0 token_accts(T22)=0
+router program token accounts: 0 0
+collateral_vault FWPLy9vhx2VRto91bcqh7f8xSUd285Sz2N12H6JC29rr owner_field=GwxovvRAGWvhpmveKmFLZeojeyfzDG3FcBTgAeWnVW1Z mint=98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g
+fee_vault Hh8N3Fdauxgq1jjcKdzGBR3D8cdkpLZrFEVumL1tYQLp owner_field=3HT6dD6APJh89XJs9rkn3BmsvkXE9jPG9dWJmUjWu6TS mint=5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E
+
+=== Part 3: substitution sims ===
+
+== a) CONTROL as-is amount=100
+   err=null
+    Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn consumed 67837 of 191789 compute units
+    Program return: HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn eOF/+c+e8osV49WDJ0Hs54BOB9XJf0LvM+1fBZx0kl9jAAAAAAAAAPoBAAAAAAAAAPoAypo7AAAAAPdBAAAAAAAAAPpawTNaAAAAAPcWnRHtEQAAAPdGTMkDAAAAAPd91PtuKQEAAPo=
+    Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn success
+    Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f consumed 76813 of 200000 compute units
+    Program return: hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f eOF/+c+e8osV49WDJ0Hs54BOB9XJf0LvM+1fBZx0kl9jAAAAAAAAAPoBAAAAAAAAAPoAypo7AAAAAPdBAAAAAAAAAPpawTNaAAAAAPcWnRHtEQAAAPdGTMkDAAAAAPd91PtuKQEAAPo=
+    Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f success
+
+== b) idx17 exchange-program -> bogus
+   err={"InstructionError": [0, "MissingAccount"]}
+    Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f invoke [1]
+    Program log: Instruction: Route
+    Unknown program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn
+    Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f consumed 8204 of 200000 compute units
+    Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: An account required by the instruction is missing
+
+== c) idx0 user -> fresh signer
+   err={"InstructionError": [0, {"Custom": 2015}]}
+    Program log: Instruction: ConvertStableToLeverExo
+    Program log: AnchorError occurred. Error Code: ConstraintTokenOwner. Error Number: 2015. Error Message: A token owner constraint was violated.
+    Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn consumed 33785 of 191789 compute units
+    Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7df
+    Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f consumed 41996 of 200000 compute units
+    Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7df
+
+wrote hylo_results.json

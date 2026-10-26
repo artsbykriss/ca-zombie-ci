@@ -1,0 +1,160 @@
+{
+ "program": "hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f",
+ "slot": 461453685,
+ "structural": {
+  "router_program_owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+  "router_elf_len": 240376,
+  "exo_registry_pda": "F7BfTbic9AyaNKT7e4eoSbgZC7yxJvutA6S4VzosASg9",
+  "exo_registry_exists": false,
+  "router_event_authority_pda": "DsRFnNGgyQCpSH7dDHi6ZC2YnYGnG1J2cEPSyeomDwyj",
+  "router_event_authority_exists": false,
+  "router_token_accounts": {
+   "router_program": 0,
+   "exo_registry": 0,
+   "event_auth": 0
+  }
+ },
+ "discriminators": {
+  "route": "e517cb977ae3ad2a",
+  "route_v2": "bb64facc31c4af14",
+  "live_ix_is": "route"
+ },
+ "substitutions": [
+  {
+   "label": "H1_CONTROL_replay_live_route_amount100",
+   "result": "SUCCESS",
+   "note": "real route CPI, amount<=balance",
+   "logs": [
+    "Program log: Instruction: Route",
+    "Program log: Instruction: ConvertStableToLeverExo"
+   ]
+  },
+  {
+   "label": "H2_programAcct_substituted",
+   "result": "MissingAccount",
+   "note": "CPI target account -> bogus program",
+   "logs": [
+    "Program log: Instruction: Route",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: An account required by the instruction is missing"
+   ]
+  },
+  {
+   "label": "H3_hyloPDA_substituted",
+   "result": "Custom 3012 (AccountNotInitialized)",
+   "note": "hylo -> another exchange PDA",
+   "logs": [
+    "Program log: Instruction: ConvertStableToLeverExo",
+    "Program log: AnchorError caused by account: hylo. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+    "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+   ]
+  },
+  {
+   "label": "H4_exoPair_otherPair",
+   "result": "Custom 3012 (AccountNotInitialized)",
+   "note": "exo_pair -> WETH pair PDA",
+   "logs": [
+    "Program log: Instruction: ConvertStableToLeverExo",
+    "Program log: AnchorError caused by account: exo_pair. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+    "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+   ]
+  },
+  {
+   "label": "H5_collateralMint_WETH",
+   "result": "Custom 3012 (AccountNotInitialized)",
+   "note": "collateral -> WETH (other registered pair)",
+   "logs": [
+    "Program log: Instruction: ConvertStableToLeverExo",
+    "Program log: AnchorError caused by account: levercoin_mint. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.",
+    "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc4",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc4"
+   ]
+  },
+  {
+   "label": "H6_pythFeed_substituted",
+   "result": "Custom 2003 (ConstraintRaw)",
+   "note": "Pyth feed -> SOL/USD feed",
+   "logs": [
+    "Program log: Instruction: ConvertStableToLeverExo",
+    "Program log: AnchorError caused by account: collateral_usd_pyth_feed. Error Code: ConstraintRaw. Error Number: 2003. Error Message: A raw constraint was violated.",
+    "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7d3",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7d3"
+   ]
+  },
+  {
+   "label": "H7_userTokenAcct_wrongMint",
+   "result": "Custom 2014 (ConstraintTokenMint)",
+   "note": "user token acct -> wrong mint",
+   "logs": [
+    "Program log: Instruction: ConvertStableToLeverExo",
+    "Program log: AnchorError occurred. Error Code: ConstraintTokenMint. Error Number: 2014. Error Message: A token mint constraint was violated.",
+    "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7de",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7de"
+   ]
+  },
+  {
+   "label": "H8_eventAuthority_substituted",
+   "result": "Custom 2006 (ConstraintSeeds)",
+   "note": "event authority -> other PDA",
+   "logs": [
+    "Program log: Right:",
+    "Program log: 4VzpNE51Be5vD5Yg8MC3z6TVHq5gGbLJptjv18QbD6WP",
+    "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7d6",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7d6"
+   ]
+  },
+  {
+   "label": "H9_user_substituted_attacker",
+   "result": "Custom 2015 (ConstraintTokenOwner)",
+   "note": "user -> attacker (signer)",
+   "logs": [
+    "Program log: Instruction: ConvertStableToLeverExo",
+    "Program log: AnchorError occurred. Error Code: ConstraintTokenOwner. Error Number: 2015. Error Message: A token owner constraint was violated.",
+    "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0x7df",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x7df"
+   ]
+  },
+  {
+   "label": "H10_misroute_arg_tokenB_changed",
+   "result": "Custom 6000 (exchange-custom)",
+   "note": "args changed, accounts unchanged",
+   "logs": [
+    "Program log: Instruction: Route",
+    "Program log: AnchorError occurred. Error Code: UnsupportedPair. Error Number: 6000. Error Message: No valid route for given tokens..",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x1770"
+   ]
+  },
+  {
+   "label": "H11_unsupportedPair",
+   "result": "Custom 6000 (exchange-custom)",
+   "note": "(HYPE,WETH) not in router table",
+   "logs": [
+    "Program log: Instruction: Route",
+    "Program log: AnchorError occurred. Error Code: UnsupportedPair. Error Number: 6000. Error Message: No valid route for given tokens..",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0x1770"
+   ]
+  },
+  {
+   "label": "H12_shortAccountList",
+   "result": "MissingAccount",
+   "note": "17 accounts instead of 18",
+   "logs": [
+    "Program log: Instruction: Route",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: An account required by the instruction is missing"
+   ]
+  },
+  {
+   "label": "H13_noUserSigner",
+   "result": "Custom 3010 (AccountNotSigner)",
+   "note": "user not a signer",
+   "logs": [
+    "Program log: Instruction: ConvertStableToLeverExo",
+    "Program log: AnchorError caused by account: user. Error Code: AccountNotSigner. Error Number: 3010. Error Message: The given account did not sign.",
+    "Program HYEXCHtHkBagdStcJCp3xbbb9B7sdMdWXFNj6mdsG4hn failed: custom program error: 0xbc2",
+    "Program hyRouTRDAgn65xyyJ3L5c4k5SFmSdr3NxDV8Euzjy3f failed: custom program error: 0xbc2"
+   ]
+  }
+ ],
+ "verdict": "route is a hardcoded-target CPI proxy with no authority; every caller-supplied account is validated by the exchange program."
+}
