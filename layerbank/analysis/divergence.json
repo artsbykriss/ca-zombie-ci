@@ -1,0 +1,125 @@
+{
+ "free_liquidity": {
+  "USDG_usd": 463125.55,
+  "WETH_usd": 1073540.29,
+  "total_usd": 1536665.84
+ },
+ "reserves": {
+  "NVDA": {
+   "ltv_pct": 55.0,
+   "break_even_gap_pct": 81.8,
+   "stale_hours_weekend_freeze": 46.89,
+   "stale_hours_now": 0.15,
+   "oracle_vs_real_gap_pct_now": -0.014,
+   "profitable_today": false
+  },
+  "SPY": {
+   "ltv_pct": 60.0,
+   "break_even_gap_pct": 66.7,
+   "stale_hours_weekend_freeze": 48.77,
+   "stale_hours_now": 0.15,
+   "oracle_vs_real_gap_pct_now": 0.204,
+   "profitable_today": false
+  },
+  "USDG": {
+   "ltv_pct": 80.0,
+   "break_even_gap_pct": 25.0,
+   "stale_hours_weekend_freeze": 3.03,
+   "stale_hours_now": 8.38,
+   "oracle_vs_real_gap_pct_now": -0.011,
+   "profitable_today": false
+  },
+  "WETH": {
+   "ltv_pct": 70.0,
+   "break_even_gap_pct": 42.9,
+   "stale_hours_weekend_freeze": 1.44,
+   "stale_hours_now": 0.39,
+   "oracle_vs_real_gap_pct_now": -0.105,
+   "profitable_today": false
+  },
+  "cbBTC": {
+   "ltv_pct": 70.0,
+   "break_even_gap_pct": 42.9,
+   "stale_hours_weekend_freeze": 6.91,
+   "stale_hours_now": 0.7,
+   "oracle_vs_real_gap_pct_now": 0.173,
+   "profitable_today": false
+  },
+  "QQQ": {
+   "ltv_pct": 50.0,
+   "break_even_gap_pct": 100.0,
+   "stale_hours_weekend_freeze": 52.15,
+   "stale_hours_now": 0.15,
+   "oracle_vs_real_gap_pct_now": 0.101,
+   "profitable_today": false
+  },
+  "SGOV": {
+   "ltv_pct": 70.0,
+   "break_even_gap_pct": 42.9,
+   "stale_hours_weekend_freeze": 63.66,
+   "stale_hours_now": 0.15,
+   "oracle_vs_real_gap_pct_now": 0.709,
+   "profitable_today": true
+  },
+  "GLD": {
+   "ltv_pct": 60.0,
+   "break_even_gap_pct": 66.7,
+   "stale_hours_weekend_freeze": 4.33,
+   "stale_hours_now": 9.68,
+   "oracle_vs_real_gap_pct_now": 0.083,
+   "profitable_today": false
+  }
+ },
+ "conditional_net_best_equity_ltv_70pct": [
+  {
+   "gap_pct": 42.9,
+   "net_borrow_USDG_usd": 138.9,
+   "net_borrow_WETH_usd": 321.97,
+   "net_total_usd": 460.86
+  },
+  {
+   "gap_pct": 60.0,
+   "net_borrow_USDG_usd": 49620.59,
+   "net_borrow_WETH_usd": 115022.17,
+   "net_total_usd": 164642.77
+  },
+  {
+   "gap_pct": 80.0,
+   "net_borrow_USDG_usd": 95565.59,
+   "net_borrow_WETH_usd": 221524.19,
+   "net_total_usd": 317089.78
+  },
+  {
+   "gap_pct": 100.0,
+   "net_borrow_USDG_usd": 132321.59,
+   "net_borrow_WETH_usd": 306725.8,
+   "net_total_usd": 439047.38
+  },
+  {
+   "gap_pct": 150.0,
+   "net_borrow_USDG_usd": 198482.38,
+   "net_borrow_WETH_usd": 460088.7,
+   "net_total_usd": 658571.07
+  },
+  {
+   "gap_pct": 200.0,
+   "net_borrow_USDG_usd": 242589.57,
+   "net_borrow_WETH_usd": 562330.63,
+   "net_total_usd": 804920.2
+  },
+  {
+   "gap_pct": 300.0,
+   "net_borrow_USDG_usd": 297723.57,
+   "net_borrow_WETH_usd": 690133.05,
+   "net_total_usd": 987856.61
+  },
+  {
+   "gap_pct": 500.0,
+   "net_borrow_USDG_usd": 352857.56,
+   "net_borrow_WETH_usd": 817935.46,
+   "net_total_usd": 1170793.02
+  }
+ ],
+ "ceiling_usd": 1536665.84,
+ "note": "Net is capped by the free liquidity of the two borrowable reserves (USDG + WETH). At an infinite stale-vs-real gap the attacker can drain the whole free liquidity; the realistic 100-150% gap nets ~$0.36-0.48M."
+}

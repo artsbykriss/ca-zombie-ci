@@ -1,0 +1,13 @@
+{"note":"41 unique borrowers on LayerBank Pool 0x433e21dc... (chain 4663), from Borrow(address,address,address,uint256,uint8,uint256,uint16) logs (topic0 0xb3d08482...) over blocks 60,085,704-97,813,532. Health factors via getUserAccountData at block ~97,805,494.",
+ "total_collateral_usd_observed": 3529668.97, "total_debt_usd_observed": 2371786.65,
+ "min_health_factor": 1.0737, "liquidatable": 0,
+ "top_borrowers":[
+ {"user":"0x234888e6dafdd64a3890bd2cd8e5558ce81a8e37","collateral_usd":1090851.07,"debt_usd":835793.07,"lt_pct":82.66,"hf":1.0789,"collateral":"836,727 USDG + 108.28 WETH"},
+ {"user":"0x1e702475632a838dbdfa3ea455e30f66aa88a9c0","collateral_usd":696446.03,"debt_usd":544786.07,"lt_pct":85.00,"hf":1.0866,"collateral":"696,506 USDG"},
+ {"user":"0xe647df965dc7ebee27fdd8840a7fc907540eb3d3","collateral_usd":434286.87,"debt_usd":281965.60,"lt_pct":74.81,"hf":1.1522,"collateral":"180.10 WETH + 1,628.97 USDG + 12.94 SPY"},
+ {"user":"0xc65c762fc8a7e1618529c1e49ea3fe572dbdc40b","collateral_usd":251067.53,"debt_usd":150695.31,"lt_pct":76.19,"hf":1.2694,"collateral":"94.18 WETH + 29,975.31 USDG"},
+ {"user":"0x92e0a48ec97f251c3cbf82e40a8f8d1b33367aee","collateral_usd":197239.52,"debt_usd":137788.97,"lt_pct":75.01,"hf":1.0737,"collateral":"83.87 WETH + 338.67 USDG + 0.0000037 SPY"},
+ {"user":"0x06828524bee714346e1eb986af962a7cab2e0cca","collateral_usd":144346.55,"debt_usd":106088.73,"lt_pct":83.36,"hf":1.1342,"collateral":"120,791 USDG + 9.91 WETH + 0.0038 cbBTC"},
+ {"user":"0xab8ea60885ed62e64704f81d95edc960884b2350","collateral_usd":67596.81,"debt_usd":0,"lt_pct":69.44,"hf":null,"collateral":"49.24 SPY + 296.51 SGOV (equity collateral, NO debt)"},
+ {"user":"0xcbdc53d424d5a2e5fef1776997352f10212c9883","collateral_usd":34189.38,"debt_usd":0,"lt_pct":69.28,"hf":null,"collateral":"53.45 GLD + 0.1819 cbBTC (NO debt)"}],
+ "note2":"The large positions are USDG/WETH carry trades (USDG collateral -> WETH borrow and vice-versa). Equity collateral (NVDA/SPY/QQQ/SGOV/GLD) totals only ~$136k, so the equity-staleness flaw touches a small part of the book. No position is liquidatable (min HF 1.0737); a frozen oracle keeps HF constant so staleness can never *trigger* a liquidation."}

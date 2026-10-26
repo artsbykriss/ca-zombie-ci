@@ -1,0 +1,51 @@
+{
+  "finding": "ZH4-PASS7-TIER3-LOW / TARGET 2 — LayerBank (Robinhood Chain)",
+  "title": "LayerBank (Robinhood Chain 4663) — stock AaveOracle reads latestAnswer() with no staleness check; equity feeds 46-64 h stale but accurate",
+  "chains": ["robinhood-4663"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 5162800.51, "S": 0},
+  "latest_block": 97990305,
+  "block_numbers": {"robinhood-4663": 97990305},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "The oracle flaw is LIVE (stock AaveOracle, latestAnswer() only, no updatedAt/heartbeat/fallback) but unprofitable today",
+    "The stale equity prints are accurate: max oracle-vs-real gap 0.71% (SGOV); profit needs 42.9%-100% (1/LTV - 1)",
+    "All 8 price sources are Chainlink EACAggregatorProxy OCR push feeds (owner 0xeE27D5Ae...) -> not manipulable by an unprivileged attacker",
+    "Only USDG and WETH are borrowable; both have LIVE feeds (3.0 h / 1.4 h stale)",
+    "No position is liquidatable (min health factor 1.0737) and a frozen oracle holds HF constant, so staleness can never trigger a liquidation",
+    "Conditional ceiling is hard-capped by free liquidity of the two borrowable reserves: $1,536,665.87 at block 97990305 ($1,661,063.62 at the weekend snapshot block 97805494)"
+  ],
+  "poc": {
+    "tests_passed": 8,
+    "tests_total": 8,
+    "ci_run_urls": ["<CI_RUN_URL>"]
+  },
+  "key_facts": [
+    "Pool 0x433e21dC2BF027910B1635653c2Eb630bC7dAD43 (EIP-1967 proxy, impl 0xb8ea4704fe518c5ccbf429fc6db1b2c4c4ca7193, 42835 B) — Aave v3 fork, chain 4663",
+    "Oracle 0x0e1289335E72a9e1799D691Fc618656FA69F2ca1 (2607 B, NOT a proxy) — bytecode has latestAnswer() 0x50d25bcd, LACKS latestRoundData() 0xfeaf968c",
+    "getAssetPrice(asset) == source.latestAnswer() bit-for-bit; BASE_CURRENCY_UNIT = 1e8 USD",
+    "8 reserves: NVDA(55/60), SPY(60/65), USDG(80/85,borrowable), WETH(70/75,borrowable), cbBTC(70/75), QQQ(50/55), SGOV(70/75), GLD(60/65); all liq bonus 8%",
+    "At block 97805494 (2026-10-25 18:48:43 UTC) equity feed ages: NVDA 46.89 h, SPY 48.77 h, QQQ 52.15 h, SGOV 63.66 h (Friday-close freeze); GLD 4.33 h, cbBTC 6.91 h, USDG 3.03 h, WETH 1.44 h",
+    "The weekend freeze CLOSED by block 97990305 (2026-10-26 00:09:32 UTC): all four equity feeds refreshed ~8-9 min earlier (NVDA 523 s, SPY 535 s, QQQ 531 s, SGOV 544 s)",
+    "Oracle-vs-real (DefiLlama 2026-10-25/26): max |gap| 0.709% (SGOV); NVDA -0.014%, SPY +0.204%, QQQ +0.101%, SGOV +0.709%, GLD +0.083%, cbBTC +0.173%, USDG -0.011%, WETH -0.105%",
+    "Free liquidity (block 97990305): USDG $463,125.55 (463,125.55) + WETH 462.66 ($1,073,540) = $1,536,665.87 hard cap; at the weekend snapshot (block 97805494) USDG was $568,926.52 -> $1,661,063.62",
+    "Pool total supplied $5,162,800.51; total borrowed $3,317,495; utilization ~64%",
+    "supply()/borrow() are permissionless (no whitelist selectors in the Pool impl); fork-proven with a fresh EOA",
+    "41 borrowers; min health factor 1.0737; book is a USDG<->WETH carry trade; total equity collateral only ~$136k, mostly debt-free",
+    "Break-even stale-vs-real gap per reserve = 1/LTV - 1: NVDA 81.8%, SPY/GLD 66.7%, SGOV/cbBTC/WETH 42.9%, USDG 25.0%, QQQ 100%",
+    "Conditional net(g) = F*(1 - 1/(L*(1+g))): ~$439,047 at a 100% gap, ~$658,571 at 150%, ceiling $1,536,666",
+    "CI fork PoC at a 150% gap: supply NVDA, borrow the ENTIRE free USDG liquidity (463,125,547,664 = $463,125.55) and default -> net $126,306.97 after the collateral cost",
+    "P-class: single EOA 0x514C5684B2fc3eD66A492cf378EB227947C91161 is provider owner + ACL admin; AaveOracle.setAssetSources (0xabfd5310) is isPoolAdmin-gated (eth_call: reverts '5' from 0xdead, succeeds from the EOA) -> key compromise drains all $5,162,800.51 supplied",
+    "Feeds are Chainlink EACAggregatorProxy: aggregator() present, 23186-byte OCR aggregators, proxy owner 0xeE27D5Ae494300902D90454e8630A3F1C68c9C52"
+  ],
+  "caveats": [
+    "Oracle and Pool are unverified on any reachable explorer (Robinhood Blockscout is Cloudflare-blocked); layouts pinned by on-chain probing",
+    "The real price is DefiLlama's Robinhood-token print (SGOV/GLD confidence 0.9), not an on-chain order book; the buy leg is modelled at R with no slippage",
+    "Borrower enumeration is 41 of ~45 (a few Alchemy eth_getLogs windows rate-limited); no equity-heavy position was missed among the top-13 by collateral",
+    "The divergence in the PoC is injected with vm.mockCall at the feed (equivalent to a frozen/dead feed) because the real feeds are not manipulable on-chain; it proves the mechanism and the conditional ceiling, not a live exploit",
+    "Point-in-time 2026-10-25; free liquidity and feed ages move"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from LayerBank (Robinhood 4663): the oracle flaw is real and live (stock AaveOracle with latestAnswer() and no staleness check; equity feeds 46.9-63.7 h stale during the weekend freeze, since refreshed) but the frozen prints were accurate to 0.71% while profit needs a 42.9-100% stale-vs-real gap; conditional ceiling $1,536,666 (free USDG+WETH), and a single-EOA ACL admin controls the whole $5.16M book (P-class)."
+}
