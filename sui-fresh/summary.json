@@ -1,0 +1,34 @@
+{
+  "finding": "ZH4-PASS7-sui-fresh",
+  "title": "Sui fresh cluster — AlphaFi Lending, DipCoin, Bluefin Pro, Kai Finance, Suigar",
+  "chains": ["sui"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium-high",
+  "categories": {"E-U": 0, "H-O": 2630000, "P": 0, "S": 0},
+  "latest_block": 1061340251,
+  "block_numbers": {"sui": 1061340251},
+  "targets_checked": 5,
+  "live_targets": 5,
+  "closed_reasons": [
+    "effective object version gates: DipCoin ProtocolConfig.version=6, AlphaLend LendingProtocol.version=4, Kai SupplyPool.version=2/PositionConfig.version=5, Suigar SweetHouse.version_set=[1]",
+    "Bluefin Pro version gate is a no-op (constants::get_version()=1 across 21 versions) so old versions are callable, but v1 entry points still enforce signatures/operator and no weaker guard was proven",
+    "Bluefin Pro signature scheme 0x05 returns signer 0x0 (auth bypass) but withdrawal recipient == the account itself and health checks still run => no profit",
+    "AlphaFi Lend live oracle misconfiguration (ALPHA ~355x) is neutralised by safe_collateral_ratio=0 and borrow/deposit limits=0 (wind-down)",
+    "every old-only function cluster-wide is public(friend)/private, never entry/public"
+  ],
+  "poc": {"tests_passed": 6, "tests_total": 6, "ci_run_urls": []},
+  "key_facts": [
+    "Sui JSON-RPC deprecated on all public fullnodes; GraphQL exposes full Move disassembly + simulateTransaction (a Query field)",
+    "old package versions resolve to their OWN module set (differential simulateTransaction proof, 5 families)",
+    "across 7 package families ZERO existing structs changed first->latest (layout gate never protects old code)",
+    "version counts: DipCoin 9, Bluefin Pro 21, AlphaLend 15, Kai leverage 21, Suigar 2",
+    "live value: DipCoin vaults $1.58M + perps bank $1.845M USDC; Suigar houses ~$175k; AlphaLend H-O ~$2.63M; Kai H-O ~$0.886M",
+    "AlphaFi oracle 0xce4ca140... misprices ALPHA ~355x (root cause of Sept-2026 wind-down)"
+  ],
+  "caveats": [
+    "point-in-time 2026-10-25/26; re-read live state before acting",
+    "DefiLlama does not price some Scallop/CLMM receipt collaterals (USD totals understate a few vaults)",
+    "Bluefin Pro bank balances sit in nested-UID dynamic fields, not GraphQL-readable (TVL from corpus)"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from the five fresh Sui targets; the version/import primitive is structurally live (old versions callable, structs stable) and four of five rely on effective object version gates, while Bluefin's gate is a no-op yet its v1 entry points still enforce signatures and its 0x05->0x0 signer bypass has no profit path."
+}

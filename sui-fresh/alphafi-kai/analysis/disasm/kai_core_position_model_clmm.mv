@@ -1,0 +1,1516 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.position_model_clmm {
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::util;
+use 0000000000000000000000000000000000000000000000000000000000000001::u64;
+
+struct PositionModel has copy, drop {
+	sqrt_pa_x64: u128,
+	sqrt_pb_x64: u128,
+	l: u128,
+	cx: u64,
+	cy: u64,
+	dx: u64,
+	dy: u64
+}
+
+public create(Arg0: u128, Arg1: u128, Arg2: u128, Arg3: u64, Arg4: u64, Arg5: u64, Arg6: u64): PositionModel {
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: MoveLoc[1](Arg1: u128)
+	2: MoveLoc[2](Arg2: u128)
+	3: MoveLoc[3](Arg3: u64)
+	4: MoveLoc[4](Arg4: u64)
+	5: MoveLoc[5](Arg5: u64)
+	6: MoveLoc[6](Arg6: u64)
+	7: Pack[0](PositionModel)
+	8: Ret
+}
+
+public sqrt_pa_x64(Arg0: &PositionModel): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[0](PositionModel.sqrt_pa_x64: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public sqrt_pb_x64(Arg0: &PositionModel): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[1](PositionModel.sqrt_pb_x64: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public l(Arg0: &PositionModel): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[2](PositionModel.l: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public cx(Arg0: &PositionModel): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[3](PositionModel.cx: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public cy(Arg0: &PositionModel): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[4](PositionModel.cy: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public dx(Arg0: &PositionModel): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[5](PositionModel.dx: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public dy(Arg0: &PositionModel): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[6](PositionModel.dy: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public x_by_liquidity_x64(Arg0: &PositionModel, Arg1: u128, Arg2: u128): u128 {
+L3:	loc0: u256
+L4:	loc1: u256
+L5:	loc2: u256
+B0:
+	0: CopyLoc[2](Arg2: u128)
+	1: CopyLoc[0](Arg0: &PositionModel)
+	2: ImmBorrowField[2](PositionModel.l: u128)
+	3: ReadRef
+	4: Le
+	5: BrFalse(7)
+B1:
+	6: Branch(11)
+B2:
+	7: MoveLoc[0](Arg0: &PositionModel)
+	8: Pop
+	9: LdConst[1](u64: 0)
+	10: Abort
+B3:
+	11: CopyLoc[1](Arg1: u128)
+	12: CopyLoc[0](Arg0: &PositionModel)
+	13: ImmBorrowField[1](PositionModel.sqrt_pb_x64: u128)
+	14: ReadRef
+	15: Ge
+	16: BrFalse(21)
+B4:
+	17: MoveLoc[0](Arg0: &PositionModel)
+	18: Pop
+	19: LdU128(0)
+	20: Ret
+B5:
+	21: CopyLoc[1](Arg1: u128)
+	22: CopyLoc[0](Arg0: &PositionModel)
+	23: ImmBorrowField[0](PositionModel.sqrt_pa_x64: u128)
+	24: ReadRef
+	25: Lt
+	26: BrFalse(34)
+B6:
+	27: CopyLoc[0](Arg0: &PositionModel)
+	28: MoveLoc[0](Arg0: &PositionModel)
+	29: ImmBorrowField[0](PositionModel.sqrt_pa_x64: u128)
+	30: ReadRef
+	31: MoveLoc[2](Arg2: u128)
+	32: Call x_by_liquidity_x64(&PositionModel, u128, u128): u128
+	33: Ret
+B7:
+	34: MoveLoc[2](Arg2: u128)
+	35: CastU256
+	36: CopyLoc[0](Arg0: &PositionModel)
+	37: ImmBorrowField[1](PositionModel.sqrt_pb_x64: u128)
+	38: ReadRef
+	39: CopyLoc[1](Arg1: u128)
+	40: Sub
+	41: CastU256
+	42: Mul
+	43: StLoc[5](loc2: u256)
+	44: MoveLoc[1](Arg1: u128)
+	45: CastU256
+	46: MoveLoc[0](Arg0: &PositionModel)
+	47: ImmBorrowField[1](PositionModel.sqrt_pb_x64: u128)
+	48: ReadRef
+	49: CastU256
+	50: Mul
+	51: StLoc[3](loc0: u256)
+	52: LdU256(115792089237316195423570985008687907853269984665640564039457584007913129639935)
+	53: CopyLoc[3](loc0: u256)
+	54: Sub
+	55: MoveLoc[3](loc0: u256)
+	56: Div
+	57: LdU256(1)
+	58: Add
+	59: StLoc[4](loc1: u256)
+	60: MoveLoc[5](loc2: u256)
+	61: MoveLoc[4](loc1: u256)
+	62: Mul
+	63: LdU8(128)
+	64: Shr
+	65: CastU128
+	66: Ret
+}
+
+public y_by_liquidity_x64(Arg0: &PositionModel, Arg1: u128, Arg2: u128): u128 {
+B0:
+	0: CopyLoc[2](Arg2: u128)
+	1: CopyLoc[0](Arg0: &PositionModel)
+	2: ImmBorrowField[2](PositionModel.l: u128)
+	3: ReadRef
+	4: Le
+	5: BrFalse(7)
+B1:
+	6: Branch(11)
+B2:
+	7: MoveLoc[0](Arg0: &PositionModel)
+	8: Pop
+	9: LdConst[1](u64: 0)
+	10: Abort
+B3:
+	11: CopyLoc[1](Arg1: u128)
+	12: CopyLoc[0](Arg0: &PositionModel)
+	13: ImmBorrowField[0](PositionModel.sqrt_pa_x64: u128)
+	14: ReadRef
+	15: Le
+	16: BrFalse(21)
+B4:
+	17: MoveLoc[0](Arg0: &PositionModel)
+	18: Pop
+	19: LdU128(0)
+	20: Ret
+B5:
+	21: CopyLoc[1](Arg1: u128)
+	22: CopyLoc[0](Arg0: &PositionModel)
+	23: ImmBorrowField[1](PositionModel.sqrt_pb_x64: u128)
+	24: ReadRef
+	25: Gt
+	26: BrFalse(34)
+B6:
+	27: CopyLoc[0](Arg0: &PositionModel)
+	28: MoveLoc[0](Arg0: &PositionModel)
+	29: ImmBorrowField[1](PositionModel.sqrt_pb_x64: u128)
+	30: ReadRef
+	31: MoveLoc[2](Arg2: u128)
+	32: Call y_by_liquidity_x64(&PositionModel, u128, u128): u128
+	33: Ret
+B7:
+	34: MoveLoc[2](Arg2: u128)
+	35: CastU256
+	36: MoveLoc[1](Arg1: u128)
+	37: MoveLoc[0](Arg0: &PositionModel)
+	38: ImmBorrowField[0](PositionModel.sqrt_pa_x64: u128)
+	39: ReadRef
+	40: Sub
+	41: CastU256
+	42: Mul
+	43: LdConst[0](u128: 3402..)
+	44: CastU256
+	45: Call util::min_u256(u256, u256): u256
+	46: CastU128
+	47: Ret
+}
+
+public x_x64(Arg0: &PositionModel, Arg1: u128): u128 {
+B0:
+	0: CopyLoc[0](Arg0: &PositionModel)
+	1: MoveLoc[1](Arg1: u128)
+	2: MoveLoc[0](Arg0: &PositionModel)
+	3: ImmBorrowField[2](PositionModel.l: u128)
+	4: ReadRef
+	5: Call x_by_liquidity_x64(&PositionModel, u128, u128): u128
+	6: Ret
+}
+
+public y_x64(Arg0: &PositionModel, Arg1: u128): u128 {
+B0:
+	0: CopyLoc[0](Arg0: &PositionModel)
+	1: MoveLoc[1](Arg1: u128)
+	2: MoveLoc[0](Arg0: &PositionModel)
+	3: ImmBorrowField[2](PositionModel.l: u128)
+	4: ReadRef
+	5: Call y_by_liquidity_x64(&PositionModel, u128, u128): u128
+	6: Ret
+}
+
+public assets_x128(Arg0: &PositionModel, Arg1: u256): u256 {
+L2:	loc0: u256
+L3:	loc1: u256
+L4:	loc2: u256
+L5:	loc3: u128
+L6:	loc4: u256
+B0:
+	0: CopyLoc[1](Arg1: u256)
+	1: LdU8(64)
+	2: Shr
+	3: StLoc[4](loc2: u256)
+	4: MoveLoc[1](Arg1: u256)
+	5: Call util::sqrt_u256(u256): u256
+	6: CastU128
+	7: StLoc[5](loc3: u128)
+	8: CopyLoc[0](Arg0: &PositionModel)
+	9: ImmBorrowField[3](PositionModel.cx: u64)
+	10: ReadRef
+	11: CastU256
+	12: LdU8(64)
+	13: Shl
+	14: StLoc[2](loc0: u256)
+	15: CopyLoc[0](Arg0: &PositionModel)
+	16: ImmBorrowField[4](PositionModel.cy: u64)
+	17: ReadRef
+	18: CastU256
+	19: LdU8(64)
+	20: Shl
+	21: StLoc[3](loc1: u256)
+	22: CopyLoc[0](Arg0: &PositionModel)
+	23: CopyLoc[5](loc3: u128)
+	24: Call y_x64(&PositionModel, u128): u128
+	25: CastU256
+	26: StLoc[6](loc4: u256)
+	27: MoveLoc[0](Arg0: &PositionModel)
+	28: MoveLoc[5](loc3: u128)
+	29: Call x_x64(&PositionModel, u128): u128
+	30: CastU256
+	31: MoveLoc[2](loc0: u256)
+	32: Add
+	33: MoveLoc[4](loc2: u256)
+	34: Mul
+	35: MoveLoc[6](loc4: u256)
+	36: MoveLoc[3](loc1: u256)
+	37: Add
+	38: LdU8(64)
+	39: Shl
+	40: Add
+	41: Ret
+}
+
+public debt_x128(Arg0: &PositionModel, Arg1: u256): u256 {
+L2:	loc0: u256
+L3:	loc1: u256
+L4:	loc2: u256
+B0:
+	0: MoveLoc[1](Arg1: u256)
+	1: LdU8(64)
+	2: Shr
+	3: StLoc[4](loc2: u256)
+	4: CopyLoc[0](Arg0: &PositionModel)
+	5: ImmBorrowField[5](PositionModel.dx: u64)
+	6: ReadRef
+	7: CastU256
+	8: LdU8(64)
+	9: Shl
+	10: StLoc[2](loc0: u256)
+	11: MoveLoc[0](Arg0: &PositionModel)
+	12: ImmBorrowField[6](PositionModel.dy: u64)
+	13: ReadRef
+	14: CastU256
+	15: LdU8(128)
+	16: Shl
+	17: StLoc[3](loc1: u256)
+	18: MoveLoc[2](loc0: u256)
+	19: MoveLoc[4](loc2: u256)
+	20: Mul
+	21: MoveLoc[3](loc1: u256)
+	22: Add
+	23: Ret
+}
+
+public margin_x64(Arg0: &PositionModel, Arg1: u256): u128 {
+L2:	loc0: bool
+L3:	loc1: u256
+L4:	loc2: u256
+L5:	loc3: u256
+L6:	loc4: u256
+L7:	loc5: u256
+L8:	loc6: u256
+L9:	loc7: u256
+L10:	loc8: u128
+L11:	loc9: u256
+L12:	loc10: u256
+B0:
+	0: CopyLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[5](PositionModel.dx: u64)
+	2: ReadRef
+	3: LdU64(0)
+	4: Eq
+	5: BrFalse(13)
+B1:
+	6: CopyLoc[0](Arg0: &PositionModel)
+	7: ImmBorrowField[6](PositionModel.dy: u64)
+	8: ReadRef
+	9: LdU64(0)
+	10: Eq
+	11: StLoc[2](loc0: bool)
+	12: Branch(15)
+B2:
+	13: LdFalse
+	14: StLoc[2](loc0: bool)
+B3:
+	15: MoveLoc[2](loc0: bool)
+	16: BrFalse(21)
+B4:
+	17: MoveLoc[0](Arg0: &PositionModel)
+	18: Pop
+	19: LdConst[0](u128: 3402..)
+	20: Ret
+B5:
+	21: CopyLoc[0](Arg0: &PositionModel)
+	22: ImmBorrowField[5](PositionModel.dx: u64)
+	23: ReadRef
+	24: CastU256
+	25: LdU8(64)
+	26: Shl
+	27: StLoc[7](loc5: u256)
+	28: CopyLoc[0](Arg0: &PositionModel)
+	29: ImmBorrowField[6](PositionModel.dy: u64)
+	30: ReadRef
+	31: CastU256
+	32: LdU8(128)
+	33: Shl
+	34: StLoc[8](loc6: u256)
+	35: CopyLoc[0](Arg0: &PositionModel)
+	36: ImmBorrowField[3](PositionModel.cx: u64)
+	37: ReadRef
+	38: CastU256
+	39: LdU8(64)
+	40: Shl
+	41: StLoc[4](loc2: u256)
+	42: CopyLoc[0](Arg0: &PositionModel)
+	43: ImmBorrowField[4](PositionModel.cy: u64)
+	44: ReadRef
+	45: CastU256
+	46: LdU8(128)
+	47: Shl
+	48: StLoc[5](loc3: u256)
+	49: CopyLoc[1](Arg1: u256)
+	50: Call util::sqrt_u256(u256): u256
+	51: CastU128
+	52: StLoc[10](loc8: u128)
+	53: MoveLoc[1](Arg1: u256)
+	54: LdU8(64)
+	55: Shr
+	56: CastU256
+	57: StLoc[9](loc7: u256)
+	58: CopyLoc[0](Arg0: &PositionModel)
+	59: CopyLoc[10](loc8: u128)
+	60: Call x_x64(&PositionModel, u128): u128
+	61: CastU256
+	62: StLoc[11](loc9: u256)
+	63: MoveLoc[0](Arg0: &PositionModel)
+	64: MoveLoc[10](loc8: u128)
+	65: Call y_x64(&PositionModel, u128): u128
+	66: CastU256
+	67: LdU8(64)
+	68: Shl
+	69: StLoc[12](loc10: u256)
+	70: MoveLoc[11](loc9: u256)
+	71: MoveLoc[4](loc2: u256)
+	72: Add
+	73: CopyLoc[9](loc7: u256)
+	74: Mul
+	75: MoveLoc[12](loc10: u256)
+	76: Add
+	77: MoveLoc[5](loc3: u256)
+	78: Add
+	79: StLoc[3](loc1: u256)
+	80: MoveLoc[7](loc5: u256)
+	81: MoveLoc[9](loc7: u256)
+	82: Mul
+	83: MoveLoc[8](loc6: u256)
+	84: Add
+	85: LdU8(64)
+	86: Shr
+	87: StLoc[6](loc4: u256)
+	88: MoveLoc[3](loc1: u256)
+	89: MoveLoc[6](loc4: u256)
+	90: Div
+	91: LdConst[0](u128: 3402..)
+	92: CastU256
+	93: Call util::min_u256(u256, u256): u256
+	94: CastU128
+	95: Ret
+}
+
+mul_x64(Arg0: u128, Arg1: u128): u128 {
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: CastU256
+	2: MoveLoc[1](Arg1: u128)
+	3: CastU256
+	4: Mul
+	5: LdU8(64)
+	6: Shr
+	7: CastU128
+	8: Ret
+}
+
+public sqrt_pl_x64(Arg0: u128, Arg1: u16): u128 {
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: LdU256(10000)
+	2: MoveLoc[1](Arg1: u16)
+	3: CastU256
+	4: Sub
+	5: LdU8(128)
+	6: Shl
+	7: Call util::sqrt_u256(u256): u256
+	8: CastU128
+	9: Call mul_x64(u128, u128): u128
+	10: LdU128(100)
+	11: Div
+	12: Ret
+}
+
+public sqrt_ph_x64(Arg0: u128, Arg1: u16): u128 {
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: LdU256(10000)
+	2: MoveLoc[1](Arg1: u16)
+	3: CastU256
+	4: Add
+	5: LdU8(128)
+	6: Shl
+	7: Call util::sqrt_u256(u256): u256
+	8: CastU128
+	9: Call mul_x64(u128, u128): u128
+	10: LdU128(100)
+	11: Div
+	12: Ret
+}
+
+public calc_max_deleverage_delta_l(Arg0: &PositionModel, Arg1: u256, Arg2: u16, Arg3: u16): u128 {
+L4:	loc0: bool
+L5:	loc1: u128
+L6:	loc2: u128
+L7:	loc3: u128
+L8:	loc4: bool
+L9:	loc5: bool
+L10:	loc6: bool
+L11:	loc7: u128
+L12:	loc8: bool
+L13:	loc9: bool
+L14:	loc10: u128
+L15:	loc11: u256
+L16:	loc12: u64
+L17:	loc13: u64
+L18:	loc14: u256
+L19:	loc15: u256
+L20:	loc16: u128
+L21:	loc17: u256
+L22:	loc18: u256
+L23:	loc19: u128
+L24:	loc20: u128
+L25:	loc21: u128
+L26:	loc22: u128
+L27:	loc23: u128
+L28:	loc24: u128
+L29:	loc25: u256
+L30:	loc26: u128
+L31:	loc27: u128
+L32:	loc28: u256
+L33:	loc29: u256
+L34:	loc30: u128
+L35:	loc31: u256
+L36:	loc32: u128
+L37:	loc33: u256
+L38:	loc34: u256
+L39:	loc35: u256
+L40:	loc36: u128
+L41:	loc37: u128
+B0:
+	0: CopyLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[5](PositionModel.dx: u64)
+	2: ReadRef
+	3: LdU64(0)
+	4: Eq
+	5: BrFalse(13)
+B1:
+	6: CopyLoc[0](Arg0: &PositionModel)
+	7: ImmBorrowField[6](PositionModel.dy: u64)
+	8: ReadRef
+	9: LdU64(0)
+	10: Eq
+	11: StLoc[4](loc0: bool)
+	12: Branch(15)
+B2:
+	13: LdFalse
+	14: StLoc[4](loc0: bool)
+B3:
+	15: MoveLoc[4](loc0: bool)
+	16: BrFalse(21)
+B4:
+	17: MoveLoc[0](Arg0: &PositionModel)
+	18: Pop
+	19: LdU128(0)
+	20: Ret
+B5:
+	21: MoveLoc[2](Arg2: u16)
+	22: CastU256
+	23: LdU8(64)
+	24: Shl
+	25: LdU256(10000)
+	26: Div
+	27: StLoc[21](loc17: u256)
+	28: CopyLoc[0](Arg0: &PositionModel)
+	29: CopyLoc[1](Arg1: u256)
+	30: Call margin_x64(&PositionModel, u256): u128
+	31: CastU256
+	32: StLoc[18](loc14: u256)
+	33: MoveLoc[3](Arg3: u16)
+	34: CastU256
+	35: LdU8(64)
+	36: Shl
+	37: LdU256(10000)
+	38: Div
+	39: LdU256(18446744073709551616)
+	40: Call util::min_u256(u256, u256): u256
+	41: StLoc[15](loc11: u256)
+	42: CopyLoc[18](loc14: u256)
+	43: CopyLoc[21](loc17: u256)
+	44: Ge
+	45: BrFalse(50)
+B6:
+	46: MoveLoc[0](Arg0: &PositionModel)
+	47: Pop
+	48: LdU128(0)
+	49: Ret
+B7:
+	50: CopyLoc[18](loc14: u256)
+	51: LdU256(18446744073709551616)
+	52: Le
+	53: BrFalse(58)
+B8:
+	54: MoveLoc[0](Arg0: &PositionModel)
+	55: ImmBorrowField[2](PositionModel.l: u128)
+	56: ReadRef
+	57: Ret
+B9:
+	58: CopyLoc[1](Arg1: u256)
+	59: LdU8(64)
+	60: Shr
+	61: CastU128
+	62: StLoc[34](loc30: u128)
+	63: MoveLoc[1](Arg1: u256)
+	64: Call util::sqrt_u256(u256): u256
+	65: CastU128
+	66: StLoc[36](loc32: u128)
+	67: CopyLoc[21](loc17: u256)
+	68: LdU8(64)
+	69: Shl
+	70: CopyLoc[18](loc14: u256)
+	71: LdU8(64)
+	72: Shl
+	73: Sub
+	74: MoveLoc[15](loc11: u256)
+	75: MoveLoc[18](loc14: u256)
+	76: LdU256(18446744073709551616)
+	77: Sub
+	78: Mul
+	79: Add
+	80: StLoc[32](loc28: u256)
+	81: MoveLoc[21](loc17: u256)
+	82: LdU256(18446744073709551616)
+	83: Sub
+	84: StLoc[22](loc18: u256)
+	85: MoveLoc[32](loc28: u256)
+	86: MoveLoc[22](loc18: u256)
+	87: Div
+	88: CastU256
+	89: StLoc[37](loc33: u256)
+	90: CopyLoc[0](Arg0: &PositionModel)
+	91: ImmBorrowField[5](PositionModel.dx: u64)
+	92: ReadRef
+	93: CastU256
+	94: CopyLoc[34](loc30: u128)
+	95: CastU256
+	96: Mul
+	97: CopyLoc[0](Arg0: &PositionModel)
+	98: ImmBorrowField[6](PositionModel.dy: u64)
+	99: ReadRef
+	100: CastU256
+	101: LdU8(64)
+	102: Shl
+	103: Add
+	104: StLoc[33](loc29: u256)
+	105: CopyLoc[0](Arg0: &PositionModel)
+	106: ImmBorrowField[5](PositionModel.dx: u64)
+	107: ReadRef
+	108: CopyLoc[0](Arg0: &PositionModel)
+	109: ImmBorrowField[3](PositionModel.cx: u64)
+	110: ReadRef
+	111: Call u64::min(u64, u64): u64
+	112: StLoc[16](loc12: u64)
+	113: CopyLoc[0](Arg0: &PositionModel)
+	114: ImmBorrowField[6](PositionModel.dy: u64)
+	115: ReadRef
+	116: CopyLoc[0](Arg0: &PositionModel)
+	117: ImmBorrowField[4](PositionModel.cy: u64)
+	118: ReadRef
+	119: Call u64::min(u64, u64): u64
+	120: StLoc[17](loc13: u64)
+	121: CopyLoc[16](loc12: u64)
+	122: CastU256
+	123: CopyLoc[34](loc30: u128)
+	124: CastU256
+	125: Mul
+	126: CopyLoc[17](loc13: u64)
+	127: CastU256
+	128: LdU8(64)
+	129: Shl
+	130: Add
+	131: StLoc[39](loc35: u256)
+	132: CopyLoc[39](loc35: u256)
+	133: LdU8(64)
+	134: Shl
+	135: CopyLoc[33](loc29: u256)
+	136: CopyLoc[37](loc33: u256)
+	137: Mul
+	138: Ge
+	139: BrFalse(144)
+B10:
+	140: MoveLoc[0](Arg0: &PositionModel)
+	141: Pop
+	142: LdU128(0)
+	143: Ret
+B11:
+	144: CopyLoc[33](loc29: u256)
+	145: CopyLoc[39](loc35: u256)
+	146: Sub
+	147: LdU256(0)
+	148: Eq
+	149: BrFalse(154)
+B12:
+	150: MoveLoc[0](Arg0: &PositionModel)
+	151: Pop
+	152: LdU128(0)
+	153: Ret
+B13:
+	154: CopyLoc[33](loc29: u256)
+	155: MoveLoc[37](loc33: u256)
+	156: Mul
+	157: CopyLoc[39](loc35: u256)
+	158: LdU8(64)
+	159: Shl
+	160: Sub
+	161: MoveLoc[33](loc29: u256)
+	162: MoveLoc[39](loc35: u256)
+	163: Sub
+	164: Div
+	165: CastU256
+	166: StLoc[35](loc31: u256)
+	167: CopyLoc[0](Arg0: &PositionModel)
+	168: ImmBorrowField[5](PositionModel.dx: u64)
+	169: ReadRef
+	170: MoveLoc[16](loc12: u64)
+	171: Sub
+	172: CastU128
+	173: LdU8(64)
+	174: Shl
+	175: StLoc[23](loc19: u128)
+	176: CopyLoc[0](Arg0: &PositionModel)
+	177: ImmBorrowField[6](PositionModel.dy: u64)
+	178: ReadRef
+	179: MoveLoc[17](loc13: u64)
+	180: Sub
+	181: CastU128
+	182: LdU8(64)
+	183: Shl
+	184: StLoc[25](loc21: u128)
+	185: MoveLoc[23](loc19: u128)
+	186: MoveLoc[25](loc21: u128)
+	187: MoveLoc[35](loc31: u256)
+	188: StLoc[19](loc15: u256)
+	189: StLoc[26](loc22: u128)
+	190: StLoc[24](loc20: u128)
+	191: CopyLoc[0](Arg0: &PositionModel)
+	192: CopyLoc[36](loc32: u128)
+	193: Call x_x64(&PositionModel, u128): u128
+	194: StLoc[40](loc36: u128)
+	195: CopyLoc[0](Arg0: &PositionModel)
+	196: CopyLoc[36](loc32: u128)
+	197: Call y_x64(&PositionModel, u128): u128
+	198: StLoc[41](loc37: u128)
+	199: CopyLoc[40](loc36: u128)
+	200: CastU256
+	201: CopyLoc[34](loc30: u128)
+	202: CastU256
+	203: Mul
+	204: LdU8(64)
+	205: Shr
+	206: CopyLoc[41](loc37: u128)
+	207: CastU256
+	208: Add
+	209: StLoc[29](loc25: u256)
+	210: CopyLoc[24](loc20: u128)
+	211: CastU256
+	212: CopyLoc[34](loc30: u128)
+	213: CastU256
+	214: Mul
+	215: LdU8(64)
+	216: Shr
+	217: CopyLoc[26](loc22: u128)
+	218: CastU256
+	219: Add
+	220: MoveLoc[19](loc15: u256)
+	221: Mul
+	222: LdU256(18446744073709551616)
+	223: Call util::divide_and_round_up_u256(u256, u256): u256
+	224: StLoc[38](loc34: u256)
+	225: CopyLoc[38](loc34: u256)
+	226: CopyLoc[29](loc25: u256)
+	227: Ge
+	228: BrFalse(234)
+B14:
+	229: CopyLoc[0](Arg0: &PositionModel)
+	230: ImmBorrowField[2](PositionModel.l: u128)
+	231: ReadRef
+	232: StLoc[7](loc3: u128)
+	233: Branch(248)
+B15:
+	234: CopyLoc[0](Arg0: &PositionModel)
+	235: ImmBorrowField[2](PositionModel.l: u128)
+	236: ReadRef
+	237: CastU256
+	238: MoveLoc[38](loc34: u256)
+	239: LdU8(64)
+	240: Shl
+	241: MoveLoc[29](loc25: u256)
+	242: Div
+	243: Mul
+	244: LdU256(18446744073709551616)
+	245: Call util::divide_and_round_up_u256(u256, u256): u256
+	246: CastU128
+	247: StLoc[7](loc3: u128)
+B16:
+	248: MoveLoc[7](loc3: u128)
+	249: StLoc[20](loc16: u128)
+	250: CopyLoc[0](Arg0: &PositionModel)
+	251: CopyLoc[36](loc32: u128)
+	252: CopyLoc[20](loc16: u128)
+	253: Call x_by_liquidity_x64(&PositionModel, u128, u128): u128
+	254: StLoc[27](loc23: u128)
+	255: CopyLoc[0](Arg0: &PositionModel)
+	256: MoveLoc[36](loc32: u128)
+	257: CopyLoc[20](loc16: u128)
+	258: Call y_by_liquidity_x64(&PositionModel, u128, u128): u128
+	259: StLoc[28](loc24: u128)
+	260: CopyLoc[27](loc23: u128)
+	261: CopyLoc[24](loc20: u128)
+	262: Le
+	263: BrFalse(269)
+B17:
+	264: CopyLoc[28](loc24: u128)
+	265: CopyLoc[26](loc22: u128)
+	266: Le
+	267: StLoc[8](loc4: bool)
+	268: Branch(271)
+B18:
+	269: LdFalse
+	270: StLoc[8](loc4: bool)
+B19:
+	271: MoveLoc[8](loc4: bool)
+	272: BrFalse(278)
+B20:
+	273: MoveLoc[0](Arg0: &PositionModel)
+	274: Pop
+	275: MoveLoc[20](loc16: u128)
+	276: StLoc[6](loc2: u128)
+	277: Branch(413)
+B21:
+	278: CopyLoc[27](loc23: u128)
+	279: CopyLoc[24](loc20: u128)
+	280: Ge
+	281: BrFalse(287)
+B22:
+	282: CopyLoc[28](loc24: u128)
+	283: CopyLoc[26](loc22: u128)
+	284: Ge
+	285: StLoc[9](loc5: bool)
+	286: Branch(289)
+B23:
+	287: LdFalse
+	288: StLoc[9](loc5: bool)
+B24:
+	289: MoveLoc[9](loc5: bool)
+	290: BrFalse(338)
+B25:
+	291: CopyLoc[27](loc23: u128)
+	292: CopyLoc[24](loc20: u128)
+	293: Eq
+	294: BrFalse(298)
+B26:
+	295: LdTrue
+	296: StLoc[10](loc6: bool)
+	297: Branch(302)
+B27:
+	298: CopyLoc[28](loc24: u128)
+	299: CopyLoc[26](loc22: u128)
+	300: Eq
+	301: StLoc[10](loc6: bool)
+B28:
+	302: MoveLoc[10](loc6: bool)
+	303: BrFalse(308)
+B29:
+	304: MoveLoc[0](Arg0: &PositionModel)
+	305: Pop
+	306: MoveLoc[20](loc16: u128)
+	307: Ret
+B30:
+	308: MoveLoc[27](loc23: u128)
+	309: CopyLoc[26](loc22: u128)
+	310: Call mul_x64(u128, u128): u128
+	311: MoveLoc[28](loc24: u128)
+	312: CopyLoc[24](loc20: u128)
+	313: Call mul_x64(u128, u128): u128
+	314: Gt
+	315: BrFalse(324)
+B31:
+	316: CopyLoc[0](Arg0: &PositionModel)
+	317: ImmBorrowField[2](PositionModel.l: u128)
+	318: ReadRef
+	319: MoveLoc[26](loc22: u128)
+	320: MoveLoc[41](loc37: u128)
+	321: Call util::saturating_muldiv_round_up_u128(u128, u128, u128): u128
+	322: StLoc[11](loc7: u128)
+	323: Branch(331)
+B32:
+	324: CopyLoc[0](Arg0: &PositionModel)
+	325: ImmBorrowField[2](PositionModel.l: u128)
+	326: ReadRef
+	327: MoveLoc[24](loc20: u128)
+	328: MoveLoc[40](loc36: u128)
+	329: Call util::saturating_muldiv_round_up_u128(u128, u128, u128): u128
+	330: StLoc[11](loc7: u128)
+B33:
+	331: MoveLoc[11](loc7: u128)
+	332: MoveLoc[0](Arg0: &PositionModel)
+	333: ImmBorrowField[2](PositionModel.l: u128)
+	334: ReadRef
+	335: Call util::min_u128(u128, u128): u128
+	336: StLoc[5](loc1: u128)
+	337: Branch(411)
+B34:
+	338: CopyLoc[27](loc23: u128)
+	339: CopyLoc[24](loc20: u128)
+	340: Lt
+	341: BrFalse(376)
+B35:
+	342: MoveLoc[28](loc24: u128)
+	343: MoveLoc[26](loc22: u128)
+	344: Sub
+	345: LdU128(18446744073709551616)
+	346: MoveLoc[34](loc30: u128)
+	347: Call util::muldiv_round_up_u128(u128, u128, u128): u128
+	348: MoveLoc[27](loc23: u128)
+	349: Add
+	350: StLoc[30](loc26: u128)
+	351: CopyLoc[30](loc26: u128)
+	352: CopyLoc[40](loc36: u128)
+	353: Ge
+	354: BrFalse(358)
+B36:
+	355: LdTrue
+	356: StLoc[12](loc8: bool)
+	357: Branch(362)
+B37:
+	358: CopyLoc[40](loc36: u128)
+	359: LdU128(0)
+	360: Eq
+	361: StLoc[12](loc8: bool)
+B38:
+	362: MoveLoc[12](loc8: bool)
+	363: BrFalse(368)
+B39:
+	364: MoveLoc[0](Arg0: &PositionModel)
+	365: ImmBorrowField[2](PositionModel.l: u128)
+	366: ReadRef
+	367: Ret
+B40:
+	368: MoveLoc[0](Arg0: &PositionModel)
+	369: ImmBorrowField[2](PositionModel.l: u128)
+	370: ReadRef
+	371: MoveLoc[30](loc26: u128)
+	372: MoveLoc[40](loc36: u128)
+	373: Call util::muldiv_round_up_u128(u128, u128, u128): u128
+	374: StLoc[14](loc10: u128)
+	375: Branch(409)
+B41:
+	376: MoveLoc[27](loc23: u128)
+	377: MoveLoc[24](loc20: u128)
+	378: Sub
+	379: MoveLoc[34](loc30: u128)
+	380: LdU128(18446744073709551616)
+	381: Call util::muldiv_round_up_u128(u128, u128, u128): u128
+	382: MoveLoc[28](loc24: u128)
+	383: Add
+	384: StLoc[31](loc27: u128)
+	385: CopyLoc[31](loc27: u128)
+	386: CopyLoc[41](loc37: u128)
+	387: Ge
+	388: BrFalse(392)
+B42:
+	389: LdTrue
+	390: StLoc[13](loc9: bool)
+	391: Branch(396)
+B43:
+	392: CopyLoc[41](loc37: u128)
+	393: LdU128(0)
+	394: Eq
+	395: StLoc[13](loc9: bool)
+B44:
+	396: MoveLoc[13](loc9: bool)
+	397: BrFalse(402)
+B45:
+	398: MoveLoc[0](Arg0: &PositionModel)
+	399: ImmBorrowField[2](PositionModel.l: u128)
+	400: ReadRef
+	401: Ret
+B46:
+	402: MoveLoc[0](Arg0: &PositionModel)
+	403: ImmBorrowField[2](PositionModel.l: u128)
+	404: ReadRef
+	405: MoveLoc[31](loc27: u128)
+	406: MoveLoc[41](loc37: u128)
+	407: Call util::muldiv_round_up_u128(u128, u128, u128): u128
+	408: StLoc[14](loc10: u128)
+B47:
+	409: MoveLoc[14](loc10: u128)
+	410: StLoc[5](loc1: u128)
+B48:
+	411: MoveLoc[5](loc1: u128)
+	412: StLoc[6](loc2: u128)
+B49:
+	413: MoveLoc[6](loc2: u128)
+	414: Ret
+}
+
+public calc_max_liq_factor_x64(Arg0: u128, Arg1: u16, Arg2: u16, Arg3: u16): u128 {
+L4:	loc0: u128
+L5:	loc1: u128
+L6:	loc2: u128
+L7:	loc3: u256
+L8:	loc4: u256
+L9:	loc5: u256
+L10:	loc6: u256
+L11:	loc7: u256
+L12:	loc8: u256
+L13:	loc9: u256
+L14:	loc10: u256
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: CastU256
+	2: StLoc[10](loc6: u256)
+	3: MoveLoc[1](Arg1: u16)
+	4: CastU256
+	5: LdU8(64)
+	6: Shl
+	7: LdU256(10000)
+	8: Div
+	9: StLoc[12](loc8: u256)
+	10: LdU256(184467440737095516160000)
+	11: MoveLoc[2](Arg2: u16)
+	12: CastU256
+	13: LdU8(64)
+	14: Shl
+	15: Add
+	16: LdU256(10000)
+	17: Div
+	18: StLoc[9](loc5: u256)
+	19: MoveLoc[3](Arg3: u16)
+	20: CastU256
+	21: LdU8(64)
+	22: Shl
+	23: LdU256(10000)
+	24: Div
+	25: StLoc[7](loc3: u256)
+	26: MoveLoc[12](loc8: u256)
+	27: CopyLoc[9](loc5: u256)
+	28: Call util::max_u256(u256, u256): u256
+	29: StLoc[13](loc9: u256)
+	30: MoveLoc[7](loc3: u256)
+	31: LdU256(18446744073709551616)
+	32: Call util::min_u256(u256, u256): u256
+	33: StLoc[8](loc4: u256)
+	34: CopyLoc[10](loc6: u256)
+	35: CopyLoc[13](loc9: u256)
+	36: Ge
+	37: BrFalse(41)
+B1:
+	38: LdU128(0)
+	39: StLoc[6](loc2: u128)
+	40: Branch(91)
+B2:
+	41: CopyLoc[10](loc6: u256)
+	42: CopyLoc[9](loc5: u256)
+	43: Lt
+	44: BrFalse(53)
+B3:
+	45: MoveLoc[10](loc6: u256)
+	46: LdU8(64)
+	47: Shl
+	48: MoveLoc[9](loc5: u256)
+	49: Div
+	50: CastU128
+	51: StLoc[5](loc1: u128)
+	52: Branch(89)
+B4:
+	53: CopyLoc[13](loc9: u256)
+	54: CopyLoc[10](loc6: u256)
+	55: Sub
+	56: CopyLoc[10](loc6: u256)
+	57: CopyLoc[9](loc5: u256)
+	58: Sub
+	59: Ge
+	60: BrFalse(64)
+B5:
+	61: LdU128(18446744073709551616)
+	62: StLoc[4](loc0: u128)
+	63: Branch(87)
+B6:
+	64: CopyLoc[13](loc9: u256)
+	65: LdU8(64)
+	66: Shl
+	67: CopyLoc[10](loc6: u256)
+	68: LdU8(64)
+	69: Shl
+	70: Sub
+	71: MoveLoc[8](loc4: u256)
+	72: MoveLoc[10](loc6: u256)
+	73: CopyLoc[9](loc5: u256)
+	74: Sub
+	75: Mul
+	76: Add
+	77: StLoc[14](loc10: u256)
+	78: MoveLoc[13](loc9: u256)
+	79: MoveLoc[9](loc5: u256)
+	80: Sub
+	81: StLoc[11](loc7: u256)
+	82: MoveLoc[14](loc10: u256)
+	83: MoveLoc[11](loc7: u256)
+	84: Div
+	85: CastU128
+	86: StLoc[4](loc0: u128)
+B7:
+	87: MoveLoc[4](loc0: u128)
+	88: StLoc[5](loc1: u128)
+B8:
+	89: MoveLoc[5](loc1: u128)
+	90: StLoc[6](loc2: u128)
+B9:
+	91: MoveLoc[6](loc2: u128)
+	92: Ret
+}
+
+public is_fully_deleveraged(Arg0: &PositionModel): bool {
+L1:	loc0: bool
+L2:	loc1: bool
+B0:
+	0: CopyLoc[0](Arg0: &PositionModel)
+	1: ImmBorrowField[2](PositionModel.l: u128)
+	2: ReadRef
+	3: LdU128(0)
+	4: Gt
+	5: BrFalse(10)
+B1:
+	6: MoveLoc[0](Arg0: &PositionModel)
+	7: Pop
+	8: LdFalse
+	9: Ret
+B2:
+	10: CopyLoc[0](Arg0: &PositionModel)
+	11: ImmBorrowField[5](PositionModel.dx: u64)
+	12: ReadRef
+	13: LdU64(0)
+	14: Gt
+	15: BrFalse(23)
+B3:
+	16: CopyLoc[0](Arg0: &PositionModel)
+	17: ImmBorrowField[3](PositionModel.cx: u64)
+	18: ReadRef
+	19: LdU64(0)
+	20: Gt
+	21: StLoc[1](loc0: bool)
+	22: Branch(25)
+B4:
+	23: LdFalse
+	24: StLoc[1](loc0: bool)
+B5:
+	25: MoveLoc[1](loc0: bool)
+	26: BrFalse(31)
+B6:
+	27: MoveLoc[0](Arg0: &PositionModel)
+	28: Pop
+	29: LdFalse
+	30: Ret
+B7:
+	31: CopyLoc[0](Arg0: &PositionModel)
+	32: ImmBorrowField[6](PositionModel.dy: u64)
+	33: ReadRef
+	34: LdU64(0)
+	35: Gt
+	36: BrFalse(44)
+B8:
+	37: MoveLoc[0](Arg0: &PositionModel)
+	38: ImmBorrowField[4](PositionModel.cy: u64)
+	39: ReadRef
+	40: LdU64(0)
+	41: Gt
+	42: StLoc[2](loc1: bool)
+	43: Branch(48)
+B9:
+	44: MoveLoc[0](Arg0: &PositionModel)
+	45: Pop
+	46: LdFalse
+	47: StLoc[2](loc1: bool)
+B10:
+	48: MoveLoc[2](loc1: bool)
+	49: BrFalse(52)
+B11:
+	50: LdFalse
+	51: Ret
+B12:
+	52: LdTrue
+	53: Ret
+}
+
+public margin_below_threshold(Arg0: &PositionModel, Arg1: u256, Arg2: u16): bool {
+L3:	loc0: u128
+L4:	loc1: u128
+B0:
+	0: MoveLoc[0](Arg0: &PositionModel)
+	1: MoveLoc[1](Arg1: u256)
+	2: Call margin_x64(&PositionModel, u256): u128
+	3: StLoc[3](loc0: u128)
+	4: MoveLoc[2](Arg2: u16)
+	5: CastU128
+	6: LdU8(64)
+	7: Shl
+	8: LdU128(10000)
+	9: Div
+	10: StLoc[4](loc1: u128)
+	11: MoveLoc[3](loc0: u128)
+	12: MoveLoc[4](loc1: u128)
+	13: Lt
+	14: Ret
+}
+
+public calc_liquidate_col_x(Arg0: &PositionModel, Arg1: u256, Arg2: u64, Arg3: u16, Arg4: u16, Arg5: u16): u64 * u64 {
+L6:	loc0: bool
+L7:	loc1: u256
+L8:	loc2: u256
+L9:	loc3: u256
+L10:	loc4: u256
+L11:	loc5: u256
+L12:	loc6: u256
+L13:	loc7: u256
+L14:	loc8: u64
+L15:	loc9: u64
+B0:
+	0: CopyLoc[0](Arg0: &PositionModel)
+	1: CopyLoc[1](Arg1: u256)
+	2: CopyLoc[3](Arg3: u16)
+	3: Call margin_below_threshold(&PositionModel, u256, u16): bool
+	4: Not
+	5: BrFalse(11)
+B1:
+	6: MoveLoc[0](Arg0: &PositionModel)
+	7: Pop
+	8: LdU64(0)
+	9: LdU64(0)
+	10: Ret
+B2:
+	11: CopyLoc[0](Arg0: &PositionModel)
+	12: Call is_fully_deleveraged(&PositionModel): bool
+	13: Not
+	14: BrFalse(20)
+B3:
+	15: MoveLoc[0](Arg0: &PositionModel)
+	16: Pop
+	17: LdU64(0)
+	18: LdU64(0)
+	19: Ret
+B4:
+	20: CopyLoc[0](Arg0: &PositionModel)
+	21: ImmBorrowField[3](PositionModel.cx: u64)
+	22: ReadRef
+	23: LdU64(0)
+	24: Eq
+	25: BrFalse(29)
+B5:
+	26: LdTrue
+	27: StLoc[6](loc0: bool)
+	28: Branch(33)
+B6:
+	29: CopyLoc[2](Arg2: u64)
+	30: LdU64(0)
+	31: Eq
+	32: StLoc[6](loc0: bool)
+B7:
+	33: MoveLoc[6](loc0: bool)
+	34: BrFalse(40)
+B8:
+	35: MoveLoc[0](Arg0: &PositionModel)
+	36: Pop
+	37: LdU64(0)
+	38: LdU64(0)
+	39: Ret
+B9:
+	40: MoveLoc[1](Arg1: u256)
+	41: LdU8(64)
+	42: Shr
+	43: StLoc[12](loc6: u256)
+	44: CopyLoc[4](Arg4: u16)
+	45: CastU256
+	46: LdU8(64)
+	47: Shl
+	48: LdU256(10000)
+	49: Div
+	50: StLoc[9](loc3: u256)
+	51: CopyLoc[0](Arg0: &PositionModel)
+	52: ImmBorrowField[6](PositionModel.dy: u64)
+	53: ReadRef
+	54: CastU256
+	55: LdU8(64)
+	56: Shl
+	57: StLoc[8](loc2: u256)
+	58: CopyLoc[0](Arg0: &PositionModel)
+	59: ImmBorrowField[3](PositionModel.cx: u64)
+	60: ReadRef
+	61: CastU256
+	62: MoveLoc[12](loc6: u256)
+	63: Mul
+	64: StLoc[7](loc1: u256)
+	65: CopyLoc[7](loc1: u256)
+	66: LdU8(64)
+	67: Shl
+	68: CopyLoc[8](loc2: u256)
+	69: Div
+	70: LdConst[0](u128: 3402..)
+	71: CastU256
+	72: Call util::min_u256(u256, u256): u256
+	73: StLoc[10](loc4: u256)
+	74: CopyLoc[2](Arg2: u64)
+	75: CastU256
+	76: LdU8(64)
+	77: Shl
+	78: LdU8(64)
+	79: Shl
+	80: CopyLoc[8](loc2: u256)
+	81: Div
+	82: StLoc[13](loc7: u256)
+	83: MoveLoc[10](loc4: u256)
+	84: CastU128
+	85: MoveLoc[3](Arg3: u16)
+	86: MoveLoc[4](Arg4: u16)
+	87: MoveLoc[5](Arg5: u16)
+	88: Call calc_max_liq_factor_x64(u128, u16, u16, u16): u128
+	89: CastU256
+	90: StLoc[11](loc5: u256)
+	91: MoveLoc[13](loc7: u256)
+	92: MoveLoc[11](loc5: u256)
+	93: Call util::min_u256(u256, u256): u256
+	94: MoveLoc[8](loc2: u256)
+	95: Mul
+	96: LdU8(64)
+	97: Shr
+	98: LdU256(18446744073709551616)
+	99: Call util::divide_and_round_up_u256(u256, u256): u256
+	100: MoveLoc[2](Arg2: u64)
+	101: CastU256
+	102: Call util::min_u256(u256, u256): u256
+	103: CastU64
+	104: StLoc[14](loc8: u64)
+	105: CopyLoc[14](loc8: u64)
+	106: CastU256
+	107: LdU8(64)
+	108: Shl
+	109: LdU256(18446744073709551616)
+	110: MoveLoc[9](loc3: u256)
+	111: Add
+	112: Mul
+	113: LdU8(64)
+	114: Shr
+	115: CopyLoc[0](Arg0: &PositionModel)
+	116: ImmBorrowField[3](PositionModel.cx: u64)
+	117: ReadRef
+	118: CastU256
+	119: Mul
+	120: MoveLoc[7](loc1: u256)
+	121: Div
+	122: MoveLoc[0](Arg0: &PositionModel)
+	123: ImmBorrowField[3](PositionModel.cx: u64)
+	124: ReadRef
+	125: CastU256
+	126: Call util::min_u256(u256, u256): u256
+	127: CastU64
+	128: StLoc[15](loc9: u64)
+	129: MoveLoc[14](loc8: u64)
+	130: MoveLoc[15](loc9: u64)
+	131: Ret
+}
+
+public calc_liquidate_col_y(Arg0: &PositionModel, Arg1: u256, Arg2: u64, Arg3: u16, Arg4: u16, Arg5: u16): u64 * u64 {
+L6:	loc0: bool
+L7:	loc1: u256
+L8:	loc2: u256
+L9:	loc3: u256
+L10:	loc4: u256
+L11:	loc5: u256
+L12:	loc6: u256
+L13:	loc7: u64
+L14:	loc8: u64
+B0:
+	0: CopyLoc[0](Arg0: &PositionModel)
+	1: CopyLoc[1](Arg1: u256)
+	2: CopyLoc[3](Arg3: u16)
+	3: Call margin_below_threshold(&PositionModel, u256, u16): bool
+	4: Not
+	5: BrFalse(11)
+B1:
+	6: MoveLoc[0](Arg0: &PositionModel)
+	7: Pop
+	8: LdU64(0)
+	9: LdU64(0)
+	10: Ret
+B2:
+	11: CopyLoc[0](Arg0: &PositionModel)
+	12: Call is_fully_deleveraged(&PositionModel): bool
+	13: Not
+	14: BrFalse(20)
+B3:
+	15: MoveLoc[0](Arg0: &PositionModel)
+	16: Pop
+	17: LdU64(0)
+	18: LdU64(0)
+	19: Ret
+B4:
+	20: CopyLoc[0](Arg0: &PositionModel)
+	21: ImmBorrowField[4](PositionModel.cy: u64)
+	22: ReadRef
+	23: LdU64(0)
+	24: Eq
+	25: BrFalse(29)
+B5:
+	26: LdTrue
+	27: StLoc[6](loc0: bool)
+	28: Branch(33)
+B6:
+	29: CopyLoc[2](Arg2: u64)
+	30: LdU64(0)
+	31: Eq
+	32: StLoc[6](loc0: bool)
+B7:
+	33: MoveLoc[6](loc0: bool)
+	34: BrFalse(40)
+B8:
+	35: MoveLoc[0](Arg0: &PositionModel)
+	36: Pop
+	37: LdU64(0)
+	38: LdU64(0)
+	39: Ret
+B9:
+	40: MoveLoc[1](Arg1: u256)
+	41: LdU8(64)
+	42: Shr
+	43: StLoc[11](loc5: u256)
+	44: CopyLoc[4](Arg4: u16)
+	45: CastU256
+	46: LdU8(64)
+	47: Shl
+	48: LdU256(10000)
+	49: Div
+	50: StLoc[8](loc2: u256)
+	51: CopyLoc[0](Arg0: &PositionModel)
+	52: ImmBorrowField[5](PositionModel.dx: u64)
+	53: ReadRef
+	54: CastU256
+	55: CopyLoc[11](loc5: u256)
+	56: Mul
+	57: StLoc[7](loc1: u256)
+	58: CopyLoc[0](Arg0: &PositionModel)
+	59: ImmBorrowField[4](PositionModel.cy: u64)
+	60: ReadRef
+	61: CastU256
+	62: LdU8(64)
+	63: Shl
+	64: LdU8(64)
+	65: Shl
+	66: MoveLoc[7](loc1: u256)
+	67: Div
+	68: LdConst[0](u128: 3402..)
+	69: CastU256
+	70: Call util::min_u256(u256, u256): u256
+	71: StLoc[9](loc3: u256)
+	72: CopyLoc[2](Arg2: u64)
+	73: CastU256
+	74: LdU8(64)
+	75: Shl
+	76: CopyLoc[0](Arg0: &PositionModel)
+	77: ImmBorrowField[5](PositionModel.dx: u64)
+	78: ReadRef
+	79: CastU256
+	80: Div
+	81: StLoc[12](loc6: u256)
+	82: MoveLoc[9](loc3: u256)
+	83: CastU128
+	84: MoveLoc[3](Arg3: u16)
+	85: MoveLoc[4](Arg4: u16)
+	86: MoveLoc[5](Arg5: u16)
+	87: Call calc_max_liq_factor_x64(u128, u16, u16, u16): u128
+	88: CastU256
+	89: StLoc[10](loc4: u256)
+	90: MoveLoc[12](loc6: u256)
+	91: MoveLoc[10](loc4: u256)
+	92: Call util::min_u256(u256, u256): u256
+	93: CopyLoc[0](Arg0: &PositionModel)
+	94: ImmBorrowField[5](PositionModel.dx: u64)
+	95: ReadRef
+	96: CastU256
+	97: Mul
+	98: LdU256(18446744073709551616)
+	99: Call util::divide_and_round_up_u256(u256, u256): u256
+	100: MoveLoc[2](Arg2: u64)
+	101: CastU256
+	102: Call util::min_u256(u256, u256): u256
+	103: CastU64
+	104: StLoc[13](loc7: u64)
+	105: CopyLoc[13](loc7: u64)
+	106: CastU256
+	107: MoveLoc[11](loc5: u256)
+	108: Mul
+	109: LdU256(18446744073709551616)
+	110: MoveLoc[8](loc2: u256)
+	111: Add
+	112: Mul
+	113: LdU8(64)
+	114: Shr
+	115: LdU8(64)
+	116: Shr
+	117: MoveLoc[0](Arg0: &PositionModel)
+	118: ImmBorrowField[4](PositionModel.cy: u64)
+	119: ReadRef
+	120: CastU256
+	121: Call util::min_u256(u256, u256): u256
+	122: CastU64
+	123: StLoc[14](loc8: u64)
+	124: MoveLoc[13](loc7: u64)
+	125: MoveLoc[14](loc8: u64)
+	126: Ret
+}
+
+Constants [
+	0 => u128: 340282366920938463463374607431768211455
+	1 => u64: 0
+]
+}

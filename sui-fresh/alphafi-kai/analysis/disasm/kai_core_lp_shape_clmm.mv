@@ -1,0 +1,56 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.lp_shape_clmm {
+
+struct LpShape has copy, drop {
+	sqrt_pa_x64: u128,
+	sqrt_pb_x64: u128,
+	l: u128
+}
+
+public(friend) new(Arg0: u128, Arg1: u128, Arg2: u128): LpShape {
+B0:
+	0: CopyLoc[0](Arg0: u128)
+	1: CopyLoc[1](Arg1: u128)
+	2: Lt
+	3: BrFalse(5)
+B1:
+	4: Branch(7)
+B2:
+	5: LdConst[0](u64: 0)
+	6: Abort
+B3:
+	7: MoveLoc[0](Arg0: u128)
+	8: MoveLoc[1](Arg1: u128)
+	9: MoveLoc[2](Arg2: u128)
+	10: Pack[0](LpShape)
+	11: Ret
+}
+
+public(friend) sqrt_pa_x64(Arg0: &LpShape): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &LpShape)
+	1: ImmBorrowField[0](LpShape.sqrt_pa_x64: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) sqrt_pb_x64(Arg0: &LpShape): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &LpShape)
+	1: ImmBorrowField[1](LpShape.sqrt_pb_x64: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) l(Arg0: &LpShape): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &LpShape)
+	1: ImmBorrowField[2](LpShape.l: u128)
+	2: ReadRef
+	3: Ret
+}
+
+Constants [
+	0 => u64: 0
+]
+}

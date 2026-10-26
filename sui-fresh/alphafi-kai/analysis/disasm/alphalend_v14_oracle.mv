@@ -1,0 +1,346 @@
+// Move bytecode v7
+module d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4.oracle {
+use 378b2a104e8bcd7ed0317f5e6a0ec4fd271d4d12e2fe6c99bcd1f12be725cf4f::oracle as 1oracle;
+use 4b591bbc246c9fadd28e7ac895e0778fb0e102f1b0d9f441e78d35f0d1ea1fcc::math;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_field;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+
+struct PriceIdentifier has copy, drop, store {
+	coin_type: TypeName
+}
+
+struct Oracle has store, key {
+	id: UID,
+	price_identifiers: vector<PriceIdentifier>,
+	price_staleness_threshold: u64
+}
+
+struct PriceInfo has store, key {
+	id: UID,
+	coin_type: TypeName,
+	price: Number,
+	ema_price: Number,
+	last_updated: u64
+}
+
+struct OracleIdentityKey has copy, drop, store {
+	dummy_field: bool
+}
+
+struct OracleIdentity has store, key {
+	id: UID
+}
+
+public(friend) create_oracle(Arg0: &mut TxContext): Oracle {
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: VecPack(4, 0)
+	3: LdConst[6](u64: 20)
+	4: Pack[1](Oracle)
+	5: Ret
+}
+
+public(friend) is_coin_in_oracle(Arg0: &Oracle, Arg1: TypeName): bool {
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: ImmBorrowField[0](Oracle.id: UID)
+	2: LdFalse
+	3: Pack[3](OracleIdentityKey)
+	4: Call dynamic_field::borrow<OracleIdentityKey, OracleIdentity>(&UID, OracleIdentityKey): &OracleIdentity
+	5: ImmBorrowField[1](OracleIdentity.id: UID)
+	6: MoveLoc[1](Arg1: TypeName)
+	7: Call dynamic_field::exists_<TypeName>(&UID, TypeName): bool
+	8: Ret
+}
+
+public(friend) get_price_identifier(Arg0: &Oracle, Arg1: TypeName): PriceIdentifier {
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: ImmBorrowField[0](Oracle.id: UID)
+	2: LdFalse
+	3: Pack[3](OracleIdentityKey)
+	4: Call dynamic_field::borrow<OracleIdentityKey, OracleIdentity>(&UID, OracleIdentityKey): &OracleIdentity
+	5: ImmBorrowField[1](OracleIdentity.id: UID)
+	6: CopyLoc[1](Arg1: TypeName)
+	7: Call dynamic_field::exists_<TypeName>(&UID, TypeName): bool
+	8: BrFalse(10)
+B1:
+	9: Branch(12)
+B2:
+	10: LdU64(13906834569480372223)
+	11: Abort
+B3:
+	12: MoveLoc[1](Arg1: TypeName)
+	13: Pack[0](PriceIdentifier)
+	14: Ret
+}
+
+public(friend) add_coin_to_oracle(Arg0: &mut Oracle, Arg1: TypeName, Arg2: &mut TxContext): PriceIdentifier {
+L3:	loc0: OracleIdentity
+L4:	loc1: PriceIdentifier
+L5:	loc2: PriceInfo
+B0:
+	0: CopyLoc[0](Arg0: &mut Oracle)
+	1: ImmBorrowField[0](Oracle.id: UID)
+	2: LdFalse
+	3: Pack[3](OracleIdentityKey)
+	4: Call dynamic_field::exists_<OracleIdentityKey>(&UID, OracleIdentityKey): bool
+	5: Not
+	6: BrFalse(17)
+B1:
+	7: CopyLoc[2](Arg2: &mut TxContext)
+	8: Call object::new(&mut TxContext): UID
+	9: Pack[4](OracleIdentity)
+	10: StLoc[3](loc0: OracleIdentity)
+	11: CopyLoc[0](Arg0: &mut Oracle)
+	12: MutBorrowField[0](Oracle.id: UID)
+	13: LdFalse
+	14: Pack[3](OracleIdentityKey)
+	15: MoveLoc[3](loc0: OracleIdentity)
+	16: Call dynamic_field::add<OracleIdentityKey, OracleIdentity>(&mut UID, OracleIdentityKey, OracleIdentity)
+B2:
+	17: CopyLoc[0](Arg0: &mut Oracle)
+	18: ImmBorrowField[0](Oracle.id: UID)
+	19: CopyLoc[1](Arg1: TypeName)
+	20: Call dynamic_field::exists_<TypeName>(&UID, TypeName): bool
+	21: BrFalse(32)
+B3:
+	22: CopyLoc[0](Arg0: &mut Oracle)
+	23: MutBorrowField[0](Oracle.id: UID)
+	24: CopyLoc[1](Arg1: TypeName)
+	25: Call dynamic_field::remove<TypeName, PriceInfo>(&mut UID, TypeName): PriceInfo
+	26: Unpack[2](PriceInfo)
+	27: Pop
+	28: Pop
+	29: Pop
+	30: Pop
+	31: Call object::delete(UID)
+B4:
+	32: MoveLoc[2](Arg2: &mut TxContext)
+	33: Call object::new(&mut TxContext): UID
+	34: CopyLoc[1](Arg1: TypeName)
+	35: LdU64(0)
+	36: Call math::from(u64): Number
+	37: LdU64(0)
+	38: Call math::from(u64): Number
+	39: LdU64(0)
+	40: Pack[2](PriceInfo)
+	41: StLoc[5](loc2: PriceInfo)
+	42: MoveLoc[1](Arg1: TypeName)
+	43: Pack[0](PriceIdentifier)
+	44: StLoc[4](loc1: PriceIdentifier)
+	45: MoveLoc[0](Arg0: &mut Oracle)
+	46: MutBorrowField[0](Oracle.id: UID)
+	47: LdFalse
+	48: Pack[3](OracleIdentityKey)
+	49: Call dynamic_field::borrow_mut<OracleIdentityKey, OracleIdentity>(&mut UID, OracleIdentityKey): &mut OracleIdentity
+	50: MutBorrowField[1](OracleIdentity.id: UID)
+	51: ImmBorrowLoc[4](loc1: PriceIdentifier)
+	52: ImmBorrowField[2](PriceIdentifier.coin_type: TypeName)
+	53: ReadRef
+	54: MoveLoc[5](loc2: PriceInfo)
+	55: Call dynamic_field::add<TypeName, PriceInfo>(&mut UID, TypeName, PriceInfo)
+	56: MoveLoc[4](loc1: PriceIdentifier)
+	57: Ret
+}
+
+get_price_info(Arg0: &Oracle, Arg1: &PriceIdentifier): &PriceInfo {
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: ImmBorrowField[0](Oracle.id: UID)
+	2: LdFalse
+	3: Pack[3](OracleIdentityKey)
+	4: Call dynamic_field::borrow<OracleIdentityKey, OracleIdentity>(&UID, OracleIdentityKey): &OracleIdentity
+	5: ImmBorrowField[1](OracleIdentity.id: UID)
+	6: MoveLoc[1](Arg1: &PriceIdentifier)
+	7: ImmBorrowField[2](PriceIdentifier.coin_type: TypeName)
+	8: ReadRef
+	9: Call dynamic_field::borrow<TypeName, PriceInfo>(&UID, TypeName): &PriceInfo
+	10: Ret
+}
+
+public(friend) get_price(Arg0: &Oracle, Arg1: &PriceIdentifier): Number * Number {
+L2:	loc0: &PriceInfo
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: MoveLoc[1](Arg1: &PriceIdentifier)
+	2: Call get_price_info(&Oracle, &PriceIdentifier): &PriceInfo
+	3: StLoc[2](loc0: &PriceInfo)
+	4: CopyLoc[2](loc0: &PriceInfo)
+	5: ImmBorrowField[3](PriceInfo.price: Number)
+	6: ReadRef
+	7: MoveLoc[2](loc0: &PriceInfo)
+	8: ImmBorrowField[4](PriceInfo.ema_price: Number)
+	9: ReadRef
+	10: Ret
+}
+
+public(friend) get_ema_price(Arg0: &Oracle, Arg1: &PriceIdentifier): Number {
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: MoveLoc[1](Arg1: &PriceIdentifier)
+	2: Call get_price_info(&Oracle, &PriceIdentifier): &PriceInfo
+	3: ImmBorrowField[4](PriceInfo.ema_price: Number)
+	4: ReadRef
+	5: Ret
+}
+
+public get_last_updated(Arg0: &Oracle, Arg1: &PriceIdentifier): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: MoveLoc[1](Arg1: &PriceIdentifier)
+	2: Call get_price_info(&Oracle, &PriceIdentifier): &PriceInfo
+	3: ImmBorrowField[5](PriceInfo.last_updated: u64)
+	4: ReadRef
+	5: Ret
+}
+
+public update_price(Arg0: &mut Oracle, Arg1: &PriceInfo) {
+B0:
+	0: LdConst[4](u64: 4)
+	1: Abort
+}
+
+public(friend) update_price_internal(Arg0: &mut Oracle, Arg1: &PriceInfo) {
+L2:	loc0: &mut OracleIdentity
+L3:	loc1: &mut PriceInfo
+B0:
+	0: MoveLoc[0](Arg0: &mut Oracle)
+	1: MutBorrowField[0](Oracle.id: UID)
+	2: LdFalse
+	3: Pack[3](OracleIdentityKey)
+	4: Call dynamic_field::borrow_mut<OracleIdentityKey, OracleIdentity>(&mut UID, OracleIdentityKey): &mut OracleIdentity
+	5: StLoc[2](loc0: &mut OracleIdentity)
+	6: CopyLoc[2](loc0: &mut OracleIdentity)
+	7: ImmBorrowField[1](OracleIdentity.id: UID)
+	8: CopyLoc[1](Arg1: &PriceInfo)
+	9: Call 1oracle::coin_type(&PriceInfo): TypeName
+	10: Call dynamic_field::exists_<TypeName>(&UID, TypeName): bool
+	11: BrFalse(13)
+B1:
+	12: Branch(19)
+B2:
+	13: MoveLoc[1](Arg1: &PriceInfo)
+	14: Pop
+	15: MoveLoc[2](loc0: &mut OracleIdentity)
+	16: Pop
+	17: LdConst[3](u64: 3)
+	18: Abort
+B3:
+	19: MoveLoc[2](loc0: &mut OracleIdentity)
+	20: MutBorrowField[1](OracleIdentity.id: UID)
+	21: CopyLoc[1](Arg1: &PriceInfo)
+	22: Call 1oracle::coin_type(&PriceInfo): TypeName
+	23: Call dynamic_field::borrow_mut<TypeName, PriceInfo>(&mut UID, TypeName): &mut PriceInfo
+	24: StLoc[3](loc1: &mut PriceInfo)
+	25: CopyLoc[3](loc1: &mut PriceInfo)
+	26: ImmBorrowField[5](PriceInfo.last_updated: u64)
+	27: ReadRef
+	28: CopyLoc[1](Arg1: &PriceInfo)
+	29: Call 1oracle::get_updated_time(&PriceInfo): u64
+	30: Ge
+	31: BrFalse(37)
+B4:
+	32: MoveLoc[3](loc1: &mut PriceInfo)
+	33: Pop
+	34: MoveLoc[1](Arg1: &PriceInfo)
+	35: Pop
+	36: Ret
+B5:
+	37: CopyLoc[1](Arg1: &PriceInfo)
+	38: Call 1oracle::get_price(&PriceInfo): Number
+	39: CopyLoc[3](loc1: &mut PriceInfo)
+	40: MutBorrowField[3](PriceInfo.price: Number)
+	41: WriteRef
+	42: CopyLoc[1](Arg1: &PriceInfo)
+	43: Call 1oracle::get_ema_price(&PriceInfo): Number
+	44: CopyLoc[3](loc1: &mut PriceInfo)
+	45: MutBorrowField[4](PriceInfo.ema_price: Number)
+	46: WriteRef
+	47: MoveLoc[1](Arg1: &PriceInfo)
+	48: Call 1oracle::get_updated_time(&PriceInfo): u64
+	49: MoveLoc[3](loc1: &mut PriceInfo)
+	50: MutBorrowField[5](PriceInfo.last_updated: u64)
+	51: WriteRef
+	52: Ret
+}
+
+public verify_price(Arg0: &Oracle, Arg1: &PriceIdentifier, Arg2: &Clock) {
+L3:	loc0: u64
+B0:
+	0: CopyLoc[0](Arg0: &Oracle)
+	1: MoveLoc[1](Arg1: &PriceIdentifier)
+	2: Call get_last_updated(&Oracle, &PriceIdentifier): u64
+	3: StLoc[3](loc0: u64)
+	4: MoveLoc[2](Arg2: &Clock)
+	5: Call clock::timestamp_ms(&Clock): u64
+	6: LdU64(1000)
+	7: Div
+	8: MoveLoc[3](loc0: u64)
+	9: Sub
+	10: MoveLoc[0](Arg0: &Oracle)
+	11: ImmBorrowField[6](Oracle.price_staleness_threshold: u64)
+	12: ReadRef
+	13: Le
+	14: BrFalse(16)
+B1:
+	15: Branch(18)
+B2:
+	16: LdConst[5](u64: 5)
+	17: Abort
+B3:
+	18: Ret
+}
+
+public(friend) set_price_staleness_threshold(Arg0: &mut Oracle, Arg1: u64) {
+B0:
+	0: CopyLoc[1](Arg1: u64)
+	1: LdU64(120)
+	2: Lt
+	3: BrFalse(5)
+B1:
+	4: Branch(9)
+B2:
+	5: MoveLoc[0](Arg0: &mut Oracle)
+	6: Pop
+	7: LdConst[0](u64: 0)
+	8: Abort
+B3:
+	9: MoveLoc[1](Arg1: u64)
+	10: MoveLoc[0](Arg0: &mut Oracle)
+	11: MutBorrowField[6](Oracle.price_staleness_threshold: u64)
+	12: WriteRef
+	13: Ret
+}
+
+public match_coin_type(Arg0: &PriceIdentifier, Arg1: TypeName) {
+B0:
+	0: MoveLoc[0](Arg0: &PriceIdentifier)
+	1: ImmBorrowField[2](PriceIdentifier.coin_type: TypeName)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: TypeName)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(9)
+B2:
+	7: LdConst[1](u64: 1)
+	8: Abort
+B3:
+	9: Ret
+}
+
+Constants [
+	0 => u64: 0
+	1 => u64: 1
+	2 => u64: 2
+	3 => u64: 3
+	4 => u64: 4
+	5 => u64: 5
+	6 => u64: 20
+]
+}

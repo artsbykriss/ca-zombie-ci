@@ -1,0 +1,215 @@
+{
+  "campaign": "ZH4 pass-7",
+  "subagent": "alphafi-kai",
+  "date": "2026-10-26",
+  "endpoint": "https://graphql.mainnet.sui.io/graphql (public, keyless)",
+  "checkpoint_note": "All object reads taken 2026-10-25/26 against Sui mainnet GraphQL; object versions recorded below.",
+  "targets": ["AlphaFi AlphaLend (Sui)", "Kai Finance Leverage (Sui)"],
+
+  "alphalend": {
+    "package_original_id": "0xd631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4",
+    "package_latest_id": "0xe48b33ef41d56e04fc42bf558e4d54d7cae8a363da9054a6c24bafc2c53a4f33",
+    "package_versions": 15,
+    "version_chain": [
+      {"v":1,"addr":"0xd631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4","verify_version_expects_object_version":1},
+      {"v":2,"addr":"0xc0198e7daa766f457c314feb176a4dad0e8181e6331e430b14aca2df4d71d6a4","expects":1},
+      {"v":3,"addr":"0xee754fc0c6d977403c9218cedbfffed033b4b42b50a65c2c3f1c7be13efeafd2","expects":1},
+      {"v":4,"addr":"0xde3bbb21076889656f3861a753fd4139976895bc5dce175542cdd6fbe6708dde","expects":1},
+      {"v":5,"addr":"0xb1814a326e95c5f0c797f45c3d24237eba905f194fd0ee0bec03c0a4f95687e1","expects":1},
+      {"v":6,"addr":"0xc27cbe69992b31a811b8d5d34996c4a53b3536f60357b1d50abfa1876458c399","expects":1},
+      {"v":7,"addr":"0x379591a3d9967596599eb08f07195c4350787e3e0991ca20bdec763095c14bfa","expects":1},
+      {"v":8,"addr":"0x632bc1aee1c0c0d96221676e1810ffef3194d25bc605f44e28929ce3c9941306","expects":1},
+      {"v":9,"addr":"0xc8a5487ce3e5b78644f725f83555e1c65c38f0424a72781ed5de4f0369725c79","expects":1},
+      {"v":10,"addr":"0x5209a18e1ae6ac994dd5a188a2d8deb17b2bbab29f63a7b5457bdfe040f69f61","expects":2},
+      {"v":11,"addr":"0xce65b63c89f13c475fdf1c07f7e7c2520503049ede79d46022e0e410a53a5553","expects":2},
+      {"v":12,"addr":"0xbc9d23d6d391e032855bc662c6fda26582a4cf6d628dfa21c5fbce8b192c42be","expects":2},
+      {"v":13,"addr":"0x15c16e76dfa8b42d3b0cbffea97fe5bd116853588e7fff0a5344deec89750885","expects":2},
+      {"v":14,"addr":"0x58fb555e394c7c67537292963c0916023d1b9530896e9f1d2cea734d7208ce93","expects":3},
+      {"v":15,"addr":"0xe48b33ef41d56e04fc42bf558e4d54d7cae8a363da9054a6c24bafc2c53a4f33","expects":4}
+    ],
+    "modules": ["alpha_lending","events","flow_limiter","market","oracle","partner","position","rewards","sui_staker"],
+    "lending_protocol_object": {
+      "id": "0x01d9cf05d65fa3a9bb7163095139120e3c4e414dfbab153a49779a7d14010b93",
+      "object_version": 1061331399,
+      "type": "0xd631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::alpha_lending::LendingProtocol",
+      "live_field_version": 4,
+      "internal_oracle_id": "0xd4c456a0378ac3d4bf0b3054e745850638f4f02ccf52b09c480a399196b3fb3f",
+      "internal_oracle_price_staleness_threshold": 63,
+      "admin_cap_id": "0x0d6365dfebda2264944e54b8912c7bae93c05d0cfb324b4170e68678d743e22b",
+      "lending_protocol_cap_id": "0x3aa48bc9692e326c6430199db986c353fd2c64f74d789dd378f237b6e9f91c5c",
+      "protocol_fee_address": "0xa1eb94d1700652aa85b417b46fa6775575b8b98d3352d864fb5146eb45d335fb",
+      "positions_table_id": "0x9923cec7b613e58cc3feec1e8651096ad7970c0b4ef28b805c7d97fe58ff91ba",
+      "positions_table_size": 511873,
+      "markets_table_id": "0x2326d387ba8bb7d24aa4cfa31f9a1e58bf9234b097574afb06c5dfb267df4c2e",
+      "markets_table_size": 36,
+      "dynamic_fields_on_protocol": ["2x partner::Partner", "PauseCapRegistryKey -> PauseCapRegistry"],
+      "pause_state_present": false,
+      "sui_staking_enabled": true,
+      "config": {"max_safe_collateral_ratio":94,"max_liquidation_threshold":99,"max_liquidation_bonus_bps":1000,"max_liquidation_fee_bps":1000,"lp_position_safe_collateral_ratio":0,"lp_position_liquidation_threshold":85}
+    },
+    "external_oracle_package": {
+      "original_id": "0x378b2a104e8bcd7ed0317f5e6a0ec4fd271d4d12e2fe6c99bcd1f12be725cf4f",
+      "latest_id": "0x869b2d44bd927c03303a3305ca489ee5c9bd9deee4e4118c8331420ea0d72d25",
+      "versions": 5,
+      "version_chain": [
+        {"v":1,"addr":"0x378b2a104e8bcd7ed0317f5e6a0ec4fd271d4d12e2fe6c99bcd1f12be725cf4f"},
+        {"v":2,"addr":"0xabf1f1cf49730f85a88eb5b2db4fee7f712c20d1a68b7644f8183674a01a0160"},
+        {"v":3,"addr":"0x39850d8deb783ef11b10487dc8a80a701506b1471ce11cde83124f35ba3da699"},
+        {"v":4,"addr":"0x7671937b899c7756644da64feb8674a04dfc335059874919a863fb8da6f19fd4"},
+        {"v":5,"addr":"0x869b2d44bd927c03303a3305ca489ee5c9bd9deee4e4118c8331420ea0d72d25"}
+      ],
+      "oracle_object": {"id":"0xce4ca140eb264bdc5b03f3268eeb013495f04561e38473aadcf654fb0db6b096","type":"0x378b2a104e8bcd7ed0317f5e6a0ec4fd271d4d12e2fe6c99bcd1f12be725cf4f::oracle::Oracle","max_age":63,"price_infos_table_id":"0x60bb204cd13647bdace5e517f5af91cf406afd42cc4259db9f8e382dc6f0d90d","price_infos_size":19}
+    },
+    "stdlib_package": "0x4b591bbc246c9fadd28e7ac895e0778fb0e102f1b0d9f441e78d35f0d1ea1fcc (math, v1)",
+    "version_gate": {
+      "function": "alpha_lending::verify_version(&LendingProtocol)",
+      "check": "assert(LendingProtocol.version == 4, abort 8)",
+      "effect": "only v15 passes on the live object (version=4); v1-v9 abort 8 (expect 1), v10-v13 abort 8 (expect 2), v14 abort 8 (expect 3)"
+    },
+    "gating_observations": {
+      "no_entry_functions_in_disassembly": true,
+      "value_public_fns_all_call_verify_version": ["borrow","flash_borrow","flash_withdraw","flash_repay","flash_deposit","remove_collateral","repay","liquidate","admin_liquidate","liquidate_lp_position","collect_reward","collect_reward_and_deposit","loan_bailout","add_collateral","fulfill_promise"],
+      "verify_not_paused": "PauseState is a dynamic field on LendingProtocol.id; absent => not paused (allows borrow/withdraw/liquidate)",
+      "verify_liquidations_not_paused": "reads PauseState.liquidations_paused; absent => liquidations allowed",
+      "borrow_limit_all_markets": 0,
+      "verify_borrow_limit": "assert(borrowed_amount+amount <= borrow_limit) abort 30 -> all non-flash, non-partner borrows blocked",
+      "flash_borrow_skips_borrow_limit": true,
+      "deposit_limit_alpha_market": 0,
+      "unprivileged_public_fns_without_verify_version": {
+        "all_versions": ["add_market (always aborts 35)","get_version","get_price_identifier","get_safe_collateral_ratio","get_asset_price","refresh_market"],
+        "v1_v10_extra": ["update_price","loan_bailout","get_claimable_rewards","get_borrow_amount","get_collateral_amount"],
+        "note": "update_price (v1-v10) copies a genuine external-oracle PriceInfo into the internal oracle keyed by the PriceInfo's own coin_type (update_price_internal matches coin_type; only writes if external.last_updated > internal.last_updated). PriceInfo is a private-field struct of 378b2a10::oracle, constructible only by that module (get_price_info copy / update_price_from_pyth). => no arbitrary price injection."
+      }
+    },
+    "oracle_misconfiguration": {
+      "mechanism": "378b2a10::oracle::get_price_info: if a coin is not in price_infos, it falls back to AlternatePriceIdentifier[coin] and returns that coin's PriceInfo with coin_type rewritten to the requested coin.",
+      "alternate_mapping_alpha": "fe3afec26c59e874f3c1d60b8203cb3852d2bb2aa415df9548b8d688e6683f93::alpha::ALPHA -> 3a5143bb1196e3bcdfab6203d1683ae29edd26294fc8bfeafe4aaa9d2704df37::coin::COIN",
+      "proxy_coin_oracle_price_usd": 8.92497026,
+      "alpha_real_price_usd_defillama": 0.02510257,
+      "overvaluation_factor": 355.5,
+      "alpha_in_external_price_infos": false,
+      "effect": "AlphaLend's internal oracle values ALPHA ~355x too high; ALPHA-backed loans were massively undercollateralised => the reported Sept-2026 bad debt (Sui Foundation covered).",
+      "current_mitigation": "ALPHA market safe_collateral_ratio=0 (no borrow power), liquidation_threshold=99, deposit_limit=0, borrow_limit=0",
+      "fixed_price_coins_zero": ["1a8f4bc33f8ef7fbc851f156857aa65d397a6a6fd27a7ac2ca717b51f2fd9489::alkimi::ALKIMI","87dfe1248a1dc4ce473bd9cb2937d66cdc6c30fee63f3fe0dbb55c7a09d35dec::up::UP"]
+    },
+    "markets": {
+      "count": 36,
+      "file": "analysis/markets.json",
+      "total_avail_plus_borrowed_usd": 2627348.01,
+      "alpha_market": {"market_id":12,"coin":"fe3afec2::alpha::ALPHA","xtoken_supply":"5663858421797845","borrowed_amount":"0","balance_holding":"5663858421797845","xtoken_ratio":"1000000000000000000","safe_collateral_ratio":0,"liquidation_threshold":99,"deposit_limit":"0","borrow_limit":"0","active":true},
+      "all_borrow_limit_zero": true,
+      "defillama_alphafi_sui_tvl_usd": 5072638,
+      "defillama_alphafi_borrowed_usd": 291457
+    },
+    "incident": {
+      "date": "2026-09-25",
+      "summary": "AlphaFi winding down AlphaLend after a misconfigured ALPHA price oracle produced undercollateralised loans / bad debt; Sui Foundation covered the shortfall; maintenance mode (withdrawals open, no new deposits/loans); auto-liquidation of unpaid loans after 5 Nov 2026.",
+      "sources": ["x.com/AlphaFiSUI/status/2103622950935281787","cryptobriefing.com","tokenpost.com","ainvest.com","alphafi.xyz/market/USDSUI"]
+    }
+  },
+
+  "kai": {
+    "leverage_core": {
+      "original_id": "0x51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523",
+      "latest_id": "0xed2d91715c74fe7ec5a8d063cfe6bc21b90d9451c26eb90c03605b10fadd68dd",
+      "versions": 21,
+      "modules_latest": ["access_init","balance_bag","bluefin_spot","cetus","debt","debt_bag","debt_info","equity","lp_shape_clmm","oracle_price","piecewise","position_core_clmm","position_model_clmm","pyth","supply_pool","util"],
+      "version_chain": [
+        {"v":1,"addr":"0x51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523"},
+        {"v":2,"addr":"0x910af25860c605272f1be30dcea26df1f4470b1b76803c4bbdf7bcc0d985409e"},
+        {"v":3,"addr":"0x0f6e43ba7dc3fdb1dad3fcc5b7d431b6527aa1bf877a1b24d6865becfa14f8d1"},
+        {"v":4,"addr":"0x3c5784759be384704d164c58e7f22afce5bdca6723f1a4d25c8fd8be6ad782dd"},
+        {"v":5,"addr":"0x9fd1f3955e4f9b943fd0812e3a4e3629c163ca772be7438e79b85d7734a580b6"},
+        {"v":6,"addr":"0xe6079b606e2c6ea73511f1c22f31c2312e3610a3916908174b415147a37040d8"},
+        {"v":7,"addr":"0x606f09f90233f7ccb01e49b1f53eea566f2e0713d0ff5717fe46cae83babdc1e"},
+        {"v":8,"addr":"0x3243f917288858e2c4fcfd2a937dda02b29384cc13d3063a720969c331920e45"},
+        {"v":9,"addr":"0x014ecd52a8a8e5c9283250c5fae31dfcd755dda2febe077ef578c6091fd7f420"},
+        {"v":10,"addr":"0x8e0d78aecb4488da5a6f8c089106934d756a91b757b0f9404b03f966288cd7cb"},
+        {"v":11,"addr":"0x49691904e57eff80e1409e6c71f643fecb5b7eeec97a1b4b97205a7317bed12a"},
+        {"v":12,"addr":"0x7afd8492de6e367d17c6a3056393ecf5544489eaf0234affcf2f5e9fff9240e3"},
+        {"v":13,"addr":"0x80a8b7b277a0414652973f0ac947af0a4490ec047b5dafabe389028d008d7368"},
+        {"v":14,"addr":"0xdc0ec513ffa60ed67534393f885504222a12ca067313b4511ad26b7f17a0eded"},
+        {"v":15,"addr":"0x48a52929e1b289e9ff351f5ba7de5db0b16dc2c4c6fa1528de94b841ba6b924b"},
+        {"v":16,"addr":"0xd98a76e61b2499856e1958291b2c170a02e6c43d555d18f2f2f7d2741736481b"},
+        {"v":17,"addr":"0x75d4514b2022c7edda6dd311c8a9b6f226e270d893cc3c0e863a60e51d6d9499"},
+        {"v":18,"addr":"0xf259194ebadf4a68c7dd0103483aa6c6e0e058597c02c390a398092892192f6f"},
+        {"v":19,"addr":"0x634794be3a538c645f9afbb8f652455a665df57e8ccaca69de879c1feb08d908"},
+        {"v":20,"addr":"0x9dc365fd6716a2f4d567f0e0423e0d42d85d3a10038542166d95bf8c7406a508"},
+        {"v":21,"addr":"0xed2d91715c74fe7ec5a8d063cfe6bc21b90d9451c26eb90c03605b10fadd68dd"}
+      ],
+      "version_constants_by_core_version": {
+        "supply_pool_check_version": {"v1..v18": 1, "v19..v21": 2},
+        "position_core_check_config_version": {"v1..v10": 1, "v12..v15": 2, "v17..v18": 4, "v19..v21": 5},
+        "position_core_check_position_version": {"v1..v10": 1, "v12..v15": 2, "v17..v21": 3}
+      },
+      "v19_v20_v21_module_diff": "bytecode-identical for every module (no diff); only linkage/dependency pins differ",
+      "live_objects": {
+        "supply_pools": [
+          {"id":"0x1b4c4e0869ab3771a0901a538c0dbf536ca72e1525fd66e6c5a197623cd55cc8","type":"SupplyPool<0x2::sui::SUI, 0x19163b40d52e67e20992f1b74c7376d30616ba966c8174e0990c58074d56eb8d::klsui::KLSUI>","version":2,"object_version":1061285915},
+          {"id":"0x36162005c3f6ac0875c5b13afe1298d9640234ef305ef8cb2e80cb17cf2bef14","version":2},
+          {"id":"0x3bcadd850b776542b49be5d68d2e62b63f3c7543695c55a973d3364501b5c26c","version":2},
+          {"id":"0x366b4d73bd615c149bba8a8d6fbf69dabd0f55887f0bb6c3da5de12c566a614a","version":2},
+          {"id":"0xae80d793d8fc9524ee98fde1bae80c2204819e66500a89f27021ef981f540d07","version":2},
+          {"id":"0xf32cae26906386c684bb49851ea8dbe3df108bacd9f23e80c1a4c32d97f80b69","version":2},
+          {"id":"0x23e210027526cf299898f6a470b435cb2afb5c2cb63990e0cad5568ad38beb79","version":2},
+          {"id":"0x2d001b7f8c8a08f99a4a13fcbaff7feaeac8447741791a2bcd664611cf819ee2","version":2},
+          {"id":"0x5eee32a1961520c11dd87995a10c1042ab9357f5deaee754cd97da1a22afe4de","version":2},
+          {"id":"0xae06ce8a8ba18aa3c67d45c6ccc7dae7d0551f36dc1fdcc6093521ce9bd154e2","version":2},
+          {"id":"0xd03330033b6eda49e06d024240511736ffbad31278112cdd5c43c97be6d5535b","version":2}
+        ],
+        "position_configs_count": 20,
+        "position_config_version_all": 5,
+        "active_configs_example": [
+          {"id":"0x4ca0b323103babe327cb05e55a1aaf068389f85c1d64b29c13d4b016823c634f","allow_new_positions":true,"max_position_l":"340282366920938463463374607431768211455","max_global_l":"340282366920938463463374607431768211455","current_global_l":"3655542028060225","liq_bonus_bps":300,"liq_margin_bps":10526,"min_init_margin_bps":11000},
+          {"id":"0x71d0569e29593f93f6f976c61186e2fa0074c4a9133c8cdbb98539dfa9f92249","allow_new_positions":true,"liq_bonus_bps":300}
+        ],
+        "policies": [
+          {"id":"0x1cd2ba942cab8395becee55ae4f21937d229956b8babdb1586a1f9d2098c35e9","package":"51e0ccce...","rules":["supply_pool::ADeposit"],"allowed_entities_count":14,"enabled":true,"version":1},
+          {"id":"0x0e6ea7e8581d4ef39f4642fc9a7e42feb2ed01d91ec376170226c70613dab536","package":"51e0ccce...","rules":["position_core_clmm::ARebalance"],"allowed_entities_count":0,"enabled":true,"version":1}
+        ]
+      }
+    },
+    "access_management": {
+      "original_id": "0x0d9dd55ac7eb676dc78f7d0ae3bc5529d7fd6b52ac0d0edb2d7820c52d080026",
+      "latest_id": "0x6f57ba9757d97ac3ad435c0cf4ab93413654d7af44fc723b1091c5dc2c83d1ae",
+      "versions": 2,
+      "module_version_both": 1,
+      "access_request_pattern": "Core admin fns mutate state then return a non-droppable ActionRequest hot potato; caller must consume it via access::approve_request / approve_and_return_context (requires an allowlisted Entity and a rule that permits the action) or admin_approve_request (requires PackageAdmin). Atomic tx => failed approval reverts the mutation.",
+      "actionrequest_abilities": "none (no copy/drop/store) => must be consumed; fields are module-private => cannot be destructured externally",
+      "package_admin_source": "claim_package<OTW> requires a one-time witness from a module named access_init (only kai_leverage::access_init); OTW consumed at init",
+      "create_entity_is_public": true,
+      "entity_must_be_allowlisted": true
+    },
+    "oracle": {
+      "module": "kai_leverage::oracle_price",
+      "mechanism": "Prices ingested from Pyth Pro PriceInfoObject via add_pyth_pro (public) into a caller-built PriceCollection; validate (public(package)) filters to config.price_object_allowlist (coin_type -> price object ID) and enforces max_age_secs / future-skew. Caller cannot inject prices for non-allowlisted objects.",
+      "smoothed_price": "get_smoothed_price uses Pyth EMA; aborts if rail has none"
+    },
+    "third_party_leads": {
+      "repo": "GoodnessFx/KAI-FINANCE-POC",
+      "finding_1": {"title":"Rate Limiter Counts Principal Only (TVL guardrail bypass)","in_scope":true,"verified_in_code":"kai/leverage/core/sources/clmm/position_core.move create_position_ticket: limiter.consume_inflow(x_value+y_value) uses only principal_x/principal_y, not the borrowed amount","impact":"guardrail weakening only (allows faster TVL growth than intended); no direct value extraction; bounded by supply-pool utilization caps. Active configs set max_position_l/max_global_l = u128::MAX so the rate limiter is the main cap.","severity_assessment":"latent/medium, not E-U"},
+      "finding_2": {"title":"SAV Vault first-depositor inflation","in_scope":false,"target":"kai/sav/core/sources/vault.move (NOT Leverage Core / Access Management)","note":"current source has an edge case (vault.move ~580-598) that mints pre-existing balance to performance fees when lp supply==0, mitigating the classic ERC4626 inflation; not re-verified on-chain."}
+    }
+  },
+
+  "categories": {
+    "alphalend": {"E-U": 0, "H-O": 2627348.01, "P": 0, "S": 0, "confidence": "high"},
+    "kai": {"E-U": 0, "H-O": 886181.96, "P": 0, "S": 0, "confidence": "medium-high"}
+  },
+
+  "queries": {
+    "version_chain": "query($a:SuiAddress!){ package(address:$a){ address version linkage{originalId upgradedId version} packageVersionsBefore(last:30){nodes{address version}} } }",
+    "version_specific_modules": "query($a:SuiAddress!){ object(address:$a){ asMovePackage{ address version modules(first:50){nodes{name disassembly}} } } }  // pass any version's package address",
+    "markets_dynamic_fields": "query($k:[NameKey!]!){ multiGetDynamicFields(keys:$k){ name{type{repr} json} value{... on MoveValue{type{repr} json}} } }  // parent=markets table, name=u64 bcs",
+    "oracle_priceinfo": "query($k:[NameKey!]!){ multiGetDynamicFields(keys:$k){ ... } }  // parent=price_infos table, name type 0x1::type_name::TypeName, bcs=uleb128(len)||ascii",
+    "objects_by_type": "{ objects(first:20, filter:{type:\"<pkg>::<mod>::<Struct>\"}){ nodes{ address version asMoveObject{ contents{ type{repr} json } } } } }",
+    "events": "{ events(last:50, filter:{type:\"<pkg>::<mod>::<Event>\"}){ nodes{ timestamp sender{address} contents{json} } } }"
+  },
+
+  "method": "Read-only Sui GraphQL. Enumerated every published package version (packageVersionsBefore + object(address) per version address to read that version's bytecode). Diffed per-version module disassembly to find version-gate constants and code deltas. Enumerated live shared objects (LendingProtocol, 36 markets via Table dynamic fields, 11 Kai SupplyPools, 20 PositionConfigs, Policy objects). Priced with DefiLlama coins API. Cross-checked the wind-down incident with public reporting. No signing, no deployment, no secret material written.",
+  "blockers": [
+    "Nested UID objects (LendingProtocol.oracle id 0xd4c456a0..., Table ids) are not resolvable via GraphQL object(address)/multiGetObjects, so the AlphaLend internal-oracle PriceInfo values could not be read directly; ALPHA's live internal price was inferred from the external oracle's AlternatePriceIdentifier fallback + DefiLlama.",
+    "No sui CLI / JSON-RPC available (deprecated); simulateTransaction not attempted for reads.",
+    "Kai SAV vault (finding #2 target) is out of the assigned package scope and was not re-verified on-chain."
+  ]
+}

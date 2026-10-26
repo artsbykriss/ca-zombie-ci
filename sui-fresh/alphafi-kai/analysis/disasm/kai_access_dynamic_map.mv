@@ -1,0 +1,139 @@
+// Move bytecode v6
+module d9dd55ac7eb676dc78f7d0ae3bc5529d7fd6b52ac0d0edb2d7820c52d080026.dynamic_map {
+use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_field;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+
+struct DynamicMap<phantom Ty0: copy + drop + store> has store, key {
+	id: UID,
+	size: u64
+}
+
+public new<Ty0: copy + drop + store>(Arg0: &mut TxContext): DynamicMap<Ty0> {
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: LdU64(0)
+	3: PackGeneric[0](DynamicMap<Ty0>)
+	4: Ret
+}
+
+public insert<Ty0: copy + drop + store, Ty1: copy + drop + store>(Arg0: &mut DynamicMap<Ty0>, Arg1: Ty0, Arg2: Ty1) {
+B0:
+	0: CopyLoc[0](Arg0: &mut DynamicMap<Ty0>)
+	1: MutBorrowFieldGeneric[0](DynamicMap.id: UID)
+	2: MoveLoc[1](Arg1: Ty0)
+	3: MoveLoc[2](Arg2: Ty1)
+	4: Call dynamic_field::add<Ty0, Ty1>(&mut UID, Ty0, Ty1)
+	5: CopyLoc[0](Arg0: &mut DynamicMap<Ty0>)
+	6: ImmBorrowFieldGeneric[1](DynamicMap.size: u64)
+	7: ReadRef
+	8: LdU64(1)
+	9: Add
+	10: MoveLoc[0](Arg0: &mut DynamicMap<Ty0>)
+	11: MutBorrowFieldGeneric[1](DynamicMap.size: u64)
+	12: WriteRef
+	13: Ret
+}
+
+public borrow<Ty0: copy + drop + store, Ty1: copy + drop + store>(Arg0: &DynamicMap<Ty0>, Arg1: Ty0): &Ty1 {
+B0:
+	0: MoveLoc[0](Arg0: &DynamicMap<Ty0>)
+	1: ImmBorrowFieldGeneric[0](DynamicMap.id: UID)
+	2: MoveLoc[1](Arg1: Ty0)
+	3: Call dynamic_field::borrow<Ty0, Ty1>(&UID, Ty0): &Ty1
+	4: Ret
+}
+
+public borrow_mut<Ty0: copy + drop + store, Ty1: copy + drop + store>(Arg0: &mut DynamicMap<Ty0>, Arg1: Ty0): &mut Ty1 {
+B0:
+	0: MoveLoc[0](Arg0: &mut DynamicMap<Ty0>)
+	1: MutBorrowFieldGeneric[0](DynamicMap.id: UID)
+	2: MoveLoc[1](Arg1: Ty0)
+	3: Call dynamic_field::borrow_mut<Ty0, Ty1>(&mut UID, Ty0): &mut Ty1
+	4: Ret
+}
+
+public remove<Ty0: copy + drop + store, Ty1: copy + drop + store>(Arg0: &mut DynamicMap<Ty0>, Arg1: Ty0): Ty1 {
+L2:	loc0: Ty1
+B0:
+	0: CopyLoc[0](Arg0: &mut DynamicMap<Ty0>)
+	1: MutBorrowFieldGeneric[0](DynamicMap.id: UID)
+	2: MoveLoc[1](Arg1: Ty0)
+	3: Call dynamic_field::remove<Ty0, Ty1>(&mut UID, Ty0): Ty1
+	4: StLoc[2](loc0: Ty1)
+	5: CopyLoc[0](Arg0: &mut DynamicMap<Ty0>)
+	6: ImmBorrowFieldGeneric[1](DynamicMap.size: u64)
+	7: ReadRef
+	8: LdU64(1)
+	9: Sub
+	10: MoveLoc[0](Arg0: &mut DynamicMap<Ty0>)
+	11: MutBorrowFieldGeneric[1](DynamicMap.size: u64)
+	12: WriteRef
+	13: MoveLoc[2](loc0: Ty1)
+	14: Ret
+}
+
+public contains<Ty0: copy + drop + store>(Arg0: &DynamicMap<Ty0>, Arg1: Ty0): bool {
+B0:
+	0: MoveLoc[0](Arg0: &DynamicMap<Ty0>)
+	1: ImmBorrowFieldGeneric[0](DynamicMap.id: UID)
+	2: MoveLoc[1](Arg1: Ty0)
+	3: Call dynamic_field::exists_<Ty0>(&UID, Ty0): bool
+	4: Ret
+}
+
+public length<Ty0: copy + drop + store>(Arg0: &DynamicMap<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &DynamicMap<Ty0>)
+	1: ImmBorrowFieldGeneric[1](DynamicMap.size: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public is_empty<Ty0: copy + drop + store>(Arg0: &DynamicMap<Ty0>): bool {
+B0:
+	0: MoveLoc[0](Arg0: &DynamicMap<Ty0>)
+	1: ImmBorrowFieldGeneric[1](DynamicMap.size: u64)
+	2: ReadRef
+	3: LdU64(0)
+	4: Eq
+	5: Ret
+}
+
+public destroy_empty<Ty0: copy + drop + store>(Arg0: DynamicMap<Ty0>) {
+L1:	loc0: UID
+L2:	loc1: u64
+B0:
+	0: MoveLoc[0](Arg0: DynamicMap<Ty0>)
+	1: UnpackGeneric[0](DynamicMap<Ty0>)
+	2: StLoc[2](loc1: u64)
+	3: StLoc[1](loc0: UID)
+	4: MoveLoc[2](loc1: u64)
+	5: LdU64(0)
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(11)
+B2:
+	9: LdConst[0](u64: 0)
+	10: Abort
+B3:
+	11: MoveLoc[1](loc0: UID)
+	12: Call object::delete(UID)
+	13: Ret
+}
+
+public force_drop<Ty0: copy + drop + store>(Arg0: DynamicMap<Ty0>) {
+B0:
+	0: MoveLoc[0](Arg0: DynamicMap<Ty0>)
+	1: UnpackGeneric[0](DynamicMap<Ty0>)
+	2: Pop
+	3: Call object::delete(UID)
+	4: Ret
+}
+
+Constants [
+	0 => u64: 0
+]
+}

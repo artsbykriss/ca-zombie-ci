@@ -1,0 +1,310 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.piecewise {
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::util;
+
+struct Section has copy, drop, store {
+	end: u64,
+	end_val: u64
+}
+
+struct Piecewise has copy, drop, store {
+	start: u64,
+	start_val: u64,
+	sections: vector<Section>
+}
+
+public section(Arg0: u64, Arg1: u64): Section {
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: MoveLoc[1](Arg1: u64)
+	2: Pack[0](Section)
+	3: Ret
+}
+
+public create(Arg0: u64, Arg1: u64, Arg2: vector<Section>): Piecewise {
+L3:	loc0: u64
+L4:	loc1: u64
+L5:	loc2: u64
+L6:	loc3: u64
+L7:	loc4: &Section
+L8:	loc5: u64
+L9:	loc6: &vector<Section>
+B0:
+	0: ImmBorrowLoc[2](Arg2: vector<Section>)
+	1: VecLen(1)
+	2: LdU64(0)
+	3: Gt
+	4: BrFalse(6)
+B1:
+	5: Branch(8)
+B2:
+	6: LdConst[0](u64: 0)
+	7: Abort
+B3:
+	8: CopyLoc[0](Arg0: u64)
+	9: StLoc[6](loc3: u64)
+	10: ImmBorrowLoc[2](Arg2: vector<Section>)
+	11: StLoc[9](loc6: &vector<Section>)
+	12: CopyLoc[9](loc6: &vector<Section>)
+	13: VecLen(1)
+	14: StLoc[3](loc0: u64)
+	15: LdU64(0)
+	16: StLoc[4](loc1: u64)
+	17: MoveLoc[3](loc0: u64)
+	18: StLoc[8](loc5: u64)
+B4:
+	19: CopyLoc[4](loc1: u64)
+	20: CopyLoc[8](loc5: u64)
+	21: Lt
+	22: BrFalse(51)
+B5:
+	23: CopyLoc[4](loc1: u64)
+	24: StLoc[5](loc2: u64)
+	25: CopyLoc[9](loc6: &vector<Section>)
+	26: MoveLoc[5](loc2: u64)
+	27: VecImmBorrow(1)
+	28: StLoc[7](loc4: &Section)
+	29: CopyLoc[7](loc4: &Section)
+	30: ImmBorrowField[0](Section.end: u64)
+	31: ReadRef
+	32: MoveLoc[6](loc3: u64)
+	33: Gt
+	34: BrFalse(36)
+B6:
+	35: Branch(42)
+B7:
+	36: MoveLoc[9](loc6: &vector<Section>)
+	37: Pop
+	38: MoveLoc[7](loc4: &Section)
+	39: Pop
+	40: LdConst[2](u64: 2)
+	41: Abort
+B8:
+	42: MoveLoc[7](loc4: &Section)
+	43: ImmBorrowField[0](Section.end: u64)
+	44: ReadRef
+	45: StLoc[6](loc3: u64)
+	46: MoveLoc[4](loc1: u64)
+	47: LdU64(1)
+	48: Add
+	49: StLoc[4](loc1: u64)
+	50: Branch(19)
+B9:
+	51: MoveLoc[9](loc6: &vector<Section>)
+	52: Pop
+	53: MoveLoc[0](Arg0: u64)
+	54: MoveLoc[1](Arg1: u64)
+	55: MoveLoc[2](Arg2: vector<Section>)
+	56: Pack[1](Piecewise)
+	57: Ret
+}
+
+public value_at(Arg0: &Piecewise, Arg1: u64): u64 {
+L2:	loc0: u64
+L3:	loc1: Section
+L4:	loc2: u64
+L5:	loc3: u64
+L6:	loc4: u64
+L7:	loc5: u64
+L8:	loc6: u64
+L9:	loc7: Section
+L10:	loc8: u64
+L11:	loc9: u64
+L12:	loc10: u64
+B0:
+	0: CopyLoc[1](Arg1: u64)
+	1: CopyLoc[0](Arg0: &Piecewise)
+	2: ImmBorrowField[1](Piecewise.start: u64)
+	3: ReadRef
+	4: Ge
+	5: BrFalse(7)
+B1:
+	6: Branch(11)
+B2:
+	7: MoveLoc[0](Arg0: &Piecewise)
+	8: Pop
+	9: LdConst[1](u64: 1)
+	10: Abort
+B3:
+	11: CopyLoc[0](Arg0: &Piecewise)
+	12: ImmBorrowField[2](Piecewise.sections: vector<Section>)
+	13: VecLen(1)
+	14: StLoc[10](loc8: u64)
+	15: CopyLoc[0](Arg0: &Piecewise)
+	16: ImmBorrowField[2](Piecewise.sections: vector<Section>)
+	17: MoveLoc[10](loc8: u64)
+	18: LdU64(1)
+	19: Sub
+	20: VecImmBorrow(1)
+	21: ReadRef
+	22: StLoc[9](loc7: Section)
+	23: CopyLoc[1](Arg1: u64)
+	24: ImmBorrowLoc[9](loc7: Section)
+	25: ImmBorrowField[0](Section.end: u64)
+	26: ReadRef
+	27: Le
+	28: BrFalse(30)
+B4:
+	29: Branch(34)
+B5:
+	30: MoveLoc[0](Arg0: &Piecewise)
+	31: Pop
+	32: LdConst[1](u64: 1)
+	33: Abort
+B6:
+	34: CopyLoc[1](Arg1: u64)
+	35: CopyLoc[0](Arg0: &Piecewise)
+	36: ImmBorrowField[1](Piecewise.start: u64)
+	37: ReadRef
+	38: Eq
+	39: BrFalse(44)
+B7:
+	40: MoveLoc[0](Arg0: &Piecewise)
+	41: ImmBorrowField[3](Piecewise.start_val: u64)
+	42: ReadRef
+	43: Ret
+B8:
+	44: CopyLoc[0](Arg0: &Piecewise)
+	45: ImmBorrowField[1](Piecewise.start: u64)
+	46: ReadRef
+	47: StLoc[4](loc2: u64)
+	48: CopyLoc[0](Arg0: &Piecewise)
+	49: ImmBorrowField[3](Piecewise.start_val: u64)
+	50: ReadRef
+	51: StLoc[5](loc3: u64)
+	52: CopyLoc[0](Arg0: &Piecewise)
+	53: ImmBorrowField[2](Piecewise.sections: vector<Section>)
+	54: LdU64(0)
+	55: VecImmBorrow(1)
+	56: ReadRef
+	57: StLoc[3](loc1: Section)
+	58: LdU64(0)
+	59: StLoc[8](loc6: u64)
+B9:
+	60: CopyLoc[1](Arg1: u64)
+	61: ImmBorrowLoc[3](loc1: Section)
+	62: ImmBorrowField[0](Section.end: u64)
+	63: ReadRef
+	64: Gt
+	65: BrFalse(87)
+B10:
+	66: ImmBorrowLoc[3](loc1: Section)
+	67: ImmBorrowField[0](Section.end: u64)
+	68: ReadRef
+	69: StLoc[4](loc2: u64)
+	70: ImmBorrowLoc[3](loc1: Section)
+	71: ImmBorrowField[4](Section.end_val: u64)
+	72: ReadRef
+	73: StLoc[5](loc3: u64)
+	74: CopyLoc[0](Arg0: &Piecewise)
+	75: ImmBorrowField[2](Piecewise.sections: vector<Section>)
+	76: CopyLoc[8](loc6: u64)
+	77: LdU64(1)
+	78: Add
+	79: VecImmBorrow(1)
+	80: ReadRef
+	81: StLoc[3](loc1: Section)
+	82: MoveLoc[8](loc6: u64)
+	83: LdU64(1)
+	84: Add
+	85: StLoc[8](loc6: u64)
+	86: Branch(60)
+B11:
+	87: MoveLoc[0](Arg0: &Piecewise)
+	88: Pop
+	89: CopyLoc[1](Arg1: u64)
+	90: ImmBorrowLoc[3](loc1: Section)
+	91: ImmBorrowField[0](Section.end: u64)
+	92: ReadRef
+	93: Eq
+	94: BrFalse(99)
+B12:
+	95: ImmBorrowLoc[3](loc1: Section)
+	96: ImmBorrowField[4](Section.end_val: u64)
+	97: ReadRef
+	98: Ret
+B13:
+	99: CopyLoc[5](loc3: u64)
+	100: ImmBorrowLoc[3](loc1: Section)
+	101: ImmBorrowField[4](Section.end_val: u64)
+	102: ReadRef
+	103: Eq
+	104: BrFalse(107)
+B14:
+	105: MoveLoc[5](loc3: u64)
+	106: Ret
+B15:
+	107: ImmBorrowLoc[3](loc1: Section)
+	108: ImmBorrowField[4](Section.end_val: u64)
+	109: ReadRef
+	110: CopyLoc[5](loc3: u64)
+	111: Call util::abs_diff(u64, u64): u64
+	112: StLoc[12](loc10: u64)
+	113: ImmBorrowLoc[3](loc1: Section)
+	114: ImmBorrowField[0](Section.end: u64)
+	115: ReadRef
+	116: CopyLoc[4](loc2: u64)
+	117: Call util::abs_diff(u64, u64): u64
+	118: StLoc[11](loc9: u64)
+	119: MoveLoc[1](Arg1: u64)
+	120: MoveLoc[4](loc2: u64)
+	121: Sub
+	122: StLoc[6](loc4: u64)
+	123: MoveLoc[12](loc10: u64)
+	124: MoveLoc[6](loc4: u64)
+	125: MoveLoc[11](loc9: u64)
+	126: Call util::muldiv(u64, u64, u64): u64
+	127: StLoc[7](loc5: u64)
+	128: CopyLoc[5](loc3: u64)
+	129: ImmBorrowLoc[3](loc1: Section)
+	130: ImmBorrowField[4](Section.end_val: u64)
+	131: ReadRef
+	132: Lt
+	133: BrFalse(139)
+B16:
+	134: MoveLoc[5](loc3: u64)
+	135: MoveLoc[7](loc5: u64)
+	136: Add
+	137: StLoc[2](loc0: u64)
+	138: Branch(143)
+B17:
+	139: MoveLoc[5](loc3: u64)
+	140: MoveLoc[7](loc5: u64)
+	141: Sub
+	142: StLoc[2](loc0: u64)
+B18:
+	143: MoveLoc[2](loc0: u64)
+	144: Ret
+}
+
+public range(Arg0: &Piecewise): u64 * u64 {
+L1:	loc0: Section
+L2:	loc1: u64
+B0:
+	0: CopyLoc[0](Arg0: &Piecewise)
+	1: ImmBorrowField[2](Piecewise.sections: vector<Section>)
+	2: VecLen(1)
+	3: StLoc[2](loc1: u64)
+	4: CopyLoc[0](Arg0: &Piecewise)
+	5: ImmBorrowField[2](Piecewise.sections: vector<Section>)
+	6: MoveLoc[2](loc1: u64)
+	7: LdU64(1)
+	8: Sub
+	9: VecImmBorrow(1)
+	10: ReadRef
+	11: StLoc[1](loc0: Section)
+	12: MoveLoc[0](Arg0: &Piecewise)
+	13: ImmBorrowField[1](Piecewise.start: u64)
+	14: ReadRef
+	15: ImmBorrowLoc[1](loc0: Section)
+	16: ImmBorrowField[0](Section.end: u64)
+	17: ReadRef
+	18: Ret
+}
+
+Constants [
+	0 => u64: 0
+	1 => u64: 1
+	2 => u64: 2
+]
+}

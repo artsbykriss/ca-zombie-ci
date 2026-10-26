@@ -1,0 +1,17 @@
+// Move bytecode v6
+module d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4.events {
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+
+struct Event<Ty0: copy + drop> has copy, drop {
+	event: Ty0
+}
+
+public(friend) emit_event<Ty0: copy + drop>(Arg0: Ty0) {
+B0:
+	0: MoveLoc[0](Arg0: Ty0)
+	1: PackGeneric[0](Event<Ty0>)
+	2: Call event::emit<Event<Ty0>>(Event<Ty0>)
+	3: Ret
+}
+
+}

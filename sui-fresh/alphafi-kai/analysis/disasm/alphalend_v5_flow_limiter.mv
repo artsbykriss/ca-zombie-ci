@@ -1,0 +1,153 @@
+// Move bytecode v6
+module d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4.flow_limiter {
+use 4b591bbc246c9fadd28e7ac895e0778fb0e102f1b0d9f441e78d35f0d1ea1fcc::math;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+
+struct FlowLimiter has store {
+	flow_delta: Number,
+	last_update: u64,
+	max_rate: u64,
+	window_duration: u64
+}
+
+public(friend) new(Arg0: u64, Arg1: u64, Arg2: &Clock): FlowLimiter {
+B0:
+	0: LdU64(0)
+	1: Call math::from(u64): Number
+	2: MoveLoc[2](Arg2: &Clock)
+	3: Call clock::timestamp_ms(&Clock): u64
+	4: MoveLoc[0](Arg0: u64)
+	5: MoveLoc[1](Arg1: u64)
+	6: Pack[0](FlowLimiter)
+	7: Ret
+}
+
+public(friend) check_and_update(Arg0: &mut FlowLimiter, Arg1: u64, Arg2: &Clock) {
+L3:	loc0: Number
+L4:	loc1: u64
+L5:	loc2: Number
+L6:	loc3: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut FlowLimiter)
+	1: ImmBorrowField[0](FlowLimiter.max_rate: u64)
+	2: ReadRef
+	3: LdU64(0)
+	4: Eq
+	5: BrFalse(11)
+B1:
+	6: MoveLoc[0](Arg0: &mut FlowLimiter)
+	7: Pop
+	8: MoveLoc[2](Arg2: &Clock)
+	9: Pop
+	10: Ret
+B2:
+	11: MoveLoc[2](Arg2: &Clock)
+	12: Call clock::timestamp_ms(&Clock): u64
+	13: StLoc[4](loc1: u64)
+	14: CopyLoc[0](Arg0: &mut FlowLimiter)
+	15: ImmBorrowField[1](FlowLimiter.last_update: u64)
+	16: ReadRef
+	17: LdU64(0)
+	18: Neq
+	19: BrFalse(60)
+B3:
+	20: CopyLoc[4](loc1: u64)
+	21: CopyLoc[0](Arg0: &mut FlowLimiter)
+	22: ImmBorrowField[1](FlowLimiter.last_update: u64)
+	23: ReadRef
+	24: Sub
+	25: StLoc[6](loc3: u64)
+	26: CopyLoc[6](loc3: u64)
+	27: CopyLoc[0](Arg0: &mut FlowLimiter)
+	28: ImmBorrowField[2](FlowLimiter.window_duration: u64)
+	29: ReadRef
+	30: Ge
+	31: BrFalse(36)
+B4:
+	32: LdU64(0)
+	33: Call math::from(u64): Number
+	34: StLoc[3](loc0: Number)
+	35: Branch(50)
+B5:
+	36: LdU64(1)
+	37: Call math::from(u64): Number
+	38: LdU64(1)
+	39: Call math::from(u64): Number
+	40: MoveLoc[6](loc3: u64)
+	41: Call math::from(u64): Number
+	42: CopyLoc[0](Arg0: &mut FlowLimiter)
+	43: ImmBorrowField[2](FlowLimiter.window_duration: u64)
+	44: ReadRef
+	45: Call math::from(u64): Number
+	46: Call math::div(Number, Number): Number
+	47: Call math::min(Number, Number): Number
+	48: Call math::sub(Number, Number): Number
+	49: StLoc[3](loc0: Number)
+B6:
+	50: MoveLoc[3](loc0: Number)
+	51: StLoc[5](loc2: Number)
+	52: CopyLoc[0](Arg0: &mut FlowLimiter)
+	53: ImmBorrowField[3](FlowLimiter.flow_delta: Number)
+	54: ReadRef
+	55: MoveLoc[5](loc2: Number)
+	56: Call math::mul(Number, Number): Number
+	57: CopyLoc[0](Arg0: &mut FlowLimiter)
+	58: MutBorrowField[3](FlowLimiter.flow_delta: Number)
+	59: WriteRef
+B7:
+	60: CopyLoc[0](Arg0: &mut FlowLimiter)
+	61: ImmBorrowField[3](FlowLimiter.flow_delta: Number)
+	62: ReadRef
+	63: MoveLoc[1](Arg1: u64)
+	64: Call math::from(u64): Number
+	65: Call math::add(Number, Number): Number
+	66: CopyLoc[0](Arg0: &mut FlowLimiter)
+	67: MutBorrowField[3](FlowLimiter.flow_delta: Number)
+	68: WriteRef
+	69: CopyLoc[0](Arg0: &mut FlowLimiter)
+	70: ImmBorrowField[3](FlowLimiter.flow_delta: Number)
+	71: ReadRef
+	72: Call math::to_u64(Number): u64
+	73: CopyLoc[0](Arg0: &mut FlowLimiter)
+	74: ImmBorrowField[0](FlowLimiter.max_rate: u64)
+	75: ReadRef
+	76: Le
+	77: BrFalse(79)
+B8:
+	78: Branch(83)
+B9:
+	79: MoveLoc[0](Arg0: &mut FlowLimiter)
+	80: Pop
+	81: LdU64(13906834436336386049)
+	82: Abort
+B10:
+	83: MoveLoc[4](loc1: u64)
+	84: MoveLoc[0](Arg0: &mut FlowLimiter)
+	85: MutBorrowField[1](FlowLimiter.last_update: u64)
+	86: WriteRef
+	87: Ret
+}
+
+public(friend) update_config(Arg0: &mut FlowLimiter, Arg1: u64, Arg2: u64, Arg3: &Clock) {
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CopyLoc[0](Arg0: &mut FlowLimiter)
+	2: MutBorrowField[0](FlowLimiter.max_rate: u64)
+	3: WriteRef
+	4: MoveLoc[2](Arg2: u64)
+	5: CopyLoc[0](Arg0: &mut FlowLimiter)
+	6: MutBorrowField[2](FlowLimiter.window_duration: u64)
+	7: WriteRef
+	8: MoveLoc[3](Arg3: &Clock)
+	9: Call clock::timestamp_ms(&Clock): u64
+	10: MoveLoc[0](Arg0: &mut FlowLimiter)
+	11: MutBorrowField[1](FlowLimiter.last_update: u64)
+	12: WriteRef
+	13: Ret
+}
+
+Constants [
+	0 => vector<u8>: "ErrFlowLimitExceeded" // interpreted as UTF8 string
+	1 => u8: 0
+]
+}

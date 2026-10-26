@@ -1,0 +1,4382 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.cetus {
+use 0d9dd55ac7eb676dc78f7d0ae3bc5529d7fd6b52ac0d0edb2d7820c52d080026::access;
+use 1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb::config;
+use 1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb::pool;
+use 1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb::position;
+use 1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb::rewarder;
+use 1eabed72c53feb3805120a081dc15963c204dc8d091542592abaf7a35689b2fb::tick_math;
+use 714a63a0dba6da4f017b42d5d0fb78867f18bcde904868e51d951a5a6f5b7f57::i32;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::balance_bag;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::debt_info;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::lp_shape_clmm;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::oracle_price;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::position_core_clmm;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::position_model_clmm;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::pyth;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::supply_pool;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::util;
+use e829c047cf805d54bde8ff2390883004d4557193d33bac516f3232105a2f2bb2::net_sliding_sum_limiter;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::sui;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct AHandleExploitedPosition has drop {
+	dummy_field: bool
+}
+
+public slippage_tolerance_assertion<Ty0, Ty1>(Arg0: &Pool<Ty0, Ty1>, Arg1: u256, Arg2: u16) {
+L3:	loc0: bool
+L4:	loc1: bool
+L5:	loc2: u256
+L6:	loc3: u256
+L7:	loc4: u256
+L8:	loc5: u256
+L9:	loc6: u128
+B0:
+	0: MoveLoc[0](Arg0: &Pool<Ty0, Ty1>)
+	1: Call pool::current_sqrt_price<Ty0, Ty1>(&Pool<Ty0, Ty1>): u128
+	2: StLoc[9](loc6: u128)
+	3: CopyLoc[9](loc6: u128)
+	4: CastU256
+	5: MoveLoc[9](loc6: u128)
+	6: CastU256
+	7: Mul
+	8: LdU8(64)
+	9: Shr
+	10: StLoc[6](loc3: u256)
+	11: MoveLoc[1](Arg1: u256)
+	12: LdU8(64)
+	13: Shr
+	14: StLoc[5](loc2: u256)
+	15: CopyLoc[5](loc2: u256)
+	16: CopyLoc[5](loc2: u256)
+	17: CopyLoc[2](Arg2: u16)
+	18: CastU256
+	19: Mul
+	20: LdU256(10000)
+	21: Div
+	22: Add
+	23: StLoc[7](loc4: u256)
+	24: CopyLoc[5](loc2: u256)
+	25: MoveLoc[5](loc2: u256)
+	26: MoveLoc[2](Arg2: u16)
+	27: CastU256
+	28: Mul
+	29: LdU256(10000)
+	30: Div
+	31: Sub
+	32: StLoc[8](loc5: u256)
+	33: CopyLoc[6](loc3: u256)
+	34: CopyLoc[8](loc5: u256)
+	35: Lt
+	36: BrFalse(40)
+B1:
+	37: LdTrue
+	38: StLoc[3](loc0: bool)
+	39: Branch(44)
+B2:
+	40: CopyLoc[6](loc3: u256)
+	41: CopyLoc[7](loc4: u256)
+	42: Gt
+	43: StLoc[3](loc0: bool)
+B3:
+	44: MoveLoc[3](loc0: bool)
+	45: BrFalse(46)
+B4:
+	46: CopyLoc[6](loc3: u256)
+	47: MoveLoc[8](loc5: u256)
+	48: Ge
+	49: BrFalse(55)
+B5:
+	50: MoveLoc[6](loc3: u256)
+	51: MoveLoc[7](loc4: u256)
+	52: Le
+	53: StLoc[4](loc1: bool)
+	54: Branch(57)
+B6:
+	55: LdFalse
+	56: StLoc[4](loc1: bool)
+B7:
+	57: MoveLoc[4](loc1: bool)
+	58: BrFalse(60)
+B8:
+	59: Branch(62)
+B9:
+	60: LdU64(12)
+	61: Abort
+B10:
+	62: Ret
+}
+
+public calc_deposit_amounts_by_liquidity<Ty0, Ty1>(Arg0: &Pool<Ty0, Ty1>, Arg1: I32, Arg2: I32, Arg3: u128): u64 * u64 {
+L4:	loc0: I32
+L5:	loc1: u128
+B0:
+	0: CopyLoc[0](Arg0: &Pool<Ty0, Ty1>)
+	1: Call pool::current_tick_index<Ty0, Ty1>(&Pool<Ty0, Ty1>): I32
+	2: StLoc[4](loc0: I32)
+	3: MoveLoc[0](Arg0: &Pool<Ty0, Ty1>)
+	4: Call pool::current_sqrt_price<Ty0, Ty1>(&Pool<Ty0, Ty1>): u128
+	5: StLoc[5](loc1: u128)
+	6: MoveLoc[1](Arg1: I32)
+	7: MoveLoc[2](Arg2: I32)
+	8: MoveLoc[4](loc0: I32)
+	9: MoveLoc[5](loc1: u128)
+	10: MoveLoc[3](Arg3: u128)
+	11: LdTrue
+	12: Call pool::get_amount_by_liquidity(I32, I32, I32, u128, u128, bool): u64 * u64
+	13: Ret
+}
+
+public remove_liquidity<Ty0, Ty1>(Arg0: &GlobalConfig, Arg1: &mut Pool<Ty0, Ty1>, Arg2: &mut Position, Arg3: u128, Arg4: &Clock): Balance<Ty0> * Balance<Ty1> {
+L5:	loc0: Balance<Ty0>
+L6:	loc1: Balance<Ty1>
+B0:
+	0: CopyLoc[3](Arg3: u128)
+	1: LdU128(0)
+	2: Gt
+	3: BrFalse(13)
+B1:
+	4: MoveLoc[0](Arg0: &GlobalConfig)
+	5: MoveLoc[1](Arg1: &mut Pool<Ty0, Ty1>)
+	6: MoveLoc[2](Arg2: &mut Position)
+	7: MoveLoc[3](Arg3: u128)
+	8: MoveLoc[4](Arg4: &Clock)
+	9: Call pool::remove_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &mut Position, u128, &Clock): Balance<Ty0> * Balance<Ty1>
+	10: StLoc[6](loc1: Balance<Ty1>)
+	11: StLoc[5](loc0: Balance<Ty0>)
+	12: Branch(25)
+B2:
+	13: MoveLoc[1](Arg1: &mut Pool<Ty0, Ty1>)
+	14: Pop
+	15: MoveLoc[2](Arg2: &mut Position)
+	16: Pop
+	17: MoveLoc[0](Arg0: &GlobalConfig)
+	18: Pop
+	19: MoveLoc[4](Arg4: &Clock)
+	20: Pop
+	21: Call balance::zero<Ty0>(): Balance<Ty0>
+	22: Call balance::zero<Ty1>(): Balance<Ty1>
+	23: StLoc[6](loc1: Balance<Ty1>)
+	24: StLoc[5](loc0: Balance<Ty0>)
+B3:
+	25: MoveLoc[5](loc0: Balance<Ty0>)
+	26: MoveLoc[6](loc1: Balance<Ty1>)
+	27: Ret
+}
+
+public create_position_ticket<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &mut PositionConfig, Arg2: I32, Arg3: I32, Arg4: Balance<Ty0>, Arg5: Balance<Ty1>, Arg6: u128, Arg7: &PythPriceInfo, Arg8: &mut TxContext): CreatePositionTicket<Ty0, Ty1, I32> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public create_position_ticket_v2<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &mut PositionConfig, Arg2: I32, Arg3: I32, Arg4: Balance<Ty0>, Arg5: Balance<Ty1>, Arg6: u128, Arg7: &PythPriceInfo, Arg8: &Clock, Arg9: &mut TxContext): CreatePositionTicket<Ty0, Ty1, I32> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public create_position_ticket_v3<Ty0, Ty1>(Arg0: &mut Pool<Ty0, Ty1>, Arg1: &mut PositionConfig, Arg2: I32, Arg3: I32, Arg4: Balance<Ty0>, Arg5: Balance<Ty1>, Arg6: u128, Arg7: &PriceCollection, Arg8: &Clock, Arg9: &mut TxContext): CreatePositionTicket<Ty0, Ty1, I32> {
+L10:	loc0: &mut PositionConfig
+L11:	loc1: ID
+L12:	loc2: I32
+L13:	loc3: u64
+L14:	loc4: u64
+L15:	loc5: FacilDebtBag
+L16:	loc6: u64
+L17:	loc7: u64
+L18:	loc8: &mut NetSlidingSumLimiter
+L19:	loc9: PositionModel
+L20:	loc10: u256
+L21:	loc11: u256
+L22:	loc12: u256
+L23:	loc13: u256
+L24:	loc14: u256
+L25:	loc15: &mut Pool<Ty0, Ty1>
+L26:	loc16: ValidatedPrices
+L27:	loc17: Balance<Ty0>
+L28:	loc18: Balance<Ty1>
+L29:	loc19: u128
+L30:	loc20: u128
+L31:	loc21: u128
+L32:	loc22: I32
+L33:	loc23: I32
+L34:	loc24: u64
+L35:	loc25: u64
+L36:	loc26: u64
+L37:	loc27: u64
+B0:
+	0: MoveLoc[0](Arg0: &mut Pool<Ty0, Ty1>)
+	1: StLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	2: MoveLoc[1](Arg1: &mut PositionConfig)
+	3: StLoc[10](loc0: &mut PositionConfig)
+	4: MoveLoc[2](Arg2: I32)
+	5: StLoc[32](loc22: I32)
+	6: MoveLoc[3](Arg3: I32)
+	7: StLoc[33](loc23: I32)
+	8: MoveLoc[4](Arg4: Balance<Ty0>)
+	9: StLoc[27](loc17: Balance<Ty0>)
+	10: MoveLoc[5](Arg5: Balance<Ty1>)
+	11: StLoc[28](loc18: Balance<Ty1>)
+	12: CopyLoc[10](loc0: &mut PositionConfig)
+	13: FreezeRef
+	14: Call position_core_clmm::check_config_version(&PositionConfig)
+	15: CopyLoc[10](loc0: &mut PositionConfig)
+	16: FreezeRef
+	17: Call position_core_clmm::allow_new_positions(&PositionConfig): bool
+	18: BrFalse(20)
+B1:
+	19: Branch(32)
+B2:
+	20: MoveLoc[7](Arg7: &PriceCollection)
+	21: Pop
+	22: MoveLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	23: Pop
+	24: MoveLoc[9](Arg9: &mut TxContext)
+	25: Pop
+	26: MoveLoc[10](loc0: &mut PositionConfig)
+	27: Pop
+	28: MoveLoc[8](Arg8: &Clock)
+	29: Pop
+	30: LdU64(3)
+	31: Abort
+B3:
+	32: CopyLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	33: FreezeRef
+	34: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	35: CopyLoc[10](loc0: &mut PositionConfig)
+	36: FreezeRef
+	37: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	38: Eq
+	39: BrFalse(41)
+B4:
+	40: Branch(53)
+B5:
+	41: MoveLoc[7](Arg7: &PriceCollection)
+	42: Pop
+	43: MoveLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	44: Pop
+	45: MoveLoc[9](Arg9: &mut TxContext)
+	46: Pop
+	47: MoveLoc[10](loc0: &mut PositionConfig)
+	48: Pop
+	49: MoveLoc[8](Arg8: &Clock)
+	50: Pop
+	51: LdU64(5)
+	52: Abort
+B6:
+	53: CopyLoc[10](loc0: &mut PositionConfig)
+	54: FreezeRef
+	55: MoveLoc[7](Arg7: &PriceCollection)
+	56: Call position_core_clmm::validate_price_info(&PositionConfig, &PriceCollection): ValidatedPrices
+	57: StLoc[26](loc16: ValidatedPrices)
+	58: CopyLoc[10](loc0: &mut PositionConfig)
+	59: FreezeRef
+	60: Call position_core_clmm::has_create_withdraw_limiter(&PositionConfig): bool
+	61: BrFalse(82)
+B7:
+	62: CopyLoc[10](loc0: &mut PositionConfig)
+	63: Call position_core_clmm::borrow_create_withdraw_limiter_mut(&mut PositionConfig): &mut NetSlidingSumLimiter
+	64: StLoc[18](loc8: &mut NetSlidingSumLimiter)
+	65: ImmBorrowLoc[27](loc17: Balance<Ty0>)
+	66: ImmBorrowLoc[26](loc16: ValidatedPrices)
+	67: LdTrue
+	68: Call position_core_clmm::get_balance_ema_usd_value_6_decimals<Ty0>(&Balance<Ty0>, &ValidatedPrices, bool): u64
+	69: StLoc[35](loc25: u64)
+	70: ImmBorrowLoc[28](loc18: Balance<Ty1>)
+	71: ImmBorrowLoc[26](loc16: ValidatedPrices)
+	72: LdTrue
+	73: Call position_core_clmm::get_balance_ema_usd_value_6_decimals<Ty1>(&Balance<Ty1>, &ValidatedPrices, bool): u64
+	74: StLoc[37](loc27: u64)
+	75: MoveLoc[18](loc8: &mut NetSlidingSumLimiter)
+	76: MoveLoc[35](loc25: u64)
+	77: MoveLoc[37](loc27: u64)
+	78: Add
+	79: MoveLoc[8](Arg8: &Clock)
+	80: Call net_sliding_sum_limiter::consume_inflow(&mut NetSlidingSumLimiter, u64, &Clock)
+	81: Branch(84)
+B8:
+	82: MoveLoc[8](Arg8: &Clock)
+	83: Pop
+B9:
+	84: CopyLoc[6](Arg6: u128)
+	85: CopyLoc[10](loc0: &mut PositionConfig)
+	86: FreezeRef
+	87: Call position_core_clmm::max_position_l(&PositionConfig): u128
+	88: Le
+	89: BrFalse(91)
+B10:
+	90: Branch(99)
+B11:
+	91: MoveLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	92: Pop
+	93: MoveLoc[9](Arg9: &mut TxContext)
+	94: Pop
+	95: MoveLoc[10](loc0: &mut PositionConfig)
+	96: Pop
+	97: LdU64(13)
+	98: Abort
+B12:
+	99: CopyLoc[10](loc0: &mut PositionConfig)
+	100: FreezeRef
+	101: Call position_core_clmm::current_global_l(&PositionConfig): u128
+	102: CopyLoc[6](Arg6: u128)
+	103: Add
+	104: CopyLoc[10](loc0: &mut PositionConfig)
+	105: FreezeRef
+	106: Call position_core_clmm::max_global_l(&PositionConfig): u128
+	107: Le
+	108: BrFalse(110)
+B13:
+	109: Branch(118)
+B14:
+	110: MoveLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	111: Pop
+	112: MoveLoc[9](Arg9: &mut TxContext)
+	113: Pop
+	114: MoveLoc[10](loc0: &mut PositionConfig)
+	115: Pop
+	116: LdU64(14)
+	117: Abort
+B15:
+	118: CopyLoc[10](loc0: &mut PositionConfig)
+	119: CopyLoc[6](Arg6: u128)
+	120: Call position_core_clmm::increase_current_global_l(&mut PositionConfig, u128)
+	121: CopyLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	122: FreezeRef
+	123: Call pool::current_tick_index<Ty0, Ty1>(&Pool<Ty0, Ty1>): I32
+	124: StLoc[12](loc2: I32)
+	125: CopyLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	126: FreezeRef
+	127: Call pool::current_sqrt_price<Ty0, Ty1>(&Pool<Ty0, Ty1>): u128
+	128: StLoc[29](loc19: u128)
+	129: CopyLoc[32](loc22: I32)
+	130: CopyLoc[12](loc2: I32)
+	131: Call i32::lte(I32, I32): bool
+	132: BrFalse(134)
+B16:
+	133: Branch(142)
+B17:
+	134: MoveLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	135: Pop
+	136: MoveLoc[9](Arg9: &mut TxContext)
+	137: Pop
+	138: MoveLoc[10](loc0: &mut PositionConfig)
+	139: Pop
+	140: LdU64(0)
+	141: Abort
+B18:
+	142: MoveLoc[12](loc2: I32)
+	143: CopyLoc[33](loc23: I32)
+	144: Call i32::lt(I32, I32): bool
+	145: BrFalse(147)
+B19:
+	146: Branch(155)
+B20:
+	147: MoveLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	148: Pop
+	149: MoveLoc[9](Arg9: &mut TxContext)
+	150: Pop
+	151: MoveLoc[10](loc0: &mut PositionConfig)
+	152: Pop
+	153: LdU64(0)
+	154: Abort
+B21:
+	155: ImmBorrowLoc[26](loc16: ValidatedPrices)
+	156: Call type_name::with_defining_ids<Ty0>(): TypeName
+	157: Call type_name::with_defining_ids<Ty1>(): TypeName
+	158: Call oracle_price::div_price_numeric_x128(&ValidatedPrices, TypeName, TypeName): u256
+	159: StLoc[23](loc13: u256)
+	160: CopyLoc[29](loc19: u128)
+	161: CastU256
+	162: MoveLoc[29](loc19: u128)
+	163: CastU256
+	164: Mul
+	165: StLoc[24](loc14: u256)
+	166: ImmBorrowLoc[26](loc16: ValidatedPrices)
+	167: Call type_name::with_defining_ids<Ty0>(): TypeName
+	168: Call type_name::with_defining_ids<Ty1>(): TypeName
+	169: Call oracle_price::div_smoothed_price_numeric_x128(&ValidatedPrices, TypeName, TypeName): u256
+	170: StLoc[22](loc12: u256)
+	171: CopyLoc[10](loc0: &mut PositionConfig)
+	172: FreezeRef
+	173: MoveLoc[22](loc12: u256)
+	174: CopyLoc[24](loc14: u256)
+	175: Call position_core_clmm::price_deviation_is_acceptable(&PositionConfig, u256, u256): bool
+	176: BrFalse(178)
+B22:
+	177: Branch(186)
+B23:
+	178: MoveLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	179: Pop
+	180: MoveLoc[9](Arg9: &mut TxContext)
+	181: Pop
+	182: MoveLoc[10](loc0: &mut PositionConfig)
+	183: Pop
+	184: LdU64(31)
+	185: Abort
+B24:
+	186: CopyLoc[23](loc13: u256)
+	187: CopyLoc[24](loc14: u256)
+	188: Call util::min_u256(u256, u256): u256
+	189: StLoc[21](loc11: u256)
+	190: MoveLoc[23](loc13: u256)
+	191: MoveLoc[24](loc14: u256)
+	192: Call util::max_u256(u256, u256): u256
+	193: StLoc[20](loc10: u256)
+	194: MoveLoc[25](loc15: &mut Pool<Ty0, Ty1>)
+	195: FreezeRef
+	196: CopyLoc[32](loc22: I32)
+	197: CopyLoc[33](loc23: I32)
+	198: CopyLoc[6](Arg6: u128)
+	199: Call calc_deposit_amounts_by_liquidity<Ty0, Ty1>(&Pool<Ty0, Ty1>, I32, I32, u128): u64 * u64
+	200: StLoc[36](loc26: u64)
+	201: StLoc[34](loc24: u64)
+	202: ImmBorrowLoc[27](loc17: Balance<Ty0>)
+	203: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	204: MoveLoc[34](loc24: u64)
+	205: Call position_core_clmm::calc_borrow_amt(u64, u64): u64 * u64
+	206: StLoc[13](loc3: u64)
+	207: StLoc[16](loc6: u64)
+	208: ImmBorrowLoc[28](loc18: Balance<Ty1>)
+	209: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	210: MoveLoc[36](loc26: u64)
+	211: Call position_core_clmm::calc_borrow_amt(u64, u64): u64 * u64
+	212: StLoc[14](loc4: u64)
+	213: StLoc[17](loc7: u64)
+	214: CopyLoc[32](loc22: I32)
+	215: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	216: StLoc[30](loc20: u128)
+	217: CopyLoc[33](loc23: I32)
+	218: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	219: StLoc[31](loc21: u128)
+	220: MoveLoc[30](loc20: u128)
+	221: MoveLoc[31](loc21: u128)
+	222: CopyLoc[6](Arg6: u128)
+	223: MoveLoc[13](loc3: u64)
+	224: MoveLoc[14](loc4: u64)
+	225: MoveLoc[16](loc6: u64)
+	226: MoveLoc[17](loc7: u64)
+	227: Call position_model_clmm::create(u128, u128, u128, u64, u64, u64, u64): PositionModel
+	228: StLoc[19](loc9: PositionModel)
+	229: CopyLoc[10](loc0: &mut PositionConfig)
+	230: FreezeRef
+	231: ImmBorrowLoc[19](loc9: PositionModel)
+	232: CopyLoc[21](loc11: u256)
+	233: CopyLoc[20](loc10: u256)
+	234: Call position_core_clmm::liq_margin_is_valid(&PositionConfig, &PositionModel, u256, u256): bool
+	235: BrFalse(237)
+B25:
+	236: Branch(243)
+B26:
+	237: MoveLoc[9](Arg9: &mut TxContext)
+	238: Pop
+	239: MoveLoc[10](loc0: &mut PositionConfig)
+	240: Pop
+	241: LdU64(1)
+	242: Abort
+B27:
+	243: CopyLoc[10](loc0: &mut PositionConfig)
+	244: FreezeRef
+	245: ImmBorrowLoc[19](loc9: PositionModel)
+	246: MoveLoc[21](loc11: u256)
+	247: MoveLoc[20](loc10: u256)
+	248: Call position_core_clmm::init_margin_is_valid(&PositionConfig, &PositionModel, u256, u256): bool
+	249: BrFalse(251)
+B28:
+	250: Branch(257)
+B29:
+	251: MoveLoc[9](Arg9: &mut TxContext)
+	252: Pop
+	253: MoveLoc[10](loc0: &mut PositionConfig)
+	254: Pop
+	255: LdU64(2)
+	256: Abort
+B30:
+	257: CopyLoc[10](loc0: &mut PositionConfig)
+	258: FreezeRef
+	259: Call object::id<PositionConfig>(&PositionConfig): ID
+	260: StLoc[11](loc1: ID)
+	261: MoveLoc[10](loc0: &mut PositionConfig)
+	262: FreezeRef
+	263: Call position_core_clmm::lend_facil_cap(&PositionConfig): &LendFacilCap
+	264: Call object::id<LendFacilCap>(&LendFacilCap): ID
+	265: MoveLoc[9](Arg9: &mut TxContext)
+	266: Call supply_pool::empty_facil_debt_bag(ID, &mut TxContext): FacilDebtBag
+	267: StLoc[15](loc5: FacilDebtBag)
+	268: MoveLoc[11](loc1: ID)
+	269: MoveLoc[32](loc22: I32)
+	270: MoveLoc[33](loc23: I32)
+	271: ImmBorrowLoc[19](loc9: PositionModel)
+	272: Call position_model_clmm::dx(&PositionModel): u64
+	273: ImmBorrowLoc[19](loc9: PositionModel)
+	274: Call position_model_clmm::dy(&PositionModel): u64
+	275: MoveLoc[6](Arg6: u128)
+	276: MoveLoc[27](loc17: Balance<Ty0>)
+	277: MoveLoc[28](loc18: Balance<Ty1>)
+	278: Call balance::zero<Ty0>(): Balance<Ty0>
+	279: Call balance::zero<Ty1>(): Balance<Ty1>
+	280: MoveLoc[15](loc5: FacilDebtBag)
+	281: Call position_core_clmm::new_create_position_ticket<Ty0, Ty1, I32>(ID, I32, I32, u64, u64, u128, Balance<Ty0>, Balance<Ty1>, Balance<Ty0>, Balance<Ty1>, FacilDebtBag): CreatePositionTicket<Ty0, Ty1, I32>
+	282: Ret
+}
+
+public borrow_for_position_x<Ty0, Ty1, Ty2>(Arg0: &mut CreatePositionTicket<Ty0, Ty1, I32>, Arg1: &PositionConfig, Arg2: &mut SupplyPool<Ty0, Ty2>, Arg3: &Clock) {
+L4:	loc0: Balance<Ty0>
+L5:	loc1: &PositionConfig
+L6:	loc2: FacilDebtShare<Ty2>
+L7:	loc3: &mut SupplyPool<Ty0, Ty2>
+L8:	loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>
+B0:
+	0: MoveLoc[0](Arg0: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	1: StLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	2: MoveLoc[1](Arg1: &PositionConfig)
+	3: StLoc[5](loc1: &PositionConfig)
+	4: MoveLoc[2](Arg2: &mut SupplyPool<Ty0, Ty2>)
+	5: StLoc[7](loc3: &mut SupplyPool<Ty0, Ty2>)
+	6: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	7: FreezeRef
+	8: Call position_core_clmm::cpt_config_id<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): ID
+	9: CopyLoc[5](loc1: &PositionConfig)
+	10: Call object::id<PositionConfig>(&PositionConfig): ID
+	11: Eq
+	12: BrFalse(14)
+B1:
+	13: Branch(24)
+B2:
+	14: MoveLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	15: Pop
+	16: MoveLoc[7](loc3: &mut SupplyPool<Ty0, Ty2>)
+	17: Pop
+	18: MoveLoc[5](loc1: &PositionConfig)
+	19: Pop
+	20: MoveLoc[3](Arg3: &Clock)
+	21: Pop
+	22: LdU64(4)
+	23: Abort
+B3:
+	24: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	25: FreezeRef
+	26: Call position_core_clmm::dx<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): u64
+	27: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	28: FreezeRef
+	29: Call position_core_clmm::borrowed_x<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): &Balance<Ty0>
+	30: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	31: Eq
+	32: BrFalse(42)
+B4:
+	33: MoveLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	34: Pop
+	35: MoveLoc[7](loc3: &mut SupplyPool<Ty0, Ty2>)
+	36: Pop
+	37: MoveLoc[5](loc1: &PositionConfig)
+	38: Pop
+	39: MoveLoc[3](Arg3: &Clock)
+	40: Pop
+	41: Branch(61)
+B5:
+	42: MoveLoc[7](loc3: &mut SupplyPool<Ty0, Ty2>)
+	43: MoveLoc[5](loc1: &PositionConfig)
+	44: Call position_core_clmm::lend_facil_cap(&PositionConfig): &LendFacilCap
+	45: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	46: FreezeRef
+	47: Call position_core_clmm::dx<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): u64
+	48: MoveLoc[3](Arg3: &Clock)
+	49: Call supply_pool::borrow<Ty0, Ty2>(&mut SupplyPool<Ty0, Ty2>, &LendFacilCap, u64, &Clock): Balance<Ty0> * FacilDebtShare<Ty2>
+	50: StLoc[6](loc2: FacilDebtShare<Ty2>)
+	51: StLoc[4](loc0: Balance<Ty0>)
+	52: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	53: Call position_core_clmm::borrowed_x_mut<Ty0, Ty1, I32>(&mut CreatePositionTicket<Ty0, Ty1, I32>): &mut Balance<Ty0>
+	54: MoveLoc[4](loc0: Balance<Ty0>)
+	55: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	56: Pop
+	57: MoveLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	58: Call position_core_clmm::cpt_debt_bag_mut<Ty0, Ty1, I32>(&mut CreatePositionTicket<Ty0, Ty1, I32>): &mut FacilDebtBag
+	59: MoveLoc[6](loc2: FacilDebtShare<Ty2>)
+	60: Call supply_pool::fdb_add<Ty0, Ty2>(&mut FacilDebtBag, FacilDebtShare<Ty2>)
+B6:
+	61: Ret
+}
+
+public borrow_for_position_y<Ty0, Ty1, Ty2>(Arg0: &mut CreatePositionTicket<Ty0, Ty1, I32>, Arg1: &PositionConfig, Arg2: &mut SupplyPool<Ty1, Ty2>, Arg3: &Clock) {
+L4:	loc0: Balance<Ty1>
+L5:	loc1: &PositionConfig
+L6:	loc2: FacilDebtShare<Ty2>
+L7:	loc3: &mut SupplyPool<Ty1, Ty2>
+L8:	loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>
+B0:
+	0: MoveLoc[0](Arg0: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	1: StLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	2: MoveLoc[1](Arg1: &PositionConfig)
+	3: StLoc[5](loc1: &PositionConfig)
+	4: MoveLoc[2](Arg2: &mut SupplyPool<Ty1, Ty2>)
+	5: StLoc[7](loc3: &mut SupplyPool<Ty1, Ty2>)
+	6: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	7: FreezeRef
+	8: Call position_core_clmm::cpt_config_id<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): ID
+	9: CopyLoc[5](loc1: &PositionConfig)
+	10: Call object::id<PositionConfig>(&PositionConfig): ID
+	11: Eq
+	12: BrFalse(14)
+B1:
+	13: Branch(24)
+B2:
+	14: MoveLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	15: Pop
+	16: MoveLoc[7](loc3: &mut SupplyPool<Ty1, Ty2>)
+	17: Pop
+	18: MoveLoc[5](loc1: &PositionConfig)
+	19: Pop
+	20: MoveLoc[3](Arg3: &Clock)
+	21: Pop
+	22: LdU64(4)
+	23: Abort
+B3:
+	24: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	25: FreezeRef
+	26: Call position_core_clmm::dy<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): u64
+	27: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	28: FreezeRef
+	29: Call position_core_clmm::borrowed_y<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): &Balance<Ty1>
+	30: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	31: Eq
+	32: BrFalse(42)
+B4:
+	33: MoveLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	34: Pop
+	35: MoveLoc[7](loc3: &mut SupplyPool<Ty1, Ty2>)
+	36: Pop
+	37: MoveLoc[5](loc1: &PositionConfig)
+	38: Pop
+	39: MoveLoc[3](Arg3: &Clock)
+	40: Pop
+	41: Branch(61)
+B5:
+	42: MoveLoc[7](loc3: &mut SupplyPool<Ty1, Ty2>)
+	43: MoveLoc[5](loc1: &PositionConfig)
+	44: Call position_core_clmm::lend_facil_cap(&PositionConfig): &LendFacilCap
+	45: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	46: FreezeRef
+	47: Call position_core_clmm::dy<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): u64
+	48: MoveLoc[3](Arg3: &Clock)
+	49: Call supply_pool::borrow<Ty1, Ty2>(&mut SupplyPool<Ty1, Ty2>, &LendFacilCap, u64, &Clock): Balance<Ty1> * FacilDebtShare<Ty2>
+	50: StLoc[6](loc2: FacilDebtShare<Ty2>)
+	51: StLoc[4](loc0: Balance<Ty1>)
+	52: CopyLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	53: Call position_core_clmm::borrowed_y_mut<Ty0, Ty1, I32>(&mut CreatePositionTicket<Ty0, Ty1, I32>): &mut Balance<Ty1>
+	54: MoveLoc[4](loc0: Balance<Ty1>)
+	55: Call balance::join<Ty1>(&mut Balance<Ty1>, Balance<Ty1>): u64
+	56: Pop
+	57: MoveLoc[8](loc4: &mut CreatePositionTicket<Ty0, Ty1, I32>)
+	58: Call position_core_clmm::cpt_debt_bag_mut<Ty0, Ty1, I32>(&mut CreatePositionTicket<Ty0, Ty1, I32>): &mut FacilDebtBag
+	59: MoveLoc[6](loc2: FacilDebtShare<Ty2>)
+	60: Call supply_pool::fdb_add<Ty1, Ty2>(&mut FacilDebtBag, FacilDebtShare<Ty2>)
+B6:
+	61: Ret
+}
+
+public create_position<Ty0, Ty1>(Arg0: &PositionConfig, Arg1: CreatePositionTicket<Ty0, Ty1, I32>, Arg2: &mut Pool<Ty0, Ty1>, Arg3: &GlobalConfig, Arg4: Balance<SUI>, Arg5: &Clock, Arg6: &mut TxContext): PositionCap {
+L7:	loc0: u64
+L8:	loc1: u64
+L9:	loc2: Balance<Ty0>
+L10:	loc3: Balance<Ty0>
+L11:	loc4: Balance<Ty1>
+L12:	loc5: Balance<Ty1>
+L13:	loc6: Balance<Ty0>
+L14:	loc7: Balance<Ty1>
+L15:	loc8: PositionCap
+L16:	loc9: Balance<Ty0>
+L17:	loc10: Balance<Ty1>
+L18:	loc11: BalanceBag
+L19:	loc12: &PositionConfig
+L20:	loc13: ID
+L21:	loc14: Balance<SUI>
+L22:	loc15: FacilDebtBag
+L23:	loc16: u128
+L24:	loc17: u128
+L25:	loc18: u64
+L26:	loc19: u64
+L27:	loc20: Position
+L28:	loc21: Position
+L29:	loc22: BalanceBag
+L30:	loc23: &mut Pool<Ty0, Ty1>
+L31:	loc24: &mut Pool<Ty0, Ty1>
+L32:	loc25: Position<Ty0, Ty1, Position>
+L33:	loc26: Balance<Ty0>
+L34:	loc27: Balance<Ty1>
+L35:	loc28: AddLiquidityReceipt<Ty0, Ty1>
+L36:	loc29: I32
+L37:	loc30: I32
+L38:	loc31: I32
+L39:	loc32: I32
+L40:	loc33: CreatePositionTicket<Ty0, Ty1, I32>
+L41:	loc34: u64
+L42:	loc35: u64
+B0:
+	0: MoveLoc[0](Arg0: &PositionConfig)
+	1: StLoc[19](loc12: &PositionConfig)
+	2: MoveLoc[1](Arg1: CreatePositionTicket<Ty0, Ty1, I32>)
+	3: StLoc[40](loc33: CreatePositionTicket<Ty0, Ty1, I32>)
+	4: MoveLoc[2](Arg2: &mut Pool<Ty0, Ty1>)
+	5: StLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	6: MoveLoc[4](Arg4: Balance<SUI>)
+	7: StLoc[21](loc14: Balance<SUI>)
+	8: ImmBorrowLoc[40](loc33: CreatePositionTicket<Ty0, Ty1, I32>)
+	9: Call position_core_clmm::cpt_config_id<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): ID
+	10: CopyLoc[19](loc12: &PositionConfig)
+	11: Call object::id<PositionConfig>(&PositionConfig): ID
+	12: Eq
+	13: BrFalse(15)
+B1:
+	14: Branch(27)
+B2:
+	15: MoveLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	16: Pop
+	17: MoveLoc[6](Arg6: &mut TxContext)
+	18: Pop
+	19: MoveLoc[19](loc12: &PositionConfig)
+	20: Pop
+	21: MoveLoc[5](Arg5: &Clock)
+	22: Pop
+	23: MoveLoc[3](Arg3: &GlobalConfig)
+	24: Pop
+	25: LdU64(4)
+	26: Abort
+B3:
+	27: CopyLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	28: FreezeRef
+	29: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	30: CopyLoc[19](loc12: &PositionConfig)
+	31: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	32: Eq
+	33: BrFalse(35)
+B4:
+	34: Branch(47)
+B5:
+	35: MoveLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	36: Pop
+	37: MoveLoc[6](Arg6: &mut TxContext)
+	38: Pop
+	39: MoveLoc[19](loc12: &PositionConfig)
+	40: Pop
+	41: MoveLoc[5](Arg5: &Clock)
+	42: Pop
+	43: MoveLoc[3](Arg3: &GlobalConfig)
+	44: Pop
+	45: LdU64(5)
+	46: Abort
+B6:
+	47: ImmBorrowLoc[21](loc14: Balance<SUI>)
+	48: Call balance::value<SUI>(&Balance<SUI>): u64
+	49: CopyLoc[19](loc12: &PositionConfig)
+	50: Call position_core_clmm::position_creation_fee_sui(&PositionConfig): u64
+	51: Eq
+	52: BrFalse(54)
+B7:
+	53: Branch(66)
+B8:
+	54: MoveLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	55: Pop
+	56: MoveLoc[6](Arg6: &mut TxContext)
+	57: Pop
+	58: MoveLoc[19](loc12: &PositionConfig)
+	59: Pop
+	60: MoveLoc[5](Arg5: &Clock)
+	61: Pop
+	62: MoveLoc[3](Arg3: &GlobalConfig)
+	63: Pop
+	64: LdU64(15)
+	65: Abort
+B9:
+	66: ImmBorrowLoc[40](loc33: CreatePositionTicket<Ty0, Ty1, I32>)
+	67: Call position_core_clmm::borrowed_x<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): &Balance<Ty0>
+	68: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	69: ImmBorrowLoc[40](loc33: CreatePositionTicket<Ty0, Ty1, I32>)
+	70: Call position_core_clmm::dx<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): u64
+	71: Eq
+	72: BrFalse(74)
+B10:
+	73: Branch(86)
+B11:
+	74: MoveLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	75: Pop
+	76: MoveLoc[6](Arg6: &mut TxContext)
+	77: Pop
+	78: MoveLoc[19](loc12: &PositionConfig)
+	79: Pop
+	80: MoveLoc[5](Arg5: &Clock)
+	81: Pop
+	82: MoveLoc[3](Arg3: &GlobalConfig)
+	83: Pop
+	84: LdU64(6)
+	85: Abort
+B12:
+	86: ImmBorrowLoc[40](loc33: CreatePositionTicket<Ty0, Ty1, I32>)
+	87: Call position_core_clmm::borrowed_y<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): &Balance<Ty1>
+	88: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	89: ImmBorrowLoc[40](loc33: CreatePositionTicket<Ty0, Ty1, I32>)
+	90: Call position_core_clmm::dy<Ty0, Ty1, I32>(&CreatePositionTicket<Ty0, Ty1, I32>): u64
+	91: Eq
+	92: BrFalse(94)
+B13:
+	93: Branch(106)
+B14:
+	94: MoveLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	95: Pop
+	96: MoveLoc[6](Arg6: &mut TxContext)
+	97: Pop
+	98: MoveLoc[19](loc12: &PositionConfig)
+	99: Pop
+	100: MoveLoc[5](Arg5: &Clock)
+	101: Pop
+	102: MoveLoc[3](Arg3: &GlobalConfig)
+	103: Pop
+	104: LdU64(6)
+	105: Abort
+B15:
+	106: MoveLoc[40](loc33: CreatePositionTicket<Ty0, Ty1, I32>)
+	107: Call position_core_clmm::destroy_create_position_ticket<Ty0, Ty1, I32>(CreatePositionTicket<Ty0, Ty1, I32>): ID * I32 * I32 * u64 * u64 * u128 * Balance<Ty0> * Balance<Ty1> * Balance<Ty0> * Balance<Ty1> * FacilDebtBag
+	108: StLoc[22](loc15: FacilDebtBag)
+	109: StLoc[14](loc7: Balance<Ty1>)
+	110: StLoc[13](loc6: Balance<Ty0>)
+	111: StLoc[34](loc27: Balance<Ty1>)
+	112: StLoc[33](loc26: Balance<Ty0>)
+	113: StLoc[23](loc16: u128)
+	114: StLoc[26](loc19: u64)
+	115: StLoc[25](loc18: u64)
+	116: StLoc[38](loc31: I32)
+	117: StLoc[36](loc29: I32)
+	118: StLoc[20](loc13: ID)
+	119: CopyLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	120: FreezeRef
+	121: CopyLoc[36](loc29: I32)
+	122: CopyLoc[38](loc31: I32)
+	123: CopyLoc[23](loc16: u128)
+	124: Call calc_deposit_amounts_by_liquidity<Ty0, Ty1>(&Pool<Ty0, Ty1>, I32, I32, u128): u64 * u64
+	125: StLoc[42](loc35: u64)
+	126: StLoc[41](loc34: u64)
+	127: MoveLoc[13](loc6: Balance<Ty0>)
+	128: StLoc[9](loc2: Balance<Ty0>)
+	129: ImmBorrowLoc[9](loc2: Balance<Ty0>)
+	130: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	131: CopyLoc[41](loc34: u64)
+	132: Lt
+	133: BrFalse(145)
+B16:
+	134: CopyLoc[41](loc34: u64)
+	135: ImmBorrowLoc[9](loc2: Balance<Ty0>)
+	136: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	137: Sub
+	138: StLoc[7](loc0: u64)
+	139: MutBorrowLoc[9](loc2: Balance<Ty0>)
+	140: MutBorrowLoc[33](loc26: Balance<Ty0>)
+	141: MoveLoc[7](loc0: u64)
+	142: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	143: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	144: Pop
+B17:
+	145: MoveLoc[14](loc7: Balance<Ty1>)
+	146: StLoc[11](loc4: Balance<Ty1>)
+	147: ImmBorrowLoc[11](loc4: Balance<Ty1>)
+	148: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	149: CopyLoc[42](loc35: u64)
+	150: Lt
+	151: BrFalse(163)
+B18:
+	152: CopyLoc[42](loc35: u64)
+	153: ImmBorrowLoc[11](loc4: Balance<Ty1>)
+	154: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	155: Sub
+	156: StLoc[8](loc1: u64)
+	157: MutBorrowLoc[11](loc4: Balance<Ty1>)
+	158: MutBorrowLoc[34](loc27: Balance<Ty1>)
+	159: MoveLoc[8](loc1: u64)
+	160: Call balance::split<Ty1>(&mut Balance<Ty1>, u64): Balance<Ty1>
+	161: Call balance::join<Ty1>(&mut Balance<Ty1>, Balance<Ty1>): u64
+	162: Pop
+B19:
+	163: MoveLoc[31](loc24: &mut Pool<Ty0, Ty1>)
+	164: StLoc[30](loc23: &mut Pool<Ty0, Ty1>)
+	165: CopyLoc[36](loc29: I32)
+	166: StLoc[37](loc30: I32)
+	167: CopyLoc[38](loc31: I32)
+	168: StLoc[39](loc32: I32)
+	169: CopyLoc[23](loc16: u128)
+	170: StLoc[24](loc17: u128)
+	171: MoveLoc[9](loc2: Balance<Ty0>)
+	172: StLoc[10](loc3: Balance<Ty0>)
+	173: MoveLoc[11](loc4: Balance<Ty1>)
+	174: StLoc[12](loc5: Balance<Ty1>)
+	175: CopyLoc[3](Arg3: &GlobalConfig)
+	176: CopyLoc[30](loc23: &mut Pool<Ty0, Ty1>)
+	177: MoveLoc[37](loc30: I32)
+	178: Call i32::as_u32(I32): u32
+	179: MoveLoc[39](loc32: I32)
+	180: Call i32::as_u32(I32): u32
+	181: CopyLoc[6](Arg6: &mut TxContext)
+	182: Call pool::open_position<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, u32, u32, &mut TxContext): Position
+	183: StLoc[28](loc21: Position)
+	184: CopyLoc[3](Arg3: &GlobalConfig)
+	185: CopyLoc[30](loc23: &mut Pool<Ty0, Ty1>)
+	186: MutBorrowLoc[28](loc21: Position)
+	187: MoveLoc[24](loc17: u128)
+	188: MoveLoc[5](Arg5: &Clock)
+	189: Call pool::add_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &mut Position, u128, &Clock): AddLiquidityReceipt<Ty0, Ty1>
+	190: StLoc[35](loc28: AddLiquidityReceipt<Ty0, Ty1>)
+	191: MoveLoc[3](Arg3: &GlobalConfig)
+	192: MoveLoc[30](loc23: &mut Pool<Ty0, Ty1>)
+	193: MoveLoc[10](loc3: Balance<Ty0>)
+	194: MoveLoc[12](loc5: Balance<Ty1>)
+	195: MoveLoc[35](loc28: AddLiquidityReceipt<Ty0, Ty1>)
+	196: Call pool::repay_add_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, Balance<Ty0>, Balance<Ty1>, AddLiquidityReceipt<Ty0, Ty1>)
+	197: MoveLoc[28](loc21: Position)
+	198: StLoc[27](loc20: Position)
+	199: CopyLoc[6](Arg6: &mut TxContext)
+	200: Call balance_bag::empty(&mut TxContext): BalanceBag
+	201: StLoc[18](loc11: BalanceBag)
+	202: MutBorrowLoc[18](loc11: BalanceBag)
+	203: MoveLoc[21](loc14: Balance<SUI>)
+	204: Call balance_bag::add<SUI>(&mut BalanceBag, Balance<SUI>)
+	205: CopyLoc[6](Arg6: &mut TxContext)
+	206: Call balance_bag::empty(&mut TxContext): BalanceBag
+	207: StLoc[29](loc22: BalanceBag)
+	208: MoveLoc[33](loc26: Balance<Ty0>)
+	209: StLoc[16](loc9: Balance<Ty0>)
+	210: MoveLoc[34](loc27: Balance<Ty1>)
+	211: StLoc[17](loc10: Balance<Ty1>)
+	212: CopyLoc[19](loc12: &PositionConfig)
+	213: Call object::id<PositionConfig>(&PositionConfig): ID
+	214: MoveLoc[27](loc20: Position)
+	215: MoveLoc[16](loc9: Balance<Ty0>)
+	216: MoveLoc[17](loc10: Balance<Ty1>)
+	217: MoveLoc[22](loc15: FacilDebtBag)
+	218: MoveLoc[18](loc11: BalanceBag)
+	219: MoveLoc[29](loc22: BalanceBag)
+	220: CopyLoc[6](Arg6: &mut TxContext)
+	221: Call position_core_clmm::position_constructor<Ty0, Ty1, Position>(ID, Position, Balance<Ty0>, Balance<Ty1>, FacilDebtBag, BalanceBag, BalanceBag, &mut TxContext): Position<Ty0, Ty1, Position>
+	222: StLoc[32](loc25: Position<Ty0, Ty1, Position>)
+	223: ImmBorrowLoc[32](loc25: Position<Ty0, Ty1, Position>)
+	224: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	225: MoveLoc[6](Arg6: &mut TxContext)
+	226: Call position_core_clmm::position_cap_constructor(ID, &mut TxContext): PositionCap
+	227: StLoc[15](loc8: PositionCap)
+	228: ImmBorrowLoc[32](loc25: Position<Ty0, Ty1, Position>)
+	229: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	230: MoveLoc[20](loc13: ID)
+	231: MoveLoc[36](loc29: I32)
+	232: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	233: MoveLoc[38](loc31: I32)
+	234: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	235: MoveLoc[23](loc16: u128)
+	236: MoveLoc[41](loc34: u64)
+	237: MoveLoc[42](loc35: u64)
+	238: ImmBorrowLoc[32](loc25: Position<Ty0, Ty1, Position>)
+	239: Call position_core_clmm::col_x<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Balance<Ty0>
+	240: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	241: ImmBorrowLoc[32](loc25: Position<Ty0, Ty1, Position>)
+	242: Call position_core_clmm::col_y<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Balance<Ty1>
+	243: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	244: MoveLoc[25](loc18: u64)
+	245: MoveLoc[26](loc19: u64)
+	246: MoveLoc[19](loc12: &PositionConfig)
+	247: Call position_core_clmm::position_creation_fee_sui(&PositionConfig): u64
+	248: Call position_core_clmm::emit_position_creation_info(ID, ID, u128, u128, u128, u64, u64, u64, u64, u64, u64, u64)
+	249: MoveLoc[32](loc25: Position<Ty0, Ty1, Position>)
+	250: Call position_core_clmm::position_share_object<Ty0, Ty1, Position>(Position<Ty0, Ty1, Position>)
+	251: MoveLoc[15](loc8: PositionCap)
+	252: Ret
+}
+
+public create_deleverage_ticket<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PythPriceInfo, Arg3: &DebtInfo, Arg4: &mut Pool<Ty0, Ty1>, Arg5: &GlobalConfig, Arg6: u128, Arg7: &Clock, Arg8: &mut TxContext): DeleverageTicket * ActionRequest {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public create_deleverage_ticket_v2<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PriceCollection, Arg3: &DebtInfo, Arg4: &mut Pool<Ty0, Ty1>, Arg5: &GlobalConfig, Arg6: u128, Arg7: &Clock, Arg8: &mut TxContext): DeleverageTicket * ActionRequest {
+L9:	loc0: bool
+L10:	loc1: bool
+L11:	loc2: DeleverageTicket
+L12:	loc3: bool
+L13:	loc4: bool
+L14:	loc5: &mut PositionConfig
+L15:	loc6: ValidatedDebtInfo
+L16:	loc7: u128
+L17:	loc8: u128
+L18:	loc9: Balance<Ty0>
+L19:	loc10: Balance<Ty1>
+L20:	loc11: DeleverageInfo
+L21:	loc12: &mut Position
+L22:	loc13: PositionModel
+L23:	loc14: u256
+L24:	loc15: u256
+L25:	loc16: &mut Pool<Ty0, Ty1>
+L26:	loc17: &mut Pool<Ty0, Ty1>
+L27:	loc18: &mut Position<Ty0, Ty1, Position>
+L28:	loc19: &Position<Ty0, Ty1, Position>
+L29:	loc20: &Position<Ty0, Ty1, Position>
+L30:	loc21: ID
+L31:	loc22: ValidatedPrices
+L32:	loc23: ActionRequest
+L33:	loc24: LpShape
+L34:	loc25: u128
+L35:	loc26: u16
+L36:	loc27: I32
+L37:	loc28: DeleverageTicket
+B0:
+	0: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: FreezeRef
+	2: CopyLoc[1](Arg1: &mut PositionConfig)
+	3: FreezeRef
+	4: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	5: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	6: StLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	7: MoveLoc[1](Arg1: &mut PositionConfig)
+	8: StLoc[14](loc5: &mut PositionConfig)
+	9: MoveLoc[4](Arg4: &mut Pool<Ty0, Ty1>)
+	10: StLoc[26](loc17: &mut Pool<Ty0, Ty1>)
+	11: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	12: FreezeRef
+	13: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	14: CopyLoc[14](loc5: &mut PositionConfig)
+	15: FreezeRef
+	16: Call object::id<PositionConfig>(&PositionConfig): ID
+	17: Eq
+	18: BrFalse(20)
+B1:
+	19: Branch(38)
+B2:
+	20: MoveLoc[2](Arg2: &PriceCollection)
+	21: Pop
+	22: MoveLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	23: Pop
+	24: MoveLoc[26](loc17: &mut Pool<Ty0, Ty1>)
+	25: Pop
+	26: MoveLoc[3](Arg3: &DebtInfo)
+	27: Pop
+	28: MoveLoc[8](Arg8: &mut TxContext)
+	29: Pop
+	30: MoveLoc[14](loc5: &mut PositionConfig)
+	31: Pop
+	32: MoveLoc[7](Arg7: &Clock)
+	33: Pop
+	34: MoveLoc[5](Arg5: &GlobalConfig)
+	35: Pop
+	36: LdU64(4)
+	37: Abort
+B3:
+	38: CopyLoc[14](loc5: &mut PositionConfig)
+	39: FreezeRef
+	40: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	41: CopyLoc[26](loc17: &mut Pool<Ty0, Ty1>)
+	42: FreezeRef
+	43: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	44: Eq
+	45: BrFalse(47)
+B4:
+	46: Branch(65)
+B5:
+	47: MoveLoc[2](Arg2: &PriceCollection)
+	48: Pop
+	49: MoveLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	50: Pop
+	51: MoveLoc[26](loc17: &mut Pool<Ty0, Ty1>)
+	52: Pop
+	53: MoveLoc[3](Arg3: &DebtInfo)
+	54: Pop
+	55: MoveLoc[8](Arg8: &mut TxContext)
+	56: Pop
+	57: MoveLoc[14](loc5: &mut PositionConfig)
+	58: Pop
+	59: MoveLoc[7](Arg7: &Clock)
+	60: Pop
+	61: MoveLoc[5](Arg5: &GlobalConfig)
+	62: Pop
+	63: LdU64(5)
+	64: Abort
+B6:
+	65: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	66: FreezeRef
+	67: Call position_core_clmm::ticket_active<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): bool
+	68: LdFalse
+	69: Eq
+	70: BrFalse(72)
+B7:
+	71: Branch(90)
+B8:
+	72: MoveLoc[2](Arg2: &PriceCollection)
+	73: Pop
+	74: MoveLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	75: Pop
+	76: MoveLoc[26](loc17: &mut Pool<Ty0, Ty1>)
+	77: Pop
+	78: MoveLoc[3](Arg3: &DebtInfo)
+	79: Pop
+	80: MoveLoc[8](Arg8: &mut TxContext)
+	81: Pop
+	82: MoveLoc[14](loc5: &mut PositionConfig)
+	83: Pop
+	84: MoveLoc[7](Arg7: &Clock)
+	85: Pop
+	86: MoveLoc[5](Arg5: &GlobalConfig)
+	87: Pop
+	88: LdU64(8)
+	89: Abort
+B9:
+	90: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	91: LdTrue
+	92: Call position_core_clmm::set_ticket_active<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>, bool)
+	93: CopyLoc[14](loc5: &mut PositionConfig)
+	94: FreezeRef
+	95: MoveLoc[2](Arg2: &PriceCollection)
+	96: Call position_core_clmm::validate_price_info(&PositionConfig, &PriceCollection): ValidatedPrices
+	97: StLoc[31](loc22: ValidatedPrices)
+	98: CopyLoc[14](loc5: &mut PositionConfig)
+	99: FreezeRef
+	100: MoveLoc[3](Arg3: &DebtInfo)
+	101: Call position_core_clmm::validate_debt_info(&PositionConfig, &DebtInfo): ValidatedDebtInfo
+	102: StLoc[15](loc6: ValidatedDebtInfo)
+	103: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	104: FreezeRef
+	105: StLoc[28](loc19: &Position<Ty0, Ty1, Position>)
+	106: CopyLoc[28](loc19: &Position<Ty0, Ty1, Position>)
+	107: StLoc[29](loc20: &Position<Ty0, Ty1, Position>)
+	108: CopyLoc[29](loc20: &Position<Ty0, Ty1, Position>)
+	109: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	110: Call position::tick_range(&Position): I32 * I32
+	111: StLoc[36](loc27: I32)
+	112: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	113: MoveLoc[36](loc27: I32)
+	114: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	115: MoveLoc[29](loc20: &Position<Ty0, Ty1, Position>)
+	116: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	117: Call position::liquidity(&Position): u128
+	118: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	119: StLoc[33](loc24: LpShape)
+	120: MoveLoc[28](loc19: &Position<Ty0, Ty1, Position>)
+	121: ImmBorrowLoc[15](loc6: ValidatedDebtInfo)
+	122: MoveLoc[33](loc24: LpShape)
+	123: Call position_core_clmm::position_model_from_lp_shape<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &ValidatedDebtInfo, LpShape): PositionModel
+	124: StLoc[22](loc13: PositionModel)
+	125: ImmBorrowLoc[31](loc22: ValidatedPrices)
+	126: Call type_name::with_defining_ids<Ty0>(): TypeName
+	127: Call type_name::with_defining_ids<Ty1>(): TypeName
+	128: Call oracle_price::div_price_numeric_x128(&ValidatedPrices, TypeName, TypeName): u256
+	129: StLoc[24](loc15: u256)
+	130: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	131: FreezeRef
+	132: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	133: StLoc[30](loc21: ID)
+	134: CopyLoc[24](loc15: u256)
+	135: StLoc[23](loc14: u256)
+	136: CopyLoc[26](loc17: &mut Pool<Ty0, Ty1>)
+	137: FreezeRef
+	138: Call pool::current_sqrt_price<Ty0, Ty1>(&Pool<Ty0, Ty1>): u128
+	139: StLoc[34](loc25: u128)
+	140: MoveLoc[30](loc21: ID)
+	141: CopyLoc[22](loc13: PositionModel)
+	142: MoveLoc[23](loc14: u256)
+	143: MoveLoc[34](loc25: u128)
+	144: LdU128(0)
+	145: LdU64(0)
+	146: LdU64(0)
+	147: LdU64(0)
+	148: LdU64(0)
+	149: Call position_core_clmm::deleverage_info_constructor(ID, PositionModel, u256, u128, u128, u64, u64, u64, u64): DeleverageInfo
+	150: StLoc[20](loc11: DeleverageInfo)
+	151: CopyLoc[14](loc5: &mut PositionConfig)
+	152: FreezeRef
+	153: Call position_core_clmm::deleverage_margin_bps(&PositionConfig): u16
+	154: StLoc[35](loc26: u16)
+	155: ImmBorrowLoc[22](loc13: PositionModel)
+	156: CopyLoc[24](loc15: u256)
+	157: MoveLoc[35](loc26: u16)
+	158: Call position_model_clmm::margin_below_threshold(&PositionModel, u256, u16): bool
+	159: Not
+	160: BrFalse(178)
+B10:
+	161: MoveLoc[26](loc17: &mut Pool<Ty0, Ty1>)
+	162: Pop
+	163: MoveLoc[14](loc5: &mut PositionConfig)
+	164: Pop
+	165: MoveLoc[7](Arg7: &Clock)
+	166: Pop
+	167: MoveLoc[5](Arg5: &GlobalConfig)
+	168: Pop
+	169: MoveLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	170: FreezeRef
+	171: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	172: LdFalse
+	173: LdFalse
+	174: MoveLoc[20](loc11: DeleverageInfo)
+	175: Call position_core_clmm::deleverage_ticket_constructor(ID, bool, bool, DeleverageInfo): DeleverageTicket
+	176: StLoc[11](loc2: DeleverageTicket)
+	177: Branch(275)
+B11:
+	178: MoveLoc[6](Arg6: u128)
+	179: ImmBorrowLoc[22](loc13: PositionModel)
+	180: MoveLoc[24](loc15: u256)
+	181: CopyLoc[14](loc5: &mut PositionConfig)
+	182: FreezeRef
+	183: Call position_core_clmm::deleverage_margin_bps(&PositionConfig): u16
+	184: CopyLoc[14](loc5: &mut PositionConfig)
+	185: FreezeRef
+	186: Call position_core_clmm::base_deleverage_factor_bps(&PositionConfig): u16
+	187: Call position_model_clmm::calc_max_deleverage_delta_l(&PositionModel, u256, u16, u16): u128
+	188: Call util::min_u128(u128, u128): u128
+	189: StLoc[17](loc8: u128)
+	190: MoveLoc[26](loc17: &mut Pool<Ty0, Ty1>)
+	191: StLoc[25](loc16: &mut Pool<Ty0, Ty1>)
+	192: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	193: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	194: StLoc[21](loc12: &mut Position)
+	195: CopyLoc[17](loc8: u128)
+	196: StLoc[16](loc7: u128)
+	197: MoveLoc[5](Arg5: &GlobalConfig)
+	198: MoveLoc[25](loc16: &mut Pool<Ty0, Ty1>)
+	199: MoveLoc[21](loc12: &mut Position)
+	200: MoveLoc[16](loc7: u128)
+	201: MoveLoc[7](Arg7: &Clock)
+	202: Call remove_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &mut Position, u128, &Clock): Balance<Ty0> * Balance<Ty1>
+	203: StLoc[19](loc10: Balance<Ty1>)
+	204: StLoc[18](loc9: Balance<Ty0>)
+	205: MutBorrowLoc[20](loc11: DeleverageInfo)
+	206: CopyLoc[17](loc8: u128)
+	207: Call position_core_clmm::set_delta_l(&mut DeleverageInfo, u128)
+	208: MutBorrowLoc[20](loc11: DeleverageInfo)
+	209: ImmBorrowLoc[18](loc9: Balance<Ty0>)
+	210: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	211: Call position_core_clmm::set_delta_x(&mut DeleverageInfo, u64)
+	212: MutBorrowLoc[20](loc11: DeleverageInfo)
+	213: ImmBorrowLoc[19](loc10: Balance<Ty1>)
+	214: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	215: Call position_core_clmm::set_delta_y(&mut DeleverageInfo, u64)
+	216: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	217: Call position_core_clmm::col_x_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Balance<Ty0>
+	218: MoveLoc[18](loc9: Balance<Ty0>)
+	219: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	220: Pop
+	221: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	222: Call position_core_clmm::col_y_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Balance<Ty1>
+	223: MoveLoc[19](loc10: Balance<Ty1>)
+	224: Call balance::join<Ty1>(&mut Balance<Ty1>, Balance<Ty1>): u64
+	225: Pop
+	226: MoveLoc[14](loc5: &mut PositionConfig)
+	227: MoveLoc[17](loc8: u128)
+	228: Call position_core_clmm::decrease_current_global_l(&mut PositionConfig, u128)
+	229: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	230: FreezeRef
+	231: Call position_core_clmm::position_debt_bag<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &FacilDebtBag
+	232: Call supply_pool::fdb_get_share_amount_by_asset_type<Ty0>(&FacilDebtBag): u128
+	233: LdU128(0)
+	234: Gt
+	235: BrFalse(244)
+B12:
+	236: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	237: FreezeRef
+	238: Call position_core_clmm::col_x<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Balance<Ty0>
+	239: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	240: LdU64(0)
+	241: Gt
+	242: StLoc[9](loc0: bool)
+	243: Branch(246)
+B13:
+	244: LdFalse
+	245: StLoc[9](loc0: bool)
+B14:
+	246: MoveLoc[9](loc0: bool)
+	247: StLoc[12](loc3: bool)
+	248: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	249: FreezeRef
+	250: Call position_core_clmm::position_debt_bag<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &FacilDebtBag
+	251: Call supply_pool::fdb_get_share_amount_by_asset_type<Ty1>(&FacilDebtBag): u128
+	252: LdU128(0)
+	253: Gt
+	254: BrFalse(263)
+B15:
+	255: CopyLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	256: FreezeRef
+	257: Call position_core_clmm::col_y<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Balance<Ty1>
+	258: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	259: LdU64(0)
+	260: Gt
+	261: StLoc[10](loc1: bool)
+	262: Branch(265)
+B16:
+	263: LdFalse
+	264: StLoc[10](loc1: bool)
+B17:
+	265: MoveLoc[10](loc1: bool)
+	266: StLoc[13](loc4: bool)
+	267: MoveLoc[27](loc18: &mut Position<Ty0, Ty1, Position>)
+	268: FreezeRef
+	269: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	270: MoveLoc[12](loc3: bool)
+	271: MoveLoc[13](loc4: bool)
+	272: MoveLoc[20](loc11: DeleverageInfo)
+	273: Call position_core_clmm::deleverage_ticket_constructor(ID, bool, bool, DeleverageInfo): DeleverageTicket
+	274: StLoc[11](loc2: DeleverageTicket)
+B18:
+	275: MoveLoc[11](loc2: DeleverageTicket)
+	276: StLoc[37](loc28: DeleverageTicket)
+	277: Call position_core_clmm::a_deleverage(): ADeleverage
+	278: MoveLoc[8](Arg8: &mut TxContext)
+	279: Call access::new_request<ADeleverage>(ADeleverage, &mut TxContext): ActionRequest
+	280: StLoc[32](loc23: ActionRequest)
+	281: MoveLoc[37](loc28: DeleverageTicket)
+	282: MoveLoc[32](loc23: ActionRequest)
+	283: Ret
+}
+
+public create_deleverage_ticket_for_liquidation<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PythPriceInfo, Arg3: &DebtInfo, Arg4: &mut Pool<Ty0, Ty1>, Arg5: &GlobalConfig, Arg6: &Clock): DeleverageTicket {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public create_deleverage_ticket_for_liquidation_v2<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PriceCollection, Arg3: &DebtInfo, Arg4: &mut Pool<Ty0, Ty1>, Arg5: &GlobalConfig, Arg6: &Clock): DeleverageTicket {
+L7:	loc0: bool
+L8:	loc1: bool
+L9:	loc2: DeleverageTicket
+L10:	loc3: bool
+L11:	loc4: bool
+L12:	loc5: &mut PositionConfig
+L13:	loc6: ValidatedDebtInfo
+L14:	loc7: u128
+L15:	loc8: u128
+L16:	loc9: Balance<Ty0>
+L17:	loc10: Balance<Ty1>
+L18:	loc11: DeleverageInfo
+L19:	loc12: &mut Position
+L20:	loc13: PositionModel
+L21:	loc14: u256
+L22:	loc15: u256
+L23:	loc16: &mut Pool<Ty0, Ty1>
+L24:	loc17: &mut Pool<Ty0, Ty1>
+L25:	loc18: &mut Position<Ty0, Ty1, Position>
+L26:	loc19: &Position<Ty0, Ty1, Position>
+L27:	loc20: &Position<Ty0, Ty1, Position>
+L28:	loc21: ID
+L29:	loc22: ValidatedPrices
+L30:	loc23: LpShape
+L31:	loc24: u128
+L32:	loc25: u16
+L33:	loc26: I32
+B0:
+	0: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: FreezeRef
+	2: CopyLoc[1](Arg1: &mut PositionConfig)
+	3: FreezeRef
+	4: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	5: CopyLoc[1](Arg1: &mut PositionConfig)
+	6: FreezeRef
+	7: Call position_core_clmm::liquidation_disabled(&PositionConfig): bool
+	8: Not
+	9: BrFalse(11)
+B1:
+	10: Branch(27)
+B2:
+	11: MoveLoc[2](Arg2: &PriceCollection)
+	12: Pop
+	13: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	14: Pop
+	15: MoveLoc[3](Arg3: &DebtInfo)
+	16: Pop
+	17: MoveLoc[1](Arg1: &mut PositionConfig)
+	18: Pop
+	19: MoveLoc[6](Arg6: &Clock)
+	20: Pop
+	21: MoveLoc[4](Arg4: &mut Pool<Ty0, Ty1>)
+	22: Pop
+	23: MoveLoc[5](Arg5: &GlobalConfig)
+	24: Pop
+	25: LdU64(23)
+	26: Abort
+B3:
+	27: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	28: StLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	29: MoveLoc[1](Arg1: &mut PositionConfig)
+	30: StLoc[12](loc5: &mut PositionConfig)
+	31: MoveLoc[4](Arg4: &mut Pool<Ty0, Ty1>)
+	32: StLoc[24](loc17: &mut Pool<Ty0, Ty1>)
+	33: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	34: FreezeRef
+	35: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	36: CopyLoc[12](loc5: &mut PositionConfig)
+	37: FreezeRef
+	38: Call object::id<PositionConfig>(&PositionConfig): ID
+	39: Eq
+	40: BrFalse(42)
+B4:
+	41: Branch(58)
+B5:
+	42: MoveLoc[2](Arg2: &PriceCollection)
+	43: Pop
+	44: MoveLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	45: Pop
+	46: MoveLoc[24](loc17: &mut Pool<Ty0, Ty1>)
+	47: Pop
+	48: MoveLoc[3](Arg3: &DebtInfo)
+	49: Pop
+	50: MoveLoc[12](loc5: &mut PositionConfig)
+	51: Pop
+	52: MoveLoc[6](Arg6: &Clock)
+	53: Pop
+	54: MoveLoc[5](Arg5: &GlobalConfig)
+	55: Pop
+	56: LdU64(4)
+	57: Abort
+B6:
+	58: CopyLoc[12](loc5: &mut PositionConfig)
+	59: FreezeRef
+	60: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	61: CopyLoc[24](loc17: &mut Pool<Ty0, Ty1>)
+	62: FreezeRef
+	63: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	64: Eq
+	65: BrFalse(67)
+B7:
+	66: Branch(83)
+B8:
+	67: MoveLoc[2](Arg2: &PriceCollection)
+	68: Pop
+	69: MoveLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	70: Pop
+	71: MoveLoc[24](loc17: &mut Pool<Ty0, Ty1>)
+	72: Pop
+	73: MoveLoc[3](Arg3: &DebtInfo)
+	74: Pop
+	75: MoveLoc[12](loc5: &mut PositionConfig)
+	76: Pop
+	77: MoveLoc[6](Arg6: &Clock)
+	78: Pop
+	79: MoveLoc[5](Arg5: &GlobalConfig)
+	80: Pop
+	81: LdU64(5)
+	82: Abort
+B9:
+	83: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	84: FreezeRef
+	85: Call position_core_clmm::ticket_active<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): bool
+	86: LdFalse
+	87: Eq
+	88: BrFalse(90)
+B10:
+	89: Branch(106)
+B11:
+	90: MoveLoc[2](Arg2: &PriceCollection)
+	91: Pop
+	92: MoveLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	93: Pop
+	94: MoveLoc[24](loc17: &mut Pool<Ty0, Ty1>)
+	95: Pop
+	96: MoveLoc[3](Arg3: &DebtInfo)
+	97: Pop
+	98: MoveLoc[12](loc5: &mut PositionConfig)
+	99: Pop
+	100: MoveLoc[6](Arg6: &Clock)
+	101: Pop
+	102: MoveLoc[5](Arg5: &GlobalConfig)
+	103: Pop
+	104: LdU64(8)
+	105: Abort
+B12:
+	106: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	107: LdTrue
+	108: Call position_core_clmm::set_ticket_active<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>, bool)
+	109: CopyLoc[12](loc5: &mut PositionConfig)
+	110: FreezeRef
+	111: MoveLoc[2](Arg2: &PriceCollection)
+	112: Call position_core_clmm::validate_price_info(&PositionConfig, &PriceCollection): ValidatedPrices
+	113: StLoc[29](loc22: ValidatedPrices)
+	114: CopyLoc[12](loc5: &mut PositionConfig)
+	115: FreezeRef
+	116: MoveLoc[3](Arg3: &DebtInfo)
+	117: Call position_core_clmm::validate_debt_info(&PositionConfig, &DebtInfo): ValidatedDebtInfo
+	118: StLoc[13](loc6: ValidatedDebtInfo)
+	119: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	120: FreezeRef
+	121: StLoc[26](loc19: &Position<Ty0, Ty1, Position>)
+	122: CopyLoc[26](loc19: &Position<Ty0, Ty1, Position>)
+	123: StLoc[27](loc20: &Position<Ty0, Ty1, Position>)
+	124: CopyLoc[27](loc20: &Position<Ty0, Ty1, Position>)
+	125: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	126: Call position::tick_range(&Position): I32 * I32
+	127: StLoc[33](loc26: I32)
+	128: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	129: MoveLoc[33](loc26: I32)
+	130: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	131: MoveLoc[27](loc20: &Position<Ty0, Ty1, Position>)
+	132: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	133: Call position::liquidity(&Position): u128
+	134: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	135: StLoc[30](loc23: LpShape)
+	136: MoveLoc[26](loc19: &Position<Ty0, Ty1, Position>)
+	137: ImmBorrowLoc[13](loc6: ValidatedDebtInfo)
+	138: MoveLoc[30](loc23: LpShape)
+	139: Call position_core_clmm::position_model_from_lp_shape<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &ValidatedDebtInfo, LpShape): PositionModel
+	140: StLoc[20](loc13: PositionModel)
+	141: ImmBorrowLoc[29](loc22: ValidatedPrices)
+	142: Call type_name::with_defining_ids<Ty0>(): TypeName
+	143: Call type_name::with_defining_ids<Ty1>(): TypeName
+	144: Call oracle_price::div_price_numeric_x128(&ValidatedPrices, TypeName, TypeName): u256
+	145: StLoc[22](loc15: u256)
+	146: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	147: FreezeRef
+	148: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	149: StLoc[28](loc21: ID)
+	150: CopyLoc[22](loc15: u256)
+	151: StLoc[21](loc14: u256)
+	152: CopyLoc[24](loc17: &mut Pool<Ty0, Ty1>)
+	153: FreezeRef
+	154: Call pool::current_sqrt_price<Ty0, Ty1>(&Pool<Ty0, Ty1>): u128
+	155: StLoc[31](loc24: u128)
+	156: MoveLoc[28](loc21: ID)
+	157: CopyLoc[20](loc13: PositionModel)
+	158: MoveLoc[21](loc14: u256)
+	159: MoveLoc[31](loc24: u128)
+	160: LdU128(0)
+	161: LdU64(0)
+	162: LdU64(0)
+	163: LdU64(0)
+	164: LdU64(0)
+	165: Call position_core_clmm::deleverage_info_constructor(ID, PositionModel, u256, u128, u128, u64, u64, u64, u64): DeleverageInfo
+	166: StLoc[18](loc11: DeleverageInfo)
+	167: CopyLoc[12](loc5: &mut PositionConfig)
+	168: FreezeRef
+	169: Call position_core_clmm::liq_margin_bps(&PositionConfig): u16
+	170: StLoc[32](loc25: u16)
+	171: ImmBorrowLoc[20](loc13: PositionModel)
+	172: CopyLoc[22](loc15: u256)
+	173: MoveLoc[32](loc25: u16)
+	174: Call position_model_clmm::margin_below_threshold(&PositionModel, u256, u16): bool
+	175: Not
+	176: BrFalse(194)
+B13:
+	177: MoveLoc[24](loc17: &mut Pool<Ty0, Ty1>)
+	178: Pop
+	179: MoveLoc[12](loc5: &mut PositionConfig)
+	180: Pop
+	181: MoveLoc[6](Arg6: &Clock)
+	182: Pop
+	183: MoveLoc[5](Arg5: &GlobalConfig)
+	184: Pop
+	185: MoveLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	186: FreezeRef
+	187: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	188: LdFalse
+	189: LdFalse
+	190: MoveLoc[18](loc11: DeleverageInfo)
+	191: Call position_core_clmm::deleverage_ticket_constructor(ID, bool, bool, DeleverageInfo): DeleverageTicket
+	192: StLoc[9](loc2: DeleverageTicket)
+	193: Branch(291)
+B14:
+	194: LdU128(340282366920938463463374607431768211455)
+	195: ImmBorrowLoc[20](loc13: PositionModel)
+	196: MoveLoc[22](loc15: u256)
+	197: CopyLoc[12](loc5: &mut PositionConfig)
+	198: FreezeRef
+	199: Call position_core_clmm::deleverage_margin_bps(&PositionConfig): u16
+	200: CopyLoc[12](loc5: &mut PositionConfig)
+	201: FreezeRef
+	202: Call position_core_clmm::base_deleverage_factor_bps(&PositionConfig): u16
+	203: Call position_model_clmm::calc_max_deleverage_delta_l(&PositionModel, u256, u16, u16): u128
+	204: Call util::min_u128(u128, u128): u128
+	205: StLoc[15](loc8: u128)
+	206: MoveLoc[24](loc17: &mut Pool<Ty0, Ty1>)
+	207: StLoc[23](loc16: &mut Pool<Ty0, Ty1>)
+	208: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	209: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	210: StLoc[19](loc12: &mut Position)
+	211: CopyLoc[15](loc8: u128)
+	212: StLoc[14](loc7: u128)
+	213: MoveLoc[5](Arg5: &GlobalConfig)
+	214: MoveLoc[23](loc16: &mut Pool<Ty0, Ty1>)
+	215: MoveLoc[19](loc12: &mut Position)
+	216: MoveLoc[14](loc7: u128)
+	217: MoveLoc[6](Arg6: &Clock)
+	218: Call remove_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &mut Position, u128, &Clock): Balance<Ty0> * Balance<Ty1>
+	219: StLoc[17](loc10: Balance<Ty1>)
+	220: StLoc[16](loc9: Balance<Ty0>)
+	221: MutBorrowLoc[18](loc11: DeleverageInfo)
+	222: CopyLoc[15](loc8: u128)
+	223: Call position_core_clmm::set_delta_l(&mut DeleverageInfo, u128)
+	224: MutBorrowLoc[18](loc11: DeleverageInfo)
+	225: ImmBorrowLoc[16](loc9: Balance<Ty0>)
+	226: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	227: Call position_core_clmm::set_delta_x(&mut DeleverageInfo, u64)
+	228: MutBorrowLoc[18](loc11: DeleverageInfo)
+	229: ImmBorrowLoc[17](loc10: Balance<Ty1>)
+	230: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	231: Call position_core_clmm::set_delta_y(&mut DeleverageInfo, u64)
+	232: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	233: Call position_core_clmm::col_x_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Balance<Ty0>
+	234: MoveLoc[16](loc9: Balance<Ty0>)
+	235: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	236: Pop
+	237: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	238: Call position_core_clmm::col_y_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Balance<Ty1>
+	239: MoveLoc[17](loc10: Balance<Ty1>)
+	240: Call balance::join<Ty1>(&mut Balance<Ty1>, Balance<Ty1>): u64
+	241: Pop
+	242: MoveLoc[12](loc5: &mut PositionConfig)
+	243: MoveLoc[15](loc8: u128)
+	244: Call position_core_clmm::decrease_current_global_l(&mut PositionConfig, u128)
+	245: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	246: FreezeRef
+	247: Call position_core_clmm::position_debt_bag<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &FacilDebtBag
+	248: Call supply_pool::fdb_get_share_amount_by_asset_type<Ty0>(&FacilDebtBag): u128
+	249: LdU128(0)
+	250: Gt
+	251: BrFalse(260)
+B15:
+	252: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	253: FreezeRef
+	254: Call position_core_clmm::col_x<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Balance<Ty0>
+	255: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	256: LdU64(0)
+	257: Gt
+	258: StLoc[7](loc0: bool)
+	259: Branch(262)
+B16:
+	260: LdFalse
+	261: StLoc[7](loc0: bool)
+B17:
+	262: MoveLoc[7](loc0: bool)
+	263: StLoc[10](loc3: bool)
+	264: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	265: FreezeRef
+	266: Call position_core_clmm::position_debt_bag<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &FacilDebtBag
+	267: Call supply_pool::fdb_get_share_amount_by_asset_type<Ty1>(&FacilDebtBag): u128
+	268: LdU128(0)
+	269: Gt
+	270: BrFalse(279)
+B18:
+	271: CopyLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	272: FreezeRef
+	273: Call position_core_clmm::col_y<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Balance<Ty1>
+	274: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	275: LdU64(0)
+	276: Gt
+	277: StLoc[8](loc1: bool)
+	278: Branch(281)
+B19:
+	279: LdFalse
+	280: StLoc[8](loc1: bool)
+B20:
+	281: MoveLoc[8](loc1: bool)
+	282: StLoc[11](loc4: bool)
+	283: MoveLoc[25](loc18: &mut Position<Ty0, Ty1, Position>)
+	284: FreezeRef
+	285: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	286: MoveLoc[10](loc3: bool)
+	287: MoveLoc[11](loc4: bool)
+	288: MoveLoc[18](loc11: DeleverageInfo)
+	289: Call position_core_clmm::deleverage_ticket_constructor(ID, bool, bool, DeleverageInfo): DeleverageTicket
+	290: StLoc[9](loc2: DeleverageTicket)
+B21:
+	291: MoveLoc[9](loc2: DeleverageTicket)
+	292: Ret
+}
+
+public deleverage<Ty0, Ty1, Ty2, Ty3>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PythPriceInfo, Arg3: &mut SupplyPool<Ty0, Ty2>, Arg4: &mut SupplyPool<Ty1, Ty3>, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: u128, Arg8: &Clock, Arg9: &mut TxContext): ActionRequest {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public deleverage_v2<Ty0, Ty1, Ty2, Ty3>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PriceCollection, Arg3: &mut SupplyPool<Ty0, Ty2>, Arg4: &mut SupplyPool<Ty1, Ty3>, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: u128, Arg8: &Clock, Arg9: &mut TxContext): ActionRequest {
+L10:	loc0: DebtInfo
+L11:	loc1: ActionRequest
+L12:	loc2: DeleverageTicket
+B0:
+	0: CopyLoc[1](Arg1: &mut PositionConfig)
+	1: FreezeRef
+	2: Call position_core_clmm::lend_facil_cap(&PositionConfig): &LendFacilCap
+	3: Call object::id<LendFacilCap>(&LendFacilCap): ID
+	4: Call debt_info::empty(ID): DebtInfo
+	5: StLoc[10](loc0: DebtInfo)
+	6: MutBorrowLoc[10](loc0: DebtInfo)
+	7: CopyLoc[3](Arg3: &mut SupplyPool<Ty0, Ty2>)
+	8: CopyLoc[8](Arg8: &Clock)
+	9: Call debt_info::add_from_supply_pool<Ty0, Ty2>(&mut DebtInfo, &mut SupplyPool<Ty0, Ty2>, &Clock)
+	10: MutBorrowLoc[10](loc0: DebtInfo)
+	11: CopyLoc[4](Arg4: &mut SupplyPool<Ty1, Ty3>)
+	12: CopyLoc[8](Arg8: &Clock)
+	13: Call debt_info::add_from_supply_pool<Ty1, Ty3>(&mut DebtInfo, &mut SupplyPool<Ty1, Ty3>, &Clock)
+	14: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	15: CopyLoc[1](Arg1: &mut PositionConfig)
+	16: MoveLoc[2](Arg2: &PriceCollection)
+	17: ImmBorrowLoc[10](loc0: DebtInfo)
+	18: MoveLoc[5](Arg5: &mut Pool<Ty0, Ty1>)
+	19: MoveLoc[6](Arg6: &GlobalConfig)
+	20: MoveLoc[7](Arg7: u128)
+	21: CopyLoc[8](Arg8: &Clock)
+	22: MoveLoc[9](Arg9: &mut TxContext)
+	23: Call create_deleverage_ticket_v2<Ty0, Ty1>(&mut Position<Ty0, Ty1, Position>, &mut PositionConfig, &PriceCollection, &DebtInfo, &mut Pool<Ty0, Ty1>, &GlobalConfig, u128, &Clock, &mut TxContext): DeleverageTicket * ActionRequest
+	24: StLoc[11](loc1: ActionRequest)
+	25: StLoc[12](loc2: DeleverageTicket)
+	26: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	27: CopyLoc[1](Arg1: &mut PositionConfig)
+	28: FreezeRef
+	29: MutBorrowLoc[12](loc2: DeleverageTicket)
+	30: MoveLoc[3](Arg3: &mut SupplyPool<Ty0, Ty2>)
+	31: CopyLoc[8](Arg8: &Clock)
+	32: Call position_core_clmm::deleverage_ticket_repay_x<Ty0, Ty1, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionConfig, &mut DeleverageTicket, &mut SupplyPool<Ty0, Ty2>, &Clock)
+	33: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	34: MoveLoc[1](Arg1: &mut PositionConfig)
+	35: FreezeRef
+	36: MutBorrowLoc[12](loc2: DeleverageTicket)
+	37: MoveLoc[4](Arg4: &mut SupplyPool<Ty1, Ty3>)
+	38: MoveLoc[8](Arg8: &Clock)
+	39: Call position_core_clmm::deleverage_ticket_repay_y<Ty0, Ty1, Ty3, Position>(&mut Position<Ty0, Ty1, Position>, &PositionConfig, &mut DeleverageTicket, &mut SupplyPool<Ty1, Ty3>, &Clock)
+	40: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	41: MoveLoc[12](loc2: DeleverageTicket)
+	42: Call position_core_clmm::destroy_deleverage_ticket<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>, DeleverageTicket)
+	43: MoveLoc[11](loc1: ActionRequest)
+	44: Ret
+}
+
+public deleverage_for_liquidation<Ty0, Ty1, Ty2, Ty3>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PythPriceInfo, Arg3: &mut SupplyPool<Ty0, Ty2>, Arg4: &mut SupplyPool<Ty1, Ty3>, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: &Clock) {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public deleverage_for_liquidation_v2<Ty0, Ty1, Ty2, Ty3>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PriceCollection, Arg3: &mut SupplyPool<Ty0, Ty2>, Arg4: &mut SupplyPool<Ty1, Ty3>, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: &Clock) {
+L8:	loc0: DebtInfo
+L9:	loc1: DeleverageTicket
+B0:
+	0: CopyLoc[1](Arg1: &mut PositionConfig)
+	1: FreezeRef
+	2: Call position_core_clmm::lend_facil_cap(&PositionConfig): &LendFacilCap
+	3: Call object::id<LendFacilCap>(&LendFacilCap): ID
+	4: Call debt_info::empty(ID): DebtInfo
+	5: StLoc[8](loc0: DebtInfo)
+	6: MutBorrowLoc[8](loc0: DebtInfo)
+	7: CopyLoc[3](Arg3: &mut SupplyPool<Ty0, Ty2>)
+	8: CopyLoc[7](Arg7: &Clock)
+	9: Call debt_info::add_from_supply_pool<Ty0, Ty2>(&mut DebtInfo, &mut SupplyPool<Ty0, Ty2>, &Clock)
+	10: MutBorrowLoc[8](loc0: DebtInfo)
+	11: CopyLoc[4](Arg4: &mut SupplyPool<Ty1, Ty3>)
+	12: CopyLoc[7](Arg7: &Clock)
+	13: Call debt_info::add_from_supply_pool<Ty1, Ty3>(&mut DebtInfo, &mut SupplyPool<Ty1, Ty3>, &Clock)
+	14: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	15: CopyLoc[1](Arg1: &mut PositionConfig)
+	16: MoveLoc[2](Arg2: &PriceCollection)
+	17: ImmBorrowLoc[8](loc0: DebtInfo)
+	18: MoveLoc[5](Arg5: &mut Pool<Ty0, Ty1>)
+	19: MoveLoc[6](Arg6: &GlobalConfig)
+	20: CopyLoc[7](Arg7: &Clock)
+	21: Call create_deleverage_ticket_for_liquidation_v2<Ty0, Ty1>(&mut Position<Ty0, Ty1, Position>, &mut PositionConfig, &PriceCollection, &DebtInfo, &mut Pool<Ty0, Ty1>, &GlobalConfig, &Clock): DeleverageTicket
+	22: StLoc[9](loc1: DeleverageTicket)
+	23: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	24: CopyLoc[1](Arg1: &mut PositionConfig)
+	25: FreezeRef
+	26: MutBorrowLoc[9](loc1: DeleverageTicket)
+	27: MoveLoc[3](Arg3: &mut SupplyPool<Ty0, Ty2>)
+	28: CopyLoc[7](Arg7: &Clock)
+	29: Call position_core_clmm::deleverage_ticket_repay_x<Ty0, Ty1, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionConfig, &mut DeleverageTicket, &mut SupplyPool<Ty0, Ty2>, &Clock)
+	30: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	31: MoveLoc[1](Arg1: &mut PositionConfig)
+	32: FreezeRef
+	33: MutBorrowLoc[9](loc1: DeleverageTicket)
+	34: MoveLoc[4](Arg4: &mut SupplyPool<Ty1, Ty3>)
+	35: MoveLoc[7](Arg7: &Clock)
+	36: Call position_core_clmm::deleverage_ticket_repay_y<Ty0, Ty1, Ty3, Position>(&mut Position<Ty0, Ty1, Position>, &PositionConfig, &mut DeleverageTicket, &mut SupplyPool<Ty1, Ty3>, &Clock)
+	37: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	38: MoveLoc[9](loc1: DeleverageTicket)
+	39: Call position_core_clmm::destroy_deleverage_ticket<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>, DeleverageTicket)
+	40: Ret
+}
+
+public liquidate_col_x<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PythPriceInfo, Arg3: &DebtInfo, Arg4: &mut Balance<Ty1>, Arg5: &mut SupplyPool<Ty1, Ty2>, Arg6: &Clock): Balance<Ty0> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public liquidate_col_x_v2<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PriceCollection, Arg3: &DebtInfo, Arg4: &mut Balance<Ty1>, Arg5: &mut SupplyPool<Ty1, Ty2>, Arg6: &Clock): Balance<Ty0> {
+L7:	loc0: &Position<Ty0, Ty1, Position>
+L8:	loc1: LpShape
+L9:	loc2: I32
+B0:
+	0: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: FreezeRef
+	2: StLoc[7](loc0: &Position<Ty0, Ty1, Position>)
+	3: CopyLoc[7](loc0: &Position<Ty0, Ty1, Position>)
+	4: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	5: Call position::tick_range(&Position): I32 * I32
+	6: StLoc[9](loc2: I32)
+	7: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	8: MoveLoc[9](loc2: I32)
+	9: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	10: MoveLoc[7](loc0: &Position<Ty0, Ty1, Position>)
+	11: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	12: Call position::liquidity(&Position): u128
+	13: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	14: StLoc[8](loc1: LpShape)
+	15: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	16: MoveLoc[1](Arg1: &PositionConfig)
+	17: MoveLoc[2](Arg2: &PriceCollection)
+	18: MoveLoc[3](Arg3: &DebtInfo)
+	19: MoveLoc[4](Arg4: &mut Balance<Ty1>)
+	20: MoveLoc[5](Arg5: &mut SupplyPool<Ty1, Ty2>)
+	21: MoveLoc[8](loc1: LpShape)
+	22: MoveLoc[6](Arg6: &Clock)
+	23: Call position_core_clmm::liquidate_col_x<Ty0, Ty1, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionConfig, &PriceCollection, &DebtInfo, &mut Balance<Ty1>, &mut SupplyPool<Ty1, Ty2>, LpShape, &Clock): Balance<Ty0>
+	24: Ret
+}
+
+public liquidate_col_y<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PythPriceInfo, Arg3: &DebtInfo, Arg4: &mut Balance<Ty0>, Arg5: &mut SupplyPool<Ty0, Ty2>, Arg6: &Clock): Balance<Ty1> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public liquidate_col_y_v2<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PriceCollection, Arg3: &DebtInfo, Arg4: &mut Balance<Ty0>, Arg5: &mut SupplyPool<Ty0, Ty2>, Arg6: &Clock): Balance<Ty1> {
+L7:	loc0: &Position<Ty0, Ty1, Position>
+L8:	loc1: LpShape
+L9:	loc2: I32
+B0:
+	0: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: FreezeRef
+	2: StLoc[7](loc0: &Position<Ty0, Ty1, Position>)
+	3: CopyLoc[7](loc0: &Position<Ty0, Ty1, Position>)
+	4: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	5: Call position::tick_range(&Position): I32 * I32
+	6: StLoc[9](loc2: I32)
+	7: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	8: MoveLoc[9](loc2: I32)
+	9: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	10: MoveLoc[7](loc0: &Position<Ty0, Ty1, Position>)
+	11: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	12: Call position::liquidity(&Position): u128
+	13: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	14: StLoc[8](loc1: LpShape)
+	15: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	16: MoveLoc[1](Arg1: &PositionConfig)
+	17: MoveLoc[2](Arg2: &PriceCollection)
+	18: MoveLoc[3](Arg3: &DebtInfo)
+	19: MoveLoc[4](Arg4: &mut Balance<Ty0>)
+	20: MoveLoc[5](Arg5: &mut SupplyPool<Ty0, Ty2>)
+	21: MoveLoc[8](loc1: LpShape)
+	22: MoveLoc[6](Arg6: &Clock)
+	23: Call position_core_clmm::liquidate_col_y<Ty0, Ty1, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionConfig, &PriceCollection, &DebtInfo, &mut Balance<Ty0>, &mut SupplyPool<Ty0, Ty2>, LpShape, &Clock): Balance<Ty1>
+	24: Ret
+}
+
+public repay_bad_debt_x<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PythPriceInfo, Arg3: &DebtInfo, Arg4: &mut SupplyPool<Ty0, Ty2>, Arg5: &mut Balance<Ty0>, Arg6: &Clock, Arg7: &mut TxContext): ActionRequest {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public repay_bad_debt_x_v2<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PriceCollection, Arg3: &DebtInfo, Arg4: &mut SupplyPool<Ty0, Ty2>, Arg5: &mut Balance<Ty0>, Arg6: &Clock, Arg7: &mut TxContext): ActionRequest {
+L8:	loc0: &Position<Ty0, Ty1, Position>
+L9:	loc1: LpShape
+L10:	loc2: I32
+B0:
+	0: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: FreezeRef
+	2: StLoc[8](loc0: &Position<Ty0, Ty1, Position>)
+	3: CopyLoc[8](loc0: &Position<Ty0, Ty1, Position>)
+	4: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	5: Call position::tick_range(&Position): I32 * I32
+	6: StLoc[10](loc2: I32)
+	7: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	8: MoveLoc[10](loc2: I32)
+	9: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	10: MoveLoc[8](loc0: &Position<Ty0, Ty1, Position>)
+	11: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	12: Call position::liquidity(&Position): u128
+	13: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	14: StLoc[9](loc1: LpShape)
+	15: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	16: MoveLoc[1](Arg1: &PositionConfig)
+	17: MoveLoc[4](Arg4: &mut SupplyPool<Ty0, Ty2>)
+	18: MoveLoc[5](Arg5: &mut Balance<Ty0>)
+	19: MoveLoc[9](loc1: LpShape)
+	20: MoveLoc[6](Arg6: &Clock)
+	21: MoveLoc[7](Arg7: &mut TxContext)
+	22: Call position_core_clmm::repay_bad_debt<Ty0, Ty1, Ty0, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionConfig, &mut SupplyPool<Ty0, Ty2>, &mut Balance<Ty0>, LpShape, &Clock, &mut TxContext): ActionRequest
+	23: Ret
+}
+
+public repay_bad_debt_y<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PythPriceInfo, Arg3: &DebtInfo, Arg4: &mut SupplyPool<Ty1, Ty2>, Arg5: &mut Balance<Ty1>, Arg6: &Clock, Arg7: &mut TxContext): ActionRequest {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public repay_bad_debt_y_v2<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PriceCollection, Arg3: &DebtInfo, Arg4: &mut SupplyPool<Ty1, Ty2>, Arg5: &mut Balance<Ty1>, Arg6: &Clock, Arg7: &mut TxContext): ActionRequest {
+L8:	loc0: &Position<Ty0, Ty1, Position>
+L9:	loc1: LpShape
+L10:	loc2: I32
+B0:
+	0: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: FreezeRef
+	2: StLoc[8](loc0: &Position<Ty0, Ty1, Position>)
+	3: CopyLoc[8](loc0: &Position<Ty0, Ty1, Position>)
+	4: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	5: Call position::tick_range(&Position): I32 * I32
+	6: StLoc[10](loc2: I32)
+	7: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	8: MoveLoc[10](loc2: I32)
+	9: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	10: MoveLoc[8](loc0: &Position<Ty0, Ty1, Position>)
+	11: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	12: Call position::liquidity(&Position): u128
+	13: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	14: StLoc[9](loc1: LpShape)
+	15: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	16: MoveLoc[1](Arg1: &PositionConfig)
+	17: MoveLoc[4](Arg4: &mut SupplyPool<Ty1, Ty2>)
+	18: MoveLoc[5](Arg5: &mut Balance<Ty1>)
+	19: MoveLoc[9](loc1: LpShape)
+	20: MoveLoc[6](Arg6: &Clock)
+	21: MoveLoc[7](Arg7: &mut TxContext)
+	22: Call position_core_clmm::repay_bad_debt<Ty0, Ty1, Ty1, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionConfig, &mut SupplyPool<Ty1, Ty2>, &mut Balance<Ty1>, LpShape, &Clock, &mut TxContext): ActionRequest
+	23: Ret
+}
+
+public reduce<Ty0, Ty1, Ty2, Ty3>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PositionCap, Arg3: &PythPriceInfo, Arg4: &mut SupplyPool<Ty0, Ty2>, Arg5: &mut SupplyPool<Ty1, Ty3>, Arg6: &mut Pool<Ty0, Ty1>, Arg7: &GlobalConfig, Arg8: u128, Arg9: &Clock): Balance<Ty0> * Balance<Ty1> * ReductionRepaymentTicket<Ty2, Ty3> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public reduce_v2<Ty0, Ty1, Ty2, Ty3>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PositionCap, Arg3: &PriceCollection, Arg4: &mut SupplyPool<Ty0, Ty2>, Arg5: &mut SupplyPool<Ty1, Ty3>, Arg6: &mut Pool<Ty0, Ty1>, Arg7: &GlobalConfig, Arg8: u128, Arg9: &Clock): Balance<Ty0> * Balance<Ty1> * ReductionRepaymentTicket<Ty2, Ty3> {
+L10:	loc0: ValidatedDebtInfo
+L11:	loc1: &Position<Ty0, Ty1, Position>
+L12:	loc2: u64
+L13:	loc3: &PositionCap
+L14:	loc4: &mut PositionConfig
+L15:	loc5: u128
+L16:	loc6: u128
+L17:	loc7: DebtInfo
+L18:	loc8: u64
+L19:	loc9: u64
+L20:	loc10: u128
+L21:	loc11: u128
+L22:	loc12: u128
+L23:	loc13: u128
+L24:	loc14: u64
+L25:	loc15: u64
+L26:	loc16: u64
+L27:	loc17: u64
+L28:	loc18: u64
+L29:	loc19: u64
+L30:	loc20: Balance<Ty0>
+L31:	loc21: Balance<Ty1>
+L32:	loc22: u64
+L33:	loc23: ReductionInfo
+L34:	loc24: u128
+L35:	loc25: &mut NetSlidingSumLimiter
+L36:	loc26: &mut Position
+L37:	loc27: PositionModel
+L38:	loc28: u64
+L39:	loc29: u256
+L40:	loc30: u64
+L41:	loc31: &mut Pool<Ty0, Ty1>
+L42:	loc32: &mut Pool<Ty0, Ty1>
+L43:	loc33: u256
+L44:	loc34: &mut Position<Ty0, Ty1, Position>
+L45:	loc35: &Position<Ty0, Ty1, Position>
+L46:	loc36: &Position<Ty0, Ty1, Position>
+L47:	loc37: ValidatedPrices
+L48:	loc38: LpShape
+L49:	loc39: u128
+L50:	loc40: u128
+L51:	loc41: u128
+L52:	loc42: &mut SupplyPool<Ty0, Ty2>
+L53:	loc43: &mut SupplyPool<Ty1, Ty3>
+L54:	loc44: FacilDebtShare<Ty2>
+L55:	loc45: FacilDebtShare<Ty3>
+L56:	loc46: I32
+L57:	loc47: ReductionRepaymentTicket<Ty2, Ty3>
+L58:	loc48: u64
+L59:	loc49: u64
+L60:	loc50: u64
+L61:	loc51: u64
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: StLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	2: MoveLoc[1](Arg1: &mut PositionConfig)
+	3: StLoc[14](loc4: &mut PositionConfig)
+	4: MoveLoc[2](Arg2: &PositionCap)
+	5: StLoc[13](loc3: &PositionCap)
+	6: MoveLoc[6](Arg6: &mut Pool<Ty0, Ty1>)
+	7: StLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	8: MoveLoc[4](Arg4: &mut SupplyPool<Ty0, Ty2>)
+	9: StLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	10: MoveLoc[5](Arg5: &mut SupplyPool<Ty1, Ty3>)
+	11: StLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	12: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	13: FreezeRef
+	14: CopyLoc[14](loc4: &mut PositionConfig)
+	15: FreezeRef
+	16: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	17: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	18: FreezeRef
+	19: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	20: CopyLoc[14](loc4: &mut PositionConfig)
+	21: FreezeRef
+	22: Call object::id<PositionConfig>(&PositionConfig): ID
+	23: Eq
+	24: BrFalse(26)
+B1:
+	25: Branch(46)
+B2:
+	26: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	27: Pop
+	28: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	29: Pop
+	30: MoveLoc[3](Arg3: &PriceCollection)
+	31: Pop
+	32: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	33: Pop
+	34: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	35: Pop
+	36: MoveLoc[14](loc4: &mut PositionConfig)
+	37: Pop
+	38: MoveLoc[9](Arg9: &Clock)
+	39: Pop
+	40: MoveLoc[7](Arg7: &GlobalConfig)
+	41: Pop
+	42: MoveLoc[13](loc3: &PositionCap)
+	43: Pop
+	44: LdU64(4)
+	45: Abort
+B3:
+	46: CopyLoc[14](loc4: &mut PositionConfig)
+	47: FreezeRef
+	48: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	49: CopyLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	50: FreezeRef
+	51: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	52: Eq
+	53: BrFalse(55)
+B4:
+	54: Branch(75)
+B5:
+	55: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	56: Pop
+	57: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	58: Pop
+	59: MoveLoc[3](Arg3: &PriceCollection)
+	60: Pop
+	61: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	62: Pop
+	63: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	64: Pop
+	65: MoveLoc[14](loc4: &mut PositionConfig)
+	66: Pop
+	67: MoveLoc[9](Arg9: &Clock)
+	68: Pop
+	69: MoveLoc[7](Arg7: &GlobalConfig)
+	70: Pop
+	71: MoveLoc[13](loc3: &PositionCap)
+	72: Pop
+	73: LdU64(5)
+	74: Abort
+B6:
+	75: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	76: FreezeRef
+	77: Call position_core_clmm::ticket_active<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): bool
+	78: LdFalse
+	79: Eq
+	80: BrFalse(82)
+B7:
+	81: Branch(102)
+B8:
+	82: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	83: Pop
+	84: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	85: Pop
+	86: MoveLoc[3](Arg3: &PriceCollection)
+	87: Pop
+	88: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	89: Pop
+	90: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	91: Pop
+	92: MoveLoc[14](loc4: &mut PositionConfig)
+	93: Pop
+	94: MoveLoc[9](Arg9: &Clock)
+	95: Pop
+	96: MoveLoc[7](Arg7: &GlobalConfig)
+	97: Pop
+	98: MoveLoc[13](loc3: &PositionCap)
+	99: Pop
+	100: LdU64(8)
+	101: Abort
+B9:
+	102: MoveLoc[13](loc3: &PositionCap)
+	103: Call position_core_clmm::pc_position_id(&PositionCap): ID
+	104: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	105: FreezeRef
+	106: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	107: Eq
+	108: BrFalse(110)
+B10:
+	109: Branch(128)
+B11:
+	110: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	111: Pop
+	112: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	113: Pop
+	114: MoveLoc[3](Arg3: &PriceCollection)
+	115: Pop
+	116: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	117: Pop
+	118: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	119: Pop
+	120: MoveLoc[14](loc4: &mut PositionConfig)
+	121: Pop
+	122: MoveLoc[9](Arg9: &Clock)
+	123: Pop
+	124: MoveLoc[7](Arg7: &GlobalConfig)
+	125: Pop
+	126: LdU64(7)
+	127: Abort
+B12:
+	128: CopyLoc[14](loc4: &mut PositionConfig)
+	129: FreezeRef
+	130: Call position_core_clmm::reduction_disabled(&PositionConfig): bool
+	131: Not
+	132: BrFalse(134)
+B13:
+	133: Branch(152)
+B14:
+	134: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	135: Pop
+	136: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	137: Pop
+	138: MoveLoc[3](Arg3: &PriceCollection)
+	139: Pop
+	140: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	141: Pop
+	142: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	143: Pop
+	144: MoveLoc[14](loc4: &mut PositionConfig)
+	145: Pop
+	146: MoveLoc[9](Arg9: &Clock)
+	147: Pop
+	148: MoveLoc[7](Arg7: &GlobalConfig)
+	149: Pop
+	150: LdU64(24)
+	151: Abort
+B15:
+	152: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	153: FreezeRef
+	154: Call position_core_clmm::position_debt_bag<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &FacilDebtBag
+	155: Call supply_pool::fdb_share_type_matches_asset_if_any_exists<Ty0, Ty2>(&FacilDebtBag): bool
+	156: BrFalse(158)
+B16:
+	157: Branch(176)
+B17:
+	158: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	159: Pop
+	160: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	161: Pop
+	162: MoveLoc[3](Arg3: &PriceCollection)
+	163: Pop
+	164: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	165: Pop
+	166: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	167: Pop
+	168: MoveLoc[14](loc4: &mut PositionConfig)
+	169: Pop
+	170: MoveLoc[9](Arg9: &Clock)
+	171: Pop
+	172: MoveLoc[7](Arg7: &GlobalConfig)
+	173: Pop
+	174: LdU64(20)
+	175: Abort
+B18:
+	176: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	177: FreezeRef
+	178: Call position_core_clmm::position_debt_bag<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &FacilDebtBag
+	179: Call supply_pool::fdb_share_type_matches_asset_if_any_exists<Ty1, Ty3>(&FacilDebtBag): bool
+	180: BrFalse(182)
+B19:
+	181: Branch(200)
+B20:
+	182: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	183: Pop
+	184: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	185: Pop
+	186: MoveLoc[3](Arg3: &PriceCollection)
+	187: Pop
+	188: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	189: Pop
+	190: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	191: Pop
+	192: MoveLoc[14](loc4: &mut PositionConfig)
+	193: Pop
+	194: MoveLoc[9](Arg9: &Clock)
+	195: Pop
+	196: MoveLoc[7](Arg7: &GlobalConfig)
+	197: Pop
+	198: LdU64(20)
+	199: Abort
+B21:
+	200: CopyLoc[14](loc4: &mut PositionConfig)
+	201: FreezeRef
+	202: MoveLoc[3](Arg3: &PriceCollection)
+	203: Call position_core_clmm::validate_price_info(&PositionConfig, &PriceCollection): ValidatedPrices
+	204: StLoc[47](loc37: ValidatedPrices)
+	205: ImmBorrowLoc[47](loc37: ValidatedPrices)
+	206: Call type_name::with_defining_ids<Ty0>(): TypeName
+	207: Call type_name::with_defining_ids<Ty1>(): TypeName
+	208: Call oracle_price::div_price_numeric_x128(&ValidatedPrices, TypeName, TypeName): u256
+	209: StLoc[39](loc29: u256)
+	210: CopyLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	211: FreezeRef
+	212: Call pool::current_sqrt_price<Ty0, Ty1>(&Pool<Ty0, Ty1>): u128
+	213: StLoc[51](loc41: u128)
+	214: CopyLoc[51](loc41: u128)
+	215: CastU256
+	216: CopyLoc[51](loc41: u128)
+	217: CastU256
+	218: Mul
+	219: StLoc[43](loc33: u256)
+	220: CopyLoc[14](loc4: &mut PositionConfig)
+	221: FreezeRef
+	222: Call position_core_clmm::lend_facil_cap(&PositionConfig): &LendFacilCap
+	223: Call object::id<LendFacilCap>(&LendFacilCap): ID
+	224: Call debt_info::empty(ID): DebtInfo
+	225: StLoc[17](loc7: DebtInfo)
+	226: MutBorrowLoc[17](loc7: DebtInfo)
+	227: CopyLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	228: CopyLoc[9](Arg9: &Clock)
+	229: Call debt_info::add_from_supply_pool<Ty0, Ty2>(&mut DebtInfo, &mut SupplyPool<Ty0, Ty2>, &Clock)
+	230: MutBorrowLoc[17](loc7: DebtInfo)
+	231: CopyLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	232: CopyLoc[9](Arg9: &Clock)
+	233: Call debt_info::add_from_supply_pool<Ty1, Ty3>(&mut DebtInfo, &mut SupplyPool<Ty1, Ty3>, &Clock)
+	234: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	235: FreezeRef
+	236: StLoc[45](loc35: &Position<Ty0, Ty1, Position>)
+	237: CopyLoc[45](loc35: &Position<Ty0, Ty1, Position>)
+	238: StLoc[46](loc36: &Position<Ty0, Ty1, Position>)
+	239: CopyLoc[46](loc36: &Position<Ty0, Ty1, Position>)
+	240: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	241: Call position::tick_range(&Position): I32 * I32
+	242: StLoc[56](loc46: I32)
+	243: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	244: MoveLoc[56](loc46: I32)
+	245: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	246: MoveLoc[46](loc36: &Position<Ty0, Ty1, Position>)
+	247: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	248: Call position::liquidity(&Position): u128
+	249: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	250: StLoc[48](loc38: LpShape)
+	251: MoveLoc[45](loc35: &Position<Ty0, Ty1, Position>)
+	252: StLoc[11](loc1: &Position<Ty0, Ty1, Position>)
+	253: CopyLoc[14](loc4: &mut PositionConfig)
+	254: FreezeRef
+	255: ImmBorrowLoc[17](loc7: DebtInfo)
+	256: Call position_core_clmm::validate_debt_info(&PositionConfig, &DebtInfo): ValidatedDebtInfo
+	257: StLoc[10](loc0: ValidatedDebtInfo)
+	258: MoveLoc[11](loc1: &Position<Ty0, Ty1, Position>)
+	259: ImmBorrowLoc[10](loc0: ValidatedDebtInfo)
+	260: MoveLoc[48](loc38: LpShape)
+	261: Call position_core_clmm::position_model_from_lp_shape<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &ValidatedDebtInfo, LpShape): PositionModel
+	262: StLoc[37](loc27: PositionModel)
+	263: ImmBorrowLoc[37](loc27: PositionModel)
+	264: CopyLoc[39](loc29: u256)
+	265: CopyLoc[14](loc4: &mut PositionConfig)
+	266: FreezeRef
+	267: Call position_core_clmm::liq_margin_bps(&PositionConfig): u16
+	268: Call position_model_clmm::margin_below_threshold(&PositionModel, u256, u16): bool
+	269: Not
+	270: BrFalse(272)
+B22:
+	271: Branch(288)
+B23:
+	272: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	273: Pop
+	274: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	275: Pop
+	276: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	277: Pop
+	278: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	279: Pop
+	280: MoveLoc[14](loc4: &mut PositionConfig)
+	281: Pop
+	282: MoveLoc[9](Arg9: &Clock)
+	283: Pop
+	284: MoveLoc[7](Arg7: &GlobalConfig)
+	285: Pop
+	286: LdU64(11)
+	287: Abort
+B24:
+	288: ImmBorrowLoc[37](loc27: PositionModel)
+	289: MoveLoc[43](loc33: u256)
+	290: CopyLoc[14](loc4: &mut PositionConfig)
+	291: FreezeRef
+	292: Call position_core_clmm::liq_margin_bps(&PositionConfig): u16
+	293: Call position_model_clmm::margin_below_threshold(&PositionModel, u256, u16): bool
+	294: Not
+	295: BrFalse(297)
+B25:
+	296: Branch(313)
+B26:
+	297: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	298: Pop
+	299: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	300: Pop
+	301: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	302: Pop
+	303: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	304: Pop
+	305: MoveLoc[14](loc4: &mut PositionConfig)
+	306: Pop
+	307: MoveLoc[9](Arg9: &Clock)
+	308: Pop
+	309: MoveLoc[7](Arg7: &GlobalConfig)
+	310: Pop
+	311: LdU64(11)
+	312: Abort
+B27:
+	313: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	314: FreezeRef
+	315: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	316: Call position::liquidity(&Position): u128
+	317: StLoc[34](loc24: u128)
+	318: CopyLoc[8](Arg8: u128)
+	319: MoveLoc[34](loc24: u128)
+	320: LdU128(18446744073709551616)
+	321: Call util::muldiv_u128(u128, u128, u128): u128
+	322: StLoc[20](loc10: u128)
+	323: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	324: FreezeRef
+	325: Call position_core_clmm::col_x<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Balance<Ty0>
+	326: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	327: CastU128
+	328: StLoc[15](loc5: u128)
+	329: CopyLoc[8](Arg8: u128)
+	330: MoveLoc[15](loc5: u128)
+	331: LdU128(18446744073709551616)
+	332: Call util::muldiv_u128(u128, u128, u128): u128
+	333: CastU64
+	334: StLoc[18](loc8: u64)
+	335: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	336: FreezeRef
+	337: Call position_core_clmm::col_y<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Balance<Ty1>
+	338: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	339: CastU128
+	340: StLoc[16](loc6: u128)
+	341: CopyLoc[8](Arg8: u128)
+	342: MoveLoc[16](loc6: u128)
+	343: LdU128(18446744073709551616)
+	344: Call util::muldiv_u128(u128, u128, u128): u128
+	345: CastU64
+	346: StLoc[19](loc9: u64)
+	347: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	348: FreezeRef
+	349: Call position_core_clmm::position_debt_bag<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &FacilDebtBag
+	350: Call supply_pool::fdb_get_share_amount_by_asset_type<Ty0>(&FacilDebtBag): u128
+	351: StLoc[49](loc39: u128)
+	352: CopyLoc[8](Arg8: u128)
+	353: MoveLoc[49](loc39: u128)
+	354: LdU128(18446744073709551616)
+	355: Call util::muldiv_u128(u128, u128, u128): u128
+	356: StLoc[22](loc12: u128)
+	357: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	358: FreezeRef
+	359: Call position_core_clmm::position_debt_bag<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &FacilDebtBag
+	360: Call supply_pool::fdb_get_share_amount_by_asset_type<Ty1>(&FacilDebtBag): u128
+	361: StLoc[50](loc40: u128)
+	362: MoveLoc[8](Arg8: u128)
+	363: MoveLoc[50](loc40: u128)
+	364: LdU128(18446744073709551616)
+	365: Call util::muldiv_u128(u128, u128, u128): u128
+	366: StLoc[23](loc13: u128)
+	367: MoveLoc[42](loc32: &mut Pool<Ty0, Ty1>)
+	368: StLoc[41](loc31: &mut Pool<Ty0, Ty1>)
+	369: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	370: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	371: StLoc[36](loc26: &mut Position)
+	372: CopyLoc[20](loc10: u128)
+	373: StLoc[21](loc11: u128)
+	374: MoveLoc[7](Arg7: &GlobalConfig)
+	375: MoveLoc[41](loc31: &mut Pool<Ty0, Ty1>)
+	376: MoveLoc[36](loc26: &mut Position)
+	377: MoveLoc[21](loc11: u128)
+	378: CopyLoc[9](Arg9: &Clock)
+	379: Call remove_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &mut Position, u128, &Clock): Balance<Ty0> * Balance<Ty1>
+	380: StLoc[31](loc21: Balance<Ty1>)
+	381: StLoc[30](loc20: Balance<Ty0>)
+	382: ImmBorrowLoc[30](loc20: Balance<Ty0>)
+	383: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	384: StLoc[24](loc14: u64)
+	385: ImmBorrowLoc[31](loc21: Balance<Ty1>)
+	386: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	387: StLoc[25](loc15: u64)
+	388: MutBorrowLoc[30](loc20: Balance<Ty0>)
+	389: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	390: Call position_core_clmm::col_x_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Balance<Ty0>
+	391: MoveLoc[18](loc8: u64)
+	392: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	393: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	394: Pop
+	395: MutBorrowLoc[31](loc21: Balance<Ty1>)
+	396: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	397: Call position_core_clmm::col_y_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Balance<Ty1>
+	398: MoveLoc[19](loc9: u64)
+	399: Call balance::split<Ty1>(&mut Balance<Ty1>, u64): Balance<Ty1>
+	400: Call balance::join<Ty1>(&mut Balance<Ty1>, Balance<Ty1>): u64
+	401: Pop
+	402: CopyLoc[14](loc4: &mut PositionConfig)
+	403: CopyLoc[20](loc10: u128)
+	404: Call position_core_clmm::decrease_current_global_l(&mut PositionConfig, u128)
+	405: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	406: Call position_core_clmm::position_debt_bag_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut FacilDebtBag
+	407: MoveLoc[22](loc12: u128)
+	408: Call supply_pool::fdb_take_amt<Ty2>(&mut FacilDebtBag, u128): FacilDebtShare<Ty2>
+	409: StLoc[54](loc44: FacilDebtShare<Ty2>)
+	410: CopyLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	411: Call position_core_clmm::position_debt_bag_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut FacilDebtBag
+	412: MoveLoc[23](loc13: u128)
+	413: Call supply_pool::fdb_take_amt<Ty3>(&mut FacilDebtBag, u128): FacilDebtShare<Ty3>
+	414: StLoc[55](loc45: FacilDebtShare<Ty3>)
+	415: CopyLoc[14](loc4: &mut PositionConfig)
+	416: FreezeRef
+	417: Call position_core_clmm::has_create_withdraw_limiter(&PositionConfig): bool
+	418: BrFalse(484)
+B28:
+	419: MoveLoc[14](loc4: &mut PositionConfig)
+	420: Call position_core_clmm::borrow_create_withdraw_limiter_mut(&mut PositionConfig): &mut NetSlidingSumLimiter
+	421: StLoc[35](loc25: &mut NetSlidingSumLimiter)
+	422: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	423: ImmBorrowLoc[54](loc44: FacilDebtShare<Ty2>)
+	424: Call supply_pool::fds_facil_id<Ty2>(&FacilDebtShare<Ty2>): ID
+	425: ImmBorrowLoc[54](loc44: FacilDebtShare<Ty2>)
+	426: Call supply_pool::fds_value_x64<Ty2>(&FacilDebtShare<Ty2>): u128
+	427: CopyLoc[9](Arg9: &Clock)
+	428: Call supply_pool::calc_repay_by_shares<Ty0, Ty2>(&mut SupplyPool<Ty0, Ty2>, ID, u128, &Clock): u64
+	429: StLoc[26](loc16: u64)
+	430: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	431: ImmBorrowLoc[55](loc45: FacilDebtShare<Ty3>)
+	432: Call supply_pool::fds_facil_id<Ty3>(&FacilDebtShare<Ty3>): ID
+	433: ImmBorrowLoc[55](loc45: FacilDebtShare<Ty3>)
+	434: Call supply_pool::fds_value_x64<Ty3>(&FacilDebtShare<Ty3>): u128
+	435: CopyLoc[9](Arg9: &Clock)
+	436: Call supply_pool::calc_repay_by_shares<Ty1, Ty3>(&mut SupplyPool<Ty1, Ty3>, ID, u128, &Clock): u64
+	437: StLoc[28](loc18: u64)
+	438: ImmBorrowLoc[30](loc20: Balance<Ty0>)
+	439: ImmBorrowLoc[47](loc37: ValidatedPrices)
+	440: LdTrue
+	441: Call position_core_clmm::get_balance_ema_usd_value_6_decimals<Ty0>(&Balance<Ty0>, &ValidatedPrices, bool): u64
+	442: StLoc[60](loc50: u64)
+	443: ImmBorrowLoc[31](loc21: Balance<Ty1>)
+	444: ImmBorrowLoc[47](loc37: ValidatedPrices)
+	445: LdTrue
+	446: Call position_core_clmm::get_balance_ema_usd_value_6_decimals<Ty1>(&Balance<Ty1>, &ValidatedPrices, bool): u64
+	447: StLoc[61](loc51: u64)
+	448: MoveLoc[26](loc16: u64)
+	449: ImmBorrowLoc[47](loc37: ValidatedPrices)
+	450: LdTrue
+	451: Call position_core_clmm::get_amount_ema_usd_value_6_decimals<Ty0>(u64, &ValidatedPrices, bool): u64
+	452: StLoc[27](loc17: u64)
+	453: MoveLoc[28](loc18: u64)
+	454: ImmBorrowLoc[47](loc37: ValidatedPrices)
+	455: LdTrue
+	456: Call position_core_clmm::get_amount_ema_usd_value_6_decimals<Ty1>(u64, &ValidatedPrices, bool): u64
+	457: StLoc[29](loc19: u64)
+	458: MoveLoc[27](loc17: u64)
+	459: MoveLoc[29](loc19: u64)
+	460: Add
+	461: StLoc[32](loc22: u64)
+	462: MoveLoc[60](loc50: u64)
+	463: MoveLoc[61](loc51: u64)
+	464: Add
+	465: StLoc[40](loc30: u64)
+	466: CopyLoc[40](loc30: u64)
+	467: CopyLoc[32](loc22: u64)
+	468: Gt
+	469: BrFalse(475)
+B29:
+	470: MoveLoc[40](loc30: u64)
+	471: MoveLoc[32](loc22: u64)
+	472: Sub
+	473: StLoc[12](loc2: u64)
+	474: Branch(477)
+B30:
+	475: LdU64(0)
+	476: StLoc[12](loc2: u64)
+B31:
+	477: MoveLoc[12](loc2: u64)
+	478: StLoc[38](loc28: u64)
+	479: MoveLoc[35](loc25: &mut NetSlidingSumLimiter)
+	480: MoveLoc[38](loc28: u64)
+	481: MoveLoc[9](Arg9: &Clock)
+	482: Call net_sliding_sum_limiter::consume_outflow(&mut NetSlidingSumLimiter, u64, &Clock)
+	483: Branch(492)
+B32:
+	484: MoveLoc[53](loc43: &mut SupplyPool<Ty1, Ty3>)
+	485: Pop
+	486: MoveLoc[52](loc42: &mut SupplyPool<Ty0, Ty2>)
+	487: Pop
+	488: MoveLoc[14](loc4: &mut PositionConfig)
+	489: Pop
+	490: MoveLoc[9](Arg9: &Clock)
+	491: Pop
+B33:
+	492: ImmBorrowLoc[30](loc20: Balance<Ty0>)
+	493: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	494: StLoc[58](loc48: u64)
+	495: ImmBorrowLoc[31](loc21: Balance<Ty1>)
+	496: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	497: StLoc[59](loc49: u64)
+	498: MoveLoc[44](loc34: &mut Position<Ty0, Ty1, Position>)
+	499: FreezeRef
+	500: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	501: MoveLoc[37](loc27: PositionModel)
+	502: MoveLoc[39](loc29: u256)
+	503: MoveLoc[51](loc41: u128)
+	504: MoveLoc[20](loc10: u128)
+	505: MoveLoc[24](loc14: u64)
+	506: MoveLoc[25](loc15: u64)
+	507: MoveLoc[58](loc48: u64)
+	508: MoveLoc[59](loc49: u64)
+	509: LdU64(0)
+	510: LdU64(0)
+	511: Call position_core_clmm::reduction_info_constructor(ID, PositionModel, u256, u128, u128, u64, u64, u64, u64, u64, u64): ReductionInfo
+	512: StLoc[33](loc23: ReductionInfo)
+	513: MoveLoc[54](loc44: FacilDebtShare<Ty2>)
+	514: MoveLoc[55](loc45: FacilDebtShare<Ty3>)
+	515: MoveLoc[33](loc23: ReductionInfo)
+	516: Call position_core_clmm::reduction_repayment_ticket_constructor<Ty2, Ty3>(FacilDebtShare<Ty2>, FacilDebtShare<Ty3>, ReductionInfo): ReductionRepaymentTicket<Ty2, Ty3>
+	517: StLoc[57](loc47: ReductionRepaymentTicket<Ty2, Ty3>)
+	518: MoveLoc[30](loc20: Balance<Ty0>)
+	519: MoveLoc[31](loc21: Balance<Ty1>)
+	520: MoveLoc[57](loc47: ReductionRepaymentTicket<Ty2, Ty3>)
+	521: Ret
+}
+
+public add_liquidity<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PositionCap, Arg3: &PythPriceInfo, Arg4: &DebtInfo, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: u128, Arg8: &Clock): AddLiquidityReceipt<Ty0, Ty1> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public add_liquidity_v2<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PositionCap, Arg3: &PriceCollection, Arg4: &DebtInfo, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: u128, Arg8: &Clock): AddLiquidityReceipt<Ty0, Ty1> {
+L9:	loc0: &mut PositionConfig
+L10:	loc1: ValidatedDebtInfo
+L11:	loc2: u128
+L12:	loc3: u64
+L13:	loc4: u64
+L14:	loc5: u64
+L15:	loc6: u64
+L16:	loc7: AddLiquidityInfo
+L17:	loc8: AddLiquidityInfo
+L18:	loc9: &mut Position
+L19:	loc10: PositionModel
+L20:	loc11: &mut Pool<Ty0, Ty1>
+L21:	loc12: &mut Pool<Ty0, Ty1>
+L22:	loc13: &mut Position<Ty0, Ty1, Position>
+L23:	loc14: &Position<Ty0, Ty1, Position>
+L24:	loc15: &Position<Ty0, Ty1, Position>
+L25:	loc16: &mut Position<Ty0, Ty1, Position>
+L26:	loc17: ValidatedPrices
+L27:	loc18: u256
+L28:	loc19: AddLiquidityReceipt<Ty0, Ty1>
+L29:	loc20: AddLiquidityReceipt<Ty0, Ty1>
+L30:	loc21: AddLiquidityReceipt<Ty0, Ty1>
+L31:	loc22: LpShape
+L32:	loc23: u128
+L33:	loc24: I32
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: StLoc[22](loc13: &mut Position<Ty0, Ty1, Position>)
+	2: MoveLoc[2](Arg2: &PositionCap)
+	3: Call position_core_clmm::pc_position_id(&PositionCap): ID
+	4: CopyLoc[22](loc13: &mut Position<Ty0, Ty1, Position>)
+	5: FreezeRef
+	6: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	7: Eq
+	8: BrFalse(10)
+B1:
+	9: Branch(26)
+B2:
+	10: MoveLoc[3](Arg3: &PriceCollection)
+	11: Pop
+	12: MoveLoc[22](loc13: &mut Position<Ty0, Ty1, Position>)
+	13: Pop
+	14: MoveLoc[4](Arg4: &DebtInfo)
+	15: Pop
+	16: MoveLoc[1](Arg1: &mut PositionConfig)
+	17: Pop
+	18: MoveLoc[8](Arg8: &Clock)
+	19: Pop
+	20: MoveLoc[5](Arg5: &mut Pool<Ty0, Ty1>)
+	21: Pop
+	22: MoveLoc[6](Arg6: &GlobalConfig)
+	23: Pop
+	24: LdU64(7)
+	25: Abort
+B3:
+	26: MoveLoc[22](loc13: &mut Position<Ty0, Ty1, Position>)
+	27: StLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	28: MoveLoc[1](Arg1: &mut PositionConfig)
+	29: StLoc[9](loc0: &mut PositionConfig)
+	30: MoveLoc[5](Arg5: &mut Pool<Ty0, Ty1>)
+	31: StLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	32: CopyLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	33: FreezeRef
+	34: CopyLoc[9](loc0: &mut PositionConfig)
+	35: FreezeRef
+	36: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	37: CopyLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	38: FreezeRef
+	39: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	40: CopyLoc[9](loc0: &mut PositionConfig)
+	41: FreezeRef
+	42: Call object::id<PositionConfig>(&PositionConfig): ID
+	43: Eq
+	44: BrFalse(46)
+B4:
+	45: Branch(62)
+B5:
+	46: MoveLoc[3](Arg3: &PriceCollection)
+	47: Pop
+	48: MoveLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	49: Pop
+	50: MoveLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	51: Pop
+	52: MoveLoc[4](Arg4: &DebtInfo)
+	53: Pop
+	54: MoveLoc[9](loc0: &mut PositionConfig)
+	55: Pop
+	56: MoveLoc[8](Arg8: &Clock)
+	57: Pop
+	58: MoveLoc[6](Arg6: &GlobalConfig)
+	59: Pop
+	60: LdU64(4)
+	61: Abort
+B6:
+	62: CopyLoc[9](loc0: &mut PositionConfig)
+	63: FreezeRef
+	64: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	65: CopyLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	66: FreezeRef
+	67: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	68: Eq
+	69: BrFalse(71)
+B7:
+	70: Branch(87)
+B8:
+	71: MoveLoc[3](Arg3: &PriceCollection)
+	72: Pop
+	73: MoveLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	74: Pop
+	75: MoveLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	76: Pop
+	77: MoveLoc[4](Arg4: &DebtInfo)
+	78: Pop
+	79: MoveLoc[9](loc0: &mut PositionConfig)
+	80: Pop
+	81: MoveLoc[8](Arg8: &Clock)
+	82: Pop
+	83: MoveLoc[6](Arg6: &GlobalConfig)
+	84: Pop
+	85: LdU64(5)
+	86: Abort
+B9:
+	87: CopyLoc[9](loc0: &mut PositionConfig)
+	88: FreezeRef
+	89: Call position_core_clmm::add_liquidity_disabled(&PositionConfig): bool
+	90: Not
+	91: BrFalse(93)
+B10:
+	92: Branch(109)
+B11:
+	93: MoveLoc[3](Arg3: &PriceCollection)
+	94: Pop
+	95: MoveLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	96: Pop
+	97: MoveLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	98: Pop
+	99: MoveLoc[4](Arg4: &DebtInfo)
+	100: Pop
+	101: MoveLoc[9](loc0: &mut PositionConfig)
+	102: Pop
+	103: MoveLoc[8](Arg8: &Clock)
+	104: Pop
+	105: MoveLoc[6](Arg6: &GlobalConfig)
+	106: Pop
+	107: LdU64(25)
+	108: Abort
+B12:
+	109: CopyLoc[9](loc0: &mut PositionConfig)
+	110: FreezeRef
+	111: MoveLoc[3](Arg3: &PriceCollection)
+	112: Call position_core_clmm::validate_price_info(&PositionConfig, &PriceCollection): ValidatedPrices
+	113: StLoc[26](loc17: ValidatedPrices)
+	114: CopyLoc[9](loc0: &mut PositionConfig)
+	115: FreezeRef
+	116: MoveLoc[4](Arg4: &DebtInfo)
+	117: Call position_core_clmm::validate_debt_info(&PositionConfig, &DebtInfo): ValidatedDebtInfo
+	118: StLoc[10](loc1: ValidatedDebtInfo)
+	119: CopyLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	120: FreezeRef
+	121: Call pool::current_sqrt_price<Ty0, Ty1>(&Pool<Ty0, Ty1>): u128
+	122: StLoc[32](loc23: u128)
+	123: MoveLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	124: StLoc[20](loc11: &mut Pool<Ty0, Ty1>)
+	125: CopyLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	126: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	127: StLoc[18](loc9: &mut Position)
+	128: MoveLoc[6](Arg6: &GlobalConfig)
+	129: MoveLoc[20](loc11: &mut Pool<Ty0, Ty1>)
+	130: MoveLoc[18](loc9: &mut Position)
+	131: CopyLoc[7](Arg7: u128)
+	132: MoveLoc[8](Arg8: &Clock)
+	133: Call pool::add_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &mut Position, u128, &Clock): AddLiquidityReceipt<Ty0, Ty1>
+	134: StLoc[29](loc20: AddLiquidityReceipt<Ty0, Ty1>)
+	135: ImmBorrowLoc[29](loc20: AddLiquidityReceipt<Ty0, Ty1>)
+	136: Call pool::add_liquidity_pay_amount<Ty0, Ty1>(&AddLiquidityReceipt<Ty0, Ty1>): u64 * u64
+	137: StLoc[14](loc5: u64)
+	138: StLoc[12](loc3: u64)
+	139: MoveLoc[7](Arg7: u128)
+	140: MoveLoc[12](loc3: u64)
+	141: MoveLoc[14](loc5: u64)
+	142: MoveLoc[29](loc20: AddLiquidityReceipt<Ty0, Ty1>)
+	143: StLoc[30](loc21: AddLiquidityReceipt<Ty0, Ty1>)
+	144: StLoc[15](loc6: u64)
+	145: StLoc[13](loc4: u64)
+	146: StLoc[11](loc2: u128)
+	147: CopyLoc[9](loc0: &mut PositionConfig)
+	148: CopyLoc[11](loc2: u128)
+	149: Call position_core_clmm::increase_current_global_l(&mut PositionConfig, u128)
+	150: CopyLoc[9](loc0: &mut PositionConfig)
+	151: FreezeRef
+	152: Call position_core_clmm::current_global_l(&PositionConfig): u128
+	153: CopyLoc[9](loc0: &mut PositionConfig)
+	154: FreezeRef
+	155: Call position_core_clmm::max_global_l(&PositionConfig): u128
+	156: Le
+	157: BrFalse(159)
+B13:
+	158: Branch(165)
+B14:
+	159: MoveLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	160: Pop
+	161: MoveLoc[9](loc0: &mut PositionConfig)
+	162: Pop
+	163: LdU64(14)
+	164: Abort
+B15:
+	165: CopyLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	166: FreezeRef
+	167: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	168: Call position::liquidity(&Position): u128
+	169: CopyLoc[9](loc0: &mut PositionConfig)
+	170: FreezeRef
+	171: Call position_core_clmm::max_position_l(&PositionConfig): u128
+	172: Le
+	173: BrFalse(175)
+B16:
+	174: Branch(181)
+B17:
+	175: MoveLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	176: Pop
+	177: MoveLoc[9](loc0: &mut PositionConfig)
+	178: Pop
+	179: LdU64(13)
+	180: Abort
+B18:
+	181: CopyLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	182: FreezeRef
+	183: StLoc[23](loc14: &Position<Ty0, Ty1, Position>)
+	184: CopyLoc[23](loc14: &Position<Ty0, Ty1, Position>)
+	185: StLoc[24](loc15: &Position<Ty0, Ty1, Position>)
+	186: CopyLoc[24](loc15: &Position<Ty0, Ty1, Position>)
+	187: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	188: Call position::tick_range(&Position): I32 * I32
+	189: StLoc[33](loc24: I32)
+	190: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	191: MoveLoc[33](loc24: I32)
+	192: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	193: MoveLoc[24](loc15: &Position<Ty0, Ty1, Position>)
+	194: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	195: Call position::liquidity(&Position): u128
+	196: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	197: StLoc[31](loc22: LpShape)
+	198: MoveLoc[23](loc14: &Position<Ty0, Ty1, Position>)
+	199: ImmBorrowLoc[10](loc1: ValidatedDebtInfo)
+	200: MoveLoc[31](loc22: LpShape)
+	201: Call position_core_clmm::position_model_from_lp_shape<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &ValidatedDebtInfo, LpShape): PositionModel
+	202: StLoc[19](loc10: PositionModel)
+	203: ImmBorrowLoc[26](loc17: ValidatedPrices)
+	204: Call type_name::with_defining_ids<Ty0>(): TypeName
+	205: Call type_name::with_defining_ids<Ty1>(): TypeName
+	206: Call oracle_price::div_price_numeric_x128(&ValidatedPrices, TypeName, TypeName): u256
+	207: StLoc[27](loc18: u256)
+	208: ImmBorrowLoc[19](loc10: PositionModel)
+	209: MoveLoc[27](loc18: u256)
+	210: MoveLoc[9](loc0: &mut PositionConfig)
+	211: FreezeRef
+	212: Call position_core_clmm::deleverage_margin_bps(&PositionConfig): u16
+	213: Call position_model_clmm::margin_below_threshold(&PositionModel, u256, u16): bool
+	214: Not
+	215: BrFalse(217)
+B19:
+	216: Branch(221)
+B20:
+	217: MoveLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	218: Pop
+	219: LdU64(11)
+	220: Abort
+B21:
+	221: MoveLoc[25](loc16: &mut Position<Ty0, Ty1, Position>)
+	222: FreezeRef
+	223: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	224: MoveLoc[32](loc23: u128)
+	225: MoveLoc[11](loc2: u128)
+	226: MoveLoc[13](loc4: u64)
+	227: MoveLoc[15](loc6: u64)
+	228: Call position_core_clmm::add_liquidity_info_constructor(ID, u128, u128, u64, u64): AddLiquidityInfo
+	229: StLoc[17](loc8: AddLiquidityInfo)
+	230: MoveLoc[30](loc21: AddLiquidityReceipt<Ty0, Ty1>)
+	231: MoveLoc[17](loc8: AddLiquidityInfo)
+	232: StLoc[16](loc7: AddLiquidityInfo)
+	233: StLoc[28](loc19: AddLiquidityReceipt<Ty0, Ty1>)
+	234: ImmBorrowLoc[16](loc7: AddLiquidityInfo)
+	235: Call position_core_clmm::ali_delta_l(&AddLiquidityInfo): u128
+	236: LdU128(0)
+	237: Gt
+	238: BrFalse(241)
+B22:
+	239: MoveLoc[16](loc7: AddLiquidityInfo)
+	240: Call position_core_clmm::ali_emit(AddLiquidityInfo)
+B23:
+	241: MoveLoc[28](loc19: AddLiquidityReceipt<Ty0, Ty1>)
+	242: Ret
+}
+
+public add_liquidity_fix_coin<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &PositionCap, Arg3: &PythPriceInfo, Arg4: &DebtInfo, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: u64, Arg8: bool, Arg9: &Clock): AddLiquidityReceipt<Ty0, Ty1> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public repay_debt_x<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionCap, Arg2: &mut Balance<Ty0>, Arg3: &mut SupplyPool<Ty0, Ty2>, Arg4: &Clock) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: MoveLoc[1](Arg1: &PositionCap)
+	2: MoveLoc[2](Arg2: &mut Balance<Ty0>)
+	3: MoveLoc[3](Arg3: &mut SupplyPool<Ty0, Ty2>)
+	4: MoveLoc[4](Arg4: &Clock)
+	5: Call position_core_clmm::repay_debt_x<Ty0, Ty1, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionCap, &mut Balance<Ty0>, &mut SupplyPool<Ty0, Ty2>, &Clock)
+	6: Ret
+}
+
+public repay_debt_y<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionCap, Arg2: &mut Balance<Ty1>, Arg3: &mut SupplyPool<Ty1, Ty2>, Arg4: &Clock) {
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: MoveLoc[1](Arg1: &PositionCap)
+	2: MoveLoc[2](Arg2: &mut Balance<Ty1>)
+	3: MoveLoc[3](Arg3: &mut SupplyPool<Ty1, Ty2>)
+	4: MoveLoc[4](Arg4: &Clock)
+	5: Call position_core_clmm::repay_debt_y<Ty0, Ty1, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionCap, &mut Balance<Ty1>, &mut SupplyPool<Ty1, Ty2>, &Clock)
+	6: Ret
+}
+
+public owner_collect_fee<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PositionCap, Arg3: &mut Pool<Ty0, Ty1>, Arg4: &GlobalConfig): Balance<Ty0> * Balance<Ty1> {
+L5:	loc0: &PositionCap
+L6:	loc1: u64
+L7:	loc2: u64
+L8:	loc3: &PositionConfig
+L9:	loc4: &mut Position
+L10:	loc5: &mut Pool<Ty0, Ty1>
+L11:	loc6: &mut Position<Ty0, Ty1, Position>
+L12:	loc7: Balance<Ty0>
+L13:	loc8: Balance<Ty0>
+L14:	loc9: u64
+L15:	loc10: Balance<Ty1>
+L16:	loc11: Balance<Ty1>
+L17:	loc12: u64
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: StLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	2: MoveLoc[1](Arg1: &PositionConfig)
+	3: StLoc[8](loc3: &PositionConfig)
+	4: MoveLoc[2](Arg2: &PositionCap)
+	5: StLoc[5](loc0: &PositionCap)
+	6: CopyLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	7: FreezeRef
+	8: CopyLoc[8](loc3: &PositionConfig)
+	9: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	10: CopyLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	11: FreezeRef
+	12: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	13: CopyLoc[8](loc3: &PositionConfig)
+	14: Call object::id<PositionConfig>(&PositionConfig): ID
+	15: Eq
+	16: BrFalse(18)
+B1:
+	17: Branch(30)
+B2:
+	18: MoveLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	19: Pop
+	20: MoveLoc[8](loc3: &PositionConfig)
+	21: Pop
+	22: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	23: Pop
+	24: MoveLoc[4](Arg4: &GlobalConfig)
+	25: Pop
+	26: MoveLoc[5](loc0: &PositionCap)
+	27: Pop
+	28: LdU64(4)
+	29: Abort
+B3:
+	30: MoveLoc[5](loc0: &PositionCap)
+	31: Call position_core_clmm::pc_position_id(&PositionCap): ID
+	32: CopyLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	33: FreezeRef
+	34: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	35: Eq
+	36: BrFalse(38)
+B4:
+	37: Branch(48)
+B5:
+	38: MoveLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	39: Pop
+	40: MoveLoc[8](loc3: &PositionConfig)
+	41: Pop
+	42: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	43: Pop
+	44: MoveLoc[4](Arg4: &GlobalConfig)
+	45: Pop
+	46: LdU64(7)
+	47: Abort
+B6:
+	48: CopyLoc[8](loc3: &PositionConfig)
+	49: Call position_core_clmm::owner_collect_fee_disabled(&PositionConfig): bool
+	50: Not
+	51: BrFalse(53)
+B7:
+	52: Branch(63)
+B8:
+	53: MoveLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	54: Pop
+	55: MoveLoc[8](loc3: &PositionConfig)
+	56: Pop
+	57: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	58: Pop
+	59: MoveLoc[4](Arg4: &GlobalConfig)
+	60: Pop
+	61: LdU64(26)
+	62: Abort
+B9:
+	63: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	64: StLoc[10](loc5: &mut Pool<Ty0, Ty1>)
+	65: CopyLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	66: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	67: StLoc[9](loc4: &mut Position)
+	68: MoveLoc[4](Arg4: &GlobalConfig)
+	69: MoveLoc[10](loc5: &mut Pool<Ty0, Ty1>)
+	70: MoveLoc[9](loc4: &mut Position)
+	71: FreezeRef
+	72: LdTrue
+	73: Call pool::collect_fee<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &Position, bool): Balance<Ty0> * Balance<Ty1>
+	74: StLoc[15](loc10: Balance<Ty1>)
+	75: StLoc[12](loc7: Balance<Ty0>)
+	76: ImmBorrowLoc[12](loc7: Balance<Ty0>)
+	77: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	78: StLoc[6](loc1: u64)
+	79: ImmBorrowLoc[15](loc10: Balance<Ty1>)
+	80: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	81: StLoc[7](loc2: u64)
+	82: CopyLoc[6](loc1: u64)
+	83: CopyLoc[8](loc3: &PositionConfig)
+	84: Call position_core_clmm::rebalance_fee_bps(&PositionConfig): u16
+	85: CastU64
+	86: LdU64(10000)
+	87: Call util::muldiv(u64, u64, u64): u64
+	88: StLoc[14](loc9: u64)
+	89: MutBorrowLoc[12](loc7: Balance<Ty0>)
+	90: CopyLoc[14](loc9: u64)
+	91: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	92: StLoc[13](loc8: Balance<Ty0>)
+	93: CopyLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	94: Call position_core_clmm::collected_fees_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut BalanceBag
+	95: MoveLoc[13](loc8: Balance<Ty0>)
+	96: Call balance_bag::add<Ty0>(&mut BalanceBag, Balance<Ty0>)
+	97: CopyLoc[7](loc2: u64)
+	98: MoveLoc[8](loc3: &PositionConfig)
+	99: Call position_core_clmm::rebalance_fee_bps(&PositionConfig): u16
+	100: CastU64
+	101: LdU64(10000)
+	102: Call util::muldiv(u64, u64, u64): u64
+	103: StLoc[17](loc12: u64)
+	104: MutBorrowLoc[15](loc10: Balance<Ty1>)
+	105: CopyLoc[17](loc12: u64)
+	106: Call balance::split<Ty1>(&mut Balance<Ty1>, u64): Balance<Ty1>
+	107: StLoc[16](loc11: Balance<Ty1>)
+	108: CopyLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	109: Call position_core_clmm::collected_fees_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut BalanceBag
+	110: MoveLoc[16](loc11: Balance<Ty1>)
+	111: Call balance_bag::add<Ty1>(&mut BalanceBag, Balance<Ty1>)
+	112: MoveLoc[11](loc6: &mut Position<Ty0, Ty1, Position>)
+	113: FreezeRef
+	114: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	115: MoveLoc[6](loc1: u64)
+	116: MoveLoc[7](loc2: u64)
+	117: MoveLoc[14](loc9: u64)
+	118: MoveLoc[17](loc12: u64)
+	119: Call position_core_clmm::emit_owner_collect_fee_info(ID, u64, u64, u64, u64)
+	120: MoveLoc[12](loc7: Balance<Ty0>)
+	121: MoveLoc[15](loc10: Balance<Ty1>)
+	122: Ret
+}
+
+public owner_collect_reward<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PositionCap, Arg3: &mut Pool<Ty0, Ty1>, Arg4: &GlobalConfig, Arg5: &mut RewarderGlobalVault, Arg6: &Clock): Balance<Ty2> {
+L7:	loc0: &PositionCap
+L8:	loc1: u64
+L9:	loc2: &PositionConfig
+L10:	loc3: Balance<Ty2>
+L11:	loc4: u64
+L12:	loc5: &mut Position
+L13:	loc6: &mut Pool<Ty0, Ty1>
+L14:	loc7: &mut Position<Ty0, Ty1, Position>
+L15:	loc8: Balance<Ty2>
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: StLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	2: MoveLoc[1](Arg1: &PositionConfig)
+	3: StLoc[9](loc2: &PositionConfig)
+	4: MoveLoc[2](Arg2: &PositionCap)
+	5: StLoc[7](loc0: &PositionCap)
+	6: CopyLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	7: FreezeRef
+	8: CopyLoc[9](loc2: &PositionConfig)
+	9: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	10: CopyLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	11: FreezeRef
+	12: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	13: CopyLoc[9](loc2: &PositionConfig)
+	14: Call object::id<PositionConfig>(&PositionConfig): ID
+	15: Eq
+	16: BrFalse(18)
+B1:
+	17: Branch(34)
+B2:
+	18: MoveLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	19: Pop
+	20: MoveLoc[9](loc2: &PositionConfig)
+	21: Pop
+	22: MoveLoc[6](Arg6: &Clock)
+	23: Pop
+	24: MoveLoc[5](Arg5: &mut RewarderGlobalVault)
+	25: Pop
+	26: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	27: Pop
+	28: MoveLoc[4](Arg4: &GlobalConfig)
+	29: Pop
+	30: MoveLoc[7](loc0: &PositionCap)
+	31: Pop
+	32: LdU64(4)
+	33: Abort
+B3:
+	34: MoveLoc[7](loc0: &PositionCap)
+	35: Call position_core_clmm::pc_position_id(&PositionCap): ID
+	36: CopyLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	37: FreezeRef
+	38: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	39: Eq
+	40: BrFalse(42)
+B4:
+	41: Branch(56)
+B5:
+	42: MoveLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	43: Pop
+	44: MoveLoc[9](loc2: &PositionConfig)
+	45: Pop
+	46: MoveLoc[6](Arg6: &Clock)
+	47: Pop
+	48: MoveLoc[5](Arg5: &mut RewarderGlobalVault)
+	49: Pop
+	50: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	51: Pop
+	52: MoveLoc[4](Arg4: &GlobalConfig)
+	53: Pop
+	54: LdU64(7)
+	55: Abort
+B6:
+	56: CopyLoc[9](loc2: &PositionConfig)
+	57: Call position_core_clmm::owner_collect_reward_disabled(&PositionConfig): bool
+	58: Not
+	59: BrFalse(61)
+B7:
+	60: Branch(75)
+B8:
+	61: MoveLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	62: Pop
+	63: MoveLoc[9](loc2: &PositionConfig)
+	64: Pop
+	65: MoveLoc[6](Arg6: &Clock)
+	66: Pop
+	67: MoveLoc[5](Arg5: &mut RewarderGlobalVault)
+	68: Pop
+	69: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	70: Pop
+	71: MoveLoc[4](Arg4: &GlobalConfig)
+	72: Pop
+	73: LdU64(27)
+	74: Abort
+B9:
+	75: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	76: StLoc[13](loc6: &mut Pool<Ty0, Ty1>)
+	77: CopyLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	78: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	79: StLoc[12](loc5: &mut Position)
+	80: MoveLoc[4](Arg4: &GlobalConfig)
+	81: MoveLoc[13](loc6: &mut Pool<Ty0, Ty1>)
+	82: MoveLoc[12](loc5: &mut Position)
+	83: FreezeRef
+	84: MoveLoc[5](Arg5: &mut RewarderGlobalVault)
+	85: LdTrue
+	86: MoveLoc[6](Arg6: &Clock)
+	87: Call pool::collect_reward<Ty0, Ty1, Ty2>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &Position, &mut RewarderGlobalVault, bool, &Clock): Balance<Ty2>
+	88: StLoc[15](loc8: Balance<Ty2>)
+	89: ImmBorrowLoc[15](loc8: Balance<Ty2>)
+	90: Call balance::value<Ty2>(&Balance<Ty2>): u64
+	91: StLoc[8](loc1: u64)
+	92: CopyLoc[8](loc1: u64)
+	93: MoveLoc[9](loc2: &PositionConfig)
+	94: Call position_core_clmm::rebalance_fee_bps(&PositionConfig): u16
+	95: CastU64
+	96: LdU64(10000)
+	97: Call util::muldiv(u64, u64, u64): u64
+	98: StLoc[11](loc4: u64)
+	99: MutBorrowLoc[15](loc8: Balance<Ty2>)
+	100: CopyLoc[11](loc4: u64)
+	101: Call balance::split<Ty2>(&mut Balance<Ty2>, u64): Balance<Ty2>
+	102: StLoc[10](loc3: Balance<Ty2>)
+	103: CopyLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	104: Call position_core_clmm::collected_fees_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut BalanceBag
+	105: MoveLoc[10](loc3: Balance<Ty2>)
+	106: Call balance_bag::add<Ty2>(&mut BalanceBag, Balance<Ty2>)
+	107: MoveLoc[14](loc7: &mut Position<Ty0, Ty1, Position>)
+	108: FreezeRef
+	109: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	110: MoveLoc[8](loc1: u64)
+	111: MoveLoc[11](loc4: u64)
+	112: Call position_core_clmm::emit_owner_collect_reward_info<Ty2>(ID, u64, u64)
+	113: MoveLoc[15](loc8: Balance<Ty2>)
+	114: Ret
+}
+
+public owner_take_stashed_rewards<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionCap, Arg2: Option<u64>): Balance<Ty2> {
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: MoveLoc[1](Arg1: &PositionCap)
+	2: MoveLoc[2](Arg2: Option<u64>)
+	3: Call position_core_clmm::owner_take_stashed_rewards<Ty0, Ty1, Ty2, Position>(&mut Position<Ty0, Ty1, Position>, &PositionCap, Option<u64>): Balance<Ty2>
+	4: Ret
+}
+
+public delete_position<Ty0, Ty1>(Arg0: Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: PositionCap, Arg3: &mut Pool<Ty0, Ty1>, Arg4: &GlobalConfig, Arg5: &mut TxContext) {
+L6:	loc0: PositionCap
+L7:	loc1: ID
+L8:	loc2: Balance<Ty0>
+L9:	loc3: Balance<Ty1>
+L10:	loc4: BalanceBag
+L11:	loc5: &PositionConfig
+L12:	loc6: &mut TxContext
+L13:	loc7: FacilDebtBag
+L14:	loc8: UID
+L15:	loc9: Position
+L16:	loc10: Position
+L17:	loc11: BalanceBag
+L18:	loc12: Position<Ty0, Ty1, Position>
+L19:	loc13: ID
+B0:
+	0: MoveLoc[0](Arg0: Position<Ty0, Ty1, Position>)
+	1: StLoc[18](loc12: Position<Ty0, Ty1, Position>)
+	2: MoveLoc[1](Arg1: &PositionConfig)
+	3: StLoc[11](loc5: &PositionConfig)
+	4: MoveLoc[2](Arg2: PositionCap)
+	5: StLoc[6](loc0: PositionCap)
+	6: MoveLoc[5](Arg5: &mut TxContext)
+	7: StLoc[12](loc6: &mut TxContext)
+	8: ImmBorrowLoc[18](loc12: Position<Ty0, Ty1, Position>)
+	9: CopyLoc[11](loc5: &PositionConfig)
+	10: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	11: ImmBorrowLoc[18](loc12: Position<Ty0, Ty1, Position>)
+	12: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	13: CopyLoc[11](loc5: &PositionConfig)
+	14: Call object::id<PositionConfig>(&PositionConfig): ID
+	15: Eq
+	16: BrFalse(18)
+B1:
+	17: Branch(28)
+B2:
+	18: MoveLoc[12](loc6: &mut TxContext)
+	19: Pop
+	20: MoveLoc[11](loc5: &PositionConfig)
+	21: Pop
+	22: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	23: Pop
+	24: MoveLoc[4](Arg4: &GlobalConfig)
+	25: Pop
+	26: LdU64(4)
+	27: Abort
+B3:
+	28: ImmBorrowLoc[6](loc0: PositionCap)
+	29: Call position_core_clmm::pc_position_id(&PositionCap): ID
+	30: ImmBorrowLoc[18](loc12: Position<Ty0, Ty1, Position>)
+	31: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	32: Eq
+	33: BrFalse(35)
+B4:
+	34: Branch(45)
+B5:
+	35: MoveLoc[12](loc6: &mut TxContext)
+	36: Pop
+	37: MoveLoc[11](loc5: &PositionConfig)
+	38: Pop
+	39: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	40: Pop
+	41: MoveLoc[4](Arg4: &GlobalConfig)
+	42: Pop
+	43: LdU64(7)
+	44: Abort
+B6:
+	45: ImmBorrowLoc[18](loc12: Position<Ty0, Ty1, Position>)
+	46: Call position_core_clmm::ticket_active<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): bool
+	47: LdFalse
+	48: Eq
+	49: BrFalse(51)
+B7:
+	50: Branch(61)
+B8:
+	51: MoveLoc[12](loc6: &mut TxContext)
+	52: Pop
+	53: MoveLoc[11](loc5: &PositionConfig)
+	54: Pop
+	55: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	56: Pop
+	57: MoveLoc[4](Arg4: &GlobalConfig)
+	58: Pop
+	59: LdU64(8)
+	60: Abort
+B9:
+	61: MoveLoc[11](loc5: &PositionConfig)
+	62: Call position_core_clmm::delete_position_disabled(&PositionConfig): bool
+	63: Not
+	64: BrFalse(66)
+B10:
+	65: Branch(74)
+B11:
+	66: MoveLoc[12](loc6: &mut TxContext)
+	67: Pop
+	68: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	69: Pop
+	70: MoveLoc[4](Arg4: &GlobalConfig)
+	71: Pop
+	72: LdU64(28)
+	73: Abort
+B12:
+	74: MoveLoc[18](loc12: Position<Ty0, Ty1, Position>)
+	75: Call position_core_clmm::position_deconstructor<Ty0, Ty1, Position>(Position<Ty0, Ty1, Position>): UID * ID * Position * Balance<Ty0> * Balance<Ty1> * FacilDebtBag * BalanceBag * BalanceBag * bool * u16
+	76: Pop
+	77: Pop
+	78: StLoc[17](loc11: BalanceBag)
+	79: StLoc[10](loc4: BalanceBag)
+	80: StLoc[13](loc7: FacilDebtBag)
+	81: StLoc[9](loc3: Balance<Ty1>)
+	82: StLoc[8](loc2: Balance<Ty0>)
+	83: StLoc[15](loc9: Position)
+	84: Pop
+	85: Call object::delete(UID)
+	86: MoveLoc[15](loc9: Position)
+	87: StLoc[16](loc10: Position)
+	88: MoveLoc[4](Arg4: &GlobalConfig)
+	89: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	90: MoveLoc[16](loc10: Position)
+	91: Call pool::close_position<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, Position)
+	92: MoveLoc[8](loc2: Balance<Ty0>)
+	93: Call balance::destroy_zero<Ty0>(Balance<Ty0>)
+	94: MoveLoc[9](loc3: Balance<Ty1>)
+	95: Call balance::destroy_zero<Ty1>(Balance<Ty1>)
+	96: MoveLoc[13](loc7: FacilDebtBag)
+	97: Call supply_pool::fdb_destroy_empty(FacilDebtBag)
+	98: MoveLoc[17](loc11: BalanceBag)
+	99: Call balance_bag::destroy_empty(BalanceBag)
+	100: MoveLoc[6](loc0: PositionCap)
+	101: Call position_core_clmm::position_cap_deconstructor(PositionCap): UID * ID
+	102: StLoc[19](loc13: ID)
+	103: StLoc[14](loc8: UID)
+	104: ImmBorrowLoc[14](loc8: UID)
+	105: Call object::uid_to_inner(&UID): ID
+	106: StLoc[7](loc1: ID)
+	107: MoveLoc[14](loc8: UID)
+	108: Call object::delete(UID)
+	109: ImmBorrowLoc[10](loc4: BalanceBag)
+	110: Call balance_bag::is_empty(&BalanceBag): bool
+	111: BrFalse(117)
+B13:
+	112: MoveLoc[12](loc6: &mut TxContext)
+	113: Pop
+	114: MoveLoc[10](loc4: BalanceBag)
+	115: Call balance_bag::destroy_empty(BalanceBag)
+	116: Branch(121)
+B14:
+	117: CopyLoc[19](loc13: ID)
+	118: MoveLoc[10](loc4: BalanceBag)
+	119: MoveLoc[12](loc6: &mut TxContext)
+	120: Call position_core_clmm::share_deleted_position_collected_fees(ID, BalanceBag, &mut TxContext)
+B15:
+	121: MoveLoc[19](loc13: ID)
+	122: MoveLoc[7](loc1: ID)
+	123: Call position_core_clmm::emit_delete_position_info(ID, ID)
+	124: Ret
+}
+
+public rebalance_collect_fee<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &mut RebalanceReceipt, Arg3: &mut Pool<Ty0, Ty1>, Arg4: &GlobalConfig): Balance<Ty0> * Balance<Ty1> {
+L5:	loc0: &PositionConfig
+L6:	loc1: &mut Position
+L7:	loc2: &mut Pool<Ty0, Ty1>
+L8:	loc3: &mut Position<Ty0, Ty1, Position>
+L9:	loc4: &mut RebalanceReceipt
+L10:	loc5: Balance<Ty0>
+L11:	loc6: Balance<Ty1>
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: StLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	2: MoveLoc[1](Arg1: &PositionConfig)
+	3: StLoc[5](loc0: &PositionConfig)
+	4: MoveLoc[2](Arg2: &mut RebalanceReceipt)
+	5: StLoc[9](loc4: &mut RebalanceReceipt)
+	6: CopyLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	7: FreezeRef
+	8: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	9: CopyLoc[5](loc0: &PositionConfig)
+	10: Call object::id<PositionConfig>(&PositionConfig): ID
+	11: Eq
+	12: BrFalse(14)
+B1:
+	13: Branch(26)
+B2:
+	14: MoveLoc[9](loc4: &mut RebalanceReceipt)
+	15: Pop
+	16: MoveLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	17: Pop
+	18: MoveLoc[5](loc0: &PositionConfig)
+	19: Pop
+	20: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	21: Pop
+	22: MoveLoc[4](Arg4: &GlobalConfig)
+	23: Pop
+	24: LdU64(4)
+	25: Abort
+B3:
+	26: CopyLoc[9](loc4: &mut RebalanceReceipt)
+	27: FreezeRef
+	28: Call position_core_clmm::rr_position_id(&RebalanceReceipt): ID
+	29: CopyLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	30: FreezeRef
+	31: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	32: Eq
+	33: BrFalse(35)
+B4:
+	34: Branch(47)
+B5:
+	35: MoveLoc[9](loc4: &mut RebalanceReceipt)
+	36: Pop
+	37: MoveLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	38: Pop
+	39: MoveLoc[5](loc0: &PositionConfig)
+	40: Pop
+	41: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	42: Pop
+	43: MoveLoc[4](Arg4: &GlobalConfig)
+	44: Pop
+	45: LdU64(9)
+	46: Abort
+B6:
+	47: CopyLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	48: FreezeRef
+	49: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	50: CopyLoc[5](loc0: &PositionConfig)
+	51: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	52: Eq
+	53: BrFalse(55)
+B7:
+	54: Branch(67)
+B8:
+	55: MoveLoc[9](loc4: &mut RebalanceReceipt)
+	56: Pop
+	57: MoveLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	58: Pop
+	59: MoveLoc[5](loc0: &PositionConfig)
+	60: Pop
+	61: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	62: Pop
+	63: MoveLoc[4](Arg4: &GlobalConfig)
+	64: Pop
+	65: LdU64(5)
+	66: Abort
+B9:
+	67: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	68: StLoc[7](loc2: &mut Pool<Ty0, Ty1>)
+	69: CopyLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	70: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	71: StLoc[6](loc1: &mut Position)
+	72: MoveLoc[4](Arg4: &GlobalConfig)
+	73: MoveLoc[7](loc2: &mut Pool<Ty0, Ty1>)
+	74: MoveLoc[6](loc1: &mut Position)
+	75: FreezeRef
+	76: LdTrue
+	77: Call pool::collect_fee<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &Position, bool): Balance<Ty0> * Balance<Ty1>
+	78: StLoc[11](loc6: Balance<Ty1>)
+	79: StLoc[10](loc5: Balance<Ty0>)
+	80: CopyLoc[9](loc4: &mut RebalanceReceipt)
+	81: ImmBorrowLoc[10](loc5: Balance<Ty0>)
+	82: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	83: Call position_core_clmm::increase_collected_amm_fee_x(&mut RebalanceReceipt, u64)
+	84: CopyLoc[9](loc4: &mut RebalanceReceipt)
+	85: ImmBorrowLoc[11](loc6: Balance<Ty1>)
+	86: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	87: Call position_core_clmm::increase_collected_amm_fee_y(&mut RebalanceReceipt, u64)
+	88: CopyLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	89: CopyLoc[5](loc0: &PositionConfig)
+	90: Call position_core_clmm::rebalance_fee_bps(&PositionConfig): u16
+	91: MutBorrowLoc[10](loc5: Balance<Ty0>)
+	92: CopyLoc[9](loc4: &mut RebalanceReceipt)
+	93: Call position_core_clmm::take_rebalance_fee<Ty0, Ty1, Position, Ty0>(&mut Position<Ty0, Ty1, Position>, u16, &mut Balance<Ty0>, &mut RebalanceReceipt)
+	94: MoveLoc[8](loc3: &mut Position<Ty0, Ty1, Position>)
+	95: MoveLoc[5](loc0: &PositionConfig)
+	96: Call position_core_clmm::rebalance_fee_bps(&PositionConfig): u16
+	97: MutBorrowLoc[11](loc6: Balance<Ty1>)
+	98: MoveLoc[9](loc4: &mut RebalanceReceipt)
+	99: Call position_core_clmm::take_rebalance_fee<Ty0, Ty1, Position, Ty1>(&mut Position<Ty0, Ty1, Position>, u16, &mut Balance<Ty1>, &mut RebalanceReceipt)
+	100: MoveLoc[10](loc5: Balance<Ty0>)
+	101: MoveLoc[11](loc6: Balance<Ty1>)
+	102: Ret
+}
+
+public rebalance_collect_reward<Ty0, Ty1, Ty2>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &mut RebalanceReceipt, Arg3: &mut Pool<Ty0, Ty1>, Arg4: &GlobalConfig, Arg5: &mut RewarderGlobalVault, Arg6: &Clock): Balance<Ty2> {
+L7:	loc0: &PositionConfig
+L8:	loc1: &mut Position
+L9:	loc2: &mut Pool<Ty0, Ty1>
+L10:	loc3: &mut Position<Ty0, Ty1, Position>
+L11:	loc4: &mut RebalanceReceipt
+L12:	loc5: Balance<Ty2>
+B0:
+	0: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: StLoc[10](loc3: &mut Position<Ty0, Ty1, Position>)
+	2: MoveLoc[1](Arg1: &PositionConfig)
+	3: StLoc[7](loc0: &PositionConfig)
+	4: MoveLoc[2](Arg2: &mut RebalanceReceipt)
+	5: StLoc[11](loc4: &mut RebalanceReceipt)
+	6: CopyLoc[10](loc3: &mut Position<Ty0, Ty1, Position>)
+	7: FreezeRef
+	8: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	9: CopyLoc[7](loc0: &PositionConfig)
+	10: Call object::id<PositionConfig>(&PositionConfig): ID
+	11: Eq
+	12: BrFalse(14)
+B1:
+	13: Branch(30)
+B2:
+	14: MoveLoc[11](loc4: &mut RebalanceReceipt)
+	15: Pop
+	16: MoveLoc[10](loc3: &mut Position<Ty0, Ty1, Position>)
+	17: Pop
+	18: MoveLoc[7](loc0: &PositionConfig)
+	19: Pop
+	20: MoveLoc[6](Arg6: &Clock)
+	21: Pop
+	22: MoveLoc[5](Arg5: &mut RewarderGlobalVault)
+	23: Pop
+	24: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	25: Pop
+	26: MoveLoc[4](Arg4: &GlobalConfig)
+	27: Pop
+	28: LdU64(4)
+	29: Abort
+B3:
+	30: CopyLoc[11](loc4: &mut RebalanceReceipt)
+	31: FreezeRef
+	32: Call position_core_clmm::rr_position_id(&RebalanceReceipt): ID
+	33: CopyLoc[10](loc3: &mut Position<Ty0, Ty1, Position>)
+	34: FreezeRef
+	35: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	36: Eq
+	37: BrFalse(39)
+B4:
+	38: Branch(55)
+B5:
+	39: MoveLoc[11](loc4: &mut RebalanceReceipt)
+	40: Pop
+	41: MoveLoc[10](loc3: &mut Position<Ty0, Ty1, Position>)
+	42: Pop
+	43: MoveLoc[7](loc0: &PositionConfig)
+	44: Pop
+	45: MoveLoc[6](Arg6: &Clock)
+	46: Pop
+	47: MoveLoc[5](Arg5: &mut RewarderGlobalVault)
+	48: Pop
+	49: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	50: Pop
+	51: MoveLoc[4](Arg4: &GlobalConfig)
+	52: Pop
+	53: LdU64(9)
+	54: Abort
+B6:
+	55: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	56: StLoc[9](loc2: &mut Pool<Ty0, Ty1>)
+	57: CopyLoc[10](loc3: &mut Position<Ty0, Ty1, Position>)
+	58: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	59: StLoc[8](loc1: &mut Position)
+	60: MoveLoc[4](Arg4: &GlobalConfig)
+	61: MoveLoc[9](loc2: &mut Pool<Ty0, Ty1>)
+	62: MoveLoc[8](loc1: &mut Position)
+	63: FreezeRef
+	64: MoveLoc[5](Arg5: &mut RewarderGlobalVault)
+	65: LdTrue
+	66: MoveLoc[6](Arg6: &Clock)
+	67: Call pool::collect_reward<Ty0, Ty1, Ty2>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &Position, &mut RewarderGlobalVault, bool, &Clock): Balance<Ty2>
+	68: StLoc[12](loc5: Balance<Ty2>)
+	69: CopyLoc[11](loc4: &mut RebalanceReceipt)
+	70: Call position_core_clmm::collected_amm_rewards_mut(&mut RebalanceReceipt): &mut VecMap<TypeName, u64>
+	71: ImmBorrowLoc[12](loc5: Balance<Ty2>)
+	72: Call balance::value<Ty2>(&Balance<Ty2>): u64
+	73: Call position_core_clmm::add_amount_to_map<Ty2>(&mut VecMap<TypeName, u64>, u64)
+	74: MoveLoc[10](loc3: &mut Position<Ty0, Ty1, Position>)
+	75: MoveLoc[7](loc0: &PositionConfig)
+	76: Call position_core_clmm::rebalance_fee_bps(&PositionConfig): u16
+	77: MutBorrowLoc[12](loc5: Balance<Ty2>)
+	78: MoveLoc[11](loc4: &mut RebalanceReceipt)
+	79: Call position_core_clmm::take_rebalance_fee<Ty0, Ty1, Position, Ty2>(&mut Position<Ty0, Ty1, Position>, u16, &mut Balance<Ty2>, &mut RebalanceReceipt)
+	80: MoveLoc[12](loc5: Balance<Ty2>)
+	81: Ret
+}
+
+public rebalance_add_liquidity<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &mut RebalanceReceipt, Arg3: &PythPriceInfo, Arg4: &DebtInfo, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: u128, Arg8: &Clock): AddLiquidityReceipt<Ty0, Ty1> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public rebalance_add_liquidity_v2<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &mut RebalanceReceipt, Arg3: &PriceCollection, Arg4: &DebtInfo, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: u128, Arg8: &Clock): AddLiquidityReceipt<Ty0, Ty1> {
+L9:	loc0: AddLiquidityReceipt<Ty0, Ty1>
+L10:	loc1: &mut PositionConfig
+L11:	loc2: ValidatedDebtInfo
+L12:	loc3: u128
+L13:	loc4: u64
+L14:	loc5: u64
+L15:	loc6: u64
+L16:	loc7: u64
+L17:	loc8: AddLiquidityInfo
+L18:	loc9: AddLiquidityInfo
+L19:	loc10: &mut Position
+L20:	loc11: PositionModel
+L21:	loc12: &mut Pool<Ty0, Ty1>
+L22:	loc13: &mut Pool<Ty0, Ty1>
+L23:	loc14: &mut Position<Ty0, Ty1, Position>
+L24:	loc15: &Position<Ty0, Ty1, Position>
+L25:	loc16: &Position<Ty0, Ty1, Position>
+L26:	loc17: &mut Position<Ty0, Ty1, Position>
+L27:	loc18: ValidatedPrices
+L28:	loc19: u256
+L29:	loc20: &mut RebalanceReceipt
+L30:	loc21: AddLiquidityReceipt<Ty0, Ty1>
+L31:	loc22: AddLiquidityReceipt<Ty0, Ty1>
+L32:	loc23: LpShape
+L33:	loc24: u128
+L34:	loc25: I32
+B0:
+	0: MoveLoc[2](Arg2: &mut RebalanceReceipt)
+	1: StLoc[29](loc20: &mut RebalanceReceipt)
+	2: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	3: StLoc[23](loc14: &mut Position<Ty0, Ty1, Position>)
+	4: CopyLoc[29](loc20: &mut RebalanceReceipt)
+	5: FreezeRef
+	6: Call position_core_clmm::rr_position_id(&RebalanceReceipt): ID
+	7: CopyLoc[23](loc14: &mut Position<Ty0, Ty1, Position>)
+	8: FreezeRef
+	9: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	10: Eq
+	11: BrFalse(13)
+B1:
+	12: Branch(31)
+B2:
+	13: MoveLoc[29](loc20: &mut RebalanceReceipt)
+	14: Pop
+	15: MoveLoc[3](Arg3: &PriceCollection)
+	16: Pop
+	17: MoveLoc[23](loc14: &mut Position<Ty0, Ty1, Position>)
+	18: Pop
+	19: MoveLoc[4](Arg4: &DebtInfo)
+	20: Pop
+	21: MoveLoc[1](Arg1: &mut PositionConfig)
+	22: Pop
+	23: MoveLoc[8](Arg8: &Clock)
+	24: Pop
+	25: MoveLoc[5](Arg5: &mut Pool<Ty0, Ty1>)
+	26: Pop
+	27: MoveLoc[6](Arg6: &GlobalConfig)
+	28: Pop
+	29: LdU64(9)
+	30: Abort
+B3:
+	31: MoveLoc[23](loc14: &mut Position<Ty0, Ty1, Position>)
+	32: StLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	33: MoveLoc[1](Arg1: &mut PositionConfig)
+	34: StLoc[10](loc1: &mut PositionConfig)
+	35: MoveLoc[5](Arg5: &mut Pool<Ty0, Ty1>)
+	36: StLoc[22](loc13: &mut Pool<Ty0, Ty1>)
+	37: CopyLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	38: FreezeRef
+	39: CopyLoc[10](loc1: &mut PositionConfig)
+	40: FreezeRef
+	41: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	42: CopyLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	43: FreezeRef
+	44: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	45: CopyLoc[10](loc1: &mut PositionConfig)
+	46: FreezeRef
+	47: Call object::id<PositionConfig>(&PositionConfig): ID
+	48: Eq
+	49: BrFalse(51)
+B4:
+	50: Branch(69)
+B5:
+	51: MoveLoc[29](loc20: &mut RebalanceReceipt)
+	52: Pop
+	53: MoveLoc[3](Arg3: &PriceCollection)
+	54: Pop
+	55: MoveLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	56: Pop
+	57: MoveLoc[22](loc13: &mut Pool<Ty0, Ty1>)
+	58: Pop
+	59: MoveLoc[4](Arg4: &DebtInfo)
+	60: Pop
+	61: MoveLoc[10](loc1: &mut PositionConfig)
+	62: Pop
+	63: MoveLoc[8](Arg8: &Clock)
+	64: Pop
+	65: MoveLoc[6](Arg6: &GlobalConfig)
+	66: Pop
+	67: LdU64(4)
+	68: Abort
+B6:
+	69: CopyLoc[10](loc1: &mut PositionConfig)
+	70: FreezeRef
+	71: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	72: CopyLoc[22](loc13: &mut Pool<Ty0, Ty1>)
+	73: FreezeRef
+	74: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	75: Eq
+	76: BrFalse(78)
+B7:
+	77: Branch(96)
+B8:
+	78: MoveLoc[29](loc20: &mut RebalanceReceipt)
+	79: Pop
+	80: MoveLoc[3](Arg3: &PriceCollection)
+	81: Pop
+	82: MoveLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	83: Pop
+	84: MoveLoc[22](loc13: &mut Pool<Ty0, Ty1>)
+	85: Pop
+	86: MoveLoc[4](Arg4: &DebtInfo)
+	87: Pop
+	88: MoveLoc[10](loc1: &mut PositionConfig)
+	89: Pop
+	90: MoveLoc[8](Arg8: &Clock)
+	91: Pop
+	92: MoveLoc[6](Arg6: &GlobalConfig)
+	93: Pop
+	94: LdU64(5)
+	95: Abort
+B9:
+	96: CopyLoc[10](loc1: &mut PositionConfig)
+	97: FreezeRef
+	98: Call position_core_clmm::add_liquidity_disabled(&PositionConfig): bool
+	99: Not
+	100: BrFalse(102)
+B10:
+	101: Branch(120)
+B11:
+	102: MoveLoc[29](loc20: &mut RebalanceReceipt)
+	103: Pop
+	104: MoveLoc[3](Arg3: &PriceCollection)
+	105: Pop
+	106: MoveLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	107: Pop
+	108: MoveLoc[22](loc13: &mut Pool<Ty0, Ty1>)
+	109: Pop
+	110: MoveLoc[4](Arg4: &DebtInfo)
+	111: Pop
+	112: MoveLoc[10](loc1: &mut PositionConfig)
+	113: Pop
+	114: MoveLoc[8](Arg8: &Clock)
+	115: Pop
+	116: MoveLoc[6](Arg6: &GlobalConfig)
+	117: Pop
+	118: LdU64(25)
+	119: Abort
+B12:
+	120: CopyLoc[10](loc1: &mut PositionConfig)
+	121: FreezeRef
+	122: MoveLoc[3](Arg3: &PriceCollection)
+	123: Call position_core_clmm::validate_price_info(&PositionConfig, &PriceCollection): ValidatedPrices
+	124: StLoc[27](loc18: ValidatedPrices)
+	125: CopyLoc[10](loc1: &mut PositionConfig)
+	126: FreezeRef
+	127: MoveLoc[4](Arg4: &DebtInfo)
+	128: Call position_core_clmm::validate_debt_info(&PositionConfig, &DebtInfo): ValidatedDebtInfo
+	129: StLoc[11](loc2: ValidatedDebtInfo)
+	130: CopyLoc[22](loc13: &mut Pool<Ty0, Ty1>)
+	131: FreezeRef
+	132: Call pool::current_sqrt_price<Ty0, Ty1>(&Pool<Ty0, Ty1>): u128
+	133: StLoc[33](loc24: u128)
+	134: MoveLoc[22](loc13: &mut Pool<Ty0, Ty1>)
+	135: StLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	136: CopyLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	137: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	138: StLoc[19](loc10: &mut Position)
+	139: MoveLoc[6](Arg6: &GlobalConfig)
+	140: MoveLoc[21](loc12: &mut Pool<Ty0, Ty1>)
+	141: MoveLoc[19](loc10: &mut Position)
+	142: CopyLoc[7](Arg7: u128)
+	143: MoveLoc[8](Arg8: &Clock)
+	144: Call pool::add_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &mut Position, u128, &Clock): AddLiquidityReceipt<Ty0, Ty1>
+	145: StLoc[30](loc21: AddLiquidityReceipt<Ty0, Ty1>)
+	146: ImmBorrowLoc[30](loc21: AddLiquidityReceipt<Ty0, Ty1>)
+	147: Call pool::add_liquidity_pay_amount<Ty0, Ty1>(&AddLiquidityReceipt<Ty0, Ty1>): u64 * u64
+	148: StLoc[15](loc6: u64)
+	149: StLoc[13](loc4: u64)
+	150: MoveLoc[7](Arg7: u128)
+	151: MoveLoc[13](loc4: u64)
+	152: MoveLoc[15](loc6: u64)
+	153: MoveLoc[30](loc21: AddLiquidityReceipt<Ty0, Ty1>)
+	154: StLoc[31](loc22: AddLiquidityReceipt<Ty0, Ty1>)
+	155: StLoc[16](loc7: u64)
+	156: StLoc[14](loc5: u64)
+	157: StLoc[12](loc3: u128)
+	158: CopyLoc[10](loc1: &mut PositionConfig)
+	159: CopyLoc[12](loc3: u128)
+	160: Call position_core_clmm::increase_current_global_l(&mut PositionConfig, u128)
+	161: CopyLoc[10](loc1: &mut PositionConfig)
+	162: FreezeRef
+	163: Call position_core_clmm::current_global_l(&PositionConfig): u128
+	164: CopyLoc[10](loc1: &mut PositionConfig)
+	165: FreezeRef
+	166: Call position_core_clmm::max_global_l(&PositionConfig): u128
+	167: Le
+	168: BrFalse(170)
+B13:
+	169: Branch(178)
+B14:
+	170: MoveLoc[29](loc20: &mut RebalanceReceipt)
+	171: Pop
+	172: MoveLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	173: Pop
+	174: MoveLoc[10](loc1: &mut PositionConfig)
+	175: Pop
+	176: LdU64(14)
+	177: Abort
+B15:
+	178: CopyLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	179: FreezeRef
+	180: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	181: Call position::liquidity(&Position): u128
+	182: CopyLoc[10](loc1: &mut PositionConfig)
+	183: FreezeRef
+	184: Call position_core_clmm::max_position_l(&PositionConfig): u128
+	185: Le
+	186: BrFalse(188)
+B16:
+	187: Branch(196)
+B17:
+	188: MoveLoc[29](loc20: &mut RebalanceReceipt)
+	189: Pop
+	190: MoveLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	191: Pop
+	192: MoveLoc[10](loc1: &mut PositionConfig)
+	193: Pop
+	194: LdU64(13)
+	195: Abort
+B18:
+	196: CopyLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	197: FreezeRef
+	198: StLoc[24](loc15: &Position<Ty0, Ty1, Position>)
+	199: CopyLoc[24](loc15: &Position<Ty0, Ty1, Position>)
+	200: StLoc[25](loc16: &Position<Ty0, Ty1, Position>)
+	201: CopyLoc[25](loc16: &Position<Ty0, Ty1, Position>)
+	202: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	203: Call position::tick_range(&Position): I32 * I32
+	204: StLoc[34](loc25: I32)
+	205: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	206: MoveLoc[34](loc25: I32)
+	207: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	208: MoveLoc[25](loc16: &Position<Ty0, Ty1, Position>)
+	209: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	210: Call position::liquidity(&Position): u128
+	211: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	212: StLoc[32](loc23: LpShape)
+	213: MoveLoc[24](loc15: &Position<Ty0, Ty1, Position>)
+	214: ImmBorrowLoc[11](loc2: ValidatedDebtInfo)
+	215: MoveLoc[32](loc23: LpShape)
+	216: Call position_core_clmm::position_model_from_lp_shape<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &ValidatedDebtInfo, LpShape): PositionModel
+	217: StLoc[20](loc11: PositionModel)
+	218: ImmBorrowLoc[27](loc18: ValidatedPrices)
+	219: Call type_name::with_defining_ids<Ty0>(): TypeName
+	220: Call type_name::with_defining_ids<Ty1>(): TypeName
+	221: Call oracle_price::div_price_numeric_x128(&ValidatedPrices, TypeName, TypeName): u256
+	222: StLoc[28](loc19: u256)
+	223: ImmBorrowLoc[20](loc11: PositionModel)
+	224: MoveLoc[28](loc19: u256)
+	225: MoveLoc[10](loc1: &mut PositionConfig)
+	226: FreezeRef
+	227: Call position_core_clmm::deleverage_margin_bps(&PositionConfig): u16
+	228: Call position_model_clmm::margin_below_threshold(&PositionModel, u256, u16): bool
+	229: Not
+	230: BrFalse(232)
+B19:
+	231: Branch(238)
+B20:
+	232: MoveLoc[29](loc20: &mut RebalanceReceipt)
+	233: Pop
+	234: MoveLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	235: Pop
+	236: LdU64(11)
+	237: Abort
+B21:
+	238: MoveLoc[26](loc17: &mut Position<Ty0, Ty1, Position>)
+	239: FreezeRef
+	240: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	241: MoveLoc[33](loc24: u128)
+	242: MoveLoc[12](loc3: u128)
+	243: MoveLoc[14](loc5: u64)
+	244: MoveLoc[16](loc7: u64)
+	245: Call position_core_clmm::add_liquidity_info_constructor(ID, u128, u128, u64, u64): AddLiquidityInfo
+	246: StLoc[18](loc9: AddLiquidityInfo)
+	247: MoveLoc[31](loc22: AddLiquidityReceipt<Ty0, Ty1>)
+	248: MoveLoc[18](loc9: AddLiquidityInfo)
+	249: StLoc[17](loc8: AddLiquidityInfo)
+	250: StLoc[9](loc0: AddLiquidityReceipt<Ty0, Ty1>)
+	251: CopyLoc[29](loc20: &mut RebalanceReceipt)
+	252: ImmBorrowLoc[17](loc8: AddLiquidityInfo)
+	253: Call position_core_clmm::ali_delta_l(&AddLiquidityInfo): u128
+	254: Call position_core_clmm::increase_delta_l(&mut RebalanceReceipt, u128)
+	255: CopyLoc[29](loc20: &mut RebalanceReceipt)
+	256: ImmBorrowLoc[17](loc8: AddLiquidityInfo)
+	257: Call position_core_clmm::ali_delta_x(&AddLiquidityInfo): u64
+	258: Call position_core_clmm::increase_delta_x(&mut RebalanceReceipt, u64)
+	259: MoveLoc[29](loc20: &mut RebalanceReceipt)
+	260: ImmBorrowLoc[17](loc8: AddLiquidityInfo)
+	261: Call position_core_clmm::ali_delta_y(&AddLiquidityInfo): u64
+	262: Call position_core_clmm::increase_delta_y(&mut RebalanceReceipt, u64)
+	263: MoveLoc[9](loc0: AddLiquidityReceipt<Ty0, Ty1>)
+	264: Ret
+}
+
+public rebalance_add_liquidity_by_fix_coin<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &mut RebalanceReceipt, Arg3: &PythPriceInfo, Arg4: &DebtInfo, Arg5: &mut Pool<Ty0, Ty1>, Arg6: &GlobalConfig, Arg7: u64, Arg8: bool, Arg9: &Clock): AddLiquidityReceipt<Ty0, Ty1> {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public sync_exploited_position_liquidity_by_small_withdraw<Ty0, Ty1>(Arg0: &mut Position<Ty0, Ty1, Position>, Arg1: &mut PositionConfig, Arg2: &GlobalConfig, Arg3: &mut Pool<Ty0, Ty1>, Arg4: &mut BalanceBag, Arg5: &Clock, Arg6: &mut TxContext): ActionRequest {
+L7:	loc0: Balance<Ty0>
+L8:	loc1: Balance<Ty1>
+L9:	loc2: u128
+L10:	loc3: ID
+B0:
+	0: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	1: FreezeRef
+	2: CopyLoc[1](Arg1: &mut PositionConfig)
+	3: FreezeRef
+	4: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	5: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	6: FreezeRef
+	7: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	8: CopyLoc[1](Arg1: &mut PositionConfig)
+	9: FreezeRef
+	10: Call object::id<PositionConfig>(&PositionConfig): ID
+	11: Eq
+	12: BrFalse(14)
+B1:
+	13: Branch(30)
+B2:
+	14: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	15: Pop
+	16: MoveLoc[6](Arg6: &mut TxContext)
+	17: Pop
+	18: MoveLoc[1](Arg1: &mut PositionConfig)
+	19: Pop
+	20: MoveLoc[5](Arg5: &Clock)
+	21: Pop
+	22: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	23: Pop
+	24: MoveLoc[2](Arg2: &GlobalConfig)
+	25: Pop
+	26: MoveLoc[4](Arg4: &mut BalanceBag)
+	27: Pop
+	28: LdU64(13906837893785059327)
+	29: Abort
+B3:
+	30: CopyLoc[1](Arg1: &mut PositionConfig)
+	31: FreezeRef
+	32: Call position_core_clmm::pool_object_id(&PositionConfig): ID
+	33: CopyLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	34: FreezeRef
+	35: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	36: Eq
+	37: BrFalse(39)
+B4:
+	38: Branch(55)
+B5:
+	39: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	40: Pop
+	41: MoveLoc[6](Arg6: &mut TxContext)
+	42: Pop
+	43: MoveLoc[1](Arg1: &mut PositionConfig)
+	44: Pop
+	45: MoveLoc[5](Arg5: &Clock)
+	46: Pop
+	47: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	48: Pop
+	49: MoveLoc[2](Arg2: &GlobalConfig)
+	50: Pop
+	51: MoveLoc[4](Arg4: &mut BalanceBag)
+	52: Pop
+	53: LdU64(13906837898080026623)
+	54: Abort
+B6:
+	55: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	56: FreezeRef
+	57: Call position_core_clmm::ticket_active<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): bool
+	58: LdFalse
+	59: Eq
+	60: BrFalse(62)
+B7:
+	61: Branch(78)
+B8:
+	62: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	63: Pop
+	64: MoveLoc[6](Arg6: &mut TxContext)
+	65: Pop
+	66: MoveLoc[1](Arg1: &mut PositionConfig)
+	67: Pop
+	68: MoveLoc[5](Arg5: &Clock)
+	69: Pop
+	70: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	71: Pop
+	72: MoveLoc[2](Arg2: &GlobalConfig)
+	73: Pop
+	74: MoveLoc[4](Arg4: &mut BalanceBag)
+	75: Pop
+	76: LdU64(13906837902374993919)
+	77: Abort
+B9:
+	78: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	79: FreezeRef
+	80: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	81: Call object::id<Position>(&Position): ID
+	82: StLoc[10](loc3: ID)
+	83: CopyLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	84: FreezeRef
+	85: CopyLoc[10](loc3: ID)
+	86: Call pool::is_attacked_position<Ty0, Ty1>(&Pool<Ty0, Ty1>, ID): bool
+	87: BrFalse(89)
+B10:
+	88: Branch(105)
+B11:
+	89: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	90: Pop
+	91: MoveLoc[6](Arg6: &mut TxContext)
+	92: Pop
+	93: MoveLoc[1](Arg1: &mut PositionConfig)
+	94: Pop
+	95: MoveLoc[5](Arg5: &Clock)
+	96: Pop
+	97: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	98: Pop
+	99: MoveLoc[2](Arg2: &GlobalConfig)
+	100: Pop
+	101: MoveLoc[4](Arg4: &mut BalanceBag)
+	102: Pop
+	103: LdU64(13906837915259895807)
+	104: Abort
+B12:
+	105: CopyLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	106: FreezeRef
+	107: MoveLoc[10](loc3: ID)
+	108: Call pool::borrow_position_info<Ty0, Ty1>(&Pool<Ty0, Ty1>, ID): &PositionInfo
+	109: Call position::info_liquidity(&PositionInfo): u128
+	110: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	111: FreezeRef
+	112: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	113: Call position::liquidity(&Position): u128
+	114: Neq
+	115: BrFalse(117)
+B13:
+	116: Branch(133)
+B14:
+	117: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	118: Pop
+	119: MoveLoc[6](Arg6: &mut TxContext)
+	120: Pop
+	121: MoveLoc[1](Arg1: &mut PositionConfig)
+	122: Pop
+	123: MoveLoc[5](Arg5: &Clock)
+	124: Pop
+	125: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	126: Pop
+	127: MoveLoc[2](Arg2: &GlobalConfig)
+	128: Pop
+	129: MoveLoc[4](Arg4: &mut BalanceBag)
+	130: Pop
+	131: LdU64(13906837932439764991)
+	132: Abort
+B15:
+	133: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	134: FreezeRef
+	135: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	136: Call position::liquidity(&Position): u128
+	137: StLoc[9](loc2: u128)
+	138: MoveLoc[2](Arg2: &GlobalConfig)
+	139: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	140: CopyLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	141: Call position_core_clmm::lp_position_mut<Ty0, Ty1, Position>(&mut Position<Ty0, Ty1, Position>): &mut Position
+	142: LdU128(1)
+	143: MoveLoc[5](Arg5: &Clock)
+	144: Call remove_liquidity<Ty0, Ty1>(&GlobalConfig, &mut Pool<Ty0, Ty1>, &mut Position, u128, &Clock): Balance<Ty0> * Balance<Ty1>
+	145: StLoc[8](loc1: Balance<Ty1>)
+	146: StLoc[7](loc0: Balance<Ty0>)
+	147: MoveLoc[1](Arg1: &mut PositionConfig)
+	148: MoveLoc[9](loc2: u128)
+	149: MoveLoc[0](Arg0: &mut Position<Ty0, Ty1, Position>)
+	150: FreezeRef
+	151: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	152: Call position::liquidity(&Position): u128
+	153: Sub
+	154: Call position_core_clmm::decrease_current_global_l(&mut PositionConfig, u128)
+	155: CopyLoc[4](Arg4: &mut BalanceBag)
+	156: MoveLoc[7](loc0: Balance<Ty0>)
+	157: Call balance_bag::add<Ty0>(&mut BalanceBag, Balance<Ty0>)
+	158: MoveLoc[4](Arg4: &mut BalanceBag)
+	159: MoveLoc[8](loc1: Balance<Ty1>)
+	160: Call balance_bag::add<Ty1>(&mut BalanceBag, Balance<Ty1>)
+	161: LdFalse
+	162: Pack[0](AHandleExploitedPosition)
+	163: MoveLoc[6](Arg6: &mut TxContext)
+	164: Call access::new_request<AHandleExploitedPosition>(AHandleExploitedPosition, &mut TxContext): ActionRequest
+	165: Ret
+}
+
+public destruct_exploited_position_and_return_lp<Ty0, Ty1>(Arg0: Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: PositionCap, Arg3: &mut Pool<Ty0, Ty1>, Arg4: &mut TxContext): Position {
+L5:	loc0: ID
+L6:	loc1: Balance<Ty0>
+L7:	loc2: Balance<Ty1>
+L8:	loc3: BalanceBag
+L9:	loc4: FacilDebtBag
+L10:	loc5: UID
+L11:	loc6: Position
+L12:	loc7: BalanceBag
+L13:	loc8: ID
+L14:	loc9: ID
+B0:
+	0: ImmBorrowLoc[0](Arg0: Position<Ty0, Ty1, Position>)
+	1: CopyLoc[1](Arg1: &PositionConfig)
+	2: Call position_core_clmm::check_versions<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig)
+	3: ImmBorrowLoc[0](Arg0: Position<Ty0, Ty1, Position>)
+	4: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	5: CopyLoc[1](Arg1: &PositionConfig)
+	6: Call object::id<PositionConfig>(&PositionConfig): ID
+	7: Eq
+	8: BrFalse(10)
+B1:
+	9: Branch(18)
+B2:
+	10: MoveLoc[4](Arg4: &mut TxContext)
+	11: Pop
+	12: MoveLoc[1](Arg1: &PositionConfig)
+	13: Pop
+	14: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	15: Pop
+	16: LdU64(13906838056993816575)
+	17: Abort
+B3:
+	18: ImmBorrowLoc[2](Arg2: PositionCap)
+	19: Call position_core_clmm::pc_position_id(&PositionCap): ID
+	20: ImmBorrowLoc[0](Arg0: Position<Ty0, Ty1, Position>)
+	21: Call object::id<Position<Ty0, Ty1, Position>>(&Position<Ty0, Ty1, Position>): ID
+	22: Eq
+	23: BrFalse(25)
+B4:
+	24: Branch(33)
+B5:
+	25: MoveLoc[4](Arg4: &mut TxContext)
+	26: Pop
+	27: MoveLoc[1](Arg1: &PositionConfig)
+	28: Pop
+	29: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	30: Pop
+	31: LdU64(13906838061288783871)
+	32: Abort
+B6:
+	33: ImmBorrowLoc[0](Arg0: Position<Ty0, Ty1, Position>)
+	34: Call position_core_clmm::ticket_active<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): bool
+	35: LdFalse
+	36: Eq
+	37: BrFalse(39)
+B7:
+	38: Branch(47)
+B8:
+	39: MoveLoc[4](Arg4: &mut TxContext)
+	40: Pop
+	41: MoveLoc[1](Arg1: &PositionConfig)
+	42: Pop
+	43: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	44: Pop
+	45: LdU64(13906838065583751167)
+	46: Abort
+B9:
+	47: MoveLoc[1](Arg1: &PositionConfig)
+	48: Call position_core_clmm::delete_position_disabled(&PositionConfig): bool
+	49: Not
+	50: BrFalse(52)
+B10:
+	51: Branch(58)
+B11:
+	52: MoveLoc[4](Arg4: &mut TxContext)
+	53: Pop
+	54: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	55: Pop
+	56: LdU64(13906838069878718463)
+	57: Abort
+B12:
+	58: ImmBorrowLoc[0](Arg0: Position<Ty0, Ty1, Position>)
+	59: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	60: Call object::id<Position>(&Position): ID
+	61: StLoc[13](loc8: ID)
+	62: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	63: FreezeRef
+	64: MoveLoc[13](loc8: ID)
+	65: Call pool::is_attacked_position<Ty0, Ty1>(&Pool<Ty0, Ty1>, ID): bool
+	66: BrFalse(68)
+B13:
+	67: Branch(72)
+B14:
+	68: MoveLoc[4](Arg4: &mut TxContext)
+	69: Pop
+	70: LdU64(13906838082763620351)
+	71: Abort
+B15:
+	72: MoveLoc[0](Arg0: Position<Ty0, Ty1, Position>)
+	73: Call position_core_clmm::position_deconstructor<Ty0, Ty1, Position>(Position<Ty0, Ty1, Position>): UID * ID * Position * Balance<Ty0> * Balance<Ty1> * FacilDebtBag * BalanceBag * BalanceBag * bool * u16
+	74: Pop
+	75: Pop
+	76: StLoc[12](loc7: BalanceBag)
+	77: StLoc[8](loc3: BalanceBag)
+	78: StLoc[9](loc4: FacilDebtBag)
+	79: StLoc[7](loc2: Balance<Ty1>)
+	80: StLoc[6](loc1: Balance<Ty0>)
+	81: StLoc[11](loc6: Position)
+	82: Pop
+	83: Call object::delete(UID)
+	84: MoveLoc[6](loc1: Balance<Ty0>)
+	85: Call balance::destroy_zero<Ty0>(Balance<Ty0>)
+	86: MoveLoc[7](loc2: Balance<Ty1>)
+	87: Call balance::destroy_zero<Ty1>(Balance<Ty1>)
+	88: MoveLoc[9](loc4: FacilDebtBag)
+	89: Call supply_pool::fdb_destroy_empty(FacilDebtBag)
+	90: MoveLoc[12](loc7: BalanceBag)
+	91: Call balance_bag::destroy_empty(BalanceBag)
+	92: MoveLoc[2](Arg2: PositionCap)
+	93: Call position_core_clmm::position_cap_deconstructor(PositionCap): UID * ID
+	94: StLoc[14](loc9: ID)
+	95: StLoc[10](loc5: UID)
+	96: ImmBorrowLoc[10](loc5: UID)
+	97: Call object::uid_to_inner(&UID): ID
+	98: StLoc[5](loc0: ID)
+	99: MoveLoc[10](loc5: UID)
+	100: Call object::delete(UID)
+	101: ImmBorrowLoc[8](loc3: BalanceBag)
+	102: Call balance_bag::is_empty(&BalanceBag): bool
+	103: BrFalse(109)
+B16:
+	104: MoveLoc[4](Arg4: &mut TxContext)
+	105: Pop
+	106: MoveLoc[8](loc3: BalanceBag)
+	107: Call balance_bag::destroy_empty(BalanceBag)
+	108: Branch(113)
+B17:
+	109: CopyLoc[14](loc9: ID)
+	110: MoveLoc[8](loc3: BalanceBag)
+	111: MoveLoc[4](Arg4: &mut TxContext)
+	112: Call position_core_clmm::share_deleted_position_collected_fees(ID, BalanceBag, &mut TxContext)
+B18:
+	113: MoveLoc[14](loc9: ID)
+	114: MoveLoc[5](loc0: ID)
+	115: Call position_core_clmm::emit_delete_position_info(ID, ID)
+	116: MoveLoc[11](loc6: Position)
+	117: Ret
+}
+
+public position_model<Ty0, Ty1>(Arg0: &Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &DebtInfo): PositionModel {
+L3:	loc0: &PositionConfig
+L4:	loc1: ValidatedDebtInfo
+L5:	loc2: &Position<Ty0, Ty1, Position>
+L6:	loc3: &Position<Ty0, Ty1, Position>
+L7:	loc4: &Position<Ty0, Ty1, Position>
+L8:	loc5: LpShape
+L9:	loc6: I32
+B0:
+	0: MoveLoc[0](Arg0: &Position<Ty0, Ty1, Position>)
+	1: StLoc[5](loc2: &Position<Ty0, Ty1, Position>)
+	2: MoveLoc[1](Arg1: &PositionConfig)
+	3: StLoc[3](loc0: &PositionConfig)
+	4: CopyLoc[5](loc2: &Position<Ty0, Ty1, Position>)
+	5: Call position_core_clmm::position_config_id<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): ID
+	6: CopyLoc[3](loc0: &PositionConfig)
+	7: Call object::id<PositionConfig>(&PositionConfig): ID
+	8: Eq
+	9: BrFalse(11)
+B1:
+	10: Branch(19)
+B2:
+	11: MoveLoc[5](loc2: &Position<Ty0, Ty1, Position>)
+	12: Pop
+	13: MoveLoc[2](Arg2: &DebtInfo)
+	14: Pop
+	15: MoveLoc[3](loc0: &PositionConfig)
+	16: Pop
+	17: LdU64(4)
+	18: Abort
+B3:
+	19: CopyLoc[5](loc2: &Position<Ty0, Ty1, Position>)
+	20: Call position_core_clmm::ticket_active<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): bool
+	21: LdFalse
+	22: Eq
+	23: BrFalse(25)
+B4:
+	24: Branch(33)
+B5:
+	25: MoveLoc[5](loc2: &Position<Ty0, Ty1, Position>)
+	26: Pop
+	27: MoveLoc[2](Arg2: &DebtInfo)
+	28: Pop
+	29: MoveLoc[3](loc0: &PositionConfig)
+	30: Pop
+	31: LdU64(8)
+	32: Abort
+B6:
+	33: MoveLoc[3](loc0: &PositionConfig)
+	34: MoveLoc[2](Arg2: &DebtInfo)
+	35: Call position_core_clmm::validate_debt_info(&PositionConfig, &DebtInfo): ValidatedDebtInfo
+	36: StLoc[4](loc1: ValidatedDebtInfo)
+	37: MoveLoc[5](loc2: &Position<Ty0, Ty1, Position>)
+	38: StLoc[7](loc4: &Position<Ty0, Ty1, Position>)
+	39: CopyLoc[7](loc4: &Position<Ty0, Ty1, Position>)
+	40: StLoc[6](loc3: &Position<Ty0, Ty1, Position>)
+	41: CopyLoc[6](loc3: &Position<Ty0, Ty1, Position>)
+	42: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	43: Call position::tick_range(&Position): I32 * I32
+	44: StLoc[9](loc6: I32)
+	45: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	46: MoveLoc[9](loc6: I32)
+	47: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	48: MoveLoc[6](loc3: &Position<Ty0, Ty1, Position>)
+	49: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	50: Call position::liquidity(&Position): u128
+	51: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	52: StLoc[8](loc5: LpShape)
+	53: MoveLoc[7](loc4: &Position<Ty0, Ty1, Position>)
+	54: ImmBorrowLoc[4](loc1: ValidatedDebtInfo)
+	55: MoveLoc[8](loc5: LpShape)
+	56: Call position_core_clmm::position_model_from_lp_shape<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &ValidatedDebtInfo, LpShape): PositionModel
+	57: Ret
+}
+
+public calc_liquidate_col_x<Ty0, Ty1>(Arg0: &Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PythPriceInfo, Arg3: &DebtInfo, Arg4: u64): u64 * u64 {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public calc_liquidate_col_x_v2<Ty0, Ty1>(Arg0: &Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PriceCollection, Arg3: &DebtInfo, Arg4: u64): u64 * u64 {
+L5:	loc0: &Position<Ty0, Ty1, Position>
+L6:	loc1: LpShape
+L7:	loc2: I32
+B0:
+	0: CopyLoc[0](Arg0: &Position<Ty0, Ty1, Position>)
+	1: StLoc[5](loc0: &Position<Ty0, Ty1, Position>)
+	2: CopyLoc[5](loc0: &Position<Ty0, Ty1, Position>)
+	3: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	4: Call position::tick_range(&Position): I32 * I32
+	5: StLoc[7](loc2: I32)
+	6: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	7: MoveLoc[7](loc2: I32)
+	8: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	9: MoveLoc[5](loc0: &Position<Ty0, Ty1, Position>)
+	10: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	11: Call position::liquidity(&Position): u128
+	12: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	13: StLoc[6](loc1: LpShape)
+	14: MoveLoc[0](Arg0: &Position<Ty0, Ty1, Position>)
+	15: MoveLoc[1](Arg1: &PositionConfig)
+	16: MoveLoc[2](Arg2: &PriceCollection)
+	17: MoveLoc[3](Arg3: &DebtInfo)
+	18: MoveLoc[4](Arg4: u64)
+	19: MoveLoc[6](loc1: LpShape)
+	20: Call position_core_clmm::calc_liquidate_col_x<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig, &PriceCollection, &DebtInfo, u64, LpShape): u64 * u64
+	21: Ret
+}
+
+public calc_liquidate_col_y<Ty0, Ty1>(Arg0: &Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PythPriceInfo, Arg3: &DebtInfo, Arg4: u64): u64 * u64 {
+B0:
+	0: LdU64(30)
+	1: Abort
+}
+
+public calc_liquidate_col_y_v2<Ty0, Ty1>(Arg0: &Position<Ty0, Ty1, Position>, Arg1: &PositionConfig, Arg2: &PriceCollection, Arg3: &DebtInfo, Arg4: u64): u64 * u64 {
+L5:	loc0: &Position<Ty0, Ty1, Position>
+L6:	loc1: LpShape
+L7:	loc2: I32
+B0:
+	0: CopyLoc[0](Arg0: &Position<Ty0, Ty1, Position>)
+	1: StLoc[5](loc0: &Position<Ty0, Ty1, Position>)
+	2: CopyLoc[5](loc0: &Position<Ty0, Ty1, Position>)
+	3: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	4: Call position::tick_range(&Position): I32 * I32
+	5: StLoc[7](loc2: I32)
+	6: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	7: MoveLoc[7](loc2: I32)
+	8: Call tick_math::get_sqrt_price_at_tick(I32): u128
+	9: MoveLoc[5](loc0: &Position<Ty0, Ty1, Position>)
+	10: Call position_core_clmm::lp_position<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>): &Position
+	11: Call position::liquidity(&Position): u128
+	12: Call lp_shape_clmm::new(u128, u128, u128): LpShape
+	13: StLoc[6](loc1: LpShape)
+	14: MoveLoc[0](Arg0: &Position<Ty0, Ty1, Position>)
+	15: MoveLoc[1](Arg1: &PositionConfig)
+	16: MoveLoc[2](Arg2: &PriceCollection)
+	17: MoveLoc[3](Arg3: &DebtInfo)
+	18: MoveLoc[4](Arg4: u64)
+	19: MoveLoc[6](loc1: LpShape)
+	20: Call position_core_clmm::calc_liquidate_col_y<Ty0, Ty1, Position>(&Position<Ty0, Ty1, Position>, &PositionConfig, &PriceCollection, &DebtInfo, u64, LpShape): u64 * u64
+	21: Ret
+}
+
+}

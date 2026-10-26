@@ -1,0 +1,132 @@
+// Move bytecode v6
+module d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4.partner {
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+
+struct Partner has store, key {
+	id: UID,
+	address: address,
+	fee_discount_bps: u64,
+	is_active: bool
+}
+
+struct PartnerCap has store, key {
+	id: UID,
+	partner_id: ID
+}
+
+public(friend) create_partner(Arg0: address, Arg1: u64, Arg2: &mut TxContext): Partner * PartnerCap {
+L3:	loc0: Partner
+L4:	loc1: PartnerCap
+B0:
+	0: CopyLoc[1](Arg1: u64)
+	1: LdU64(10000)
+	2: Le
+	3: BrFalse(5)
+B1:
+	4: Branch(9)
+B2:
+	5: MoveLoc[2](Arg2: &mut TxContext)
+	6: Pop
+	7: LdConst[1](u64: 1)
+	8: Abort
+B3:
+	9: CopyLoc[2](Arg2: &mut TxContext)
+	10: Call object::new(&mut TxContext): UID
+	11: MoveLoc[0](Arg0: address)
+	12: MoveLoc[1](Arg1: u64)
+	13: LdTrue
+	14: Pack[0](Partner)
+	15: StLoc[3](loc0: Partner)
+	16: MoveLoc[2](Arg2: &mut TxContext)
+	17: Call object::new(&mut TxContext): UID
+	18: ImmBorrowLoc[3](loc0: Partner)
+	19: Call object::id<Partner>(&Partner): ID
+	20: Pack[1](PartnerCap)
+	21: StLoc[4](loc1: PartnerCap)
+	22: MoveLoc[3](loc0: Partner)
+	23: MoveLoc[4](loc1: PartnerCap)
+	24: Ret
+}
+
+public(friend) get_partner_id(Arg0: &PartnerCap): ID {
+B0:
+	0: MoveLoc[0](Arg0: &PartnerCap)
+	1: ImmBorrowField[0](PartnerCap.partner_id: ID)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_fee_discount_bps(Arg0: &Partner): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Partner)
+	1: ImmBorrowField[1](Partner.fee_discount_bps: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) validate_partner_address(Arg0: &Partner, Arg1: address) {
+B0:
+	0: CopyLoc[0](Arg0: &Partner)
+	1: ImmBorrowField[2](Partner.is_active: bool)
+	2: ReadRef
+	3: BrFalse(5)
+B1:
+	4: Branch(9)
+B2:
+	5: MoveLoc[0](Arg0: &Partner)
+	6: Pop
+	7: LdConst[2](u64: 2)
+	8: Abort
+B3:
+	9: MoveLoc[0](Arg0: &Partner)
+	10: ImmBorrowField[3](Partner.address: address)
+	11: ReadRef
+	12: MoveLoc[1](Arg1: address)
+	13: Eq
+	14: BrFalse(16)
+B4:
+	15: Branch(18)
+B5:
+	16: LdConst[0](u64: 0)
+	17: Abort
+B6:
+	18: Ret
+}
+
+public(friend) update_fee_discount_bps(Arg0: &mut Partner, Arg1: u64) {
+B0:
+	0: CopyLoc[1](Arg1: u64)
+	1: LdU64(10000)
+	2: Le
+	3: BrFalse(5)
+B1:
+	4: Branch(9)
+B2:
+	5: MoveLoc[0](Arg0: &mut Partner)
+	6: Pop
+	7: LdConst[1](u64: 1)
+	8: Abort
+B3:
+	9: MoveLoc[1](Arg1: u64)
+	10: MoveLoc[0](Arg0: &mut Partner)
+	11: MutBorrowField[1](Partner.fee_discount_bps: u64)
+	12: WriteRef
+	13: Ret
+}
+
+public(friend) update_is_active(Arg0: &mut Partner, Arg1: bool) {
+B0:
+	0: MoveLoc[1](Arg1: bool)
+	1: MoveLoc[0](Arg0: &mut Partner)
+	2: MutBorrowField[2](Partner.is_active: bool)
+	3: WriteRef
+	4: Ret
+}
+
+Constants [
+	0 => u64: 0
+	1 => u64: 1
+	2 => u64: 2
+]
+}

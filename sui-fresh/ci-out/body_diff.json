@@ -1,0 +1,1558 @@
+{
+ "generated": "2026-10-25T19:48:15.134209Z",
+ "families": {
+  "dipcoin": {
+   "first": {
+    "address": "0x978fed071cca22dd26bec3cf4a5d5a00ab10f39cb8c659bbfdfbec4397241001",
+    "version": 1
+   },
+   "latest": {
+    "address": "0xa5b1b7a4cc8a765b422f41b8cfbc43553574f5731abdfa038df8d3cce09efec9",
+    "version": 9
+   },
+   "modules": {
+    "bank": {
+     "changed": [
+      "deposit<Ty0>",
+      "deposit_internal<Ty0>",
+      "exists_account<Ty0>",
+      "get_balance<Ty0>",
+      "transfer<Ty0>",
+      "withdraw<Ty0>",
+      "withdraw_all<Ty0>"
+     ],
+     "removed": [],
+     "added": [
+      "bank_address<Ty0>",
+      "charge_relayer_gas_fee<Ty0>",
+      "deposit_v2<Ty0>",
+      "deposit_with_source<Ty0>",
+      "migrate_gas_relayer_balance<Ty0>",
+      "remove_empty_account<Ty0>",
+      "remove_empty_account_internal<Ty0>",
+      "set_relayer<Ty0>",
+      "transfer_gas_fee<Ty0>",
+      "withdraw_all_internal<Ty0>",
+      "withdraw_all_v2<Ty0>",
+      "withdraw_internal<Ty0>",
+      "withdraw_internal_with_tx_index<Ty0>",
+      "withdraw_v2<Ty0>"
+     ]
+    },
+    "error": {
+     "changed": [],
+     "removed": [
+      "address_cannot_be_zero",
+      "adl_all_or_nothing_constraint_can_not_be_held",
+      "balance_conservation_violation",
+      "can_not_be_greater_than_hundred_percent",
+      "cannot_overfill_order",
+      "coin_does_not_have_enough_amount",
+      "deposit_amount_must_be_greater_than_zero",
+      "exchange_already_paused",
+      "exchange_already_resumed",
+      "exchange_paused",
+      "fill_does_not_decrease_size",
+      "fill_price_invalid",
+      "funding_due_exceeds_margin",
+      "funding_rate_can_not_be_set_for_zeroth_window",
+      "funding_rate_for_window_already_set",
+      "greater_than_max_allowed_funding",
+      "initial_margin_must_be_greater_than_or_equal_to_mmr",
+      "insurance_active_account_can_not_open_new_position",
+      "insurance_fund_active_account_can_not_be_same_as_security_account",
+      "insurance_fund_transfer_amount_exceeds_limit",
+      "insurance_fund_transfer_amount_must_be_greater_than_zero",
+      "insurance_fund_transfer_interval_not_met",
+      "invalid_accounts_length",
+      "invalid_deleveraging_operator",
+      "invalid_funding_rate_operator",
+      "invalid_leverage",
+      "invalid_liquidator_leverage",
+      "invalid_manager",
+      "invalid_price_oracle_operator",
+      "invalid_protocol_version",
+      "invalid_settlement_operator",
+      "leverage_can_not_be_set_to_zero",
+      "leverage_must_be_greater_than_zero",
+      "liquidatee_above_mmr",
+      "liquidation_all_or_nothing_constraint_not_held",
+      "loss_exceeds_margin",
+      "maintenance_margin_must_be_greater_than_zero",
+      "maintenance_margin_must_be_less_than_or_equal_to_imr",
+      "maker_is_not_underwater",
+      "maker_order_can_not_be_ioc",
+      "maker_taker_must_have_opposite_side_positions",
+      "margin_amount_must_be_greater_than_zero",
+      "margin_must_be_less_than_max_removable_margin",
+      "max_allowed_price_diff_cannot_be_zero",
+      "max_limit_qty_greater_than_min_qty",
+      "max_market_qty_less_than_min_qty",
+      "max_price_greater_than_min_price",
+      "method_depricated",
+      "min_price_greater_than_zero",
+      "min_price_less_than_max_price",
+      "min_qty_greater_than_zero",
+      "min_qty_less_than_max_qty",
+      "mr_less_than_imr_can_not_open_or_flip_position",
+      "mr_less_than_imr_mr_must_improve",
+      "mr_less_than_imr_position_can_only_reduce",
+      "mr_less_than_zero",
+      "mtb_long_greater_than_zero",
+      "mtb_short_greater_than_zero",
+      "mtb_short_less_than_hundred_percent",
+      "new_address_can_not_be_same_as_current_one",
+      "not_enough_balance_in_bank",
+      "object_version_mismatch",
+      "oi_open_greater_than_max_allowed",
+      "only_taker_of_trade_can_execute_trade_involving_non_orderbook_orders",
+      "operator_already_removed",
+      "operator_not_found",
+      "order_cannot_be_of_same_side",
+      "order_expired",
+      "order_has_invalid_signature",
+      "order_is_canceled",
+      "out_of_max_allowed_price_diff_bounds",
+      "perpetual_has_been_already_de_listed",
+      "perpetual_is_delisted",
+      "perpetual_is_not_delisted",
+      "provided_coin_do_not_have_enough_amount",
+      "self_liquidation_not_allowed",
+      "sender_does_not_have_permission_for_account",
+      "step_size_greater_than_zero",
+      "taker_is_under_underwater",
+      "taker_order_can_not_be_post_only",
+      "tick_size_greater_than_zero",
+      "trade_price_greater_than_max_price",
+      "trade_price_greater_than_mtb_long",
+      "trade_price_greater_than_mtb_short",
+      "trade_price_less_than_min_price",
+      "trade_price_tick_size_not_allowed",
+      "trade_qty_greater_than_limit_qty",
+      "trade_qty_greater_than_market_qty",
+      "trade_qty_less_than_min_qty",
+      "trade_qty_step_size_not_allowed",
+      "trading_is_stopped_on_perpetual",
+      "trading_not_started",
+      "transaction_replay",
+      "unauthorized",
+      "unreachable",
+      "user_already_has_position",
+      "user_has_no_bank_account",
+      "user_has_no_position_in_table",
+      "user_position_size_is_zero",
+      "withdraw_amount_must_be_greater_than_zero",
+      "withdrawal_is_not_allowed",
+      "wrong_price_identifier"
+     ],
+     "added": []
+    },
+    "evaluator": {
+     "changed": [
+      "set_max_oi_open",
+      "set_max_price",
+      "set_max_qty_limit",
+      "set_max_qty_market",
+      "set_min_price",
+      "set_min_qty",
+      "set_mtb_long",
+      "set_mtb_short",
+      "set_step_size",
+      "set_tick_size",
+      "verify_market_take_bound_checks",
+      "verify_min_max_price",
+      "verify_oi_open_for_account",
+      "verify_qty_checks",
+      "verify_qty_checks_liquidation",
+      "verify_step_size",
+      "verify_tick_size"
+     ],
+     "removed": [
+      "verify_min_max_qty_checks"
+     ],
+     "added": []
+    },
+    "exchange": {
+     "changed": [
+      "add_margin<Ty0>",
+      "adjust_leverage<Ty0>",
+      "close_position<Ty0>",
+      "create_perpetual<Ty0>",
+      "deleverage<Ty0>",
+      "liquidate<Ty0>",
+      "remove_margin<Ty0>",
+      "sum_transaction_balance<Ty0>",
+      "trade<Ty0>"
+     ],
+     "removed": [],
+     "added": [
+      "add_margin_v2<Ty0>",
+      "add_margin_v3<Ty0>",
+      "add_margin_v4<Ty0>",
+      "adjust_leverage_v2<Ty0>",
+      "adjust_leverage_v3<Ty0>",
+      "adjust_leverage_v4<Ty0>",
+      "cancel_order<Ty0>",
+      "close_position_v2<Ty0>",
+      "close_position_v3<Ty0>",
+      "create_perpetual_v2<Ty0>",
+      "deleverage_v2<Ty0>",
+      "liquidate_v2<Ty0>",
+      "remove_margin_v2<Ty0>",
+      "remove_margin_v3<Ty0>",
+      "remove_margin_v4<Ty0>",
+      "trade_v2<Ty0>",
+      "trade_v3<Ty0>",
+      "trade_v4<Ty0>"
+     ]
+    },
+    "funding_rate": {
+     "changed": [
+      "set_funding_rate",
+      "set_max_allowed_funding_rate"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "insurance_fund": {
+     "changed": [
+      "create_insurance_fund",
+      "set_active_account",
+      "set_amount_limit",
+      "set_security_account",
+      "set_transfer_interval",
+      "transfer_from_active_to_security<Ty0>",
+      "transfer_from_security_to_active<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "isolated_adl": {
+     "changed": [
+      "trade<Ty0>",
+      "trade_type"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "isolated_liquidation": {
+     "changed": [
+      "trade",
+      "trade_type"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "isolated_trading": {
+     "changed": [
+      "pack_trade_data",
+      "trade",
+      "trade_type"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "library": {
+     "changed": [
+      "to_1x9_vec"
+     ],
+     "removed": [
+      "add_intent_bytes_and_hash",
+      "get_oracle_base",
+      "get_oracle_price",
+      "get_price_identifier",
+      "get_public_address",
+      "get_result_public_key",
+      "get_result_status",
+      "verify_signature"
+     ],
+     "added": [
+      "base_div_up",
+      "base_mul_up",
+      "convert_to_usdc_base"
+     ]
+    },
+    "order": {
+     "changed": [
+      "cancel_order",
+      "create_order",
+      "creator",
+      "expiration",
+      "flags",
+      "get_filled_qty",
+      "ioc",
+      "is_long",
+      "leverage",
+      "market",
+      "orderbook_only",
+      "pack_order",
+      "post_only",
+      "price",
+      "quantity",
+      "reduce_only",
+      "salt",
+      "set_leverage",
+      "set_price",
+      "to_1x9",
+      "verify_and_fill_order_qty",
+      "verify_order_expiry",
+      "verify_order_leverage",
+      "verify_order_state"
+     ],
+     "removed": [
+      "get_serialized_order",
+      "verify_order_signature"
+     ],
+     "added": [
+      "cancel",
+      "cancel_order_v2",
+      "creator_identifier",
+      "order_v2_to_order",
+      "to_json_bytes"
+     ]
+    },
+    "perpetual": {
+     "changed": [
+      "create",
+      "delist_perpetual",
+      "get_fee",
+      "set_fee_pool_address<Ty0>",
+      "set_funding_rate",
+      "set_gas_pool_address<Ty0>",
+      "set_initial_margin_required",
+      "set_maintenance_margin_required",
+      "set_maker_fee",
+      "set_special_fee",
+      "set_taker_fee",
+      "transfer_insurance_fund_from_active_to_security<Ty0>",
+      "transfer_insurance_fund_from_security_to_active<Ty0>"
+     ],
+     "removed": [
+      "update_oracle_price"
+     ],
+     "added": [
+      "borrow_position",
+      "has_position",
+      "perp_address",
+      "set_funding_rate_v2",
+      "transfer_insurance_fund_from_active_to_security_v2<Ty0>",
+      "transfer_insurance_fund_from_security_to_active_v2<Ty0>",
+      "update_oracle_price_v2"
+     ]
+    },
+    "position": {
+     "changed": [
+      "compute_margin_ratio",
+      "is_undercollat",
+      "remove_empty_positions",
+      "verify_collat_checks"
+     ],
+     "removed": [],
+     "added": [
+      "compute_bankruptcy_price",
+      "compute_funding_fee_per_unit"
+     ]
+    },
+    "protocol": {
+     "changed": [
+      "check_is_normal",
+      "check_version",
+      "initialize",
+      "maker_gas_fee",
+      "privileged_addresses",
+      "privileged_addresses_mut",
+      "set_maker_gas_fee",
+      "set_taker_gas_fee",
+      "taker_gas_fee",
+      "upgrade",
+      "version"
+     ],
+     "removed": [
+      "add_settlement_cap_id",
+      "remove_settlement_cap_id"
+     ],
+     "added": [
+      "add_settlement_operator_address",
+      "borrow_perpetual_ids",
+      "clear_settlement_cap_ids",
+      "configured_action_gas_fee",
+      "gas_relayer",
+      "get_action_gas_fee",
+      "init_gas_config",
+      "init_settlement_operator_addresses",
+      "insurance_operator_cap_id",
+      "perpetual_registry_exists",
+      "register_perpetual",
+      "remove_settlement_operator_address",
+      "set_action_gas_fee",
+      "set_gas_relayer",
+      "set_insurance_operator_cap_id",
+      "settlement_operator_address_exists"
+     ]
+    },
+    "roles": {
+     "changed": [
+      "add_privileged_addresses",
+      "check_deleveraging_operator_validity",
+      "check_funding_rate_operator_validity",
+      "check_manager_validity",
+      "create_settlement_operator",
+      "initialize",
+      "pause",
+      "remove_privileged_addresses",
+      "remove_settlement_operator",
+      "resume",
+      "set_deleveraging_operator",
+      "set_exchange_admin",
+      "set_exchange_manager",
+      "set_funding_rate_operator"
+     ],
+     "removed": [
+      "check_settlement_operator_validity"
+     ],
+     "added": [
+      "add_settlement_operator_address",
+      "check_insurance_operator_validity",
+      "check_settlement_sender_validity",
+      "create_insurance_operator_cap",
+      "remove_settlement_operator_address",
+      "set_action_gas_fee",
+      "set_gas_relayer",
+      "set_insurance_operator",
+      "set_price_feeder"
+     ]
+    },
+    "s128": {
+     "changed": [
+      "add",
+      "add_u128",
+      "div_u128",
+      "from",
+      "from_subtraction",
+      "mul_u128",
+      "negate",
+      "negative_number",
+      "sub",
+      "sub_u128"
+     ],
+     "removed": [],
+     "added": [
+      "mul_u128_up"
+     ]
+    },
+    "settlement": {
+     "changed": [
+      "trade_margin_settlement<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "sub_accounts": {
+     "changed": [
+      "is_sub_account",
+      "set_sub_account",
+      "validate_unique_tx"
+     ],
+     "removed": [],
+     "added": [
+      "assert_signed_action_sender_authorized",
+      "get_all_sub_accounts",
+      "set_sub_account_internal",
+      "set_sub_account_v2"
+     ]
+    },
+    "test": {
+     "changed": [
+      "get_public_address",
+      "get_public_address_from_signed_order",
+      "get_serialized_order",
+      "hash",
+      "verify_signature"
+     ],
+     "removed": [],
+     "added": []
+    }
+   }
+  },
+  "bluefin-pro": {
+   "first": {
+    "address": "0xe74481697f432ddee8dd6f9bd13b9d0297a5b63d55f3db25c4d3b5d34dad85b7",
+    "version": 1
+   },
+   "latest": {
+    "address": "0x11d01c93c0461f8f505c993e48734b364a95fa7b32c7956e3bd58d93d27d0892",
+    "version": 21
+   },
+   "modules": {
+    "account": {
+     "changed": [
+      "compute_position_pnl",
+      "dec_funding_applied",
+      "get_fee_asset",
+      "get_fees",
+      "get_pending_funding_payment",
+      "get_position",
+      "get_position_bankruptcy_and_purchase_price",
+      "get_position_values",
+      "get_positions_vector",
+      "get_total_margin_required",
+      "has_most_negative_pnl",
+      "has_most_positive_pnl",
+      "has_permission",
+      "is_institution",
+      "set_account_type",
+      "set_fee_tier",
+      "update_account",
+      "update_position_values"
+     ],
+     "removed": [],
+     "added": [
+      "calculate_effective_leverage",
+      "create_deposited_asset",
+      "get_account_type",
+      "get_authorized_accounts",
+      "get_max_withdrawable_amount",
+      "get_position_values_including_funding",
+      "get_trading_fee",
+      "get_usdc_amount",
+      "update_account_cross_positions",
+      "update_position_values_including_funding_rate"
+     ]
+    },
+    "bank": {
+     "changed": [
+      "get_asset_with_provided_usd_value"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "bcs_handler": {
+     "changed": [
+      "dec_close_position"
+     ],
+     "removed": [],
+     "added": [
+      "dec_tee_update_account_type",
+      "dec_tee_update_assets",
+      "dec_tee_update_authorized_account",
+      "dec_tee_update_position",
+      "dec_tee_update_user_trade_fee",
+      "dec_trades_batch"
+     ]
+    },
+    "constants": {
+     "changed": [
+      "empty_string",
+      "get_supported_operators",
+      "max_value_u64",
+      "position_cross",
+      "position_isolated",
+      "position_long",
+      "position_short",
+      "usdc_token_symbol"
+     ],
+     "removed": [],
+     "added": [
+      "adl_fee_rate",
+      "payload_type_adl",
+      "payload_type_authorizing_liquidator",
+      "payload_type_liquidate",
+      "payload_type_pruning_table",
+      "payload_type_setting_account_fee_tier",
+      "payload_type_setting_account_type",
+      "payload_type_setting_funding_rate",
+      "payload_type_setting_gas_fee",
+      "payload_type_setting_gas_pool",
+      "payload_type_tee_asset_update",
+      "payload_type_tee_position_update",
+      "payload_type_tee_update_account_type",
+      "payload_type_tee_user_authorized_accounts_update",
+      "payload_type_tee_user_trade_fee_update"
+     ]
+    },
+    "data_store": {
+     "changed": [
+      "apply_funding_rate",
+      "authorize_liquidator",
+      "compute_and_update_sequence_hash",
+      "filled_order_quantity",
+      "get_gas_pool",
+      "set_operator",
+      "sync_perpetual",
+      "update_oracle_prices",
+      "update_order_fill",
+      "update_perpetual"
+     ],
+     "removed": [],
+     "added": [
+      "check_if_perp_exists",
+      "filled_order_quantity_from_table",
+      "get_asset",
+      "get_immutable_perpetual_from_table",
+      "get_mutable_order_fills_table_from_ids",
+      "get_tables_from_ids",
+      "is_first_fill_in_table",
+      "tee_update_account_type",
+      "tee_update_assets",
+      "tee_update_authorized_account",
+      "tee_update_position",
+      "tee_update_user_trade_fee",
+      "update_order_fill_internal"
+     ]
+    },
+    "errors": {
+     "changed": [
+      "health_check_failed"
+     ],
+     "removed": [],
+     "added": [
+      "bad_debt",
+      "deprecated_function",
+      "insufficient_funds",
+      "invalid_payload_type"
+     ]
+    },
+    "events": {
+     "changed": [
+      "emit_account_type_updated_event",
+      "emit_adl_executed_event",
+      "emit_bankrupt_liquidator_authorized_event",
+      "emit_delisted_market_position_closed_event",
+      "emit_eds_operator_update",
+      "emit_fee_tier_updated_event",
+      "emit_funding_rate_applied_event",
+      "emit_funding_rate_update_event",
+      "emit_gas_fee_updated_event",
+      "emit_gas_pool_updated_event",
+      "emit_leverage_adjusted_event",
+      "emit_liquidation_executed_event",
+      "emit_margin_adjusted_event",
+      "emit_operator_synced_event",
+      "emit_oracle_price_update_event",
+      "emit_removed_tainted_deposit_event",
+      "emit_table_pruned_event",
+      "emit_trade_executed_event"
+     ],
+     "removed": [],
+     "added": [
+      "emit_authorized_accounts_updated_event",
+      "emit_tee_account_type_updated_event",
+      "emit_tee_assets_updated_event",
+      "emit_tee_authorized_accounts_updated_event",
+      "emit_tee_position_update_event",
+      "emit_tee_trade_fee_updated_event"
+     ]
+    },
+    "exchange": {
+     "changed": [
+      "adjust_leverage",
+      "adjust_margin",
+      "authorize_account",
+      "authorize_liquidator",
+      "close_position",
+      "deleverage",
+      "deposit_to_internal_bank<Ty0>",
+      "liquidate",
+      "prune_table",
+      "remove_tainted_asset<Ty0>",
+      "set_account_type",
+      "set_fee_tier",
+      "set_funding_rate",
+      "set_gas_fee",
+      "set_gas_pool",
+      "trade",
+      "withdraw_from_bank<Ty0>"
+     ],
+     "removed": [
+      "deposit_to_asset_bank<Ty0>"
+     ],
+     "added": [
+      "batch_trade",
+      "batch_trade_with_provided_gas_fee",
+      "public"
+     ]
+    },
+    "margining_engine": {
+     "changed": [
+      "apply_maths",
+      "calculate_pnl",
+      "get_withdrawable_assets",
+      "verify_health"
+     ],
+     "removed": [],
+     "added": [
+      "apply_maths_internal",
+      "calculate_effective_leverage"
+     ]
+    },
+    "perpetual": {
+     "changed": [
+      "create_perpetual",
+      "delist",
+      "get_delist_status",
+      "get_fee_pool_address",
+      "get_fees",
+      "get_insurance_pool_address",
+      "get_insurance_pool_ratio",
+      "get_isolated_only",
+      "get_perpetual_address",
+      "get_trading_status",
+      "max_allowed_oi_open",
+      "perpetual_values",
+      "replicate_perp_data",
+      "set_fee",
+      "set_fee_pool_address",
+      "set_insurance_pool_address",
+      "set_insurance_pool_liquidation_premium_percentage",
+      "set_isolated_only",
+      "set_max_allowed_oi_open",
+      "set_max_funding_rate",
+      "set_max_trade_price",
+      "set_min_trade_price",
+      "set_mmr",
+      "set_mtb",
+      "set_trading_status",
+      "update_funding_rate",
+      "update_oracle_price"
+     ],
+     "removed": [],
+     "added": [
+      "get_symbol",
+      "set_max_limit_order_quantity",
+      "set_max_market_order_quantity"
+     ]
+    },
+    "signature": {
+     "changed": [
+      "build_signed_message",
+      "verify",
+      "verify_adjust_leverage_signature",
+      "verify_adjust_margin_signature",
+      "verify_authorize_account_signature",
+      "verify_bcs_serialized_payload_signature",
+      "verify_close_position_signature",
+      "verify_liquidation_signature",
+      "verify_order_signature",
+      "verify_signature_and_recover_signer",
+      "verify_withdrawal_signature"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "signed_number": {
+     "changed": [
+      "from",
+      "from_bytes",
+      "gt",
+      "gte",
+      "lt",
+      "negative_number"
+     ],
+     "removed": [],
+     "added": [
+      "eq",
+      "negative_value"
+     ]
+    },
+    "utils": {
+     "changed": [
+      "convert_to_protocol_decimals",
+      "convert_to_provided_decimals",
+      "is_reducing_trade"
+     ],
+     "removed": [],
+     "added": [
+      "is_reduced_position",
+      "mul_div_uint",
+      "round",
+      "round_down_to_tick_size",
+      "round_to_tick_size_based_on_direction",
+      "round_up_to_tick_size"
+     ]
+    }
+   }
+  },
+  "suigar": {
+   "first": {
+    "address": "0xcbb0929f21450013ebe5e86e7139f2409da2e3ed212c51126a7e6448b795a43f",
+    "version": 1
+   },
+   "latest": {
+    "address": "0x76176d6964b43881e05f7263a9533cb1bf212c7dd6827bfa52775ed2c6b64648",
+    "version": 2
+   },
+   "modules": {
+    "mock_pond": {
+     "changed": [
+      "id<Ty0>",
+      "manager_create<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "oracle": {
+     "changed": [
+      "admin_create_pyth_oracle_and_add_to_sweethouse",
+      "get_adjusted_price_or_zero",
+      "get_checked_usd_price",
+      "get_max_age_seconds",
+      "get_pyth_oracle",
+      "get_unsafe_usd_price_no_checks"
+     ],
+     "removed": [],
+     "added": [
+      "adjust_quoted_price_or_zero",
+      "check_quoted_usd_price",
+      "get_adjusted_price_or_zero_v2",
+      "get_checked_usd_price_v2",
+      "get_unsafe_usd_price_no_checks_v2",
+      "quote_unsafe_price",
+      "read_price_quote",
+      "read_price_quote_v2"
+     ]
+    }
+   }
+  },
+  "bucket-vault": {
+   "first": {
+    "address": "0x9f835c21d21f8ce519fec17d679cd38243ef2643ad879e7048ba77374be4036e",
+    "version": 1
+   },
+   "latest": {
+    "address": "0xc1dd29778f3fccd19a4ac79d1c35a14bf9d65a0b48f1c5bba98a949cacc53e26",
+    "version": 4
+   },
+   "modules": {
+    "events": {
+     "changed": [
+      "emit_interest_rate_updated<Ty0>",
+      "emit_liquidation_rule_updated<Ty0>",
+      "emit_position_updated<Ty0>",
+      "emit_set_security_level<Ty0>",
+      "emit_supply_limit_updated<Ty0>",
+      "emit_vault_created<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "request": {
+     "changed": [
+      "add_witness<Ty0"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "response": {
+     "changed": [
+      "add_witness<Ty0"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "vault": {
+     "changed": [
+      "add_request_check<Ty0",
+      "add_response_check<Ty0",
+      "collect_interest<Ty0>",
+      "debtor_request<Ty0>",
+      "destroy_response<Ty0>",
+      "donor_request<Ty0>",
+      "get_position_data<Ty0>",
+      "get_positions<Ty0>",
+      "get_raw_position_data<Ty0>",
+      "liquidate<Ty0",
+      "new<Ty0",
+      "position_data",
+      "position_table<Ty0>",
+      "remove_request_check<Ty0",
+      "remove_response_check<Ty0",
+      "set_liquidation_rule<Ty0",
+      "try_get_position_data<Ty0>",
+      "update_position<Ty0>"
+     ],
+     "removed": [],
+     "added": [
+      "add_debtor<Ty0",
+      "add_manager",
+      "ban_debtor<Ty0",
+      "close_position_by_admin<Ty0>",
+      "collect_repayment<Ty0>",
+      "create_acl",
+      "loan<Ty0",
+      "open_position_by_admin<Ty0>",
+      "remove_manager",
+      "request_repayment<Ty0>"
+     ]
+    },
+    "version": {
+     "changed": [
+      "assert_valid_package",
+      "package_version"
+     ],
+     "removed": [],
+     "added": []
+    }
+   }
+  },
+  "bucket-pool": {
+   "first": {
+    "address": "0xc2ae6693383e4a81285136effc8190c7baaf0e75aafa36d1c69cd2170cfc3803",
+    "version": 1
+   },
+   "latest": {
+    "address": "0x8a46afe6ab0b972e2ee3923f5669104ae9465c12b84cd5e78ea1ff6404e4bfaf",
+    "version": 4
+   },
+   "modules": {
+    "events": {
+     "changed": [
+      "emit_new_pool<Ty0>",
+      "emit_swap_in<Ty0>",
+      "emit_swap_out<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "pool": {
+     "changed": [
+      "price_tolerance<Ty0>"
+     ],
+     "removed": [],
+     "added": [
+      "add_debtor<Ty0",
+      "add_manager",
+      "ban_debtor<Ty0",
+      "collect_repayment<Ty0>",
+      "create_acl",
+      "loan<Ty0",
+      "remove_manager",
+      "request_repayment<Ty0>"
+     ]
+    },
+    "version": {
+     "changed": [
+      "assert_valid_package",
+      "package_version"
+     ],
+     "removed": [],
+     "added": []
+    }
+   }
+  },
+  "alphalend": {
+   "first": {
+    "address": "0xd631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4",
+    "version": 1
+   },
+   "latest": {
+    "address": "0xe48b33ef41d56e04fc42bf558e4d54d7cae8a363da9054a6c24bafc2c53a4f33",
+    "version": 15
+   },
+   "modules": {
+    "alpha_lending": {
+     "changed": [
+      "add_bluefin_lp_collateral<Ty0",
+      "add_coin_to_oracle",
+      "add_collateral<Ty0>",
+      "add_market_native<Ty0>",
+      "add_reward<Ty0>",
+      "borrow<Ty0>",
+      "borrow_bluefin_lp_collateral",
+      "change_protocol_fee_address",
+      "collect_reward<Ty0>",
+      "collect_reward_and_deposit<Ty0>",
+      "create_new_admin_cap",
+      "create_position",
+      "create_position_for_partner",
+      "fulfill_promise<Ty0>",
+      "fulfill_promise_SUI",
+      "generate_new_market_cap",
+      "get_claimable_rewards",
+      "liquidate<Ty0",
+      "liquidate_lp_position<Ty0",
+      "loan_bailout<Ty0>",
+      "remove_bluefin_lp_collateral",
+      "remove_collateral<Ty0>",
+      "repay<Ty0>",
+      "return_bluefin_lp_collateral<Ty0",
+      "set_time_lock",
+      "update_bluefin_lp_collateral_usd_value<Ty0",
+      "update_flow_limiter",
+      "update_lp_position_config",
+      "update_market_active",
+      "update_market_collateral_ratios",
+      "update_market_fee_config",
+      "update_market_interest_rate_config",
+      "update_market_limits",
+      "update_market_liquidation_config",
+      "update_partner_is_active",
+      "update_price",
+      "update_protocol_config",
+      "update_protocol_fee",
+      "update_reward_autocompounding",
+      "update_sui_staking_enabled",
+      "withdraw_market_fee<Ty0>",
+      "withdraw_protocol_fee<Ty0>"
+     ],
+     "removed": [],
+     "added": [
+      "admin_liquidate<Ty0",
+      "admin_liquidate_lp_position<Ty0",
+      "collect_staking_rewards",
+      "create_new_pause_admin_cap",
+      "disable_pause_cap",
+      "enable_pause_cap",
+      "flash_borrow<Ty0>",
+      "flash_deposit<Ty0>",
+      "flash_repay<Ty0>",
+      "flash_withdraw<Ty0>",
+      "get_asset_price",
+      "get_borrow_amount",
+      "get_collateral_amount",
+      "get_price_identifier",
+      "get_safe_collateral_ratio",
+      "is_native_active_market_present",
+      "pause_protocol",
+      "refresh_market",
+      "set_position_liquidation_protected",
+      "set_position_paused",
+      "unpause_protocol",
+      "update_partner_is_active_v2",
+      "update_protocol_fee_v2"
+     ]
+    },
+    "market": {
+     "changed": [
+      "add_fee<Ty0>",
+      "add_reward<Ty0>",
+      "borrow<Ty0>",
+      "burn_xtokens_generate_promise<Ty0>",
+      "compound_interest",
+      "create_market<Ty0>",
+      "destory_zero<Ty0>",
+      "emit_repay_exceed_borrow_event",
+      "fulfill_promise<Ty0>",
+      "fulfill_promise_sui",
+      "generate_new_market_cap",
+      "get_promise_coin_type<Ty0>",
+      "get_spot_usd_value",
+      "get_token_price",
+      "get_token_spot_price",
+      "get_xtoken_price",
+      "get_xtoken_ratio",
+      "get_xtoken_spot_price",
+      "join_promise<Ty0>",
+      "refresh",
+      "refresh_with_price",
+      "remove_liquidity<Ty0>",
+      "repay<Ty0>",
+      "set_sui_staking_enabled",
+      "set_time_lock",
+      "update_collateral_ratios",
+      "update_fee_config",
+      "update_flow_limiter",
+      "update_limits",
+      "update_market_isolation",
+      "verify_market_cap",
+      "withdraw_market_fee<Ty0>",
+      "withdraw_protocol_fee<Ty0>",
+      "writeoff_borrow"
+     ],
+     "removed": [
+      "get_supply<Ty0>",
+      "get_token_price_for_collateral",
+      "split_promise_market_fee<Ty0>"
+     ],
+     "added": [
+      "collect_staking_rewards",
+      "emit_repay_exceed_borrow_event_new",
+      "get_decimal_digit",
+      "get_safe_collateral_ratio"
+     ]
+    },
+    "oracle": {
+     "changed": [
+      "add_coin_to_oracle",
+      "create_oracle",
+      "get_ema_price",
+      "get_last_updated",
+      "get_price",
+      "get_price_identifier",
+      "is_coin_in_oracle",
+      "set_price_staleness_threshold",
+      "update_price",
+      "verify_price"
+     ],
+     "removed": [],
+     "added": [
+      "match_coin_type",
+      "update_price_internal"
+     ]
+    },
+    "partner": {
+     "changed": [
+      "create_partner",
+      "update_fee_discount_bps",
+      "update_is_active",
+      "validate_partner_address"
+     ],
+     "removed": [],
+     "added": [
+      "validate_partner_is_active"
+     ]
+    },
+    "position": {
+     "changed": [
+      "add_bluefin_lp_collateral",
+      "add_borrow",
+      "add_token_collateral<Ty0>",
+      "borrow_bluefin_lp_collateral",
+      "borrowed_from_isolated",
+      "claim_rewards<Ty0>",
+      "create_position",
+      "get_borrow_market_count",
+      "get_claimable_rewards",
+      "get_collateral_amount",
+      "get_position_id",
+      "get_position_type_normal",
+      "has_borrowed_from",
+      "has_borrows",
+      "liquidate<Ty0",
+      "liquidate_bluefin_lp_position<Ty0",
+      "loan_writeoff",
+      "refresh",
+      "remove_bluefin_lp_collateral",
+      "remove_token_collateral<Ty0>",
+      "repay",
+      "return_bluefin_lp_collateral<Ty0",
+      "update_bluefin_lp_collateral_usd_value<Ty0",
+      "update_lp_position_close_factor",
+      "update_lp_position_config"
+     ],
+     "removed": [],
+     "added": [
+      "get_borrow_amount",
+      "get_collateral_xtoken_amount",
+      "get_decimal_digit",
+      "is_liquidation_protected",
+      "is_position_paused",
+      "set_decimal_digit",
+      "set_liquidation_protected",
+      "set_position_paused_flag"
+     ]
+    },
+    "rewards": {
+     "changed": [
+      "add_reward<Ty0>",
+      "claim_rewards<Ty0>",
+      "get_auto_compound_market_id",
+      "refresh",
+      "refresh_user_reward_distributor",
+      "update_reward<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "sui_staker": {
+     "changed": [
+      "add_stake",
+      "collect_fees",
+      "delete_sui_staker",
+      "get_staked_sui_count",
+      "init_staker",
+      "remove_stake"
+     ],
+     "removed": [],
+     "added": [
+      "drain_sui_pool"
+     ]
+    }
+   }
+  },
+  "kai-leverage": {
+   "first": {
+    "address": "0x51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523",
+    "version": 1
+   },
+   "latest": {
+    "address": "0xed2d91715c74fe7ec5a8d063cfe6bc21b90d9451c26eb90c03605b10fadd68dd",
+    "version": 21
+   },
+   "modules": {
+    "balance_bag": {
+     "changed": [
+      "add<Ty0>",
+      "take_all<Ty0>",
+      "take_amount<Ty0>"
+     ],
+     "removed": [],
+     "added": [
+      "is_empty"
+     ]
+    },
+    "cetus": {
+     "changed": [
+      "add_liquidity<Ty0",
+      "add_liquidity_fix_coin<Ty0",
+      "borrow_for_position_x<Ty0",
+      "borrow_for_position_y<Ty0",
+      "calc_liquidate_col_x<Ty0",
+      "calc_liquidate_col_y<Ty0",
+      "create_deleverage_ticket<Ty0",
+      "create_deleverage_ticket_for_liquidation<Ty0",
+      "create_position<Ty0",
+      "create_position_ticket<Ty0",
+      "deleverage<Ty0",
+      "deleverage_for_liquidation<Ty0",
+      "liquidate_col_x<Ty0",
+      "liquidate_col_y<Ty0",
+      "position_model<Ty0",
+      "rebalance_add_liquidity<Ty0",
+      "rebalance_add_liquidity_by_fix_coin<Ty0",
+      "rebalance_collect_fee<Ty0",
+      "rebalance_collect_reward<Ty0",
+      "reduce<Ty0",
+      "slippage_tolerance_assertion<Ty0"
+     ],
+     "removed": [],
+     "added": [
+      "add_liquidity_v2<Ty0",
+      "calc_liquidate_col_x_v2<Ty0",
+      "calc_liquidate_col_y_v2<Ty0",
+      "create_deleverage_ticket_for_liquidation_v2<Ty0",
+      "create_deleverage_ticket_v2<Ty0",
+      "create_position_ticket_v2<Ty0",
+      "create_position_ticket_v3<Ty0",
+      "delete_position<Ty0",
+      "deleverage_for_liquidation_v2<Ty0",
+      "deleverage_v2<Ty0",
+      "destruct_exploited_position_and_return_lp<Ty0",
+      "liquidate_col_x_v2<Ty0",
+      "liquidate_col_y_v2<Ty0",
+      "owner_collect_fee<Ty0",
+      "owner_collect_reward<Ty0",
+      "owner_take_stashed_rewards<Ty0",
+      "rebalance_add_liquidity_v2<Ty0",
+      "reduce_v2<Ty0",
+      "repay_bad_debt_x<Ty0",
+      "repay_bad_debt_x_v2<Ty0",
+      "repay_bad_debt_y<Ty0",
+      "repay_bad_debt_y_v2<Ty0",
+      "sync_exploited_position_liquidity_by_small_withdraw<Ty0"
+     ]
+    },
+    "debt": {
+     "changed": [
+      "increase_liability_and_issue_x64<Ty0>",
+      "repay_lossy<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "debt_bag": {
+     "changed": [
+      "add<Ty0",
+      "empty",
+      "get_share_amount_by_asset_type<Ty0>",
+      "get_share_amount_by_share_type<Ty0>",
+      "get_share_type_for_asset<Ty0>",
+      "take_all<Ty0>",
+      "take_amt<Ty0>"
+     ],
+     "removed": [],
+     "added": [
+      "destroy_empty",
+      "is_empty",
+      "length",
+      "share_type_matches_asset_if_any_exists<Ty0",
+      "size"
+     ]
+    },
+    "debt_info": {
+     "changed": [
+      "add<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "equity": {
+     "changed": [
+      "increase_value_and_issue_x64<Ty0>"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "piecewise": {
+     "changed": [
+      "create",
+      "range",
+      "value_at"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "position_core_clmm": {
+     "changed": [
+      "add_amount_to_map<Ty0>",
+      "add_collateral_x<Ty0",
+      "add_collateral_y<Ty0",
+      "add_liquidity_info_constructor",
+      "ali_delta_l",
+      "ali_delta_x",
+      "ali_delta_y",
+      "allow_new_positions",
+      "allowed_oracles",
+      "base_deleverage_factor_bps",
+      "base_liq_factor_bps",
+      "borrowed_x<Ty0",
+      "borrowed_x_mut<Ty0",
+      "borrowed_y<Ty0",
+      "borrowed_y_mut<Ty0",
+      "calc_liq_fee_from_reward",
+      "check_config_version",
+      "check_position_version<Ty0",
+      "collected_amm_rewards_mut",
+      "config_add_empty_pyth_config",
+      "consume_rebalance_receipt<Ty0",
+      "cpt_config_id<Ty0",
+      "cpt_debt_bag<Ty0",
+      "cpt_debt_bag_mut<Ty0",
+      "create_empty_config",
+      "create_rebalance_receipt<Ty0",
+      "current_global_l",
+      "decrease_current_global_l",
+      "deleverage_info_constructor",
+      "deleverage_margin_bps",
+      "deleverage_ticket_constructor",
+      "deleverage_ticket_repay_x<Ty0",
+      "deleverage_ticket_repay_y<Ty0",
+      "delta_l<Ty0",
+      "destroy_deleverage_ticket<Ty0",
+      "destroy_reduction_ticket<Ty0",
+      "dx<Ty0",
+      "dy<Ty0",
+      "emit_liquidation_info",
+      "emit_position_creation_info",
+      "increase_collected_amm_fee_x",
+      "increase_collected_amm_fee_y",
+      "increase_current_global_l",
+      "increase_delta_l",
+      "increase_delta_x",
+      "increase_delta_y",
+      "init_margin_is_valid",
+      "lend_facil_cap",
+      "liq_bonus_bps",
+      "liq_fee_bps",
+      "liq_margin_bps",
+      "liq_margin_is_valid",
+      "max_global_l",
+      "max_position_l",
+      "migrate_config",
+      "migrate_position<Ty0",
+      "min_init_margin_bps",
+      "min_liq_start_price_delta_bps",
+      "pc_position_id",
+      "pool_object_id",
+      "position_cap_constructor",
+      "position_constructor<Ty0",
+      "position_creation_fee_sui",
+      "principal_x<Ty0",
+      "principal_y<Ty0",
+      "pyth_config_allow_pio",
+      "pyth_config_disallow_pio",
+      "rebalance_fee_bps",
+      "rebalance_repay_debt_x<Ty0",
+      "rebalance_repay_debt_y<Ty0",
+      "reduction_info_constructor",
+      "reduction_ticket_calc_repay_amt_x<Ty0",
+      "reduction_ticket_calc_repay_amt_y<Ty0",
+      "reduction_ticket_repay_x<Ty0",
+      "reduction_ticket_repay_y<Ty0",
+      "repay_debt_x<Ty0",
+      "repay_debt_y<Ty0",
+      "rr_position_id",
+      "set_allow_new_positions",
+      "set_base_deleverage_factor_bps",
+      "set_base_liq_factor_bps",
+      "set_deleverage_margin_bps",
+      "set_delta_l",
+      "set_delta_x",
+      "set_delta_y",
+      "set_liq_bonus_bps",
+      "set_liq_fee_bps",
+      "set_liq_margin_bps",
+      "set_max_global_l",
+      "set_max_position_l",
+      "set_min_init_margin_bps",
+      "set_min_liq_start_price_delta_bps",
+      "set_position_creation_fee_sui",
+      "set_pyth_config_max_age_secs",
+      "set_rebalance_fee_bps",
+      "take_rebalance_fee<Ty0",
+      "validate_debt_info",
+      "validate_price_info"
+     ],
+     "removed": [],
+     "added": [
+      "a_repay_bad_debt",
+      "add_create_withdraw_limiter<Ty0",
+      "add_liquidity_disabled",
+      "borrow_create_withdraw_limiter",
+      "borrow_create_withdraw_limiter_mut",
+      "calc_liquidate_col_x<Ty0",
+      "calc_liquidate_col_y<Ty0",
+      "collect_deleted_position_fees",
+      "collect_protocol_fees<Ty0",
+      "collected_fees<Ty0",
+      "config_add_empty_oracle_price_config",
+      "cpt_tick_a<Ty0",
+      "cpt_tick_b<Ty0",
+      "delete_position_disabled",
+      "di_delta_l",
+      "di_delta_x",
+      "di_delta_y",
+      "di_model",
+      "di_oracle_price_x128",
+      "di_position_id",
+      "di_sqrt_pool_price_x64",
+      "di_x_repaid",
+      "di_y_repaid",
+      "dt_can_repay_x",
+      "dt_can_repay_y",
+      "dt_info",
+      "dt_position_id",
+      "emit_bad_debt_repaid<Ty0>",
+      "emit_delete_position_info",
+      "emit_owner_collect_fee_info",
+      "emit_owner_collect_reward_info<Ty0>",
+      "get_amount_ema_usd_value_6_decimals<Ty0>",
+      "get_balance_ema_usd_value_6_decimals<Ty0>",
+      "has_create_withdraw_limiter",
+      "liquidate_col_x<Ty0",
+      "liquidate_col_y<Ty0",
+      "liquidation_disabled",
+      "oracle_price_config_allow_price_object",
+      "oracle_price_config_disallow_price_object",
+      "owner_collect_fee_disabled",
+      "owner_collect_reward_disabled",
+      "owner_reward_stash<Ty0",
+      "owner_reward_stash_mut<Ty0",
+      "owner_take_stashed_rewards<Ty0",
+      "position_cap_deconstructor",
+      "position_deconstructor<Ty0",
+      "position_model_from_lp_shape<Ty0",
+      "price_deviation_is_acceptable",
+      "rebalance_stash_rewards<Ty0",
+      "reduction_disabled",
+      "repay_bad_debt<Ty0",
+      "ri_delta_l",
+      "ri_delta_x",
+      "ri_delta_y",
+      "ri_model",
+      "ri_oracle_price_x128",
+      "ri_position_id",
+      "ri_sqrt_pool_price_x64",
+      "ri_withdrawn_x",
+      "ri_withdrawn_y",
+      "ri_x_repaid",
+      "ri_y_repaid",
+      "rr_added_cx",
+      "rr_added_cy",
+      "rr_collected_amm_fee_x",
+      "rr_collected_amm_fee_y",
+      "rr_collected_amm_rewards",
+      "rr_delta_l",
+      "rr_delta_x",
+      "rr_delta_y",
+      "rr_fees_taken",
+      "rr_stashed_amm_rewards",
+      "rr_taken_cx",
+      "rr_taken_cy",
+      "rr_x_repaid",
+      "rr_y_repaid",
+      "rrt_info<Ty0",
+      "rrt_sx<Ty0",
+      "rrt_sy<Ty0",
+      "set_add_liquidity_disabled",
+      "set_delete_position_disabled",
+      "set_liquidation_disabled",
+      "set_max_create_withdraw_net_inflow_and_outflow_limits",
+      "set_oracle_price_config_max_age_secs",
+      "set_owner_collect_fee_disabled",
+      "set_owner_collect_reward_disabled",
+      "set_reduction_disabled",
+      "share_deleted_position_collected_fees"
+     ]
+    },
+    "position_model_clmm": {
+     "changed": [
+      "assets_x128",
+      "calc_liquidate_col_x",
+      "calc_liquidate_col_y",
+      "x_by_liquidity_x64"
+     ],
+     "removed": [],
+     "added": []
+    },
+    "pyth": {
+     "changed": [
+      "add",
+      "decimals",
+      "div_price_numeric_x128",
+      "get_ema_price",
+      "validate"
+     ],
+     "removed": [],
+     "added": [
+      "div_ema_price_numeric_x128"
+     ]
+    },
+    "supply_pool": {
+     "changed": [
+      "add_lend_facil<Ty0",
+      "borrow<Ty0",
+      "borrow_debt_registry<Ty0",
+      "calc_repay_by_amount<Ty0",
+      "calc_repay_by_shares<Ty0",
+      "calc_withdraw_by_amount<Ty0",
+      "calc_withdraw_by_shares<Ty0",
+      "check_version<Ty0",
+      "create_pool<Ty0",
+      "fdb_get_share_type_for_asset<Ty0>",
+      "migrate_supply_pool_version<Ty0",
+      "remove_lend_facil<Ty0",
+      "repay<Ty0",
+      "set_interest_fee_bps<Ty0",
+      "set_lend_facil_interest_model<Ty0",
+      "set_lend_facil_max_liability_outstanding<Ty0",
+      "set_lend_facil_max_utilization_bps<Ty0",
+      "supply<Ty0",
+      "take_collected_fees<Ty0",
+      "total_value_x64<Ty0",
+      "update_interest<Ty0",
+      "utilization_bps<Ty0",
+      "withdraw<Ty0"
+     ],
+     "removed": [],
+     "added": [
+      "available_balance_value<Ty0",
+      "fdb_destroy_empty",
+      "fdb_is_empty",
+      "fdb_length",
+      "fdb_share_type_matches_asset_if_any_exists<Ty0",
+      "total_liabilities_x64<Ty0"
+     ]
+    },
+    "util": {
+     "changed": [
+      "divide_and_round_up_u128",
+      "divide_and_round_up_u256",
+      "saturating_muldiv_round_up_u128"
+     ],
+     "removed": [],
+     "added": []
+    }
+   }
+  }
+ }
+}

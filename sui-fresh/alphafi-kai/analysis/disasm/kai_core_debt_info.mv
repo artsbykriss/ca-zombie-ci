@@ -1,0 +1,175 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.debt_info {
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::debt;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::supply_pool;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::util;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct DebtInfoEntry has copy, drop, store {
+	supply_x64: u128,
+	liability_value_x64: u128
+}
+
+struct DebtInfo has copy, drop {
+	facil_id: ID,
+	map: VecMap<TypeName, DebtInfoEntry>
+}
+
+struct ValidatedDebtInfo has copy, drop {
+	map: VecMap<TypeName, DebtInfoEntry>
+}
+
+public empty(Arg0: ID): DebtInfo {
+B0:
+	0: MoveLoc[0](Arg0: ID)
+	1: Call vec_map::empty<TypeName, DebtInfoEntry>(): VecMap<TypeName, DebtInfoEntry>
+	2: Pack[1](DebtInfo)
+	3: Ret
+}
+
+public facil_id(Arg0: &DebtInfo): ID {
+B0:
+	0: MoveLoc[0](Arg0: &DebtInfo)
+	1: ImmBorrowField[0](DebtInfo.facil_id: ID)
+	2: ReadRef
+	3: Ret
+}
+
+public add<Ty0>(Arg0: &mut DebtInfo, Arg1: &DebtRegistry<Ty0>) {
+L2:	loc0: DebtInfoEntry
+B0:
+	0: CopyLoc[1](Arg1: &DebtRegistry<Ty0>)
+	1: Call debt::supply_x64<Ty0>(&DebtRegistry<Ty0>): u128
+	2: MoveLoc[1](Arg1: &DebtRegistry<Ty0>)
+	3: Call debt::liability_value_x64<Ty0>(&DebtRegistry<Ty0>): u128
+	4: Pack[0](DebtInfoEntry)
+	5: StLoc[2](loc0: DebtInfoEntry)
+	6: MoveLoc[0](Arg0: &mut DebtInfo)
+	7: MutBorrowField[1](DebtInfo.map: VecMap<TypeName, DebtInfoEntry>)
+	8: Call type_name::with_defining_ids<Ty0>(): TypeName
+	9: MoveLoc[2](loc0: DebtInfoEntry)
+	10: Call vec_map::insert<TypeName, DebtInfoEntry>(&mut VecMap<TypeName, DebtInfoEntry>, TypeName, DebtInfoEntry)
+	11: Ret
+}
+
+public add_from_supply_pool<Ty0, Ty1>(Arg0: &mut DebtInfo, Arg1: &mut SupplyPool<Ty0, Ty1>, Arg2: &Clock) {
+L3:	loc0: ID
+L4:	loc1: &DebtRegistry<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut DebtInfo)
+	1: ImmBorrowField[0](DebtInfo.facil_id: ID)
+	2: ReadRef
+	3: StLoc[3](loc0: ID)
+	4: MoveLoc[1](Arg1: &mut SupplyPool<Ty0, Ty1>)
+	5: ImmBorrowLoc[3](loc0: ID)
+	6: MoveLoc[2](Arg2: &Clock)
+	7: Call supply_pool::borrow_debt_registry<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &ID, &Clock): &DebtRegistry<Ty1>
+	8: StLoc[4](loc1: &DebtRegistry<Ty1>)
+	9: MoveLoc[0](Arg0: &mut DebtInfo)
+	10: MoveLoc[4](loc1: &DebtRegistry<Ty1>)
+	11: Call add<Ty1>(&mut DebtInfo, &DebtRegistry<Ty1>)
+	12: Ret
+}
+
+public validate(Arg0: &DebtInfo, Arg1: ID): ValidatedDebtInfo {
+B0:
+	0: CopyLoc[0](Arg0: &DebtInfo)
+	1: ImmBorrowField[0](DebtInfo.facil_id: ID)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: ID)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(11)
+B2:
+	7: MoveLoc[0](Arg0: &DebtInfo)
+	8: Pop
+	9: LdConst[1](u64: 0)
+	10: Abort
+B3:
+	11: MoveLoc[0](Arg0: &DebtInfo)
+	12: ImmBorrowField[1](DebtInfo.map: VecMap<TypeName, DebtInfoEntry>)
+	13: ReadRef
+	14: Pack[2](ValidatedDebtInfo)
+	15: Ret
+}
+
+calc_repay_x64(Arg0: &ValidatedDebtInfo, Arg1: TypeName, Arg2: u128): u128 {
+L3:	loc0: &DebtInfoEntry
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedDebtInfo)
+	1: ImmBorrowField[2](ValidatedDebtInfo.map: VecMap<TypeName, DebtInfoEntry>)
+	2: ImmBorrowLoc[1](Arg1: TypeName)
+	3: Call vec_map::get<TypeName, DebtInfoEntry>(&VecMap<TypeName, DebtInfoEntry>, &TypeName): &DebtInfoEntry
+	4: StLoc[3](loc0: &DebtInfoEntry)
+	5: CopyLoc[3](loc0: &DebtInfoEntry)
+	6: ImmBorrowField[3](DebtInfoEntry.liability_value_x64: u128)
+	7: ReadRef
+	8: MoveLoc[2](Arg2: u128)
+	9: MoveLoc[3](loc0: &DebtInfoEntry)
+	10: ImmBorrowField[4](DebtInfoEntry.supply_x64: u128)
+	11: ReadRef
+	12: Call util::muldiv_round_up_u128(u128, u128, u128): u128
+	13: Ret
+}
+
+calc_repay_lossy(Arg0: &ValidatedDebtInfo, Arg1: TypeName, Arg2: u128): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedDebtInfo)
+	1: MoveLoc[1](Arg1: TypeName)
+	2: MoveLoc[2](Arg2: u128)
+	3: Call calc_repay_x64(&ValidatedDebtInfo, TypeName, u128): u128
+	4: LdConst[0](u128: 1844..)
+	5: Call util::divide_and_round_up_u128(u128, u128): u128
+	6: CastU64
+	7: Ret
+}
+
+calc_repay_for_amount(Arg0: &ValidatedDebtInfo, Arg1: TypeName, Arg2: u64): u128 {
+L3:	loc0: &DebtInfoEntry
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedDebtInfo)
+	1: ImmBorrowField[2](ValidatedDebtInfo.map: VecMap<TypeName, DebtInfoEntry>)
+	2: ImmBorrowLoc[1](Arg1: TypeName)
+	3: Call vec_map::get<TypeName, DebtInfoEntry>(&VecMap<TypeName, DebtInfoEntry>, &TypeName): &DebtInfoEntry
+	4: StLoc[3](loc0: &DebtInfoEntry)
+	5: MoveLoc[2](Arg2: u64)
+	6: CastU128
+	7: LdConst[0](u128: 1844..)
+	8: Mul
+	9: CopyLoc[3](loc0: &DebtInfoEntry)
+	10: ImmBorrowField[4](DebtInfoEntry.supply_x64: u128)
+	11: ReadRef
+	12: MoveLoc[3](loc0: &DebtInfoEntry)
+	13: ImmBorrowField[3](DebtInfoEntry.liability_value_x64: u128)
+	14: ReadRef
+	15: Call util::muldiv_u128(u128, u128, u128): u128
+	16: Ret
+}
+
+public calc_repay_by_shares(Arg0: &ValidatedDebtInfo, Arg1: TypeName, Arg2: u128): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedDebtInfo)
+	1: MoveLoc[1](Arg1: TypeName)
+	2: MoveLoc[2](Arg2: u128)
+	3: Call calc_repay_lossy(&ValidatedDebtInfo, TypeName, u128): u64
+	4: Ret
+}
+
+public calc_repay_by_amount(Arg0: &ValidatedDebtInfo, Arg1: TypeName, Arg2: u64): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedDebtInfo)
+	1: MoveLoc[1](Arg1: TypeName)
+	2: MoveLoc[2](Arg2: u64)
+	3: Call calc_repay_for_amount(&ValidatedDebtInfo, TypeName, u64): u128
+	4: Ret
+}
+
+Constants [
+	0 => u128: 18446744073709551616
+	1 => u64: 0
+]
+}

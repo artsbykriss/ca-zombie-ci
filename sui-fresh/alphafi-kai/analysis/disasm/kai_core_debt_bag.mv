@@ -1,0 +1,694 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.debt_bag {
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::debt;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000001::vector;
+use 0000000000000000000000000000000000000000000000000000000000000002::bag;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+
+struct Info has store {
+	asset_type: TypeName,
+	share_type: TypeName,
+	amount: u128
+}
+
+struct DebtBag has store, key {
+	id: UID,
+	infos: vector<Info>,
+	bag: Bag
+}
+
+struct Key has copy, drop, store {
+	t: TypeName,
+	st: TypeName
+}
+
+public empty(Arg0: &mut TxContext): DebtBag {
+B0:
+	0: CopyLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: VecPack(17, 0)
+	3: MoveLoc[0](Arg0: &mut TxContext)
+	4: Call bag::new(&mut TxContext): Bag
+	5: Pack[1](DebtBag)
+	6: Ret
+}
+
+get_asset_idx_opt(Arg0: &DebtBag, Arg1: &TypeName): Option<u64> {
+L2:	loc0: u64
+L3:	loc1: u64
+B0:
+	0: LdU64(0)
+	1: StLoc[2](loc0: u64)
+	2: CopyLoc[0](Arg0: &DebtBag)
+	3: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	4: VecLen(17)
+	5: StLoc[3](loc1: u64)
+B1:
+	6: CopyLoc[2](loc0: u64)
+	7: CopyLoc[3](loc1: u64)
+	8: Lt
+	9: BrFalse(31)
+B2:
+	10: Branch(11)
+B3:
+	11: CopyLoc[0](Arg0: &DebtBag)
+	12: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	13: CopyLoc[2](loc0: u64)
+	14: VecImmBorrow(17)
+	15: ImmBorrowField[1](Info.asset_type: TypeName)
+	16: CopyLoc[1](Arg1: &TypeName)
+	17: Eq
+	18: BrFalse(26)
+B4:
+	19: MoveLoc[0](Arg0: &DebtBag)
+	20: Pop
+	21: MoveLoc[1](Arg1: &TypeName)
+	22: Pop
+	23: MoveLoc[2](loc0: u64)
+	24: Call option::some<u64>(u64): Option<u64>
+	25: Ret
+B5:
+	26: MoveLoc[2](loc0: u64)
+	27: LdU64(1)
+	28: Add
+	29: StLoc[2](loc0: u64)
+	30: Branch(6)
+B6:
+	31: MoveLoc[0](Arg0: &DebtBag)
+	32: Pop
+	33: MoveLoc[1](Arg1: &TypeName)
+	34: Pop
+	35: Call option::none<u64>(): Option<u64>
+	36: Ret
+}
+
+get_share_idx_opt(Arg0: &DebtBag, Arg1: &TypeName): Option<u64> {
+L2:	loc0: u64
+L3:	loc1: u64
+B0:
+	0: LdU64(0)
+	1: StLoc[2](loc0: u64)
+	2: CopyLoc[0](Arg0: &DebtBag)
+	3: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	4: VecLen(17)
+	5: StLoc[3](loc1: u64)
+B1:
+	6: CopyLoc[2](loc0: u64)
+	7: CopyLoc[3](loc1: u64)
+	8: Lt
+	9: BrFalse(31)
+B2:
+	10: Branch(11)
+B3:
+	11: CopyLoc[0](Arg0: &DebtBag)
+	12: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	13: CopyLoc[2](loc0: u64)
+	14: VecImmBorrow(17)
+	15: ImmBorrowField[2](Info.share_type: TypeName)
+	16: CopyLoc[1](Arg1: &TypeName)
+	17: Eq
+	18: BrFalse(26)
+B4:
+	19: MoveLoc[1](Arg1: &TypeName)
+	20: Pop
+	21: MoveLoc[0](Arg0: &DebtBag)
+	22: Pop
+	23: MoveLoc[2](loc0: u64)
+	24: Call option::some<u64>(u64): Option<u64>
+	25: Ret
+B5:
+	26: MoveLoc[2](loc0: u64)
+	27: LdU64(1)
+	28: Add
+	29: StLoc[2](loc0: u64)
+	30: Branch(6)
+B6:
+	31: MoveLoc[1](Arg1: &TypeName)
+	32: Pop
+	33: MoveLoc[0](Arg0: &DebtBag)
+	34: Pop
+	35: Call option::none<u64>(): Option<u64>
+	36: Ret
+}
+
+get_share_idx(Arg0: &DebtBag, Arg1: &TypeName): u64 {
+L2:	loc0: Option<u64>
+B0:
+	0: MoveLoc[0](Arg0: &DebtBag)
+	1: MoveLoc[1](Arg1: &TypeName)
+	2: Call get_share_idx_opt(&DebtBag, &TypeName): Option<u64>
+	3: StLoc[2](loc0: Option<u64>)
+	4: ImmBorrowLoc[2](loc0: Option<u64>)
+	5: Call option::is_some<u64>(&Option<u64>): bool
+	6: BrFalse(8)
+B1:
+	7: Branch(10)
+B2:
+	8: LdConst[1](u64: 1)
+	9: Abort
+B3:
+	10: MoveLoc[2](loc0: Option<u64>)
+	11: Call option::destroy_some<u64>(Option<u64>): u64
+	12: Ret
+}
+
+key(Arg0: &Info): Key {
+B0:
+	0: CopyLoc[0](Arg0: &Info)
+	1: ImmBorrowField[1](Info.asset_type: TypeName)
+	2: ReadRef
+	3: MoveLoc[0](Arg0: &Info)
+	4: ImmBorrowField[2](Info.share_type: TypeName)
+	5: ReadRef
+	6: Pack[2](Key)
+	7: Ret
+}
+
+public add<Ty0, Ty1>(Arg0: &mut DebtBag, Arg1: DebtShareBalance<Ty1>) {
+L2:	loc0: TypeName
+L3:	loc1: u64
+L4:	loc2: u64
+L5:	loc3: Option<u64>
+L6:	loc4: &mut Info
+L7:	loc5: Info
+L8:	loc6: Key
+L9:	loc7: u64
+L10:	loc8: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: Call type_name::with_defining_ids<Ty1>(): TypeName
+	3: StLoc[10](loc8: TypeName)
+	4: ImmBorrowLoc[1](Arg1: DebtShareBalance<Ty1>)
+	5: Call debt::value_x64<Ty1>(&DebtShareBalance<Ty1>): u128
+	6: LdU128(0)
+	7: Eq
+	8: BrFalse(14)
+B1:
+	9: MoveLoc[0](Arg0: &mut DebtBag)
+	10: Pop
+	11: MoveLoc[1](Arg1: DebtShareBalance<Ty1>)
+	12: Call debt::destroy_zero<Ty1>(DebtShareBalance<Ty1>)
+	13: Ret
+B2:
+	14: CopyLoc[2](loc0: TypeName)
+	15: CopyLoc[10](loc8: TypeName)
+	16: Pack[2](Key)
+	17: StLoc[8](loc6: Key)
+	18: CopyLoc[0](Arg0: &mut DebtBag)
+	19: FreezeRef
+	20: ImmBorrowLoc[2](loc0: TypeName)
+	21: Call get_asset_idx_opt(&DebtBag, &TypeName): Option<u64>
+	22: StLoc[5](loc3: Option<u64>)
+	23: ImmBorrowLoc[5](loc3: Option<u64>)
+	24: Call option::is_some<u64>(&Option<u64>): bool
+	25: BrFalse(63)
+B3:
+	26: MoveLoc[5](loc3: Option<u64>)
+	27: Call option::destroy_some<u64>(Option<u64>): u64
+	28: StLoc[4](loc2: u64)
+	29: CopyLoc[0](Arg0: &mut DebtBag)
+	30: MutBorrowField[0](DebtBag.infos: vector<Info>)
+	31: MoveLoc[4](loc2: u64)
+	32: VecMutBorrow(17)
+	33: StLoc[6](loc4: &mut Info)
+	34: CopyLoc[6](loc4: &mut Info)
+	35: ImmBorrowField[2](Info.share_type: TypeName)
+	36: ReadRef
+	37: MoveLoc[10](loc8: TypeName)
+	38: Eq
+	39: BrFalse(41)
+B4:
+	40: Branch(47)
+B5:
+	41: MoveLoc[0](Arg0: &mut DebtBag)
+	42: Pop
+	43: MoveLoc[6](loc4: &mut Info)
+	44: Pop
+	45: LdConst[0](u64: 0)
+	46: Abort
+B6:
+	47: CopyLoc[6](loc4: &mut Info)
+	48: ImmBorrowField[3](Info.amount: u128)
+	49: ReadRef
+	50: ImmBorrowLoc[1](Arg1: DebtShareBalance<Ty1>)
+	51: Call debt::value_x64<Ty1>(&DebtShareBalance<Ty1>): u128
+	52: Add
+	53: MoveLoc[6](loc4: &mut Info)
+	54: MutBorrowField[3](Info.amount: u128)
+	55: WriteRef
+	56: MoveLoc[0](Arg0: &mut DebtBag)
+	57: MutBorrowField[4](DebtBag.bag: Bag)
+	58: MoveLoc[8](loc6: Key)
+	59: Call bag::borrow_mut<Key, DebtShareBalance<Ty1>>(&mut Bag, Key): &mut DebtShareBalance<Ty1>
+	60: MoveLoc[1](Arg1: DebtShareBalance<Ty1>)
+	61: Call debt::join<Ty1>(&mut DebtShareBalance<Ty1>, DebtShareBalance<Ty1>)
+	62: Branch(107)
+B7:
+	63: LdU64(0)
+	64: StLoc[3](loc1: u64)
+	65: CopyLoc[0](Arg0: &mut DebtBag)
+	66: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	67: VecLen(17)
+	68: StLoc[9](loc7: u64)
+B8:
+	69: CopyLoc[3](loc1: u64)
+	70: CopyLoc[9](loc7: u64)
+	71: Lt
+	72: BrFalse(92)
+B9:
+	73: CopyLoc[0](Arg0: &mut DebtBag)
+	74: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	75: CopyLoc[3](loc1: u64)
+	76: VecImmBorrow(17)
+	77: ImmBorrowField[2](Info.share_type: TypeName)
+	78: ReadRef
+	79: CopyLoc[10](loc8: TypeName)
+	80: Neq
+	81: BrFalse(83)
+B10:
+	82: Branch(87)
+B11:
+	83: MoveLoc[0](Arg0: &mut DebtBag)
+	84: Pop
+	85: LdConst[0](u64: 0)
+	86: Abort
+B12:
+	87: MoveLoc[3](loc1: u64)
+	88: LdU64(1)
+	89: Add
+	90: StLoc[3](loc1: u64)
+	91: Branch(69)
+B13:
+	92: MoveLoc[2](loc0: TypeName)
+	93: MoveLoc[10](loc8: TypeName)
+	94: ImmBorrowLoc[1](Arg1: DebtShareBalance<Ty1>)
+	95: Call debt::value_x64<Ty1>(&DebtShareBalance<Ty1>): u128
+	96: Pack[0](Info)
+	97: StLoc[7](loc5: Info)
+	98: CopyLoc[0](Arg0: &mut DebtBag)
+	99: MutBorrowField[0](DebtBag.infos: vector<Info>)
+	100: MoveLoc[7](loc5: Info)
+	101: VecPushBack(17)
+	102: MoveLoc[0](Arg0: &mut DebtBag)
+	103: MutBorrowField[4](DebtBag.bag: Bag)
+	104: MoveLoc[8](loc6: Key)
+	105: MoveLoc[1](Arg1: DebtShareBalance<Ty1>)
+	106: Call bag::add<Key, DebtShareBalance<Ty1>>(&mut Bag, Key, DebtShareBalance<Ty1>)
+B14:
+	107: Ret
+}
+
+public take_amt<Ty0>(Arg0: &mut DebtBag, Arg1: u128): DebtShareBalance<Ty0> {
+L2:	loc0: u64
+L3:	loc1: &mut Info
+L4:	loc2: Key
+L5:	loc3: DebtShareBalance<Ty0>
+L6:	loc4: TypeName
+B0:
+	0: CopyLoc[1](Arg1: u128)
+	1: LdU128(0)
+	2: Eq
+	3: BrFalse(8)
+B1:
+	4: MoveLoc[0](Arg0: &mut DebtBag)
+	5: Pop
+	6: Call debt::zero<Ty0>(): DebtShareBalance<Ty0>
+	7: Ret
+B2:
+	8: Call type_name::with_defining_ids<Ty0>(): TypeName
+	9: StLoc[6](loc4: TypeName)
+	10: CopyLoc[0](Arg0: &mut DebtBag)
+	11: FreezeRef
+	12: ImmBorrowLoc[6](loc4: TypeName)
+	13: Call get_share_idx(&DebtBag, &TypeName): u64
+	14: StLoc[2](loc0: u64)
+	15: CopyLoc[0](Arg0: &mut DebtBag)
+	16: MutBorrowField[0](DebtBag.infos: vector<Info>)
+	17: CopyLoc[2](loc0: u64)
+	18: VecMutBorrow(17)
+	19: StLoc[3](loc1: &mut Info)
+	20: CopyLoc[1](Arg1: u128)
+	21: CopyLoc[3](loc1: &mut Info)
+	22: ImmBorrowField[3](Info.amount: u128)
+	23: ReadRef
+	24: Le
+	25: BrFalse(27)
+B3:
+	26: Branch(33)
+B4:
+	27: MoveLoc[0](Arg0: &mut DebtBag)
+	28: Pop
+	29: MoveLoc[3](loc1: &mut Info)
+	30: Pop
+	31: LdConst[2](u64: 2)
+	32: Abort
+B5:
+	33: CopyLoc[3](loc1: &mut Info)
+	34: FreezeRef
+	35: Call key(&Info): Key
+	36: StLoc[4](loc2: Key)
+	37: CopyLoc[0](Arg0: &mut DebtBag)
+	38: MutBorrowField[4](DebtBag.bag: Bag)
+	39: CopyLoc[4](loc2: Key)
+	40: Call bag::borrow_mut<Key, DebtShareBalance<Ty0>>(&mut Bag, Key): &mut DebtShareBalance<Ty0>
+	41: CopyLoc[1](Arg1: u128)
+	42: Call debt::split_x64<Ty0>(&mut DebtShareBalance<Ty0>, u128): DebtShareBalance<Ty0>
+	43: StLoc[5](loc3: DebtShareBalance<Ty0>)
+	44: CopyLoc[3](loc1: &mut Info)
+	45: ImmBorrowField[3](Info.amount: u128)
+	46: ReadRef
+	47: MoveLoc[1](Arg1: u128)
+	48: Sub
+	49: CopyLoc[3](loc1: &mut Info)
+	50: MutBorrowField[3](Info.amount: u128)
+	51: WriteRef
+	52: MoveLoc[3](loc1: &mut Info)
+	53: ImmBorrowField[3](Info.amount: u128)
+	54: ReadRef
+	55: LdU128(0)
+	56: Eq
+	57: BrFalse(72)
+B6:
+	58: CopyLoc[0](Arg0: &mut DebtBag)
+	59: MutBorrowField[0](DebtBag.infos: vector<Info>)
+	60: MoveLoc[2](loc0: u64)
+	61: Call vector::remove<Info>(&mut vector<Info>, u64): Info
+	62: Unpack[0](Info)
+	63: Pop
+	64: Pop
+	65: Pop
+	66: MoveLoc[0](Arg0: &mut DebtBag)
+	67: MutBorrowField[4](DebtBag.bag: Bag)
+	68: MoveLoc[4](loc2: Key)
+	69: Call bag::remove<Key, DebtShareBalance<Ty0>>(&mut Bag, Key): DebtShareBalance<Ty0>
+	70: Call debt::destroy_zero<Ty0>(DebtShareBalance<Ty0>)
+	71: Branch(74)
+B7:
+	72: MoveLoc[0](Arg0: &mut DebtBag)
+	73: Pop
+B8:
+	74: MoveLoc[5](loc3: DebtShareBalance<Ty0>)
+	75: Ret
+}
+
+public take_all<Ty0>(Arg0: &mut DebtBag): DebtShareBalance<Ty0> {
+L1:	loc0: u64
+L2:	loc1: Option<u64>
+L3:	loc2: Key
+L4:	loc3: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[4](loc3: TypeName)
+	2: CopyLoc[0](Arg0: &mut DebtBag)
+	3: FreezeRef
+	4: ImmBorrowLoc[4](loc3: TypeName)
+	5: Call get_share_idx_opt(&DebtBag, &TypeName): Option<u64>
+	6: StLoc[2](loc1: Option<u64>)
+	7: ImmBorrowLoc[2](loc1: Option<u64>)
+	8: Call option::is_none<u64>(&Option<u64>): bool
+	9: BrFalse(14)
+B1:
+	10: MoveLoc[0](Arg0: &mut DebtBag)
+	11: Pop
+	12: Call debt::zero<Ty0>(): DebtShareBalance<Ty0>
+	13: Ret
+B2:
+	14: MoveLoc[2](loc1: Option<u64>)
+	15: Call option::destroy_some<u64>(Option<u64>): u64
+	16: StLoc[1](loc0: u64)
+	17: CopyLoc[0](Arg0: &mut DebtBag)
+	18: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	19: CopyLoc[1](loc0: u64)
+	20: VecImmBorrow(17)
+	21: Call key(&Info): Key
+	22: StLoc[3](loc2: Key)
+	23: CopyLoc[0](Arg0: &mut DebtBag)
+	24: MutBorrowField[0](DebtBag.infos: vector<Info>)
+	25: MoveLoc[1](loc0: u64)
+	26: Call vector::remove<Info>(&mut vector<Info>, u64): Info
+	27: Unpack[0](Info)
+	28: Pop
+	29: Pop
+	30: Pop
+	31: MoveLoc[0](Arg0: &mut DebtBag)
+	32: MutBorrowField[4](DebtBag.bag: Bag)
+	33: MoveLoc[3](loc2: Key)
+	34: Call bag::remove<Key, DebtShareBalance<Ty0>>(&mut Bag, Key): DebtShareBalance<Ty0>
+	35: Ret
+}
+
+public get_share_amount_by_asset_type<Ty0>(Arg0: &DebtBag): u128 {
+L1:	loc0: TypeName
+L2:	loc1: u64
+L3:	loc2: Option<u64>
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[1](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &DebtBag)
+	3: ImmBorrowLoc[1](loc0: TypeName)
+	4: Call get_asset_idx_opt(&DebtBag, &TypeName): Option<u64>
+	5: StLoc[3](loc2: Option<u64>)
+	6: ImmBorrowLoc[3](loc2: Option<u64>)
+	7: Call option::is_none<u64>(&Option<u64>): bool
+	8: BrFalse(13)
+B1:
+	9: MoveLoc[0](Arg0: &DebtBag)
+	10: Pop
+	11: LdU128(0)
+	12: Ret
+B2:
+	13: MoveLoc[3](loc2: Option<u64>)
+	14: Call option::destroy_some<u64>(Option<u64>): u64
+	15: StLoc[2](loc1: u64)
+	16: MoveLoc[0](Arg0: &DebtBag)
+	17: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	18: MoveLoc[2](loc1: u64)
+	19: VecImmBorrow(17)
+	20: ImmBorrowField[3](Info.amount: u128)
+	21: ReadRef
+	22: Ret
+}
+
+public get_share_amount_by_share_type<Ty0>(Arg0: &DebtBag): u128 {
+L1:	loc0: u64
+L2:	loc1: Option<u64>
+L3:	loc2: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[3](loc2: TypeName)
+	2: CopyLoc[0](Arg0: &DebtBag)
+	3: ImmBorrowLoc[3](loc2: TypeName)
+	4: Call get_share_idx_opt(&DebtBag, &TypeName): Option<u64>
+	5: StLoc[2](loc1: Option<u64>)
+	6: ImmBorrowLoc[2](loc1: Option<u64>)
+	7: Call option::is_none<u64>(&Option<u64>): bool
+	8: BrFalse(13)
+B1:
+	9: MoveLoc[0](Arg0: &DebtBag)
+	10: Pop
+	11: LdU128(0)
+	12: Ret
+B2:
+	13: MoveLoc[2](loc1: Option<u64>)
+	14: Call option::destroy_some<u64>(Option<u64>): u64
+	15: StLoc[1](loc0: u64)
+	16: MoveLoc[0](Arg0: &DebtBag)
+	17: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	18: MoveLoc[1](loc0: u64)
+	19: VecImmBorrow(17)
+	20: ImmBorrowField[3](Info.amount: u128)
+	21: ReadRef
+	22: Ret
+}
+
+public get_share_type_for_asset<Ty0>(Arg0: &DebtBag): TypeName {
+L1:	loc0: TypeName
+L2:	loc1: u64
+L3:	loc2: Option<u64>
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[1](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &DebtBag)
+	3: ImmBorrowLoc[1](loc0: TypeName)
+	4: Call get_asset_idx_opt(&DebtBag, &TypeName): Option<u64>
+	5: StLoc[3](loc2: Option<u64>)
+	6: ImmBorrowLoc[3](loc2: Option<u64>)
+	7: Call option::is_some<u64>(&Option<u64>): bool
+	8: BrFalse(10)
+B1:
+	9: Branch(14)
+B2:
+	10: MoveLoc[0](Arg0: &DebtBag)
+	11: Pop
+	12: LdConst[1](u64: 1)
+	13: Abort
+B3:
+	14: MoveLoc[3](loc2: Option<u64>)
+	15: Call option::destroy_some<u64>(Option<u64>): u64
+	16: StLoc[2](loc1: u64)
+	17: MoveLoc[0](Arg0: &DebtBag)
+	18: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	19: MoveLoc[2](loc1: u64)
+	20: VecImmBorrow(17)
+	21: ImmBorrowField[2](Info.share_type: TypeName)
+	22: ReadRef
+	23: Ret
+}
+
+public share_type_matches_asset_if_any_exists<Ty0, Ty1>(Arg0: &DebtBag): bool {
+L1:	loc0: bool
+L2:	loc1: bool
+L3:	loc2: TypeName
+L4:	loc3: u64
+L5:	loc4: &Info
+L6:	loc5: u64
+L7:	loc6: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[3](loc2: TypeName)
+	2: Call type_name::with_defining_ids<Ty1>(): TypeName
+	3: StLoc[7](loc6: TypeName)
+	4: LdU64(0)
+	5: StLoc[4](loc3: u64)
+	6: CopyLoc[0](Arg0: &DebtBag)
+	7: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	8: VecLen(17)
+	9: StLoc[6](loc5: u64)
+B1:
+	10: CopyLoc[4](loc3: u64)
+	11: CopyLoc[6](loc5: u64)
+	12: Lt
+	13: BrFalse(65)
+B2:
+	14: Branch(15)
+B3:
+	15: CopyLoc[0](Arg0: &DebtBag)
+	16: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	17: CopyLoc[4](loc3: u64)
+	18: VecImmBorrow(17)
+	19: StLoc[5](loc4: &Info)
+	20: CopyLoc[5](loc4: &Info)
+	21: ImmBorrowField[1](Info.asset_type: TypeName)
+	22: ReadRef
+	23: CopyLoc[3](loc2: TypeName)
+	24: Eq
+	25: BrFalse(29)
+B4:
+	26: LdTrue
+	27: StLoc[1](loc0: bool)
+	28: Branch(35)
+B5:
+	29: CopyLoc[5](loc4: &Info)
+	30: ImmBorrowField[2](Info.share_type: TypeName)
+	31: ReadRef
+	32: CopyLoc[7](loc6: TypeName)
+	33: Eq
+	34: StLoc[1](loc0: bool)
+B6:
+	35: MoveLoc[1](loc0: bool)
+	36: BrFalse(58)
+B7:
+	37: MoveLoc[0](Arg0: &DebtBag)
+	38: Pop
+	39: CopyLoc[5](loc4: &Info)
+	40: ImmBorrowField[1](Info.asset_type: TypeName)
+	41: ReadRef
+	42: MoveLoc[3](loc2: TypeName)
+	43: Eq
+	44: BrFalse(52)
+B8:
+	45: MoveLoc[5](loc4: &Info)
+	46: ImmBorrowField[2](Info.share_type: TypeName)
+	47: ReadRef
+	48: MoveLoc[7](loc6: TypeName)
+	49: Eq
+	50: StLoc[2](loc1: bool)
+	51: Branch(56)
+B9:
+	52: MoveLoc[5](loc4: &Info)
+	53: Pop
+	54: LdFalse
+	55: StLoc[2](loc1: bool)
+B10:
+	56: MoveLoc[2](loc1: bool)
+	57: Ret
+B11:
+	58: MoveLoc[5](loc4: &Info)
+	59: Pop
+	60: MoveLoc[4](loc3: u64)
+	61: LdU64(1)
+	62: Add
+	63: StLoc[4](loc3: u64)
+	64: Branch(10)
+B12:
+	65: MoveLoc[0](Arg0: &DebtBag)
+	66: Pop
+	67: LdTrue
+	68: Ret
+}
+
+public is_empty(Arg0: &DebtBag): bool {
+L1:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &DebtBag)
+	1: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	2: Call vector::is_empty<Info>(&vector<Info>): bool
+	3: BrFalse(9)
+B1:
+	4: MoveLoc[0](Arg0: &DebtBag)
+	5: ImmBorrowField[4](DebtBag.bag: Bag)
+	6: Call bag::is_empty(&Bag): bool
+	7: StLoc[1](loc0: bool)
+	8: Branch(13)
+B2:
+	9: MoveLoc[0](Arg0: &DebtBag)
+	10: Pop
+	11: LdFalse
+	12: StLoc[1](loc0: bool)
+B3:
+	13: MoveLoc[1](loc0: bool)
+	14: Ret
+}
+
+public destroy_empty(Arg0: DebtBag) {
+L1:	loc0: Bag
+L2:	loc1: vector<Info>
+B0:
+	0: MoveLoc[0](Arg0: DebtBag)
+	1: Unpack[1](DebtBag)
+	2: StLoc[1](loc0: Bag)
+	3: StLoc[2](loc1: vector<Info>)
+	4: Call object::delete(UID)
+	5: MoveLoc[2](loc1: vector<Info>)
+	6: VecUnpack(17, 0)
+	7: MoveLoc[1](loc0: Bag)
+	8: Call bag::destroy_empty(Bag)
+	9: Ret
+}
+
+public size(Arg0: &DebtBag): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &DebtBag)
+	1: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	2: VecLen(17)
+	3: Ret
+}
+
+public length(Arg0: &DebtBag): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &DebtBag)
+	1: ImmBorrowField[0](DebtBag.infos: vector<Info>)
+	2: VecLen(17)
+	3: Ret
+}
+
+Constants [
+	0 => u64: 0
+	1 => u64: 1
+	2 => u64: 2
+]
+}

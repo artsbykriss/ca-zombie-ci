@@ -1,0 +1,485 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.util {
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+
+public muldiv(Arg0: u64, Arg1: u64, Arg2: u64): u64 {
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: CastU128
+	2: MoveLoc[1](Arg1: u64)
+	3: CastU128
+	4: Mul
+	5: MoveLoc[2](Arg2: u64)
+	6: CastU128
+	7: Div
+	8: CastU64
+	9: Ret
+}
+
+public muldiv_round_up(Arg0: u64, Arg1: u64, Arg2: u64): u64 {
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: CastU128
+	2: MoveLoc[1](Arg1: u64)
+	3: CastU128
+	4: Mul
+	5: MoveLoc[2](Arg2: u64)
+	6: CastU128
+	7: Call divide_and_round_up_u128(u128, u128): u128
+	8: CastU64
+	9: Ret
+}
+
+public muldiv_u128(Arg0: u128, Arg1: u128, Arg2: u128): u128 {
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: CastU256
+	2: MoveLoc[1](Arg1: u128)
+	3: CastU256
+	4: Mul
+	5: MoveLoc[2](Arg2: u128)
+	6: CastU256
+	7: Div
+	8: CastU128
+	9: Ret
+}
+
+public muldiv_round_up_u128(Arg0: u128, Arg1: u128, Arg2: u128): u128 {
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: CastU256
+	2: MoveLoc[1](Arg1: u128)
+	3: CastU256
+	4: Mul
+	5: MoveLoc[2](Arg2: u128)
+	6: CastU256
+	7: Call divide_and_round_up_u256(u256, u256): u256
+	8: CastU128
+	9: Ret
+}
+
+public saturating_muldiv_round_up_u128(Arg0: u128, Arg1: u128, Arg2: u128): u128 {
+L3:	loc0: u128
+L4:	loc1: u256
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: CastU256
+	2: MoveLoc[1](Arg1: u128)
+	3: CastU256
+	4: Mul
+	5: MoveLoc[2](Arg2: u128)
+	6: CastU256
+	7: Call divide_and_round_up_u256(u256, u256): u256
+	8: StLoc[4](loc1: u256)
+	9: CopyLoc[4](loc1: u256)
+	10: LdU256(340282366920938463463374607431768211455)
+	11: Gt
+	12: BrFalse(20)
+B1:
+	13: LdU128(1)
+	14: LdU8(128)
+	15: Shl
+	16: LdU128(1)
+	17: Sub
+	18: StLoc[3](loc0: u128)
+	19: Branch(23)
+B2:
+	20: MoveLoc[4](loc1: u256)
+	21: CastU128
+	22: StLoc[3](loc0: u128)
+B3:
+	23: MoveLoc[3](loc0: u128)
+	24: Ret
+}
+
+public divide_and_round_up_u128(Arg0: u128, Arg1: u128): u128 {
+L2:	loc0: u128
+L3:	loc1: u128
+L4:	loc2: u128
+B0:
+	0: MoveLoc[0](Arg0: u128)
+	1: StLoc[3](loc1: u128)
+	2: MoveLoc[1](Arg1: u128)
+	3: StLoc[4](loc2: u128)
+	4: CopyLoc[3](loc1: u128)
+	5: CopyLoc[4](loc2: u128)
+	6: Mod
+	7: LdU128(0)
+	8: Eq
+	9: BrFalse(15)
+B1:
+	10: MoveLoc[3](loc1: u128)
+	11: MoveLoc[4](loc2: u128)
+	12: Div
+	13: StLoc[2](loc0: u128)
+	14: Branch(21)
+B2:
+	15: MoveLoc[3](loc1: u128)
+	16: MoveLoc[4](loc2: u128)
+	17: Div
+	18: LdU128(1)
+	19: Add
+	20: StLoc[2](loc0: u128)
+B3:
+	21: MoveLoc[2](loc0: u128)
+	22: Ret
+}
+
+public divide_and_round_up_u256(Arg0: u256, Arg1: u256): u256 {
+L2:	loc0: u256
+L3:	loc1: u256
+L4:	loc2: u256
+B0:
+	0: MoveLoc[0](Arg0: u256)
+	1: StLoc[3](loc1: u256)
+	2: MoveLoc[1](Arg1: u256)
+	3: StLoc[4](loc2: u256)
+	4: CopyLoc[3](loc1: u256)
+	5: CopyLoc[4](loc2: u256)
+	6: Mod
+	7: LdU256(0)
+	8: Eq
+	9: BrFalse(15)
+B1:
+	10: MoveLoc[3](loc1: u256)
+	11: MoveLoc[4](loc2: u256)
+	12: Div
+	13: StLoc[2](loc0: u256)
+	14: Branch(21)
+B2:
+	15: MoveLoc[3](loc1: u256)
+	16: MoveLoc[4](loc2: u256)
+	17: Div
+	18: LdU256(1)
+	19: Add
+	20: StLoc[2](loc0: u256)
+B3:
+	21: MoveLoc[2](loc0: u256)
+	22: Ret
+}
+
+public abs_diff(Arg0: u64, Arg1: u64): u64 {
+L2:	loc0: u64
+B0:
+	0: CopyLoc[0](Arg0: u64)
+	1: CopyLoc[1](Arg1: u64)
+	2: Gt
+	3: BrFalse(9)
+B1:
+	4: MoveLoc[0](Arg0: u64)
+	5: MoveLoc[1](Arg1: u64)
+	6: Sub
+	7: StLoc[2](loc0: u64)
+	8: Branch(13)
+B2:
+	9: MoveLoc[1](Arg1: u64)
+	10: MoveLoc[0](Arg0: u64)
+	11: Sub
+	12: StLoc[2](loc0: u64)
+B3:
+	13: MoveLoc[2](loc0: u64)
+	14: Ret
+}
+
+public min_u128(Arg0: u128, Arg1: u128): u128 {
+L2:	loc0: u128
+B0:
+	0: CopyLoc[0](Arg0: u128)
+	1: CopyLoc[1](Arg1: u128)
+	2: Lt
+	3: BrFalse(7)
+B1:
+	4: MoveLoc[0](Arg0: u128)
+	5: StLoc[2](loc0: u128)
+	6: Branch(9)
+B2:
+	7: MoveLoc[1](Arg1: u128)
+	8: StLoc[2](loc0: u128)
+B3:
+	9: MoveLoc[2](loc0: u128)
+	10: Ret
+}
+
+public max_u128(Arg0: u128, Arg1: u128): u128 {
+L2:	loc0: u128
+B0:
+	0: CopyLoc[0](Arg0: u128)
+	1: CopyLoc[1](Arg1: u128)
+	2: Gt
+	3: BrFalse(7)
+B1:
+	4: MoveLoc[0](Arg0: u128)
+	5: StLoc[2](loc0: u128)
+	6: Branch(9)
+B2:
+	7: MoveLoc[1](Arg1: u128)
+	8: StLoc[2](loc0: u128)
+B3:
+	9: MoveLoc[2](loc0: u128)
+	10: Ret
+}
+
+public min_u256(Arg0: u256, Arg1: u256): u256 {
+L2:	loc0: u256
+B0:
+	0: CopyLoc[0](Arg0: u256)
+	1: CopyLoc[1](Arg1: u256)
+	2: Lt
+	3: BrFalse(7)
+B1:
+	4: MoveLoc[0](Arg0: u256)
+	5: StLoc[2](loc0: u256)
+	6: Branch(9)
+B2:
+	7: MoveLoc[1](Arg1: u256)
+	8: StLoc[2](loc0: u256)
+B3:
+	9: MoveLoc[2](loc0: u256)
+	10: Ret
+}
+
+public max_u256(Arg0: u256, Arg1: u256): u256 {
+L2:	loc0: u256
+B0:
+	0: CopyLoc[0](Arg0: u256)
+	1: CopyLoc[1](Arg1: u256)
+	2: Gt
+	3: BrFalse(7)
+B1:
+	4: MoveLoc[0](Arg0: u256)
+	5: StLoc[2](loc0: u256)
+	6: Branch(9)
+B2:
+	7: MoveLoc[1](Arg1: u256)
+	8: StLoc[2](loc0: u256)
+B3:
+	9: MoveLoc[2](loc0: u256)
+	10: Ret
+}
+
+public log2_u256(Arg0: u256): u8 {
+L1:	loc0: u8
+B0:
+	0: LdU8(0)
+	1: StLoc[1](loc0: u8)
+	2: CopyLoc[0](Arg0: u256)
+	3: LdU8(128)
+	4: Shr
+	5: LdU256(0)
+	6: Gt
+	7: BrFalse(16)
+B1:
+	8: MoveLoc[0](Arg0: u256)
+	9: LdU8(128)
+	10: Shr
+	11: StLoc[0](Arg0: u256)
+	12: MoveLoc[1](loc0: u8)
+	13: LdU8(128)
+	14: Add
+	15: StLoc[1](loc0: u8)
+B2:
+	16: CopyLoc[0](Arg0: u256)
+	17: LdU8(64)
+	18: Shr
+	19: LdU256(0)
+	20: Gt
+	21: BrFalse(30)
+B3:
+	22: MoveLoc[0](Arg0: u256)
+	23: LdU8(64)
+	24: Shr
+	25: StLoc[0](Arg0: u256)
+	26: MoveLoc[1](loc0: u8)
+	27: LdU8(64)
+	28: Add
+	29: StLoc[1](loc0: u8)
+B4:
+	30: CopyLoc[0](Arg0: u256)
+	31: LdU8(32)
+	32: Shr
+	33: LdU256(0)
+	34: Gt
+	35: BrFalse(44)
+B5:
+	36: MoveLoc[0](Arg0: u256)
+	37: LdU8(32)
+	38: Shr
+	39: StLoc[0](Arg0: u256)
+	40: MoveLoc[1](loc0: u8)
+	41: LdU8(32)
+	42: Add
+	43: StLoc[1](loc0: u8)
+B6:
+	44: CopyLoc[0](Arg0: u256)
+	45: LdU8(16)
+	46: Shr
+	47: LdU256(0)
+	48: Gt
+	49: BrFalse(58)
+B7:
+	50: MoveLoc[0](Arg0: u256)
+	51: LdU8(16)
+	52: Shr
+	53: StLoc[0](Arg0: u256)
+	54: MoveLoc[1](loc0: u8)
+	55: LdU8(16)
+	56: Add
+	57: StLoc[1](loc0: u8)
+B8:
+	58: CopyLoc[0](Arg0: u256)
+	59: LdU8(8)
+	60: Shr
+	61: LdU256(0)
+	62: Gt
+	63: BrFalse(72)
+B9:
+	64: MoveLoc[0](Arg0: u256)
+	65: LdU8(8)
+	66: Shr
+	67: StLoc[0](Arg0: u256)
+	68: MoveLoc[1](loc0: u8)
+	69: LdU8(8)
+	70: Add
+	71: StLoc[1](loc0: u8)
+B10:
+	72: CopyLoc[0](Arg0: u256)
+	73: LdU8(4)
+	74: Shr
+	75: LdU256(0)
+	76: Gt
+	77: BrFalse(86)
+B11:
+	78: MoveLoc[0](Arg0: u256)
+	79: LdU8(4)
+	80: Shr
+	81: StLoc[0](Arg0: u256)
+	82: MoveLoc[1](loc0: u8)
+	83: LdU8(4)
+	84: Add
+	85: StLoc[1](loc0: u8)
+B12:
+	86: CopyLoc[0](Arg0: u256)
+	87: LdU8(2)
+	88: Shr
+	89: LdU256(0)
+	90: Gt
+	91: BrFalse(100)
+B13:
+	92: MoveLoc[0](Arg0: u256)
+	93: LdU8(2)
+	94: Shr
+	95: StLoc[0](Arg0: u256)
+	96: MoveLoc[1](loc0: u8)
+	97: LdU8(2)
+	98: Add
+	99: StLoc[1](loc0: u8)
+B14:
+	100: MoveLoc[0](Arg0: u256)
+	101: LdU8(1)
+	102: Shr
+	103: LdU256(0)
+	104: Gt
+	105: BrFalse(110)
+B15:
+	106: MoveLoc[1](loc0: u8)
+	107: LdU8(1)
+	108: Add
+	109: StLoc[1](loc0: u8)
+B16:
+	110: MoveLoc[1](loc0: u8)
+	111: Ret
+}
+
+public sqrt_u256(Arg0: u256): u256 {
+L1:	loc0: u256
+B0:
+	0: CopyLoc[0](Arg0: u256)
+	1: LdU256(0)
+	2: Eq
+	3: BrFalse(6)
+B1:
+	4: LdU256(0)
+	5: Ret
+B2:
+	6: LdU256(1)
+	7: CopyLoc[0](Arg0: u256)
+	8: Call log2_u256(u256): u8
+	9: LdU8(1)
+	10: Shr
+	11: CastU8
+	12: Shl
+	13: StLoc[1](loc0: u256)
+	14: CopyLoc[1](loc0: u256)
+	15: CopyLoc[0](Arg0: u256)
+	16: MoveLoc[1](loc0: u256)
+	17: Div
+	18: Add
+	19: LdU8(1)
+	20: Shr
+	21: StLoc[1](loc0: u256)
+	22: CopyLoc[1](loc0: u256)
+	23: CopyLoc[0](Arg0: u256)
+	24: MoveLoc[1](loc0: u256)
+	25: Div
+	26: Add
+	27: LdU8(1)
+	28: Shr
+	29: StLoc[1](loc0: u256)
+	30: CopyLoc[1](loc0: u256)
+	31: CopyLoc[0](Arg0: u256)
+	32: MoveLoc[1](loc0: u256)
+	33: Div
+	34: Add
+	35: LdU8(1)
+	36: Shr
+	37: StLoc[1](loc0: u256)
+	38: CopyLoc[1](loc0: u256)
+	39: CopyLoc[0](Arg0: u256)
+	40: MoveLoc[1](loc0: u256)
+	41: Div
+	42: Add
+	43: LdU8(1)
+	44: Shr
+	45: StLoc[1](loc0: u256)
+	46: CopyLoc[1](loc0: u256)
+	47: CopyLoc[0](Arg0: u256)
+	48: MoveLoc[1](loc0: u256)
+	49: Div
+	50: Add
+	51: LdU8(1)
+	52: Shr
+	53: StLoc[1](loc0: u256)
+	54: CopyLoc[1](loc0: u256)
+	55: CopyLoc[0](Arg0: u256)
+	56: MoveLoc[1](loc0: u256)
+	57: Div
+	58: Add
+	59: LdU8(1)
+	60: Shr
+	61: StLoc[1](loc0: u256)
+	62: CopyLoc[1](loc0: u256)
+	63: CopyLoc[0](Arg0: u256)
+	64: MoveLoc[1](loc0: u256)
+	65: Div
+	66: Add
+	67: LdU8(1)
+	68: Shr
+	69: StLoc[1](loc0: u256)
+	70: CopyLoc[1](loc0: u256)
+	71: MoveLoc[0](Arg0: u256)
+	72: MoveLoc[1](loc0: u256)
+	73: Div
+	74: Call min_u256(u256, u256): u256
+	75: Ret
+}
+
+public timestamp_sec(Arg0: &Clock): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: LdU64(1000)
+	3: Div
+	4: Ret
+}
+
+}

@@ -1,0 +1,4119 @@
+// Move bytecode v6
+module d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4.alpha_lending {
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::events;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::market;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::oracle;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::partner;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::position;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::rewards;
+use 378b2a104e8bcd7ed0317f5e6a0ec4fd271d4d12e2fe6c99bcd1f12be725cf4f::oracle as 0oracle;
+use 4b591bbc246c9fadd28e7ac895e0778fb0e102f1b0d9f441e78d35f0d1ea1fcc::math;
+use 3492c874c1e3b3e2984e8c41b589e642d4d0a5d6459e5a9cfc2d52fd7c89c267::config;
+use 3492c874c1e3b3e2984e8c41b589e642d4d0a5d6459e5a9cfc2d52fd7c89c267::pool;
+use 3492c874c1e3b3e2984e8c41b589e642d4d0a5d6459e5a9cfc2d52fd7c89c267::position as 0position;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::string;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::display;
+use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_field;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::package;
+use 0000000000000000000000000000000000000000000000000000000000000002::sui;
+use 0000000000000000000000000000000000000000000000000000000000000002::table;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000003::sui_system;
+
+struct ALPHA_LENDING has drop {
+	dummy_field: bool
+}
+
+struct AdminCap has store, key {
+	id: UID
+}
+
+struct LendingProtocol has store, key {
+	id: UID,
+	lending_protocol_cap_id: ID,
+	positions: Table<ID, Position>,
+	markets: Table<u64, Market>,
+	oracle: Oracle,
+	protocol_fee_address: address,
+	version: u64,
+	config: LendingProtocolConfig,
+	admin_cap_id: ID
+}
+
+struct LendingProtocolConfig has store {
+	max_safe_collateral_ratio: u8,
+	max_liquidation_threshold: u8,
+	max_liquidation_bonus_bps: u64,
+	max_liquidation_fee_bps: u64,
+	lp_position_safe_collateral_ratio: u8,
+	lp_position_liquidation_threshold: u8,
+	reward_autocompounding: bool,
+	pegged_position_config: vector<PeggedPostionPair>,
+	multiplier_position_config: vector<MultiplierPositionConfig>,
+	sui_staking_enabled: bool
+}
+
+struct PeggedPostionPair has store {
+	borrow_coin_type: TypeName,
+	deposit_coin_type: TypeName,
+	pegged_position_safe_collateral_ratio: u8,
+	pegged_position_liquidation_threshold: u8
+}
+
+struct MultiplierPositionConfig has store {
+	coin_type: TypeName,
+	multiplier_position_safe_collateral_ratio: u8,
+	multiplier_position_liquidation_threshold: u8
+}
+
+struct LendingProtocolCap has store, key {
+	id: UID
+}
+
+struct DepositEvent has copy, drop {
+	cointype: TypeName,
+	market_id: u64,
+	position_id: ID,
+	deposit_amount: u64,
+	deposit_value: u64,
+	deposit_fee: u64,
+	partner_id: Option<ID>
+}
+
+struct LPPositionDepositEvent has copy, drop {
+	position_id: ID,
+	lp_position_id: ID,
+	pool_id: ID,
+	partner_id: Option<ID>
+}
+
+struct WithdrawEvent has copy, drop {
+	cointype: TypeName,
+	market_id: u64,
+	position_id: ID,
+	withdraw_amount: u64,
+	withdraw_value: u64,
+	withdraw_fee: u64,
+	partner_id: Option<ID>
+}
+
+struct BorrowEvent has copy, drop {
+	cointype: TypeName,
+	market_id: u64,
+	position_id: ID,
+	borrow_amount: u64,
+	borrow_value: u64,
+	borrow_fee: u64,
+	partner_id: Option<ID>
+}
+
+struct RepayEvent has copy, drop {
+	cointype: TypeName,
+	market_id: u64,
+	position_id: ID,
+	repay_amount: u64,
+	repay_value: u64
+}
+
+struct LiquidationEvent has copy, drop {
+	repay_type: TypeName,
+	withdraw_type: TypeName,
+	position_id: ID,
+	repay_amount: u64,
+	repay_value: u64,
+	repay_market_id: u64,
+	withdraw_amount: u64,
+	withdraw_value: u64,
+	withdraw_market_id: u64,
+	liquidation_bonus: u64,
+	liquidation_fee: u64
+}
+
+struct LpLiquidationEvent has copy, drop {
+	repay_type: TypeName,
+	position_id: ID,
+	repay_amount: u64,
+	repay_value: u64,
+	repay_market_id: u64,
+	coin_a_amount: u64,
+	coin_b_amount: u64,
+	withdraw_value: u64,
+	liquidation_bonus: u64,
+	liquidation_fee: u64,
+	lp_position_id: ID,
+	pool_id: ID
+}
+
+struct CollectRewardsEvent has copy, drop {
+	reward_type: TypeName,
+	position_id: ID,
+	market_id: u64,
+	reward_amount: u64
+}
+
+struct CollectMarketFeeEvent has copy, drop {
+	cointype: TypeName,
+	market_id: u64,
+	fee_amount: u64
+}
+
+struct CollectProtocolFeeEvent has copy, drop {
+	cointype: TypeName,
+	market_id: u64,
+	fee_amount: u64
+}
+
+struct RewardUpdateEvent has copy, drop {
+	reward_type: TypeName,
+	market_id: u64,
+	reward_amount: u64,
+	start_time: u64,
+	end_time: u64
+}
+
+struct LpPositionBorrowHotPotato {
+	lp_position_id: ID
+}
+
+struct FlashTransactionHotPotato {
+	position_id: ID
+}
+
+init(Arg0: ALPHA_LENDING, Arg1: &mut TxContext) {
+L2:	loc0: AdminCap
+L3:	loc1: Display<PositionCap>
+L4:	loc2: vector<String>
+L5:	loc3: Publisher
+L6:	loc4: vector<String>
+B0:
+	0: CopyLoc[1](Arg1: &mut TxContext)
+	1: FreezeRef
+	2: Call tx_context::sender(&TxContext): address
+	3: CopyLoc[1](Arg1: &mut TxContext)
+	4: Call new(address, &mut TxContext): LendingProtocolCap * AdminCap
+	5: StLoc[2](loc0: AdminCap)
+	6: CopyLoc[1](Arg1: &mut TxContext)
+	7: FreezeRef
+	8: Call tx_context::sender(&TxContext): address
+	9: Call transfer::public_transfer<LendingProtocolCap>(LendingProtocolCap, address)
+	10: MoveLoc[2](loc0: AdminCap)
+	11: CopyLoc[1](Arg1: &mut TxContext)
+	12: FreezeRef
+	13: Call tx_context::sender(&TxContext): address
+	14: Call transfer::public_transfer<AdminCap>(AdminCap, address)
+	15: LdConst[41](vector<u8>: "nam..)
+	16: Call string::utf8(vector<u8>): String
+	17: LdConst[42](vector<u8>: "ima..)
+	18: Call string::utf8(vector<u8>): String
+	19: LdConst[43](vector<u8>: "des..)
+	20: Call string::utf8(vector<u8>): String
+	21: LdConst[44](vector<u8>: "cre..)
+	22: Call string::utf8(vector<u8>): String
+	23: VecPack(86, 4)
+	24: StLoc[4](loc2: vector<String>)
+	25: LdConst[45](vector<u8>: "Alp..)
+	26: Call string::utf8(vector<u8>): String
+	27: LdConst[46](vector<u8>: "{im..)
+	28: Call string::utf8(vector<u8>): String
+	29: LdConst[47](vector<u8>: "Alp..)
+	30: Call string::utf8(vector<u8>): String
+	31: LdConst[48](vector<u8>: "Alp..)
+	32: Call string::utf8(vector<u8>): String
+	33: VecPack(86, 4)
+	34: StLoc[6](loc4: vector<String>)
+	35: MoveLoc[0](Arg0: ALPHA_LENDING)
+	36: CopyLoc[1](Arg1: &mut TxContext)
+	37: Call package::claim<ALPHA_LENDING>(ALPHA_LENDING, &mut TxContext): Publisher
+	38: StLoc[5](loc3: Publisher)
+	39: ImmBorrowLoc[5](loc3: Publisher)
+	40: MoveLoc[4](loc2: vector<String>)
+	41: MoveLoc[6](loc4: vector<String>)
+	42: CopyLoc[1](Arg1: &mut TxContext)
+	43: Call display::new_with_fields<PositionCap>(&Publisher, vector<String>, vector<String>, &mut TxContext): Display<PositionCap>
+	44: StLoc[3](loc1: Display<PositionCap>)
+	45: MutBorrowLoc[3](loc1: Display<PositionCap>)
+	46: Call display::update_version<PositionCap>(&mut Display<PositionCap>)
+	47: MoveLoc[5](loc3: Publisher)
+	48: CopyLoc[1](Arg1: &mut TxContext)
+	49: FreezeRef
+	50: Call tx_context::sender(&TxContext): address
+	51: Call transfer::public_transfer<Publisher>(Publisher, address)
+	52: MoveLoc[3](loc1: Display<PositionCap>)
+	53: MoveLoc[1](Arg1: &mut TxContext)
+	54: FreezeRef
+	55: Call tx_context::sender(&TxContext): address
+	56: Call transfer::public_transfer<Display<PositionCap>>(Display<PositionCap>, address)
+	57: Ret
+}
+
+new(Arg0: address, Arg1: &mut TxContext): LendingProtocolCap * AdminCap {
+L2:	loc0: AdminCap
+L3:	loc1: LendingProtocolConfig
+L4:	loc2: LendingProtocolCap
+B0:
+	0: CopyLoc[1](Arg1: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: Pack[6](LendingProtocolCap)
+	3: StLoc[4](loc2: LendingProtocolCap)
+	4: LdU8(90)
+	5: LdU8(95)
+	6: LdU64(1000)
+	7: LdU64(1000)
+	8: LdU8(80)
+	9: LdU8(85)
+	10: LdFalse
+	11: VecPack(97, 0)
+	12: VecPack(98, 0)
+	13: LdFalse
+	14: Pack[3](LendingProtocolConfig)
+	15: StLoc[3](loc1: LendingProtocolConfig)
+	16: CopyLoc[1](Arg1: &mut TxContext)
+	17: Call object::new(&mut TxContext): UID
+	18: Pack[1](AdminCap)
+	19: StLoc[2](loc0: AdminCap)
+	20: CopyLoc[1](Arg1: &mut TxContext)
+	21: Call object::new(&mut TxContext): UID
+	22: ImmBorrowLoc[4](loc2: LendingProtocolCap)
+	23: Call object::id<LendingProtocolCap>(&LendingProtocolCap): ID
+	24: CopyLoc[1](Arg1: &mut TxContext)
+	25: Call table::new<ID, Position>(&mut TxContext): Table<ID, Position>
+	26: CopyLoc[1](Arg1: &mut TxContext)
+	27: Call table::new<u64, Market>(&mut TxContext): Table<u64, Market>
+	28: MoveLoc[1](Arg1: &mut TxContext)
+	29: Call oracle::create_oracle(&mut TxContext): Oracle
+	30: MoveLoc[0](Arg0: address)
+	31: LdConst[1](u64: 1)
+	32: MoveLoc[3](loc1: LendingProtocolConfig)
+	33: ImmBorrowLoc[2](loc0: AdminCap)
+	34: Call object::id<AdminCap>(&AdminCap): ID
+	35: Pack[2](LendingProtocol)
+	36: Call transfer::share_object<LendingProtocol>(LendingProtocol)
+	37: MoveLoc[4](loc2: LendingProtocolCap)
+	38: MoveLoc[2](loc0: AdminCap)
+	39: Ret
+}
+
+verify_version(Arg0: &LendingProtocol) {
+B0:
+	0: MoveLoc[0](Arg0: &LendingProtocol)
+	1: ImmBorrowField[0](LendingProtocol.version: u64)
+	2: ReadRef
+	3: LdConst[1](u64: 1)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(9)
+B2:
+	7: LdConst[8](u64: 8)
+	8: Abort
+B3:
+	9: Ret
+}
+
+public add_market_native<Ty0>(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: Coin<Ty0>, Arg3: u8, Arg4: u8, Arg5: u64, Arg6: u64, Arg7: u8, Arg8: u64, Arg9: u64, Arg10: u64, Arg11: PriceIdentifier, Arg12: vector<TypeName>, Arg13: vector<u8>, Arg14: vector<u64>, Arg15: u64, Arg16: u64, Arg17: u64, Arg18: bool, Arg19: u64, Arg20: u8, Arg21: &Clock, Arg22: &mut TxContext): MarketCap {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: MoveLoc[0](Arg0: &mut LendingProtocol)
+	8: MoveLoc[2](Arg2: Coin<Ty0>)
+	9: MoveLoc[3](Arg3: u8)
+	10: MoveLoc[4](Arg4: u8)
+	11: MoveLoc[5](Arg5: u64)
+	12: MoveLoc[6](Arg6: u64)
+	13: MoveLoc[7](Arg7: u8)
+	14: MoveLoc[8](Arg8: u64)
+	15: MoveLoc[9](Arg9: u64)
+	16: MoveLoc[10](Arg10: u64)
+	17: MoveLoc[11](Arg11: PriceIdentifier)
+	18: MoveLoc[12](Arg12: vector<TypeName>)
+	19: MoveLoc[13](Arg13: vector<u8>)
+	20: MoveLoc[14](Arg14: vector<u64>)
+	21: MoveLoc[15](Arg15: u64)
+	22: MoveLoc[16](Arg16: u64)
+	23: MoveLoc[17](Arg17: u64)
+	24: MoveLoc[18](Arg18: bool)
+	25: MoveLoc[19](Arg19: u64)
+	26: LdTrue
+	27: MoveLoc[20](Arg20: u8)
+	28: MoveLoc[21](Arg21: &Clock)
+	29: MoveLoc[22](Arg22: &mut TxContext)
+	30: Call add_market_internal<Ty0>(&mut LendingProtocol, Coin<Ty0>, u8, u8, u64, u64, u8, u64, u64, u64, PriceIdentifier, vector<TypeName>, vector<u8>, vector<u64>, u64, u64, u64, bool, u64, bool, u8, &Clock, &mut TxContext): MarketCap
+	31: Ret
+}
+
+public add_market<Ty0>(Arg0: &mut LendingProtocol, Arg1: Coin<Ty0>, Arg2: u8, Arg3: u8, Arg4: u64, Arg5: u64, Arg6: u8, Arg7: u64, Arg8: u64, Arg9: u64, Arg10: PriceIdentifier, Arg11: vector<TypeName>, Arg12: vector<u8>, Arg13: vector<u64>, Arg14: u64, Arg15: u64, Arg16: u64, Arg17: u64, Arg18: u8, Arg19: &Clock, Arg20: &mut TxContext): MarketCap {
+B0:
+	0: MoveLoc[0](Arg0: &mut LendingProtocol)
+	1: Pop
+	2: MoveLoc[20](Arg20: &mut TxContext)
+	3: Pop
+	4: MoveLoc[19](Arg19: &Clock)
+	5: Pop
+	6: LdConst[25](u64: 35)
+	7: Abort
+}
+
+public add_coin_to_oracle(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: TypeName, Arg3: &mut TxContext): PriceIdentifier {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: MoveLoc[0](Arg0: &mut LendingProtocol)
+	8: MutBorrowField[1](LendingProtocol.oracle: Oracle)
+	9: MoveLoc[2](Arg2: TypeName)
+	10: MoveLoc[3](Arg3: &mut TxContext)
+	11: Call oracle::add_coin_to_oracle(&mut Oracle, TypeName, &mut TxContext): PriceIdentifier
+	12: Ret
+}
+
+add_market_internal<Ty0>(Arg0: &mut LendingProtocol, Arg1: Coin<Ty0>, Arg2: u8, Arg3: u8, Arg4: u64, Arg5: u64, Arg6: u8, Arg7: u64, Arg8: u64, Arg9: u64, Arg10: PriceIdentifier, Arg11: vector<TypeName>, Arg12: vector<u8>, Arg13: vector<u64>, Arg14: u64, Arg15: u64, Arg16: u64, Arg17: bool, Arg18: u64, Arg19: bool, Arg20: u8, Arg21: &Clock, Arg22: &mut TxContext): MarketCap {
+L23:	loc0: TypeName
+L24:	loc1: Market
+L25:	loc2: MarketCap
+L26:	loc3: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	2: Call table::length<u64, Market>(&Table<u64, Market>): u64
+	3: LdU64(1)
+	4: Add
+	5: StLoc[26](loc3: u64)
+	6: Call type_name::get<Ty0>(): TypeName
+	7: StLoc[23](loc0: TypeName)
+	8: CopyLoc[0](Arg0: &mut LendingProtocol)
+	9: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	10: CopyLoc[23](loc0: TypeName)
+	11: Call oracle::is_coin_in_oracle(&Oracle, TypeName): bool
+	12: BrFalse(14)
+B1:
+	13: Branch(22)
+B2:
+	14: MoveLoc[0](Arg0: &mut LendingProtocol)
+	15: Pop
+	16: MoveLoc[22](Arg22: &mut TxContext)
+	17: Pop
+	18: MoveLoc[21](Arg21: &Clock)
+	19: Pop
+	20: LdConst[17](u64: 27)
+	21: Abort
+B3:
+	22: CopyLoc[26](loc3: u64)
+	23: MoveLoc[23](loc0: TypeName)
+	24: MoveLoc[1](Arg1: Coin<Ty0>)
+	25: Call coin::into_balance<Ty0>(Coin<Ty0>): Balance<Ty0>
+	26: MoveLoc[2](Arg2: u8)
+	27: MoveLoc[3](Arg3: u8)
+	28: MoveLoc[4](Arg4: u64)
+	29: MoveLoc[5](Arg5: u64)
+	30: MoveLoc[6](Arg6: u8)
+	31: MoveLoc[7](Arg7: u64)
+	32: MoveLoc[8](Arg8: u64)
+	33: MoveLoc[9](Arg9: u64)
+	34: MoveLoc[10](Arg10: PriceIdentifier)
+	35: MoveLoc[11](Arg11: vector<TypeName>)
+	36: MoveLoc[12](Arg12: vector<u8>)
+	37: MoveLoc[13](Arg13: vector<u64>)
+	38: MoveLoc[14](Arg14: u64)
+	39: MoveLoc[15](Arg15: u64)
+	40: MoveLoc[16](Arg16: u64)
+	41: MoveLoc[17](Arg17: bool)
+	42: MoveLoc[18](Arg18: u64)
+	43: LdU64(0)
+	44: MoveLoc[19](Arg19: bool)
+	45: MoveLoc[20](Arg20: u8)
+	46: MoveLoc[21](Arg21: &Clock)
+	47: MoveLoc[22](Arg22: &mut TxContext)
+	48: Call market::create_market<Ty0>(u64, TypeName, Balance<Ty0>, u8, u8, u64, u64, u8, u64, u64, u64, PriceIdentifier, vector<TypeName>, vector<u8>, vector<u64>, u64, u64, u64, bool, u64, u64, bool, u8, &Clock, &mut TxContext): Market * MarketCap
+	49: StLoc[25](loc2: MarketCap)
+	50: StLoc[24](loc1: Market)
+	51: MoveLoc[0](Arg0: &mut LendingProtocol)
+	52: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	53: MoveLoc[26](loc3: u64)
+	54: MoveLoc[24](loc1: Market)
+	55: Call table::add<u64, Market>(&mut Table<u64, Market>, u64, Market)
+	56: MoveLoc[25](loc2: MarketCap)
+	57: Ret
+}
+
+public create_position(Arg0: &mut LendingProtocol, Arg1: &mut TxContext): PositionCap {
+L2:	loc0: Option<ID>
+L3:	loc1: Position
+L4:	loc2: PositionCap
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: Call option::none<ID>(): Option<ID>
+	4: StLoc[2](loc0: Option<ID>)
+	5: CopyLoc[1](Arg1: &mut TxContext)
+	6: FreezeRef
+	7: Call tx_context::sender(&TxContext): address
+	8: MoveLoc[2](loc0: Option<ID>)
+	9: Call position::get_position_type_normal(): u8
+	10: MoveLoc[1](Arg1: &mut TxContext)
+	11: Call position::create_position(address, Option<ID>, u8, &mut TxContext): Position * PositionCap
+	12: StLoc[4](loc2: PositionCap)
+	13: StLoc[3](loc1: Position)
+	14: MoveLoc[0](Arg0: &mut LendingProtocol)
+	15: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	16: ImmBorrowLoc[4](loc2: PositionCap)
+	17: Call position::get_position_id(&PositionCap): ID
+	18: MoveLoc[3](loc1: Position)
+	19: Call table::add<ID, Position>(&mut Table<ID, Position>, ID, Position)
+	20: MoveLoc[4](loc2: PositionCap)
+	21: Ret
+}
+
+public create_position_for_partner(Arg0: &mut LendingProtocol, Arg1: &PartnerCap, Arg2: u8, Arg3: &mut TxContext): PositionCap {
+L4:	loc0: Option<ID>
+L5:	loc1: Position
+L6:	loc2: PositionCap
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: ImmBorrowField[4](LendingProtocol.id: UID)
+	5: CopyLoc[1](Arg1: &PartnerCap)
+	6: Call partner::get_partner_id(&PartnerCap): ID
+	7: Call dynamic_field::borrow<ID, Partner>(&UID, ID): &Partner
+	8: CopyLoc[3](Arg3: &mut TxContext)
+	9: FreezeRef
+	10: Call tx_context::sender(&TxContext): address
+	11: Call partner::validate_partner_address(&Partner, address)
+	12: MoveLoc[1](Arg1: &PartnerCap)
+	13: Call partner::get_partner_id(&PartnerCap): ID
+	14: Call option::some<ID>(ID): Option<ID>
+	15: StLoc[4](loc0: Option<ID>)
+	16: CopyLoc[3](Arg3: &mut TxContext)
+	17: FreezeRef
+	18: Call tx_context::sender(&TxContext): address
+	19: MoveLoc[4](loc0: Option<ID>)
+	20: MoveLoc[2](Arg2: u8)
+	21: MoveLoc[3](Arg3: &mut TxContext)
+	22: Call position::create_position(address, Option<ID>, u8, &mut TxContext): Position * PositionCap
+	23: StLoc[6](loc2: PositionCap)
+	24: StLoc[5](loc1: Position)
+	25: MoveLoc[0](Arg0: &mut LendingProtocol)
+	26: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	27: ImmBorrowLoc[6](loc2: PositionCap)
+	28: Call position::get_position_id(&PositionCap): ID
+	29: MoveLoc[5](loc1: Position)
+	30: Call table::add<ID, Position>(&mut Table<ID, Position>, ID, Position)
+	31: MoveLoc[6](loc2: PositionCap)
+	32: Ret
+}
+
+public add_bluefin_lp_collateral<Ty0, Ty1>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: Position, Arg3: &Pool<Ty0, Ty1>, Arg4: &Clock, Arg5: &mut TxContext) {
+L6:	loc0: ID
+L7:	loc1: &Partner
+L8:	loc2: ID
+L9:	loc3: Option<ID>
+L10:	loc4: Option<ID>
+L11:	loc5: &mut Position
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	5: Call type_name::get<Ty0>(): TypeName
+	6: Call oracle::is_coin_in_oracle(&Oracle, TypeName): bool
+	7: BrFalse(9)
+B1:
+	8: Branch(21)
+B2:
+	9: MoveLoc[0](Arg0: &mut LendingProtocol)
+	10: Pop
+	11: MoveLoc[1](Arg1: &PositionCap)
+	12: Pop
+	13: MoveLoc[3](Arg3: &Pool<Ty0, Ty1>)
+	14: Pop
+	15: MoveLoc[5](Arg5: &mut TxContext)
+	16: Pop
+	17: MoveLoc[4](Arg4: &Clock)
+	18: Pop
+	19: LdConst[17](u64: 27)
+	20: Abort
+B3:
+	21: CopyLoc[0](Arg0: &mut LendingProtocol)
+	22: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	23: Call type_name::get<Ty1>(): TypeName
+	24: Call oracle::is_coin_in_oracle(&Oracle, TypeName): bool
+	25: BrFalse(27)
+B4:
+	26: Branch(39)
+B5:
+	27: MoveLoc[0](Arg0: &mut LendingProtocol)
+	28: Pop
+	29: MoveLoc[1](Arg1: &PositionCap)
+	30: Pop
+	31: MoveLoc[3](Arg3: &Pool<Ty0, Ty1>)
+	32: Pop
+	33: MoveLoc[5](Arg5: &mut TxContext)
+	34: Pop
+	35: MoveLoc[4](Arg4: &Clock)
+	36: Pop
+	37: LdConst[17](u64: 27)
+	38: Abort
+B6:
+	39: CopyLoc[0](Arg0: &mut LendingProtocol)
+	40: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	41: CopyLoc[1](Arg1: &PositionCap)
+	42: Call position::get_position_id(&PositionCap): ID
+	43: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	44: StLoc[11](loc5: &mut Position)
+	45: CopyLoc[11](loc5: &mut Position)
+	46: FreezeRef
+	47: Call position::get_partner_id(&Position): Option<ID>
+	48: StLoc[9](loc3: Option<ID>)
+	49: ImmBorrowLoc[9](loc3: Option<ID>)
+	50: Call option::is_some<ID>(&Option<ID>): bool
+	51: BrFalse(53)
+B7:
+	52: Branch(67)
+B8:
+	53: MoveLoc[0](Arg0: &mut LendingProtocol)
+	54: Pop
+	55: MoveLoc[1](Arg1: &PositionCap)
+	56: Pop
+	57: MoveLoc[11](loc5: &mut Position)
+	58: Pop
+	59: MoveLoc[3](Arg3: &Pool<Ty0, Ty1>)
+	60: Pop
+	61: MoveLoc[5](Arg5: &mut TxContext)
+	62: Pop
+	63: MoveLoc[4](Arg4: &Clock)
+	64: Pop
+	65: LdConst[16](u64: 26)
+	66: Abort
+B9:
+	67: MutBorrowLoc[9](loc3: Option<ID>)
+	68: Call option::extract<ID>(&mut Option<ID>): ID
+	69: StLoc[8](loc2: ID)
+	70: CopyLoc[0](Arg0: &mut LendingProtocol)
+	71: ImmBorrowField[4](LendingProtocol.id: UID)
+	72: MoveLoc[8](loc2: ID)
+	73: Call dynamic_field::borrow<ID, Partner>(&UID, ID): &Partner
+	74: StLoc[7](loc1: &Partner)
+	75: CopyLoc[7](loc1: &Partner)
+	76: MoveLoc[5](Arg5: &mut TxContext)
+	77: FreezeRef
+	78: Call tx_context::sender(&TxContext): address
+	79: Call partner::validate_partner_address(&Partner, address)
+	80: ImmBorrowLoc[2](Arg2: Position)
+	81: Call object::id<Position>(&Position): ID
+	82: StLoc[6](loc0: ID)
+	83: CopyLoc[3](Arg3: &Pool<Ty0, Ty1>)
+	84: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	85: ImmBorrowLoc[2](Arg2: Position)
+	86: Call 0position::pool_id(&Position): ID
+	87: Eq
+	88: BrFalse(90)
+B10:
+	89: Branch(104)
+B11:
+	90: MoveLoc[0](Arg0: &mut LendingProtocol)
+	91: Pop
+	92: MoveLoc[1](Arg1: &PositionCap)
+	93: Pop
+	94: MoveLoc[11](loc5: &mut Position)
+	95: Pop
+	96: MoveLoc[3](Arg3: &Pool<Ty0, Ty1>)
+	97: Pop
+	98: MoveLoc[7](loc1: &Partner)
+	99: Pop
+	100: MoveLoc[4](Arg4: &Clock)
+	101: Pop
+	102: LdConst[18](u64: 28)
+	103: Abort
+B12:
+	104: CopyLoc[11](loc5: &mut Position)
+	105: MoveLoc[2](Arg2: Position)
+	106: CopyLoc[0](Arg0: &mut LendingProtocol)
+	107: ImmBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	108: ImmBorrowField[6](LendingProtocolConfig.lp_position_safe_collateral_ratio: u8)
+	109: ReadRef
+	110: CopyLoc[0](Arg0: &mut LendingProtocol)
+	111: ImmBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	112: ImmBorrowField[7](LendingProtocolConfig.lp_position_liquidation_threshold: u8)
+	113: ReadRef
+	114: CopyLoc[3](Arg3: &Pool<Ty0, Ty1>)
+	115: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	116: CopyLoc[4](Arg4: &Clock)
+	117: Call position::add_bluefin_lp_collateral(&mut Position, Position, u8, u8, ID, &Clock)
+	118: MoveLoc[11](loc5: &mut Position)
+	119: CopyLoc[3](Arg3: &Pool<Ty0, Ty1>)
+	120: MoveLoc[0](Arg0: &mut LendingProtocol)
+	121: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	122: MoveLoc[4](Arg4: &Clock)
+	123: Call position::update_bluefin_lp_collateral_usd_value<Ty0, Ty1>(&mut Position, &Pool<Ty0, Ty1>, &Oracle, &Clock)
+	124: MoveLoc[7](loc1: &Partner)
+	125: Call object::id<Partner>(&Partner): ID
+	126: Call option::some<ID>(ID): Option<ID>
+	127: StLoc[10](loc4: Option<ID>)
+	128: MoveLoc[1](Arg1: &PositionCap)
+	129: Call position::get_position_id(&PositionCap): ID
+	130: MoveLoc[6](loc0: ID)
+	131: MoveLoc[3](Arg3: &Pool<Ty0, Ty1>)
+	132: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	133: MoveLoc[10](loc4: Option<ID>)
+	134: Pack[8](LPPositionDepositEvent)
+	135: Call events::emit_event<LPPositionDepositEvent>(LPPositionDepositEvent)
+	136: Ret
+}
+
+public borrow_bluefin_lp_collateral(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: &mut TxContext): Position * LpPositionBorrowHotPotato {
+L3:	loc0: Position
+L4:	loc1: LpPositionBorrowHotPotato
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: MoveLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	5: MoveLoc[1](Arg1: &PositionCap)
+	6: Call position::get_position_id(&PositionCap): ID
+	7: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	8: Call position::borrow_bluefin_lp_collateral(&mut Position): Position
+	9: StLoc[3](loc0: Position)
+	10: ImmBorrowLoc[3](loc0: Position)
+	11: Call object::id<Position>(&Position): ID
+	12: Pack[18](LpPositionBorrowHotPotato)
+	13: StLoc[4](loc1: LpPositionBorrowHotPotato)
+	14: MoveLoc[3](loc0: Position)
+	15: MoveLoc[4](loc1: LpPositionBorrowHotPotato)
+	16: Ret
+}
+
+public return_bluefin_lp_collateral<Ty0, Ty1>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: &Pool<Ty0, Ty1>, Arg3: Position, Arg4: LpPositionBorrowHotPotato, Arg5: &Clock, Arg6: &mut TxContext) {
+L7:	loc0: &mut Position
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: ImmBorrowLoc[4](Arg4: LpPositionBorrowHotPotato)
+	4: ImmBorrowField[8](LpPositionBorrowHotPotato.lp_position_id: ID)
+	5: ReadRef
+	6: ImmBorrowLoc[3](Arg3: Position)
+	7: Call object::id<Position>(&Position): ID
+	8: Eq
+	9: BrFalse(11)
+B1:
+	10: Branch(21)
+B2:
+	11: MoveLoc[0](Arg0: &mut LendingProtocol)
+	12: Pop
+	13: MoveLoc[1](Arg1: &PositionCap)
+	14: Pop
+	15: MoveLoc[2](Arg2: &Pool<Ty0, Ty1>)
+	16: Pop
+	17: MoveLoc[5](Arg5: &Clock)
+	18: Pop
+	19: LdConst[9](u64: 9)
+	20: Abort
+B3:
+	21: CopyLoc[0](Arg0: &mut LendingProtocol)
+	22: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	23: MoveLoc[1](Arg1: &PositionCap)
+	24: Call position::get_position_id(&PositionCap): ID
+	25: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	26: StLoc[7](loc0: &mut Position)
+	27: CopyLoc[7](loc0: &mut Position)
+	28: MoveLoc[3](Arg3: Position)
+	29: CopyLoc[0](Arg0: &mut LendingProtocol)
+	30: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	31: MoveLoc[2](Arg2: &Pool<Ty0, Ty1>)
+	32: CopyLoc[5](Arg5: &Clock)
+	33: Call position::return_bluefin_lp_collateral<Ty0, Ty1>(&mut Position, Position, &Oracle, &Pool<Ty0, Ty1>, &Clock)
+	34: MoveLoc[4](Arg4: LpPositionBorrowHotPotato)
+	35: Unpack[18](LpPositionBorrowHotPotato)
+	36: Pop
+	37: CopyLoc[7](loc0: &mut Position)
+	38: CopyLoc[0](Arg0: &mut LendingProtocol)
+	39: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	40: MoveLoc[0](Arg0: &mut LendingProtocol)
+	41: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	42: MoveLoc[5](Arg5: &Clock)
+	43: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	44: MoveLoc[7](loc0: &mut Position)
+	45: FreezeRef
+	46: Call position::is_healthy(&Position): bool
+	47: BrFalse(49)
+B4:
+	48: Branch(51)
+B5:
+	49: LdConst[0](u64: 0)
+	50: Abort
+B6:
+	51: Ret
+}
+
+public update_bluefin_lp_collateral_usd_value<Ty0, Ty1>(Arg0: &mut LendingProtocol, Arg1: ID, Arg2: &Pool<Ty0, Ty1>, Arg3: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	5: MoveLoc[1](Arg1: ID)
+	6: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	7: MoveLoc[2](Arg2: &Pool<Ty0, Ty1>)
+	8: MoveLoc[0](Arg0: &mut LendingProtocol)
+	9: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	10: MoveLoc[3](Arg3: &Clock)
+	11: Call position::update_bluefin_lp_collateral_usd_value<Ty0, Ty1>(&mut Position, &Pool<Ty0, Ty1>, &Oracle, &Clock)
+	12: Ret
+}
+
+public remove_bluefin_lp_collateral(Arg0: &mut LendingProtocol, Arg1: &PositionCap): Position {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: MoveLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	5: MoveLoc[1](Arg1: &PositionCap)
+	6: Call position::get_position_id(&PositionCap): ID
+	7: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	8: Call position::remove_bluefin_lp_collateral(&mut Position): Position
+	9: Ret
+}
+
+public add_collateral<Ty0>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: u64, Arg3: Coin<Ty0>, Arg4: &Clock, Arg5: &mut TxContext) {
+L6:	loc0: Balance<XToken<Ty0>>
+L7:	loc1: u64
+L8:	loc2: &mut Market
+L9:	loc3: ID
+L10:	loc4: Option<ID>
+L11:	loc5: &mut Position
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: ImmBorrowLoc[3](Arg3: Coin<Ty0>)
+	4: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	5: LdU64(0)
+	6: Gt
+	7: BrFalse(9)
+B1:
+	8: Branch(19)
+B2:
+	9: MoveLoc[0](Arg0: &mut LendingProtocol)
+	10: Pop
+	11: MoveLoc[1](Arg1: &PositionCap)
+	12: Pop
+	13: MoveLoc[5](Arg5: &mut TxContext)
+	14: Pop
+	15: MoveLoc[4](Arg4: &Clock)
+	16: Pop
+	17: LdConst[21](u64: 31)
+	18: Abort
+B3:
+	19: CopyLoc[0](Arg0: &mut LendingProtocol)
+	20: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	21: CopyLoc[1](Arg1: &PositionCap)
+	22: Call position::get_position_id(&PositionCap): ID
+	23: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	24: StLoc[11](loc5: &mut Position)
+	25: CopyLoc[11](loc5: &mut Position)
+	26: FreezeRef
+	27: Call position::get_partner_id(&Position): Option<ID>
+	28: StLoc[10](loc4: Option<ID>)
+	29: ImmBorrowLoc[10](loc4: Option<ID>)
+	30: Call option::is_some<ID>(&Option<ID>): bool
+	31: BrFalse(44)
+B4:
+	32: MutBorrowLoc[10](loc4: Option<ID>)
+	33: Call option::extract<ID>(&mut Option<ID>): ID
+	34: StLoc[9](loc3: ID)
+	35: CopyLoc[0](Arg0: &mut LendingProtocol)
+	36: ImmBorrowField[4](LendingProtocol.id: UID)
+	37: MoveLoc[9](loc3: ID)
+	38: Call dynamic_field::borrow<ID, Partner>(&UID, ID): &Partner
+	39: MoveLoc[5](Arg5: &mut TxContext)
+	40: FreezeRef
+	41: Call tx_context::sender(&TxContext): address
+	42: Call partner::validate_partner_address(&Partner, address)
+	43: Branch(63)
+B5:
+	44: MoveLoc[5](Arg5: &mut TxContext)
+	45: Pop
+	46: CopyLoc[11](loc5: &mut Position)
+	47: FreezeRef
+	48: CopyLoc[2](Arg2: u64)
+	49: Call position::has_borrowed_from(&Position, u64): bool
+	50: Not
+	51: BrFalse(53)
+B6:
+	52: Branch(63)
+B7:
+	53: MoveLoc[0](Arg0: &mut LendingProtocol)
+	54: Pop
+	55: MoveLoc[1](Arg1: &PositionCap)
+	56: Pop
+	57: MoveLoc[11](loc5: &mut Position)
+	58: Pop
+	59: MoveLoc[4](Arg4: &Clock)
+	60: Pop
+	61: LdConst[19](u64: 29)
+	62: Abort
+B8:
+	63: CopyLoc[0](Arg0: &mut LendingProtocol)
+	64: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	65: CopyLoc[2](Arg2: u64)
+	66: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	67: BrFalse(69)
+B9:
+	68: Branch(79)
+B10:
+	69: MoveLoc[0](Arg0: &mut LendingProtocol)
+	70: Pop
+	71: MoveLoc[1](Arg1: &PositionCap)
+	72: Pop
+	73: MoveLoc[11](loc5: &mut Position)
+	74: Pop
+	75: MoveLoc[4](Arg4: &Clock)
+	76: Pop
+	77: LdConst[15](u64: 25)
+	78: Abort
+B11:
+	79: CopyLoc[0](Arg0: &mut LendingProtocol)
+	80: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	81: CopyLoc[2](Arg2: u64)
+	82: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	83: StLoc[8](loc2: &mut Market)
+	84: CopyLoc[8](loc2: &mut Market)
+	85: FreezeRef
+	86: Call market::get_active(&Market): bool
+	87: BrFalse(89)
+B12:
+	88: Branch(101)
+B13:
+	89: MoveLoc[0](Arg0: &mut LendingProtocol)
+	90: Pop
+	91: MoveLoc[1](Arg1: &PositionCap)
+	92: Pop
+	93: MoveLoc[11](loc5: &mut Position)
+	94: Pop
+	95: MoveLoc[8](loc2: &mut Market)
+	96: Pop
+	97: MoveLoc[4](Arg4: &Clock)
+	98: Pop
+	99: LdConst[13](u64: 23)
+	100: Abort
+B14:
+	101: CopyLoc[8](loc2: &mut Market)
+	102: FreezeRef
+	103: ImmBorrowLoc[3](Arg3: Coin<Ty0>)
+	104: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	105: Call market::deposit_limit_exceeded(&Market, u64): bool
+	106: Not
+	107: BrFalse(109)
+B15:
+	108: Branch(121)
+B16:
+	109: MoveLoc[0](Arg0: &mut LendingProtocol)
+	110: Pop
+	111: MoveLoc[1](Arg1: &PositionCap)
+	112: Pop
+	113: MoveLoc[11](loc5: &mut Position)
+	114: Pop
+	115: MoveLoc[8](loc2: &mut Market)
+	116: Pop
+	117: MoveLoc[4](Arg4: &Clock)
+	118: Pop
+	119: LdConst[27](u64: 37)
+	120: Abort
+B17:
+	121: ImmBorrowLoc[3](Arg3: Coin<Ty0>)
+	122: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	123: StLoc[7](loc1: u64)
+	124: CopyLoc[8](loc2: &mut Market)
+	125: MoveLoc[3](Arg3: Coin<Ty0>)
+	126: CopyLoc[4](Arg4: &Clock)
+	127: Call market::add_liquidity<Ty0>(&mut Market, Coin<Ty0>, &Clock): Balance<XToken<Ty0>>
+	128: StLoc[6](loc0: Balance<XToken<Ty0>>)
+	129: MoveLoc[11](loc5: &mut Position)
+	130: CopyLoc[2](Arg2: u64)
+	131: CopyLoc[8](loc2: &mut Market)
+	132: MoveLoc[6](loc0: Balance<XToken<Ty0>>)
+	133: MoveLoc[4](Arg4: &Clock)
+	134: Call position::add_token_collateral<Ty0>(&mut Position, u64, &mut Market, Balance<XToken<Ty0>>, &Clock)
+	135: Call type_name::get<Ty0>(): TypeName
+	136: MoveLoc[2](Arg2: u64)
+	137: MoveLoc[1](Arg1: &PositionCap)
+	138: Call position::get_position_id(&PositionCap): ID
+	139: CopyLoc[7](loc1: u64)
+	140: MoveLoc[8](loc2: &mut Market)
+	141: FreezeRef
+	142: MoveLoc[0](Arg0: &mut LendingProtocol)
+	143: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	144: MoveLoc[7](loc1: u64)
+	145: Call market::get_spot_usd_value(&Market, &Oracle, u64): Number
+	146: LdConst[40](u64: 100)
+	147: Call math::from(u64): Number
+	148: Call math::mul(Number, Number): Number
+	149: Call math::to_u64(Number): u64
+	150: LdU64(0)
+	151: MoveLoc[10](loc4: Option<ID>)
+	152: Pack[7](DepositEvent)
+	153: Call events::emit_event<DepositEvent>(DepositEvent)
+	154: Ret
+}
+
+public flash_repay<Ty0>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: FlashTransactionHotPotato, Arg3: u64, Arg4: Coin<Ty0>, Arg5: &Clock, Arg6: &mut TxContext): Coin<Ty0> {
+L7:	loc0: &mut Position
+L8:	loc1: Coin<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: ImmBorrowLoc[2](Arg2: FlashTransactionHotPotato)
+	4: ImmBorrowField[9](FlashTransactionHotPotato.position_id: ID)
+	5: ReadRef
+	6: CopyLoc[1](Arg1: &PositionCap)
+	7: Call position::get_position_id(&PositionCap): ID
+	8: Eq
+	9: BrFalse(11)
+B1:
+	10: Branch(21)
+B2:
+	11: MoveLoc[0](Arg0: &mut LendingProtocol)
+	12: Pop
+	13: MoveLoc[1](Arg1: &PositionCap)
+	14: Pop
+	15: MoveLoc[6](Arg6: &mut TxContext)
+	16: Pop
+	17: MoveLoc[5](Arg5: &Clock)
+	18: Pop
+	19: LdConst[30](u64: 40)
+	20: Abort
+B3:
+	21: CopyLoc[0](Arg0: &mut LendingProtocol)
+	22: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	23: CopyLoc[3](Arg3: u64)
+	24: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	25: BrFalse(27)
+B4:
+	26: Branch(37)
+B5:
+	27: MoveLoc[0](Arg0: &mut LendingProtocol)
+	28: Pop
+	29: MoveLoc[1](Arg1: &PositionCap)
+	30: Pop
+	31: MoveLoc[6](Arg6: &mut TxContext)
+	32: Pop
+	33: MoveLoc[5](Arg5: &Clock)
+	34: Pop
+	35: LdConst[15](u64: 25)
+	36: Abort
+B6:
+	37: CopyLoc[0](Arg0: &mut LendingProtocol)
+	38: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	39: CopyLoc[3](Arg3: u64)
+	40: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	41: FreezeRef
+	42: Call market::get_coin_type(&Market): TypeName
+	43: Call type_name::get<Ty0>(): TypeName
+	44: Eq
+	45: BrFalse(47)
+B7:
+	46: Branch(57)
+B8:
+	47: MoveLoc[0](Arg0: &mut LendingProtocol)
+	48: Pop
+	49: MoveLoc[1](Arg1: &PositionCap)
+	50: Pop
+	51: MoveLoc[6](Arg6: &mut TxContext)
+	52: Pop
+	53: MoveLoc[5](Arg5: &Clock)
+	54: Pop
+	55: LdConst[32](u64: 42)
+	56: Abort
+B9:
+	57: CopyLoc[0](Arg0: &mut LendingProtocol)
+	58: CopyLoc[1](Arg1: &PositionCap)
+	59: Call position::get_position_id(&PositionCap): ID
+	60: MoveLoc[3](Arg3: u64)
+	61: MoveLoc[4](Arg4: Coin<Ty0>)
+	62: CopyLoc[5](Arg5: &Clock)
+	63: MoveLoc[6](Arg6: &mut TxContext)
+	64: Call repay_internal<Ty0>(&mut LendingProtocol, ID, u64, Coin<Ty0>, &Clock, &mut TxContext): Coin<Ty0>
+	65: StLoc[8](loc1: Coin<Ty0>)
+	66: MoveLoc[2](Arg2: FlashTransactionHotPotato)
+	67: Unpack[19](FlashTransactionHotPotato)
+	68: Pop
+	69: CopyLoc[0](Arg0: &mut LendingProtocol)
+	70: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	71: MoveLoc[1](Arg1: &PositionCap)
+	72: Call position::get_position_id(&PositionCap): ID
+	73: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	74: StLoc[7](loc0: &mut Position)
+	75: CopyLoc[7](loc0: &mut Position)
+	76: CopyLoc[0](Arg0: &mut LendingProtocol)
+	77: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	78: MoveLoc[0](Arg0: &mut LendingProtocol)
+	79: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	80: MoveLoc[5](Arg5: &Clock)
+	81: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	82: MoveLoc[7](loc0: &mut Position)
+	83: FreezeRef
+	84: Call position::is_healthy(&Position): bool
+	85: BrFalse(87)
+B10:
+	86: Branch(89)
+B11:
+	87: LdConst[0](u64: 0)
+	88: Abort
+B12:
+	89: MoveLoc[8](loc1: Coin<Ty0>)
+	90: Ret
+}
+
+public flash_withdraw<Ty0>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: u64, Arg3: u64, Arg4: &Clock, Arg5: &mut TxContext): LiquidityPromise<Ty0> * FlashTransactionHotPotato {
+L6:	loc0: FlashTransactionHotPotato
+L7:	loc1: ID
+L8:	loc2: Option<ID>
+L9:	loc3: &mut Position
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	5: CopyLoc[1](Arg1: &PositionCap)
+	6: Call position::get_position_id(&PositionCap): ID
+	7: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	8: StLoc[9](loc3: &mut Position)
+	9: CopyLoc[9](loc3: &mut Position)
+	10: CopyLoc[0](Arg0: &mut LendingProtocol)
+	11: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	12: CopyLoc[0](Arg0: &mut LendingProtocol)
+	13: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	14: CopyLoc[4](Arg4: &Clock)
+	15: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	16: CopyLoc[1](Arg1: &PositionCap)
+	17: Call position::get_position_id(&PositionCap): ID
+	18: Pack[19](FlashTransactionHotPotato)
+	19: StLoc[6](loc0: FlashTransactionHotPotato)
+	20: MoveLoc[9](loc3: &mut Position)
+	21: FreezeRef
+	22: Call position::get_partner_id(&Position): Option<ID>
+	23: StLoc[8](loc2: Option<ID>)
+	24: ImmBorrowLoc[8](loc2: Option<ID>)
+	25: Call option::is_some<ID>(&Option<ID>): bool
+	26: BrFalse(39)
+B1:
+	27: MutBorrowLoc[8](loc2: Option<ID>)
+	28: Call option::extract<ID>(&mut Option<ID>): ID
+	29: StLoc[7](loc1: ID)
+	30: CopyLoc[0](Arg0: &mut LendingProtocol)
+	31: ImmBorrowField[4](LendingProtocol.id: UID)
+	32: MoveLoc[7](loc1: ID)
+	33: Call dynamic_field::borrow<ID, Partner>(&UID, ID): &Partner
+	34: MoveLoc[5](Arg5: &mut TxContext)
+	35: FreezeRef
+	36: Call tx_context::sender(&TxContext): address
+	37: Call partner::validate_partner_address(&Partner, address)
+	38: Branch(41)
+B2:
+	39: MoveLoc[5](Arg5: &mut TxContext)
+	40: Pop
+B3:
+	41: MoveLoc[0](Arg0: &mut LendingProtocol)
+	42: MoveLoc[1](Arg1: &PositionCap)
+	43: Call position::get_position_id(&PositionCap): ID
+	44: MoveLoc[2](Arg2: u64)
+	45: MoveLoc[3](Arg3: u64)
+	46: MoveLoc[4](Arg4: &Clock)
+	47: Call withdraw_internal_without_health_check<Ty0>(&mut LendingProtocol, ID, u64, u64, &Clock): LiquidityPromise<Ty0>
+	48: MoveLoc[6](loc0: FlashTransactionHotPotato)
+	49: Ret
+}
+
+withdraw_internal_without_health_check<Ty0>(Arg0: &mut LendingProtocol, Arg1: ID, Arg2: u64, Arg3: u64, Arg4: &Clock): LiquidityPromise<Ty0> {
+L5:	loc0: u64
+L6:	loc1: u64
+L7:	loc2: Balance<XToken<Ty0>>
+L8:	loc3: &Market
+L9:	loc4: &mut Market
+L10:	loc5: &mut Position
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	2: MoveLoc[1](Arg1: ID)
+	3: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	4: StLoc[10](loc5: &mut Position)
+	5: CopyLoc[0](Arg0: &mut LendingProtocol)
+	6: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	7: CopyLoc[2](Arg2: u64)
+	8: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	9: Pop
+	10: CopyLoc[3](Arg3: u64)
+	11: LdConst[37](u64: 1844..)
+	12: Eq
+	13: BrFalse(20)
+B1:
+	14: CopyLoc[10](loc5: &mut Position)
+	15: FreezeRef
+	16: CopyLoc[2](Arg2: u64)
+	17: Call position::get_collateral_xtoken_amount(&Position, u64): u64
+	18: StLoc[5](loc0: u64)
+	19: Branch(32)
+B2:
+	20: CopyLoc[0](Arg0: &mut LendingProtocol)
+	21: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	22: CopyLoc[2](Arg2: u64)
+	23: Call table::borrow<u64, Market>(&Table<u64, Market>, u64): &Market
+	24: StLoc[8](loc3: &Market)
+	25: MoveLoc[3](Arg3: u64)
+	26: Call math::from(u64): Number
+	27: MoveLoc[8](loc3: &Market)
+	28: Call market::get_xtoken_ratio(&Market): Number
+	29: Call math::div(Number, Number): Number
+	30: Call math::to_u64(Number): u64
+	31: StLoc[5](loc0: u64)
+B3:
+	32: MoveLoc[5](loc0: u64)
+	33: StLoc[6](loc1: u64)
+	34: CopyLoc[0](Arg0: &mut LendingProtocol)
+	35: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	36: CopyLoc[2](Arg2: u64)
+	37: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	38: StLoc[9](loc4: &mut Market)
+	39: MoveLoc[10](loc5: &mut Position)
+	40: MoveLoc[2](Arg2: u64)
+	41: CopyLoc[9](loc4: &mut Market)
+	42: MoveLoc[6](loc1: u64)
+	43: CopyLoc[4](Arg4: &Clock)
+	44: Call position::remove_token_collateral<Ty0>(&mut Position, u64, &mut Market, u64, &Clock): Balance<XToken<Ty0>>
+	45: StLoc[7](loc2: Balance<XToken<Ty0>>)
+	46: MoveLoc[9](loc4: &mut Market)
+	47: MoveLoc[7](loc2: Balance<XToken<Ty0>>)
+	48: MoveLoc[0](Arg0: &mut LendingProtocol)
+	49: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	50: MoveLoc[4](Arg4: &Clock)
+	51: Call market::remove_liquidity<Ty0>(&mut Market, Balance<XToken<Ty0>>, &Oracle, &Clock): LiquidityPromise<Ty0>
+	52: Ret
+}
+
+public remove_collateral<Ty0>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: u64, Arg3: u64, Arg4: &Clock): LiquidityPromise<Ty0> {
+L5:	loc0: Option<ID>
+L6:	loc1: &mut Position
+L7:	loc2: &mut Position
+L8:	loc3: LiquidityPromise<Ty0>
+L9:	loc4: u64
+L10:	loc5: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[3](Arg3: u64)
+	4: LdU64(0)
+	5: Gt
+	6: BrFalse(8)
+B1:
+	7: Branch(16)
+B2:
+	8: MoveLoc[0](Arg0: &mut LendingProtocol)
+	9: Pop
+	10: MoveLoc[1](Arg1: &PositionCap)
+	11: Pop
+	12: MoveLoc[4](Arg4: &Clock)
+	13: Pop
+	14: LdConst[21](u64: 31)
+	15: Abort
+B3:
+	16: CopyLoc[0](Arg0: &mut LendingProtocol)
+	17: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	18: CopyLoc[1](Arg1: &PositionCap)
+	19: Call position::get_position_id(&PositionCap): ID
+	20: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	21: StLoc[6](loc1: &mut Position)
+	22: CopyLoc[6](loc1: &mut Position)
+	23: CopyLoc[0](Arg0: &mut LendingProtocol)
+	24: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	25: CopyLoc[0](Arg0: &mut LendingProtocol)
+	26: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	27: CopyLoc[4](Arg4: &Clock)
+	28: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	29: MoveLoc[6](loc1: &mut Position)
+	30: FreezeRef
+	31: Call position::get_partner_id(&Position): Option<ID>
+	32: StLoc[5](loc0: Option<ID>)
+	33: CopyLoc[0](Arg0: &mut LendingProtocol)
+	34: CopyLoc[1](Arg1: &PositionCap)
+	35: Call position::get_position_id(&PositionCap): ID
+	36: CopyLoc[2](Arg2: u64)
+	37: MoveLoc[3](Arg3: u64)
+	38: CopyLoc[4](Arg4: &Clock)
+	39: Call withdraw_internal_without_health_check<Ty0>(&mut LendingProtocol, ID, u64, u64, &Clock): LiquidityPromise<Ty0>
+	40: StLoc[8](loc3: LiquidityPromise<Ty0>)
+	41: ImmBorrowLoc[8](loc3: LiquidityPromise<Ty0>)
+	42: Call market::get_liquidity_promise<Ty0>(&LiquidityPromise<Ty0>): u64
+	43: StLoc[9](loc4: u64)
+	44: CopyLoc[0](Arg0: &mut LendingProtocol)
+	45: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	46: CopyLoc[2](Arg2: u64)
+	47: Call table::borrow<u64, Market>(&Table<u64, Market>, u64): &Market
+	48: CopyLoc[0](Arg0: &mut LendingProtocol)
+	49: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	50: CopyLoc[9](loc4: u64)
+	51: Call market::get_spot_usd_value(&Market, &Oracle, u64): Number
+	52: LdConst[40](u64: 100)
+	53: Call math::from(u64): Number
+	54: Call math::mul(Number, Number): Number
+	55: Call math::to_u64(Number): u64
+	56: StLoc[10](loc5: u64)
+	57: CopyLoc[0](Arg0: &mut LendingProtocol)
+	58: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	59: CopyLoc[1](Arg1: &PositionCap)
+	60: Call position::get_position_id(&PositionCap): ID
+	61: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	62: StLoc[7](loc2: &mut Position)
+	63: CopyLoc[7](loc2: &mut Position)
+	64: CopyLoc[0](Arg0: &mut LendingProtocol)
+	65: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	66: MoveLoc[0](Arg0: &mut LendingProtocol)
+	67: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	68: MoveLoc[4](Arg4: &Clock)
+	69: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	70: MoveLoc[7](loc2: &mut Position)
+	71: FreezeRef
+	72: Call position::is_healthy(&Position): bool
+	73: BrFalse(75)
+B4:
+	74: Branch(79)
+B5:
+	75: MoveLoc[1](Arg1: &PositionCap)
+	76: Pop
+	77: LdConst[0](u64: 0)
+	78: Abort
+B6:
+	79: Call type_name::get<Ty0>(): TypeName
+	80: MoveLoc[2](Arg2: u64)
+	81: MoveLoc[1](Arg1: &PositionCap)
+	82: Call position::get_position_id(&PositionCap): ID
+	83: MoveLoc[9](loc4: u64)
+	84: MoveLoc[10](loc5: u64)
+	85: LdU64(0)
+	86: MoveLoc[5](loc0: Option<ID>)
+	87: Pack[9](WithdrawEvent)
+	88: Call events::emit_event<WithdrawEvent>(WithdrawEvent)
+	89: MoveLoc[8](loc3: LiquidityPromise<Ty0>)
+	90: Ret
+}
+
+public borrow<Ty0>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: u64, Arg3: u64, Arg4: &Clock, Arg5: &mut TxContext): LiquidityPromise<Ty0> {
+L6:	loc0: &Market
+L7:	loc1: ID
+L8:	loc2: Option<ID>
+L9:	loc3: &mut Position
+L10:	loc4: &mut Position
+L11:	loc5: LiquidityPromise<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[3](Arg3: u64)
+	4: LdU64(0)
+	5: Gt
+	6: BrFalse(8)
+B1:
+	7: Branch(18)
+B2:
+	8: MoveLoc[0](Arg0: &mut LendingProtocol)
+	9: Pop
+	10: MoveLoc[1](Arg1: &PositionCap)
+	11: Pop
+	12: MoveLoc[5](Arg5: &mut TxContext)
+	13: Pop
+	14: MoveLoc[4](Arg4: &Clock)
+	15: Pop
+	16: LdConst[22](u64: 32)
+	17: Abort
+B3:
+	18: CopyLoc[0](Arg0: &mut LendingProtocol)
+	19: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	20: CopyLoc[1](Arg1: &PositionCap)
+	21: Call position::get_position_id(&PositionCap): ID
+	22: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	23: StLoc[9](loc3: &mut Position)
+	24: CopyLoc[9](loc3: &mut Position)
+	25: FreezeRef
+	26: Call position::get_partner_id(&Position): Option<ID>
+	27: StLoc[8](loc2: Option<ID>)
+	28: ImmBorrowLoc[8](loc2: Option<ID>)
+	29: Call option::is_some<ID>(&Option<ID>): bool
+	30: BrFalse(45)
+B4:
+	31: MoveLoc[9](loc3: &mut Position)
+	32: Pop
+	33: MutBorrowLoc[8](loc2: Option<ID>)
+	34: Call option::extract<ID>(&mut Option<ID>): ID
+	35: StLoc[7](loc1: ID)
+	36: CopyLoc[0](Arg0: &mut LendingProtocol)
+	37: ImmBorrowField[4](LendingProtocol.id: UID)
+	38: MoveLoc[7](loc1: ID)
+	39: Call dynamic_field::borrow<ID, Partner>(&UID, ID): &Partner
+	40: MoveLoc[5](Arg5: &mut TxContext)
+	41: FreezeRef
+	42: Call tx_context::sender(&TxContext): address
+	43: Call partner::validate_partner_address(&Partner, address)
+	44: Branch(62)
+B5:
+	45: MoveLoc[5](Arg5: &mut TxContext)
+	46: Pop
+	47: MoveLoc[9](loc3: &mut Position)
+	48: FreezeRef
+	49: CopyLoc[2](Arg2: u64)
+	50: Call position::has_deposited_to(&Position, u64): bool
+	51: Not
+	52: BrFalse(54)
+B6:
+	53: Branch(62)
+B7:
+	54: MoveLoc[0](Arg0: &mut LendingProtocol)
+	55: Pop
+	56: MoveLoc[1](Arg1: &PositionCap)
+	57: Pop
+	58: MoveLoc[4](Arg4: &Clock)
+	59: Pop
+	60: LdConst[20](u64: 30)
+	61: Abort
+B8:
+	62: CopyLoc[0](Arg0: &mut LendingProtocol)
+	63: CopyLoc[1](Arg1: &PositionCap)
+	64: Call position::get_position_id(&PositionCap): ID
+	65: CopyLoc[2](Arg2: u64)
+	66: CopyLoc[3](Arg3: u64)
+	67: CopyLoc[4](Arg4: &Clock)
+	68: Call borrow_internal<Ty0>(&mut LendingProtocol, ID, u64, u64, &Clock): LiquidityPromise<Ty0>
+	69: StLoc[11](loc5: LiquidityPromise<Ty0>)
+	70: CopyLoc[0](Arg0: &mut LendingProtocol)
+	71: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	72: CopyLoc[1](Arg1: &PositionCap)
+	73: Call position::get_position_id(&PositionCap): ID
+	74: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	75: StLoc[10](loc4: &mut Position)
+	76: CopyLoc[10](loc4: &mut Position)
+	77: CopyLoc[0](Arg0: &mut LendingProtocol)
+	78: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	79: CopyLoc[0](Arg0: &mut LendingProtocol)
+	80: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	81: MoveLoc[4](Arg4: &Clock)
+	82: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	83: CopyLoc[10](loc4: &mut Position)
+	84: FreezeRef
+	85: Call position::borrowed_from_isolated(&Position): bool
+	86: BrFalse(102)
+B9:
+	87: CopyLoc[10](loc4: &mut Position)
+	88: FreezeRef
+	89: Call position::get_borrow_market_count(&Position): u64
+	90: LdU64(1)
+	91: Eq
+	92: BrFalse(94)
+B10:
+	93: Branch(102)
+B11:
+	94: MoveLoc[0](Arg0: &mut LendingProtocol)
+	95: Pop
+	96: MoveLoc[1](Arg1: &PositionCap)
+	97: Pop
+	98: MoveLoc[10](loc4: &mut Position)
+	99: Pop
+	100: LdConst[2](u64: 2)
+	101: Abort
+B12:
+	102: MoveLoc[10](loc4: &mut Position)
+	103: FreezeRef
+	104: Call position::is_healthy(&Position): bool
+	105: BrFalse(107)
+B13:
+	106: Branch(113)
+B14:
+	107: MoveLoc[0](Arg0: &mut LendingProtocol)
+	108: Pop
+	109: MoveLoc[1](Arg1: &PositionCap)
+	110: Pop
+	111: LdConst[1](u64: 1)
+	112: Abort
+B15:
+	113: CopyLoc[0](Arg0: &mut LendingProtocol)
+	114: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	115: CopyLoc[2](Arg2: u64)
+	116: Call table::borrow<u64, Market>(&Table<u64, Market>, u64): &Market
+	117: StLoc[6](loc0: &Market)
+	118: Call type_name::get<Ty0>(): TypeName
+	119: MoveLoc[2](Arg2: u64)
+	120: MoveLoc[1](Arg1: &PositionCap)
+	121: Call position::get_position_id(&PositionCap): ID
+	122: CopyLoc[3](Arg3: u64)
+	123: MoveLoc[6](loc0: &Market)
+	124: MoveLoc[0](Arg0: &mut LendingProtocol)
+	125: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	126: MoveLoc[3](Arg3: u64)
+	127: Call market::get_spot_usd_value(&Market, &Oracle, u64): Number
+	128: LdConst[40](u64: 100)
+	129: Call math::from(u64): Number
+	130: Call math::mul(Number, Number): Number
+	131: Call math::to_u64(Number): u64
+	132: LdU64(0)
+	133: MoveLoc[8](loc2: Option<ID>)
+	134: Pack[10](BorrowEvent)
+	135: Call events::emit_event<BorrowEvent>(BorrowEvent)
+	136: MoveLoc[11](loc5: LiquidityPromise<Ty0>)
+	137: Ret
+}
+
+borrow_internal<Ty0>(Arg0: &mut LendingProtocol, Arg1: ID, Arg2: u64, Arg3: u64, Arg4: &Clock): LiquidityPromise<Ty0> {
+L5:	loc0: &mut Market
+L6:	loc1: &mut Position
+L7:	loc2: LiquidityPromise<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	2: CopyLoc[2](Arg2: u64)
+	3: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(12)
+B2:
+	6: MoveLoc[0](Arg0: &mut LendingProtocol)
+	7: Pop
+	8: MoveLoc[4](Arg4: &Clock)
+	9: Pop
+	10: LdConst[15](u64: 25)
+	11: Abort
+B3:
+	12: CopyLoc[0](Arg0: &mut LendingProtocol)
+	13: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	14: CopyLoc[2](Arg2: u64)
+	15: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	16: StLoc[5](loc0: &mut Market)
+	17: CopyLoc[0](Arg0: &mut LendingProtocol)
+	18: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	19: MoveLoc[1](Arg1: ID)
+	20: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	21: StLoc[6](loc1: &mut Position)
+	22: CopyLoc[5](loc0: &mut Market)
+	23: FreezeRef
+	24: Call market::get_active(&Market): bool
+	25: BrFalse(27)
+B4:
+	26: Branch(37)
+B5:
+	27: MoveLoc[0](Arg0: &mut LendingProtocol)
+	28: Pop
+	29: MoveLoc[6](loc1: &mut Position)
+	30: Pop
+	31: MoveLoc[5](loc0: &mut Market)
+	32: Pop
+	33: MoveLoc[4](Arg4: &Clock)
+	34: Pop
+	35: LdConst[13](u64: 23)
+	36: Abort
+B6:
+	37: CopyLoc[5](loc0: &mut Market)
+	38: CopyLoc[3](Arg3: u64)
+	39: MoveLoc[0](Arg0: &mut LendingProtocol)
+	40: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	41: CopyLoc[4](Arg4: &Clock)
+	42: Call market::borrow<Ty0>(&mut Market, u64, &Oracle, &Clock): LiquidityPromise<Ty0>
+	43: StLoc[7](loc2: LiquidityPromise<Ty0>)
+	44: CopyLoc[6](loc1: &mut Position)
+	45: Call type_name::get<Ty0>(): TypeName
+	46: MoveLoc[2](Arg2: u64)
+	47: MoveLoc[3](Arg3: u64)
+	48: CopyLoc[4](Arg4: &Clock)
+	49: Call clock::timestamp_ms(&Clock): u64
+	50: CopyLoc[5](loc0: &mut Market)
+	51: MoveLoc[4](Arg4: &Clock)
+	52: Call position::add_borrow(&mut Position, TypeName, u64, u64, u64, &mut Market, &Clock)
+	53: MoveLoc[5](loc0: &mut Market)
+	54: FreezeRef
+	55: Call market::is_isolated(&Market): bool
+	56: BrFalse(66)
+B7:
+	57: MoveLoc[6](loc1: &mut Position)
+	58: FreezeRef
+	59: Call position::get_borrow_market_count(&Position): u64
+	60: LdU64(1)
+	61: Eq
+	62: BrFalse(64)
+B8:
+	63: Branch(68)
+B9:
+	64: LdConst[2](u64: 2)
+	65: Abort
+B10:
+	66: MoveLoc[6](loc1: &mut Position)
+	67: Pop
+B11:
+	68: MoveLoc[7](loc2: LiquidityPromise<Ty0>)
+	69: Ret
+}
+
+public flash_borrow<Ty0>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: u64, Arg3: u64, Arg4: &Clock, Arg5: &mut TxContext): LiquidityPromise<Ty0> * FlashTransactionHotPotato {
+L6:	loc0: FlashTransactionHotPotato
+L7:	loc1: ID
+L8:	loc2: Option<ID>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[1](Arg1: &PositionCap)
+	4: Call position::get_position_id(&PositionCap): ID
+	5: Pack[19](FlashTransactionHotPotato)
+	6: StLoc[6](loc0: FlashTransactionHotPotato)
+	7: CopyLoc[0](Arg0: &mut LendingProtocol)
+	8: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	9: CopyLoc[2](Arg2: u64)
+	10: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	11: BrFalse(13)
+B1:
+	12: Branch(23)
+B2:
+	13: MoveLoc[0](Arg0: &mut LendingProtocol)
+	14: Pop
+	15: MoveLoc[1](Arg1: &PositionCap)
+	16: Pop
+	17: MoveLoc[5](Arg5: &mut TxContext)
+	18: Pop
+	19: MoveLoc[4](Arg4: &Clock)
+	20: Pop
+	21: LdConst[15](u64: 25)
+	22: Abort
+B3:
+	23: CopyLoc[0](Arg0: &mut LendingProtocol)
+	24: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	25: CopyLoc[1](Arg1: &PositionCap)
+	26: Call position::get_position_id(&PositionCap): ID
+	27: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	28: FreezeRef
+	29: Call position::get_partner_id(&Position): Option<ID>
+	30: StLoc[8](loc2: Option<ID>)
+	31: ImmBorrowLoc[8](loc2: Option<ID>)
+	32: Call option::is_some<ID>(&Option<ID>): bool
+	33: BrFalse(46)
+B4:
+	34: MutBorrowLoc[8](loc2: Option<ID>)
+	35: Call option::extract<ID>(&mut Option<ID>): ID
+	36: StLoc[7](loc1: ID)
+	37: CopyLoc[0](Arg0: &mut LendingProtocol)
+	38: ImmBorrowField[4](LendingProtocol.id: UID)
+	39: MoveLoc[7](loc1: ID)
+	40: Call dynamic_field::borrow<ID, Partner>(&UID, ID): &Partner
+	41: MoveLoc[5](Arg5: &mut TxContext)
+	42: FreezeRef
+	43: Call tx_context::sender(&TxContext): address
+	44: Call partner::validate_partner_address(&Partner, address)
+	45: Branch(48)
+B5:
+	46: MoveLoc[5](Arg5: &mut TxContext)
+	47: Pop
+B6:
+	48: MoveLoc[0](Arg0: &mut LendingProtocol)
+	49: MoveLoc[1](Arg1: &PositionCap)
+	50: Call position::get_position_id(&PositionCap): ID
+	51: MoveLoc[2](Arg2: u64)
+	52: MoveLoc[3](Arg3: u64)
+	53: MoveLoc[4](Arg4: &Clock)
+	54: Call borrow_internal<Ty0>(&mut LendingProtocol, ID, u64, u64, &Clock): LiquidityPromise<Ty0>
+	55: MoveLoc[6](loc0: FlashTransactionHotPotato)
+	56: Ret
+}
+
+public flash_deposit<Ty0>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: u64, Arg3: Coin<Ty0>, Arg4: FlashTransactionHotPotato, Arg5: &Clock) {
+L6:	loc0: Balance<XToken<Ty0>>
+L7:	loc1: &mut Market
+L8:	loc2: u64
+L9:	loc3: &mut Position
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: ImmBorrowLoc[4](Arg4: FlashTransactionHotPotato)
+	4: ImmBorrowField[9](FlashTransactionHotPotato.position_id: ID)
+	5: ReadRef
+	6: CopyLoc[1](Arg1: &PositionCap)
+	7: Call position::get_position_id(&PositionCap): ID
+	8: Eq
+	9: BrFalse(11)
+B1:
+	10: Branch(19)
+B2:
+	11: MoveLoc[0](Arg0: &mut LendingProtocol)
+	12: Pop
+	13: MoveLoc[1](Arg1: &PositionCap)
+	14: Pop
+	15: MoveLoc[5](Arg5: &Clock)
+	16: Pop
+	17: LdConst[30](u64: 40)
+	18: Abort
+B3:
+	19: CopyLoc[0](Arg0: &mut LendingProtocol)
+	20: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	21: CopyLoc[2](Arg2: u64)
+	22: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	23: BrFalse(25)
+B4:
+	24: Branch(33)
+B5:
+	25: MoveLoc[0](Arg0: &mut LendingProtocol)
+	26: Pop
+	27: MoveLoc[1](Arg1: &PositionCap)
+	28: Pop
+	29: MoveLoc[5](Arg5: &Clock)
+	30: Pop
+	31: LdConst[15](u64: 25)
+	32: Abort
+B6:
+	33: CopyLoc[0](Arg0: &mut LendingProtocol)
+	34: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	35: CopyLoc[2](Arg2: u64)
+	36: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	37: StLoc[7](loc1: &mut Market)
+	38: CopyLoc[7](loc1: &mut Market)
+	39: FreezeRef
+	40: Call market::get_coin_type(&Market): TypeName
+	41: Call type_name::get<Ty0>(): TypeName
+	42: Eq
+	43: BrFalse(45)
+B7:
+	44: Branch(55)
+B8:
+	45: MoveLoc[0](Arg0: &mut LendingProtocol)
+	46: Pop
+	47: MoveLoc[1](Arg1: &PositionCap)
+	48: Pop
+	49: MoveLoc[7](loc1: &mut Market)
+	50: Pop
+	51: MoveLoc[5](Arg5: &Clock)
+	52: Pop
+	53: LdConst[32](u64: 42)
+	54: Abort
+B9:
+	55: CopyLoc[7](loc1: &mut Market)
+	56: MoveLoc[3](Arg3: Coin<Ty0>)
+	57: CopyLoc[5](Arg5: &Clock)
+	58: Call market::add_liquidity<Ty0>(&mut Market, Coin<Ty0>, &Clock): Balance<XToken<Ty0>>
+	59: StLoc[6](loc0: Balance<XToken<Ty0>>)
+	60: CopyLoc[0](Arg0: &mut LendingProtocol)
+	61: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	62: MoveLoc[1](Arg1: &PositionCap)
+	63: Call position::get_position_id(&PositionCap): ID
+	64: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	65: StLoc[9](loc3: &mut Position)
+	66: CopyLoc[9](loc3: &mut Position)
+	67: CopyLoc[2](Arg2: u64)
+	68: MoveLoc[7](loc1: &mut Market)
+	69: MoveLoc[6](loc0: Balance<XToken<Ty0>>)
+	70: CopyLoc[5](Arg5: &Clock)
+	71: Call position::add_token_collateral<Ty0>(&mut Position, u64, &mut Market, Balance<XToken<Ty0>>, &Clock)
+	72: CopyLoc[9](loc3: &mut Position)
+	73: CopyLoc[0](Arg0: &mut LendingProtocol)
+	74: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	75: CopyLoc[0](Arg0: &mut LendingProtocol)
+	76: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	77: MoveLoc[5](Arg5: &Clock)
+	78: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	79: CopyLoc[9](loc3: &mut Position)
+	80: FreezeRef
+	81: Call position::get_borrow_market_count(&Position): u64
+	82: StLoc[8](loc2: u64)
+	83: MoveLoc[0](Arg0: &mut LendingProtocol)
+	84: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	85: MoveLoc[2](Arg2: u64)
+	86: Call table::borrow<u64, Market>(&Table<u64, Market>, u64): &Market
+	87: Call market::is_isolated(&Market): bool
+	88: BrFalse(98)
+B10:
+	89: MoveLoc[8](loc2: u64)
+	90: LdU64(1)
+	91: Eq
+	92: BrFalse(94)
+B11:
+	93: Branch(98)
+B12:
+	94: MoveLoc[9](loc3: &mut Position)
+	95: Pop
+	96: LdConst[2](u64: 2)
+	97: Abort
+B13:
+	98: MoveLoc[4](Arg4: FlashTransactionHotPotato)
+	99: Unpack[19](FlashTransactionHotPotato)
+	100: Pop
+	101: MoveLoc[9](loc3: &mut Position)
+	102: FreezeRef
+	103: Call position::is_healthy(&Position): bool
+	104: BrFalse(106)
+B14:
+	105: Branch(108)
+B15:
+	106: LdConst[0](u64: 0)
+	107: Abort
+B16:
+	108: Ret
+}
+
+public fulfill_promise<Ty0>(Arg0: &mut LendingProtocol, Arg1: LiquidityPromise<Ty0>, Arg2: &Clock, Arg3: &mut TxContext): Coin<Ty0> {
+L4:	loc0: Coin<Ty0>
+L5:	loc1: Coin<Ty0>
+L6:	loc2: Balance<XToken<Ty0>>
+L7:	loc3: &mut Market
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	4: Call market::get_promise_market_id<Ty0>(&LiquidityPromise<Ty0>): u64
+	5: LdU64(0)
+	6: Eq
+	7: BrFalse(17)
+B1:
+	8: MoveLoc[0](Arg0: &mut LendingProtocol)
+	9: Pop
+	10: MoveLoc[2](Arg2: &Clock)
+	11: Pop
+	12: MoveLoc[1](Arg1: LiquidityPromise<Ty0>)
+	13: Call market::destory_zero<Ty0>(LiquidityPromise<Ty0>)
+	14: MoveLoc[3](Arg3: &mut TxContext)
+	15: Call coin::zero<Ty0>(&mut TxContext): Coin<Ty0>
+	16: Ret
+B2:
+	17: Call type_name::get<Ty0>(): TypeName
+	18: Call type_name::get<SUI>(): TypeName
+	19: Neq
+	20: BrFalse(22)
+B3:
+	21: Branch(30)
+B4:
+	22: MoveLoc[0](Arg0: &mut LendingProtocol)
+	23: Pop
+	24: MoveLoc[3](Arg3: &mut TxContext)
+	25: Pop
+	26: MoveLoc[2](Arg2: &Clock)
+	27: Pop
+	28: LdConst[24](u64: 34)
+	29: Abort
+B5:
+	30: MoveLoc[0](Arg0: &mut LendingProtocol)
+	31: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	32: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	33: Call market::get_promise_market_id<Ty0>(&LiquidityPromise<Ty0>): u64
+	34: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	35: StLoc[7](loc3: &mut Market)
+	36: CopyLoc[7](loc3: &mut Market)
+	37: MoveLoc[1](Arg1: LiquidityPromise<Ty0>)
+	38: CopyLoc[2](Arg2: &Clock)
+	39: MoveLoc[3](Arg3: &mut TxContext)
+	40: Call market::fulfill_promise<Ty0>(&mut Market, LiquidityPromise<Ty0>, &Clock, &mut TxContext): Coin<Ty0> * Coin<Ty0>
+	41: StLoc[5](loc1: Coin<Ty0>)
+	42: StLoc[4](loc0: Coin<Ty0>)
+	43: ImmBorrowLoc[5](loc1: Coin<Ty0>)
+	44: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	45: LdU64(0)
+	46: Gt
+	47: BrFalse(57)
+B6:
+	48: CopyLoc[7](loc3: &mut Market)
+	49: MoveLoc[5](loc1: Coin<Ty0>)
+	50: MoveLoc[2](Arg2: &Clock)
+	51: Call market::add_liquidity<Ty0>(&mut Market, Coin<Ty0>, &Clock): Balance<XToken<Ty0>>
+	52: StLoc[6](loc2: Balance<XToken<Ty0>>)
+	53: MoveLoc[7](loc3: &mut Market)
+	54: MoveLoc[6](loc2: Balance<XToken<Ty0>>)
+	55: Call market::add_fee<Ty0>(&mut Market, Balance<XToken<Ty0>>)
+	56: Branch(63)
+B7:
+	57: MoveLoc[7](loc3: &mut Market)
+	58: Pop
+	59: MoveLoc[2](Arg2: &Clock)
+	60: Pop
+	61: MoveLoc[5](loc1: Coin<Ty0>)
+	62: Call coin::destroy_zero<Ty0>(Coin<Ty0>)
+B8:
+	63: MoveLoc[4](loc0: Coin<Ty0>)
+	64: Ret
+}
+
+public fulfill_promise_SUI(Arg0: &mut LendingProtocol, Arg1: LiquidityPromise<SUI>, Arg2: &mut SuiSystemState, Arg3: &Clock, Arg4: &mut TxContext): Coin<SUI> {
+L5:	loc0: Coin<SUI>
+L6:	loc1: Coin<SUI>
+L7:	loc2: Balance<XToken<SUI>>
+L8:	loc3: &mut Market
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	4: Call market::get_promise_market_id<SUI>(&LiquidityPromise<SUI>): u64
+	5: LdU64(0)
+	6: Eq
+	7: BrFalse(19)
+B1:
+	8: MoveLoc[2](Arg2: &mut SuiSystemState)
+	9: Pop
+	10: MoveLoc[0](Arg0: &mut LendingProtocol)
+	11: Pop
+	12: MoveLoc[3](Arg3: &Clock)
+	13: Pop
+	14: MoveLoc[1](Arg1: LiquidityPromise<SUI>)
+	15: Call market::destory_zero<SUI>(LiquidityPromise<SUI>)
+	16: MoveLoc[4](Arg4: &mut TxContext)
+	17: Call coin::zero<SUI>(&mut TxContext): Coin<SUI>
+	18: Ret
+B2:
+	19: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	20: Call market::get_promise_coin_type<SUI>(&LiquidityPromise<SUI>): TypeName
+	21: Call type_name::get<SUI>(): TypeName
+	22: Eq
+	23: BrFalse(25)
+B3:
+	24: Branch(35)
+B4:
+	25: MoveLoc[2](Arg2: &mut SuiSystemState)
+	26: Pop
+	27: MoveLoc[0](Arg0: &mut LendingProtocol)
+	28: Pop
+	29: MoveLoc[4](Arg4: &mut TxContext)
+	30: Pop
+	31: MoveLoc[3](Arg3: &Clock)
+	32: Pop
+	33: LdConst[24](u64: 34)
+	34: Abort
+B5:
+	35: MoveLoc[0](Arg0: &mut LendingProtocol)
+	36: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	37: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	38: Call market::get_promise_market_id<SUI>(&LiquidityPromise<SUI>): u64
+	39: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	40: StLoc[8](loc3: &mut Market)
+	41: CopyLoc[8](loc3: &mut Market)
+	42: MoveLoc[1](Arg1: LiquidityPromise<SUI>)
+	43: MoveLoc[2](Arg2: &mut SuiSystemState)
+	44: CopyLoc[3](Arg3: &Clock)
+	45: MoveLoc[4](Arg4: &mut TxContext)
+	46: Call market::fulfill_promise_sui(&mut Market, LiquidityPromise<SUI>, &mut SuiSystemState, &Clock, &mut TxContext): Coin<SUI> * Coin<SUI>
+	47: StLoc[6](loc1: Coin<SUI>)
+	48: StLoc[5](loc0: Coin<SUI>)
+	49: CopyLoc[8](loc3: &mut Market)
+	50: MoveLoc[6](loc1: Coin<SUI>)
+	51: MoveLoc[3](Arg3: &Clock)
+	52: Call market::add_liquidity<SUI>(&mut Market, Coin<SUI>, &Clock): Balance<XToken<SUI>>
+	53: StLoc[7](loc2: Balance<XToken<SUI>>)
+	54: MoveLoc[8](loc3: &mut Market)
+	55: MoveLoc[7](loc2: Balance<XToken<SUI>>)
+	56: Call market::add_fee<SUI>(&mut Market, Balance<XToken<SUI>>)
+	57: MoveLoc[5](loc0: Coin<SUI>)
+	58: Ret
+}
+
+public repay<Ty0>(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: u64, Arg3: Coin<Ty0>, Arg4: &Clock, Arg5: &mut TxContext): Coin<Ty0> {
+B0:
+	0: ImmBorrowLoc[3](Arg3: Coin<Ty0>)
+	1: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	2: LdU64(0)
+	3: Gt
+	4: BrFalse(6)
+B1:
+	5: Branch(16)
+B2:
+	6: MoveLoc[0](Arg0: &mut LendingProtocol)
+	7: Pop
+	8: MoveLoc[1](Arg1: &PositionCap)
+	9: Pop
+	10: MoveLoc[5](Arg5: &mut TxContext)
+	11: Pop
+	12: MoveLoc[4](Arg4: &Clock)
+	13: Pop
+	14: LdConst[23](u64: 33)
+	15: Abort
+B3:
+	16: MoveLoc[0](Arg0: &mut LendingProtocol)
+	17: MoveLoc[1](Arg1: &PositionCap)
+	18: Call position::get_position_id(&PositionCap): ID
+	19: MoveLoc[2](Arg2: u64)
+	20: MoveLoc[3](Arg3: Coin<Ty0>)
+	21: MoveLoc[4](Arg4: &Clock)
+	22: MoveLoc[5](Arg5: &mut TxContext)
+	23: Call repay_internal<Ty0>(&mut LendingProtocol, ID, u64, Coin<Ty0>, &Clock, &mut TxContext): Coin<Ty0>
+	24: Ret
+}
+
+repay_internal<Ty0>(Arg0: &mut LendingProtocol, Arg1: ID, Arg2: u64, Arg3: Coin<Ty0>, Arg4: &Clock, Arg5: &mut TxContext): Coin<Ty0> {
+L6:	loc0: &mut Market
+L7:	loc1: &mut Position
+L8:	loc2: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	5: MoveLoc[1](Arg1: ID)
+	6: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	7: StLoc[7](loc1: &mut Position)
+	8: CopyLoc[0](Arg0: &mut LendingProtocol)
+	9: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	10: CopyLoc[2](Arg2: u64)
+	11: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	12: BrFalse(14)
+B1:
+	13: Branch(24)
+B2:
+	14: MoveLoc[0](Arg0: &mut LendingProtocol)
+	15: Pop
+	16: MoveLoc[7](loc1: &mut Position)
+	17: Pop
+	18: MoveLoc[5](Arg5: &mut TxContext)
+	19: Pop
+	20: MoveLoc[4](Arg4: &Clock)
+	21: Pop
+	22: LdConst[15](u64: 25)
+	23: Abort
+B3:
+	24: CopyLoc[0](Arg0: &mut LendingProtocol)
+	25: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	26: CopyLoc[2](Arg2: u64)
+	27: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	28: CopyLoc[4](Arg4: &Clock)
+	29: Call market::refresh(&mut Market, &Clock)
+	30: CopyLoc[0](Arg0: &mut LendingProtocol)
+	31: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	32: CopyLoc[2](Arg2: u64)
+	33: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	34: StLoc[6](loc0: &mut Market)
+	35: CopyLoc[7](loc1: &mut Position)
+	36: Call type_name::get<Ty0>(): TypeName
+	37: CopyLoc[2](Arg2: u64)
+	38: CopyLoc[6](loc0: &mut Market)
+	39: ImmBorrowLoc[3](Arg3: Coin<Ty0>)
+	40: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	41: CopyLoc[4](Arg4: &Clock)
+	42: Call position::repay(&mut Position, TypeName, u64, &mut Market, u64, &Clock): u64
+	43: StLoc[8](loc2: u64)
+	44: CopyLoc[6](loc0: &mut Market)
+	45: MutBorrowLoc[3](Arg3: Coin<Ty0>)
+	46: CopyLoc[8](loc2: u64)
+	47: MoveLoc[5](Arg5: &mut TxContext)
+	48: Call coin::split<Ty0>(&mut Coin<Ty0>, u64, &mut TxContext): Coin<Ty0>
+	49: MoveLoc[4](Arg4: &Clock)
+	50: Call market::repay<Ty0>(&mut Market, Coin<Ty0>, &Clock)
+	51: Call type_name::get<Ty0>(): TypeName
+	52: MoveLoc[2](Arg2: u64)
+	53: MoveLoc[7](loc1: &mut Position)
+	54: FreezeRef
+	55: Call object::id<Position>(&Position): ID
+	56: CopyLoc[8](loc2: u64)
+	57: MoveLoc[6](loc0: &mut Market)
+	58: FreezeRef
+	59: MoveLoc[0](Arg0: &mut LendingProtocol)
+	60: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	61: MoveLoc[8](loc2: u64)
+	62: Call market::get_spot_usd_value(&Market, &Oracle, u64): Number
+	63: LdConst[40](u64: 100)
+	64: Call math::from(u64): Number
+	65: Call math::mul(Number, Number): Number
+	66: Call math::to_u64(Number): u64
+	67: Pack[11](RepayEvent)
+	68: Call events::emit_event<RepayEvent>(RepayEvent)
+	69: MoveLoc[3](Arg3: Coin<Ty0>)
+	70: Ret
+}
+
+public liquidate<Ty0, Ty1>(Arg0: &mut LendingProtocol, Arg1: ID, Arg2: u64, Arg3: u64, Arg4: Coin<Ty0>, Arg5: &Clock, Arg6: &mut TxContext): LiquidityPromise<Ty1> * Coin<Ty0> {
+L7:	loc0: &mut Market
+L8:	loc1: LiquidityPromise<Ty1>
+L9:	loc2: Number
+L10:	loc3: Number
+L11:	loc4: Balance<XToken<Ty1>>
+L12:	loc5: u64
+L13:	loc6: &mut Market
+L14:	loc7: &mut Position
+L15:	loc8: u64
+L16:	loc9: u64
+L17:	loc10: u64
+L18:	loc11: Coin<Ty0>
+L19:	loc12: Coin<Ty0>
+L20:	loc13: u64
+L21:	loc14: u64
+L22:	loc15: Number
+L23:	loc16: Balance<XToken<Ty1>>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: ImmBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	5: CopyLoc[1](Arg1: ID)
+	6: Call table::contains<ID, Position>(&Table<ID, Position>, ID): bool
+	7: BrFalse(9)
+B1:
+	8: Branch(17)
+B2:
+	9: MoveLoc[0](Arg0: &mut LendingProtocol)
+	10: Pop
+	11: MoveLoc[6](Arg6: &mut TxContext)
+	12: Pop
+	13: MoveLoc[5](Arg5: &Clock)
+	14: Pop
+	15: LdConst[34](u64: 44)
+	16: Abort
+B3:
+	17: CopyLoc[0](Arg0: &mut LendingProtocol)
+	18: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	19: CopyLoc[1](Arg1: ID)
+	20: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	21: StLoc[14](loc7: &mut Position)
+	22: CopyLoc[14](loc7: &mut Position)
+	23: CopyLoc[0](Arg0: &mut LendingProtocol)
+	24: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	25: CopyLoc[0](Arg0: &mut LendingProtocol)
+	26: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	27: CopyLoc[5](Arg5: &Clock)
+	28: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	29: CopyLoc[14](loc7: &mut Position)
+	30: FreezeRef
+	31: CopyLoc[5](Arg5: &Clock)
+	32: Call position::is_liquidatable(&Position, &Clock): bool
+	33: BrFalse(35)
+B4:
+	34: Branch(45)
+B5:
+	35: MoveLoc[0](Arg0: &mut LendingProtocol)
+	36: Pop
+	37: MoveLoc[14](loc7: &mut Position)
+	38: Pop
+	39: MoveLoc[6](Arg6: &mut TxContext)
+	40: Pop
+	41: MoveLoc[5](Arg5: &Clock)
+	42: Pop
+	43: LdConst[4](u64: 4)
+	44: Abort
+B6:
+	45: MoveLoc[14](loc7: &mut Position)
+	46: CopyLoc[0](Arg0: &mut LendingProtocol)
+	47: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	48: CopyLoc[3](Arg3: u64)
+	49: CopyLoc[2](Arg2: u64)
+	50: MoveLoc[4](Arg4: Coin<Ty0>)
+	51: CopyLoc[0](Arg0: &mut LendingProtocol)
+	52: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	53: CopyLoc[5](Arg5: &Clock)
+	54: MoveLoc[6](Arg6: &mut TxContext)
+	55: Call position::liquidate<Ty0, Ty1>(&mut Position, &mut Table<u64, Market>, u64, u64, Coin<Ty0>, &Oracle, &Clock, &mut TxContext): Balance<XToken<Ty1>> * Number * Number * Balance<XToken<Ty1>> * Coin<Ty0> * Coin<Ty0>
+	56: StLoc[19](loc12: Coin<Ty0>)
+	57: StLoc[18](loc11: Coin<Ty0>)
+	58: StLoc[11](loc4: Balance<XToken<Ty1>>)
+	59: StLoc[10](loc3: Number)
+	60: StLoc[9](loc2: Number)
+	61: StLoc[23](loc16: Balance<XToken<Ty1>>)
+	62: ImmBorrowLoc[23](loc16: Balance<XToken<Ty1>>)
+	63: Call balance::value<XToken<Ty1>>(&Balance<XToken<Ty1>>): u64
+	64: ImmBorrowLoc[11](loc4: Balance<XToken<Ty1>>)
+	65: Call balance::value<XToken<Ty1>>(&Balance<XToken<Ty1>>): u64
+	66: Add
+	67: StLoc[21](loc14: u64)
+	68: ImmBorrowLoc[18](loc11: Coin<Ty0>)
+	69: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	70: StLoc[17](loc10: u64)
+	71: CopyLoc[0](Arg0: &mut LendingProtocol)
+	72: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	73: CopyLoc[2](Arg2: u64)
+	74: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	75: BrFalse(77)
+B7:
+	76: Branch(83)
+B8:
+	77: MoveLoc[0](Arg0: &mut LendingProtocol)
+	78: Pop
+	79: MoveLoc[5](Arg5: &Clock)
+	80: Pop
+	81: LdConst[15](u64: 25)
+	82: Abort
+B9:
+	83: CopyLoc[0](Arg0: &mut LendingProtocol)
+	84: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	85: CopyLoc[2](Arg2: u64)
+	86: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	87: StLoc[7](loc0: &mut Market)
+	88: CopyLoc[7](loc0: &mut Market)
+	89: FreezeRef
+	90: CopyLoc[0](Arg0: &mut LendingProtocol)
+	91: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	92: ImmBorrowLoc[18](loc11: Coin<Ty0>)
+	93: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	94: Call market::get_spot_usd_value(&Market, &Oracle, u64): Number
+	95: LdConst[40](u64: 100)
+	96: Call math::from(u64): Number
+	97: Call math::mul(Number, Number): Number
+	98: Call math::to_u64(Number): u64
+	99: StLoc[15](loc8: u64)
+	100: MoveLoc[7](loc0: &mut Market)
+	101: MoveLoc[18](loc11: Coin<Ty0>)
+	102: CopyLoc[5](Arg5: &Clock)
+	103: Call market::repay<Ty0>(&mut Market, Coin<Ty0>, &Clock)
+	104: MoveLoc[15](loc8: u64)
+	105: StLoc[16](loc9: u64)
+	106: CopyLoc[0](Arg0: &mut LendingProtocol)
+	107: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	108: CopyLoc[3](Arg3: u64)
+	109: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	110: BrFalse(112)
+B10:
+	111: Branch(118)
+B11:
+	112: MoveLoc[0](Arg0: &mut LendingProtocol)
+	113: Pop
+	114: MoveLoc[5](Arg5: &Clock)
+	115: Pop
+	116: LdConst[15](u64: 25)
+	117: Abort
+B12:
+	118: CopyLoc[0](Arg0: &mut LendingProtocol)
+	119: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	120: CopyLoc[3](Arg3: u64)
+	121: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	122: StLoc[13](loc6: &mut Market)
+	123: CopyLoc[13](loc6: &mut Market)
+	124: FreezeRef
+	125: CopyLoc[0](Arg0: &mut LendingProtocol)
+	126: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	127: Call market::get_xtoken_price(&Market, &Oracle): Number
+	128: StLoc[22](loc15: Number)
+	129: ImmBorrowLoc[11](loc4: Balance<XToken<Ty1>>)
+	130: Call balance::value<XToken<Ty1>>(&Balance<XToken<Ty1>>): u64
+	131: Call math::from(u64): Number
+	132: MoveLoc[22](loc15: Number)
+	133: Call math::mul(Number, Number): Number
+	134: LdConst[40](u64: 100)
+	135: Call math::from(u64): Number
+	136: Call math::mul(Number, Number): Number
+	137: Call math::to_u64(Number): u64
+	138: StLoc[12](loc5: u64)
+	139: CopyLoc[13](loc6: &mut Market)
+	140: MoveLoc[11](loc4: Balance<XToken<Ty1>>)
+	141: Call market::add_fee<Ty1>(&mut Market, Balance<XToken<Ty1>>)
+	142: MoveLoc[13](loc6: &mut Market)
+	143: MoveLoc[23](loc16: Balance<XToken<Ty1>>)
+	144: MoveLoc[0](Arg0: &mut LendingProtocol)
+	145: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	146: MoveLoc[5](Arg5: &Clock)
+	147: Call market::remove_liquidity<Ty1>(&mut Market, Balance<XToken<Ty1>>, &Oracle, &Clock): LiquidityPromise<Ty1>
+	148: StLoc[8](loc1: LiquidityPromise<Ty1>)
+	149: MoveLoc[9](loc2: Number)
+	150: LdConst[40](u64: 100)
+	151: Call math::from(u64): Number
+	152: Call math::mul(Number, Number): Number
+	153: Call math::to_u64(Number): u64
+	154: StLoc[20](loc13: u64)
+	155: Call type_name::get<Ty0>(): TypeName
+	156: Call type_name::get<Ty1>(): TypeName
+	157: MoveLoc[1](Arg1: ID)
+	158: MoveLoc[16](loc9: u64)
+	159: MoveLoc[17](loc10: u64)
+	160: MoveLoc[2](Arg2: u64)
+	161: MoveLoc[20](loc13: u64)
+	162: MoveLoc[21](loc14: u64)
+	163: MoveLoc[3](Arg3: u64)
+	164: MoveLoc[10](loc3: Number)
+	165: LdConst[40](u64: 100)
+	166: Call math::from(u64): Number
+	167: Call math::mul(Number, Number): Number
+	168: Call math::to_u64(Number): u64
+	169: MoveLoc[12](loc5: u64)
+	170: Pack[12](LiquidationEvent)
+	171: Call events::emit_event<LiquidationEvent>(LiquidationEvent)
+	172: MoveLoc[8](loc1: LiquidityPromise<Ty1>)
+	173: MoveLoc[19](loc12: Coin<Ty0>)
+	174: Ret
+}
+
+public liquidate_lp_position<Ty0, Ty1, Ty2>(Arg0: &mut LendingProtocol, Arg1: ID, Arg2: u64, Arg3: &mut Pool<Ty0, Ty1>, Arg4: Coin<Ty2>, Arg5: &GlobalConfig, Arg6: &Clock, Arg7: &mut TxContext): Coin<Ty0> * Coin<Ty1> * Coin<Ty2> {
+L8:	loc0: &mut Market
+L9:	loc1: Coin<Ty0>
+L10:	loc2: Coin<Ty0>
+L11:	loc3: Coin<Ty1>
+L12:	loc4: Coin<Ty1>
+L13:	loc5: Number
+L14:	loc6: Number
+L15:	loc7: Number
+L16:	loc8: ID
+L17:	loc9: &mut Position
+L18:	loc10: u64
+L19:	loc11: u64
+L20:	loc12: u64
+L21:	loc13: Coin<Ty2>
+L22:	loc14: Coin<Ty2>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	5: CopyLoc[1](Arg1: ID)
+	6: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	7: StLoc[17](loc9: &mut Position)
+	8: CopyLoc[17](loc9: &mut Position)
+	9: CopyLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	10: FreezeRef
+	11: CopyLoc[0](Arg0: &mut LendingProtocol)
+	12: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	13: CopyLoc[6](Arg6: &Clock)
+	14: Call position::update_bluefin_lp_collateral_usd_value<Ty0, Ty1>(&mut Position, &Pool<Ty0, Ty1>, &Oracle, &Clock)
+	15: CopyLoc[17](loc9: &mut Position)
+	16: CopyLoc[0](Arg0: &mut LendingProtocol)
+	17: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	18: CopyLoc[0](Arg0: &mut LendingProtocol)
+	19: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	20: CopyLoc[6](Arg6: &Clock)
+	21: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	22: CopyLoc[17](loc9: &mut Position)
+	23: FreezeRef
+	24: CopyLoc[6](Arg6: &Clock)
+	25: Call position::is_liquidatable(&Position, &Clock): bool
+	26: BrFalse(28)
+B1:
+	27: Branch(42)
+B2:
+	28: MoveLoc[0](Arg0: &mut LendingProtocol)
+	29: Pop
+	30: MoveLoc[17](loc9: &mut Position)
+	31: Pop
+	32: MoveLoc[7](Arg7: &mut TxContext)
+	33: Pop
+	34: MoveLoc[6](Arg6: &Clock)
+	35: Pop
+	36: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	37: Pop
+	38: MoveLoc[5](Arg5: &GlobalConfig)
+	39: Pop
+	40: LdConst[4](u64: 4)
+	41: Abort
+B3:
+	42: CopyLoc[17](loc9: &mut Position)
+	43: CopyLoc[0](Arg0: &mut LendingProtocol)
+	44: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	45: CopyLoc[2](Arg2: u64)
+	46: MoveLoc[4](Arg4: Coin<Ty2>)
+	47: CopyLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	48: MoveLoc[5](Arg5: &GlobalConfig)
+	49: CopyLoc[0](Arg0: &mut LendingProtocol)
+	50: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	51: CopyLoc[6](Arg6: &Clock)
+	52: MoveLoc[7](Arg7: &mut TxContext)
+	53: Call position::liquidate_bluefin_lp_position<Ty0, Ty1, Ty2>(&mut Position, &mut Table<u64, Market>, u64, Coin<Ty2>, &mut Pool<Ty0, Ty1>, &GlobalConfig, &Oracle, &Clock, &mut TxContext): Coin<Ty0> * Coin<Ty1> * Number * Number * Number * Coin<Ty2> * Coin<Ty2> * ID * Coin<Ty0> * Coin<Ty1>
+	54: StLoc[12](loc4: Coin<Ty1>)
+	55: StLoc[10](loc2: Coin<Ty0>)
+	56: StLoc[16](loc8: ID)
+	57: StLoc[22](loc14: Coin<Ty2>)
+	58: StLoc[21](loc13: Coin<Ty2>)
+	59: StLoc[15](loc7: Number)
+	60: StLoc[14](loc6: Number)
+	61: StLoc[13](loc5: Number)
+	62: StLoc[11](loc3: Coin<Ty1>)
+	63: StLoc[9](loc1: Coin<Ty0>)
+	64: ImmBorrowLoc[21](loc13: Coin<Ty2>)
+	65: Call coin::value<Ty2>(&Coin<Ty2>): u64
+	66: StLoc[18](loc10: u64)
+	67: CopyLoc[0](Arg0: &mut LendingProtocol)
+	68: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	69: CopyLoc[2](Arg2: u64)
+	70: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	71: StLoc[8](loc0: &mut Market)
+	72: CopyLoc[8](loc0: &mut Market)
+	73: FreezeRef
+	74: CopyLoc[0](Arg0: &mut LendingProtocol)
+	75: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	76: ImmBorrowLoc[21](loc13: Coin<Ty2>)
+	77: Call coin::value<Ty2>(&Coin<Ty2>): u64
+	78: Call market::get_spot_usd_value(&Market, &Oracle, u64): Number
+	79: Call math::to_u64(Number): u64
+	80: StLoc[19](loc11: u64)
+	81: MoveLoc[8](loc0: &mut Market)
+	82: MoveLoc[21](loc13: Coin<Ty2>)
+	83: CopyLoc[6](Arg6: &Clock)
+	84: Call market::repay<Ty2>(&mut Market, Coin<Ty2>, &Clock)
+	85: MoveLoc[19](loc11: u64)
+	86: StLoc[20](loc12: u64)
+	87: MoveLoc[10](loc2: Coin<Ty0>)
+	88: CopyLoc[0](Arg0: &mut LendingProtocol)
+	89: ImmBorrowField[10](LendingProtocol.protocol_fee_address: address)
+	90: ReadRef
+	91: Call transfer::public_transfer<Coin<Ty0>>(Coin<Ty0>, address)
+	92: MoveLoc[12](loc4: Coin<Ty1>)
+	93: CopyLoc[0](Arg0: &mut LendingProtocol)
+	94: ImmBorrowField[10](LendingProtocol.protocol_fee_address: address)
+	95: ReadRef
+	96: Call transfer::public_transfer<Coin<Ty1>>(Coin<Ty1>, address)
+	97: Call type_name::get<Ty1>(): TypeName
+	98: MoveLoc[1](Arg1: ID)
+	99: MoveLoc[18](loc10: u64)
+	100: MoveLoc[20](loc12: u64)
+	101: MoveLoc[2](Arg2: u64)
+	102: ImmBorrowLoc[9](loc1: Coin<Ty0>)
+	103: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	104: ImmBorrowLoc[11](loc3: Coin<Ty1>)
+	105: Call coin::value<Ty1>(&Coin<Ty1>): u64
+	106: MoveLoc[13](loc5: Number)
+	107: Call math::to_u64(Number): u64
+	108: MoveLoc[14](loc6: Number)
+	109: Call math::to_u64(Number): u64
+	110: MoveLoc[15](loc7: Number)
+	111: Call math::to_u64(Number): u64
+	112: MoveLoc[16](loc8: ID)
+	113: CopyLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	114: FreezeRef
+	115: Call object::id<Pool<Ty0, Ty1>>(&Pool<Ty0, Ty1>): ID
+	116: Pack[13](LpLiquidationEvent)
+	117: Call events::emit_event<LpLiquidationEvent>(LpLiquidationEvent)
+	118: CopyLoc[17](loc9: &mut Position)
+	119: MoveLoc[3](Arg3: &mut Pool<Ty0, Ty1>)
+	120: FreezeRef
+	121: CopyLoc[0](Arg0: &mut LendingProtocol)
+	122: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	123: CopyLoc[6](Arg6: &Clock)
+	124: Call position::update_bluefin_lp_collateral_usd_value<Ty0, Ty1>(&mut Position, &Pool<Ty0, Ty1>, &Oracle, &Clock)
+	125: MoveLoc[17](loc9: &mut Position)
+	126: CopyLoc[0](Arg0: &mut LendingProtocol)
+	127: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	128: MoveLoc[0](Arg0: &mut LendingProtocol)
+	129: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	130: MoveLoc[6](Arg6: &Clock)
+	131: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	132: MoveLoc[9](loc1: Coin<Ty0>)
+	133: MoveLoc[11](loc3: Coin<Ty1>)
+	134: MoveLoc[22](loc14: Coin<Ty2>)
+	135: Ret
+}
+
+public add_reward<Ty0>(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: bool, Arg3: Balance<Ty0>, Arg4: u64, Arg5: u64, Arg6: &Clock, Arg7: &mut TxContext) {
+L8:	loc0: Option<u64>
+L9:	loc1: u64
+L10:	loc2: u64
+L11:	loc3: Option<u64>
+L12:	loc4: u64
+L13:	loc5: TypeName
+L14:	loc6: Balance<XToken<Ty0>>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[4](Arg4: u64)
+	4: CopyLoc[5](Arg5: u64)
+	5: Le
+	6: BrFalse(8)
+B1:
+	7: Branch(18)
+B2:
+	8: MoveLoc[0](Arg0: &mut LendingProtocol)
+	9: Pop
+	10: MoveLoc[1](Arg1: &MarketCap)
+	11: Pop
+	12: MoveLoc[7](Arg7: &mut TxContext)
+	13: Pop
+	14: MoveLoc[6](Arg6: &Clock)
+	15: Pop
+	16: LdConst[6](u64: 6)
+	17: Abort
+B3:
+	18: CopyLoc[4](Arg4: u64)
+	19: CopyLoc[6](Arg6: &Clock)
+	20: Call clock::timestamp_ms(&Clock): u64
+	21: Ge
+	22: BrFalse(24)
+B4:
+	23: Branch(34)
+B5:
+	24: MoveLoc[0](Arg0: &mut LendingProtocol)
+	25: Pop
+	26: MoveLoc[1](Arg1: &MarketCap)
+	27: Pop
+	28: MoveLoc[7](Arg7: &mut TxContext)
+	29: Pop
+	30: MoveLoc[6](Arg6: &Clock)
+	31: Pop
+	32: LdConst[14](u64: 24)
+	33: Abort
+B6:
+	34: CopyLoc[5](Arg5: u64)
+	35: CopyLoc[4](Arg4: u64)
+	36: Sub
+	37: LdU64(126144000001)
+	38: Le
+	39: BrFalse(41)
+B7:
+	40: Branch(51)
+B8:
+	41: MoveLoc[0](Arg0: &mut LendingProtocol)
+	42: Pop
+	43: MoveLoc[1](Arg1: &MarketCap)
+	44: Pop
+	45: MoveLoc[7](Arg7: &mut TxContext)
+	46: Pop
+	47: MoveLoc[6](Arg6: &Clock)
+	48: Pop
+	49: LdConst[36](u64: 46)
+	50: Abort
+B9:
+	51: CopyLoc[1](Arg1: &MarketCap)
+	52: Call market::get_market_id(&MarketCap): u64
+	53: StLoc[10](loc2: u64)
+	54: Call type_name::get<Ty0>(): TypeName
+	55: StLoc[13](loc5: TypeName)
+	56: ImmBorrowLoc[3](Arg3: Balance<Ty0>)
+	57: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	58: StLoc[12](loc4: u64)
+	59: CopyLoc[0](Arg0: &mut LendingProtocol)
+	60: ImmBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	61: ImmBorrowField[11](LendingProtocolConfig.reward_autocompounding: bool)
+	62: ReadRef
+	63: LdTrue
+	64: Eq
+	65: BrFalse(72)
+B10:
+	66: CopyLoc[0](Arg0: &mut LendingProtocol)
+	67: FreezeRef
+	68: CopyLoc[13](loc5: TypeName)
+	69: Call find_market_by_coin(&LendingProtocol, TypeName): Option<u64>
+	70: StLoc[8](loc0: Option<u64>)
+	71: Branch(74)
+B11:
+	72: Call option::none<u64>(): Option<u64>
+	73: StLoc[8](loc0: Option<u64>)
+B12:
+	74: MoveLoc[8](loc0: Option<u64>)
+	75: StLoc[11](loc3: Option<u64>)
+	76: ImmBorrowLoc[11](loc3: Option<u64>)
+	77: Call option::is_some<u64>(&Option<u64>): bool
+	78: BrFalse(108)
+B13:
+	79: MutBorrowLoc[11](loc3: Option<u64>)
+	80: Call option::extract<u64>(&mut Option<u64>): u64
+	81: StLoc[9](loc1: u64)
+	82: CopyLoc[0](Arg0: &mut LendingProtocol)
+	83: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	84: CopyLoc[9](loc1: u64)
+	85: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	86: MoveLoc[3](Arg3: Balance<Ty0>)
+	87: CopyLoc[7](Arg7: &mut TxContext)
+	88: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	89: CopyLoc[6](Arg6: &Clock)
+	90: Call market::add_liquidity<Ty0>(&mut Market, Coin<Ty0>, &Clock): Balance<XToken<Ty0>>
+	91: StLoc[14](loc6: Balance<XToken<Ty0>>)
+	92: MoveLoc[0](Arg0: &mut LendingProtocol)
+	93: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	94: CopyLoc[10](loc2: u64)
+	95: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	96: MoveLoc[1](Arg1: &MarketCap)
+	97: MoveLoc[2](Arg2: bool)
+	98: MoveLoc[14](loc6: Balance<XToken<Ty0>>)
+	99: CopyLoc[13](loc5: TypeName)
+	100: LdTrue
+	101: MoveLoc[9](loc1: u64)
+	102: CopyLoc[4](Arg4: u64)
+	103: CopyLoc[5](Arg5: u64)
+	104: MoveLoc[6](Arg6: &Clock)
+	105: MoveLoc[7](Arg7: &mut TxContext)
+	106: Call market::add_reward<XToken<Ty0>>(&mut Market, &MarketCap, bool, Balance<XToken<Ty0>>, TypeName, bool, u64, u64, u64, &Clock, &mut TxContext)
+	107: Branch(123)
+B14:
+	108: MoveLoc[0](Arg0: &mut LendingProtocol)
+	109: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	110: CopyLoc[10](loc2: u64)
+	111: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	112: MoveLoc[1](Arg1: &MarketCap)
+	113: MoveLoc[2](Arg2: bool)
+	114: MoveLoc[3](Arg3: Balance<Ty0>)
+	115: CopyLoc[13](loc5: TypeName)
+	116: LdFalse
+	117: LdU64(0)
+	118: CopyLoc[4](Arg4: u64)
+	119: CopyLoc[5](Arg5: u64)
+	120: MoveLoc[6](Arg6: &Clock)
+	121: MoveLoc[7](Arg7: &mut TxContext)
+	122: Call market::add_reward<Ty0>(&mut Market, &MarketCap, bool, Balance<Ty0>, TypeName, bool, u64, u64, u64, &Clock, &mut TxContext)
+B15:
+	123: MoveLoc[13](loc5: TypeName)
+	124: MoveLoc[10](loc2: u64)
+	125: MoveLoc[12](loc4: u64)
+	126: MoveLoc[4](Arg4: u64)
+	127: MoveLoc[5](Arg5: u64)
+	128: Pack[17](RewardUpdateEvent)
+	129: Call events::emit_event<RewardUpdateEvent>(RewardUpdateEvent)
+	130: Ret
+}
+
+public collect_reward<Ty0>(Arg0: &mut LendingProtocol, Arg1: u64, Arg2: &PositionCap, Arg3: &Clock, Arg4: &mut TxContext): Coin<Ty0> * LiquidityPromise<Ty0> {
+L5:	loc0: u64
+L6:	loc1: LiquidityPromise<Ty0>
+L7:	loc2: Balance<Ty0>
+L8:	loc3: Coin<Ty0>
+L9:	loc4: Balance<Ty0>
+L10:	loc5: u64
+L11:	loc6: LiquidityPromise<Ty0>
+L12:	loc7: &mut Market
+L13:	loc8: &mut Position
+L14:	loc9: LiquidityPromise<Ty0>
+L15:	loc10: Balance<XToken<Ty0>>
+L16:	loc11: Balance<XToken<Ty0>>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	5: CopyLoc[1](Arg1: u64)
+	6: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	7: StLoc[12](loc7: &mut Market)
+	8: CopyLoc[0](Arg0: &mut LendingProtocol)
+	9: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	10: CopyLoc[2](Arg2: &PositionCap)
+	11: Call position::get_position_id(&PositionCap): ID
+	12: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	13: StLoc[13](loc8: &mut Position)
+	14: CopyLoc[13](loc8: &mut Position)
+	15: CopyLoc[12](loc7: &mut Market)
+	16: LdTrue
+	17: CopyLoc[3](Arg3: &Clock)
+	18: Call position::claim_rewards<Ty0>(&mut Position, &mut Market, bool, &Clock): Balance<Ty0> * Balance<XToken<Ty0>> * u64
+	19: StLoc[10](loc5: u64)
+	20: StLoc[15](loc10: Balance<XToken<Ty0>>)
+	21: StLoc[7](loc2: Balance<Ty0>)
+	22: MoveLoc[13](loc8: &mut Position)
+	23: MoveLoc[12](loc7: &mut Market)
+	24: LdFalse
+	25: CopyLoc[3](Arg3: &Clock)
+	26: Call position::claim_rewards<Ty0>(&mut Position, &mut Market, bool, &Clock): Balance<Ty0> * Balance<XToken<Ty0>> * u64
+	27: StLoc[5](loc0: u64)
+	28: StLoc[16](loc11: Balance<XToken<Ty0>>)
+	29: StLoc[9](loc4: Balance<Ty0>)
+	30: MutBorrowLoc[7](loc2: Balance<Ty0>)
+	31: MoveLoc[9](loc4: Balance<Ty0>)
+	32: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	33: Pop
+	34: MoveLoc[7](loc2: Balance<Ty0>)
+	35: MoveLoc[4](Arg4: &mut TxContext)
+	36: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	37: StLoc[8](loc3: Coin<Ty0>)
+	38: Call market::create_empty_promise<Ty0>(): LiquidityPromise<Ty0>
+	39: StLoc[14](loc9: LiquidityPromise<Ty0>)
+	40: ImmBorrowLoc[15](loc10: Balance<XToken<Ty0>>)
+	41: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	42: LdU64(0)
+	43: Gt
+	44: BrFalse(59)
+B1:
+	45: CopyLoc[0](Arg0: &mut LendingProtocol)
+	46: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	47: MoveLoc[10](loc5: u64)
+	48: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	49: MoveLoc[15](loc10: Balance<XToken<Ty0>>)
+	50: CopyLoc[0](Arg0: &mut LendingProtocol)
+	51: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	52: CopyLoc[3](Arg3: &Clock)
+	53: Call market::remove_liquidity<Ty0>(&mut Market, Balance<XToken<Ty0>>, &Oracle, &Clock): LiquidityPromise<Ty0>
+	54: StLoc[11](loc6: LiquidityPromise<Ty0>)
+	55: MutBorrowLoc[14](loc9: LiquidityPromise<Ty0>)
+	56: MoveLoc[11](loc6: LiquidityPromise<Ty0>)
+	57: Call market::join_promise<Ty0>(&mut LiquidityPromise<Ty0>, LiquidityPromise<Ty0>)
+	58: Branch(61)
+B2:
+	59: MoveLoc[15](loc10: Balance<XToken<Ty0>>)
+	60: Call balance::destroy_zero<XToken<Ty0>>(Balance<XToken<Ty0>>)
+B3:
+	61: ImmBorrowLoc[16](loc11: Balance<XToken<Ty0>>)
+	62: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	63: LdU64(0)
+	64: Gt
+	65: BrFalse(80)
+B4:
+	66: CopyLoc[0](Arg0: &mut LendingProtocol)
+	67: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	68: MoveLoc[5](loc0: u64)
+	69: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	70: MoveLoc[16](loc11: Balance<XToken<Ty0>>)
+	71: MoveLoc[0](Arg0: &mut LendingProtocol)
+	72: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	73: MoveLoc[3](Arg3: &Clock)
+	74: Call market::remove_liquidity<Ty0>(&mut Market, Balance<XToken<Ty0>>, &Oracle, &Clock): LiquidityPromise<Ty0>
+	75: StLoc[6](loc1: LiquidityPromise<Ty0>)
+	76: MutBorrowLoc[14](loc9: LiquidityPromise<Ty0>)
+	77: MoveLoc[6](loc1: LiquidityPromise<Ty0>)
+	78: Call market::join_promise<Ty0>(&mut LiquidityPromise<Ty0>, LiquidityPromise<Ty0>)
+	79: Branch(86)
+B5:
+	80: MoveLoc[0](Arg0: &mut LendingProtocol)
+	81: Pop
+	82: MoveLoc[3](Arg3: &Clock)
+	83: Pop
+	84: MoveLoc[16](loc11: Balance<XToken<Ty0>>)
+	85: Call balance::destroy_zero<XToken<Ty0>>(Balance<XToken<Ty0>>)
+B6:
+	86: Call type_name::get<Ty0>(): TypeName
+	87: MoveLoc[2](Arg2: &PositionCap)
+	88: Call position::get_position_id(&PositionCap): ID
+	89: MoveLoc[1](Arg1: u64)
+	90: ImmBorrowLoc[8](loc3: Coin<Ty0>)
+	91: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	92: Pack[14](CollectRewardsEvent)
+	93: Call events::emit_event<CollectRewardsEvent>(CollectRewardsEvent)
+	94: MoveLoc[8](loc3: Coin<Ty0>)
+	95: MoveLoc[14](loc9: LiquidityPromise<Ty0>)
+	96: Ret
+}
+
+public collect_reward_and_deposit<Ty0>(Arg0: &mut LendingProtocol, Arg1: u64, Arg2: &PositionCap, Arg3: &Clock, Arg4: &mut TxContext): Coin<Ty0> * LiquidityPromise<Ty0> {
+L5:	loc0: bool
+L6:	loc1: Coin<Ty0>
+L7:	loc2: Coin<Ty0>
+L8:	loc3: &mut Market
+L9:	loc4: u64
+L10:	loc5: Option<u64>
+L11:	loc6: LiquidityPromise<Ty0>
+L12:	loc7: Coin<Ty0>
+L13:	loc8: LiquidityPromise<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: MoveLoc[1](Arg1: u64)
+	5: CopyLoc[2](Arg2: &PositionCap)
+	6: CopyLoc[3](Arg3: &Clock)
+	7: CopyLoc[4](Arg4: &mut TxContext)
+	8: Call collect_reward<Ty0>(&mut LendingProtocol, u64, &PositionCap, &Clock, &mut TxContext): Coin<Ty0> * LiquidityPromise<Ty0>
+	9: StLoc[11](loc6: LiquidityPromise<Ty0>)
+	10: StLoc[7](loc2: Coin<Ty0>)
+	11: CopyLoc[0](Arg0: &mut LendingProtocol)
+	12: FreezeRef
+	13: Call type_name::get<Ty0>(): TypeName
+	14: Call find_market_by_coin(&LendingProtocol, TypeName): Option<u64>
+	15: StLoc[10](loc5: Option<u64>)
+	16: ImmBorrowLoc[10](loc5: Option<u64>)
+	17: Call option::is_none<u64>(&Option<u64>): bool
+	18: BrFalse(30)
+B1:
+	19: MoveLoc[0](Arg0: &mut LendingProtocol)
+	20: Pop
+	21: MoveLoc[4](Arg4: &mut TxContext)
+	22: Pop
+	23: MoveLoc[3](Arg3: &Clock)
+	24: Pop
+	25: MoveLoc[2](Arg2: &PositionCap)
+	26: Pop
+	27: MoveLoc[7](loc2: Coin<Ty0>)
+	28: MoveLoc[11](loc6: LiquidityPromise<Ty0>)
+	29: Ret
+B2:
+	30: MutBorrowLoc[10](loc5: Option<u64>)
+	31: Call option::extract<u64>(&mut Option<u64>): u64
+	32: StLoc[9](loc4: u64)
+	33: CopyLoc[0](Arg0: &mut LendingProtocol)
+	34: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	35: CopyLoc[2](Arg2: &PositionCap)
+	36: Call position::get_position_id(&PositionCap): ID
+	37: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	38: FreezeRef
+	39: CopyLoc[9](loc4: u64)
+	40: Call position::has_borrowed_from(&Position, u64): bool
+	41: BrFalse(53)
+B3:
+	42: MoveLoc[0](Arg0: &mut LendingProtocol)
+	43: Pop
+	44: MoveLoc[4](Arg4: &mut TxContext)
+	45: Pop
+	46: MoveLoc[3](Arg3: &Clock)
+	47: Pop
+	48: MoveLoc[2](Arg2: &PositionCap)
+	49: Pop
+	50: MoveLoc[7](loc2: Coin<Ty0>)
+	51: MoveLoc[11](loc6: LiquidityPromise<Ty0>)
+	52: Ret
+B4:
+	53: CopyLoc[0](Arg0: &mut LendingProtocol)
+	54: MoveLoc[11](loc6: LiquidityPromise<Ty0>)
+	55: CopyLoc[3](Arg3: &Clock)
+	56: CopyLoc[4](Arg4: &mut TxContext)
+	57: Call fulfill_promise<Ty0>(&mut LendingProtocol, LiquidityPromise<Ty0>, &Clock, &mut TxContext): Coin<Ty0>
+	58: StLoc[6](loc1: Coin<Ty0>)
+	59: MutBorrowLoc[7](loc2: Coin<Ty0>)
+	60: MoveLoc[6](loc1: Coin<Ty0>)
+	61: Call coin::join<Ty0>(&mut Coin<Ty0>, Coin<Ty0>)
+	62: CopyLoc[0](Arg0: &mut LendingProtocol)
+	63: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	64: CopyLoc[9](loc4: u64)
+	65: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	66: StLoc[8](loc3: &mut Market)
+	67: CopyLoc[8](loc3: &mut Market)
+	68: CopyLoc[3](Arg3: &Clock)
+	69: Call market::refresh(&mut Market, &Clock)
+	70: CopyLoc[4](Arg4: &mut TxContext)
+	71: Call coin::zero<Ty0>(&mut TxContext): Coin<Ty0>
+	72: StLoc[12](loc7: Coin<Ty0>)
+	73: Call market::create_empty_promise<Ty0>(): LiquidityPromise<Ty0>
+	74: StLoc[13](loc8: LiquidityPromise<Ty0>)
+	75: MoveLoc[8](loc3: &mut Market)
+	76: FreezeRef
+	77: ImmBorrowLoc[7](loc2: Coin<Ty0>)
+	78: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	79: Call market::deposit_limit_exceeded(&Market, u64): bool
+	80: Not
+	81: BrFalse(88)
+B5:
+	82: ImmBorrowLoc[7](loc2: Coin<Ty0>)
+	83: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	84: LdU64(0)
+	85: Gt
+	86: StLoc[5](loc0: bool)
+	87: Branch(90)
+B6:
+	88: LdFalse
+	89: StLoc[5](loc0: bool)
+B7:
+	90: MoveLoc[5](loc0: bool)
+	91: BrFalse(100)
+B8:
+	92: MoveLoc[0](Arg0: &mut LendingProtocol)
+	93: MoveLoc[2](Arg2: &PositionCap)
+	94: MoveLoc[9](loc4: u64)
+	95: MoveLoc[7](loc2: Coin<Ty0>)
+	96: MoveLoc[3](Arg3: &Clock)
+	97: MoveLoc[4](Arg4: &mut TxContext)
+	98: Call add_collateral<Ty0>(&mut LendingProtocol, &PositionCap, u64, Coin<Ty0>, &Clock, &mut TxContext)
+	99: Branch(111)
+B9:
+	100: MoveLoc[0](Arg0: &mut LendingProtocol)
+	101: Pop
+	102: MoveLoc[4](Arg4: &mut TxContext)
+	103: Pop
+	104: MoveLoc[3](Arg3: &Clock)
+	105: Pop
+	106: MoveLoc[2](Arg2: &PositionCap)
+	107: Pop
+	108: MutBorrowLoc[12](loc7: Coin<Ty0>)
+	109: MoveLoc[7](loc2: Coin<Ty0>)
+	110: Call coin::join<Ty0>(&mut Coin<Ty0>, Coin<Ty0>)
+B10:
+	111: MoveLoc[12](loc7: Coin<Ty0>)
+	112: MoveLoc[13](loc8: LiquidityPromise<Ty0>)
+	113: Ret
+}
+
+find_market_by_coin(Arg0: &LendingProtocol, Arg1: TypeName): Option<u64> {
+L2:	loc0: bool
+L3:	loc1: u64
+L4:	loc2: u64
+L5:	loc3: &Market
+L6:	loc4: Option<u64>
+B0:
+	0: CopyLoc[0](Arg0: &LendingProtocol)
+	1: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	2: Call table::length<u64, Market>(&Table<u64, Market>): u64
+	3: StLoc[4](loc2: u64)
+	4: Call option::none<u64>(): Option<u64>
+	5: StLoc[6](loc4: Option<u64>)
+	6: LdU64(0)
+	7: StLoc[3](loc1: u64)
+B1:
+	8: CopyLoc[3](loc1: u64)
+	9: CopyLoc[4](loc2: u64)
+	10: Lt
+	11: BrFalse(60)
+B2:
+	12: Branch(13)
+B3:
+	13: CopyLoc[0](Arg0: &LendingProtocol)
+	14: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	15: CopyLoc[3](loc1: u64)
+	16: LdU64(1)
+	17: Add
+	18: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	19: BrFalse(55)
+B4:
+	20: CopyLoc[0](Arg0: &LendingProtocol)
+	21: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	22: CopyLoc[3](loc1: u64)
+	23: LdU64(1)
+	24: Add
+	25: Call table::borrow<u64, Market>(&Table<u64, Market>, u64): &Market
+	26: StLoc[5](loc3: &Market)
+	27: CopyLoc[5](loc3: &Market)
+	28: Call market::get_coin_type(&Market): TypeName
+	29: CopyLoc[1](Arg1: TypeName)
+	30: Eq
+	31: BrFalse(42)
+B5:
+	32: CopyLoc[5](loc3: &Market)
+	33: Call market::get_is_native(&Market): bool
+	34: BrFalse(39)
+B6:
+	35: CopyLoc[5](loc3: &Market)
+	36: Call market::get_active(&Market): bool
+	37: StLoc[2](loc0: bool)
+	38: Branch(44)
+B7:
+	39: LdFalse
+	40: StLoc[2](loc0: bool)
+	41: Branch(44)
+B8:
+	42: LdFalse
+	43: StLoc[2](loc0: bool)
+B9:
+	44: MoveLoc[2](loc0: bool)
+	45: BrFalse(53)
+B10:
+	46: MoveLoc[0](Arg0: &LendingProtocol)
+	47: Pop
+	48: MoveLoc[5](loc3: &Market)
+	49: Call market::get_id(&Market): u64
+	50: Call option::some<u64>(u64): Option<u64>
+	51: StLoc[6](loc4: Option<u64>)
+	52: Branch(60)
+B11:
+	53: MoveLoc[5](loc3: &Market)
+	54: Pop
+B12:
+	55: MoveLoc[3](loc1: u64)
+	56: LdU64(1)
+	57: Add
+	58: StLoc[3](loc1: u64)
+	59: Branch(8)
+B13:
+	60: MoveLoc[6](loc4: Option<u64>)
+	61: Ret
+}
+
+public withdraw_market_fee<Ty0>(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: &Clock): LiquidityPromise<Ty0> {
+L3:	loc0: &mut Market
+L4:	loc1: u64
+L5:	loc2: LiquidityPromise<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[1](Arg1: &MarketCap)
+	4: Call market::get_market_id(&MarketCap): u64
+	5: StLoc[4](loc1: u64)
+	6: MoveLoc[0](Arg0: &mut LendingProtocol)
+	7: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	8: CopyLoc[4](loc1: u64)
+	9: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	10: StLoc[3](loc0: &mut Market)
+	11: CopyLoc[3](loc0: &mut Market)
+	12: FreezeRef
+	13: MoveLoc[1](Arg1: &MarketCap)
+	14: Call market::verify_market_cap(&Market, &MarketCap)
+	15: CopyLoc[3](loc0: &mut Market)
+	16: FreezeRef
+	17: Call market::get_coin_type(&Market): TypeName
+	18: Call type_name::get<Ty0>(): TypeName
+	19: Eq
+	20: BrFalse(22)
+B1:
+	21: Branch(28)
+B2:
+	22: MoveLoc[3](loc0: &mut Market)
+	23: Pop
+	24: MoveLoc[2](Arg2: &Clock)
+	25: Pop
+	26: LdConst[5](u64: 5)
+	27: Abort
+B3:
+	28: CopyLoc[3](loc0: &mut Market)
+	29: CopyLoc[2](Arg2: &Clock)
+	30: Call market::refresh(&mut Market, &Clock)
+	31: MoveLoc[3](loc0: &mut Market)
+	32: MoveLoc[2](Arg2: &Clock)
+	33: Call market::withdraw_market_fee<Ty0>(&mut Market, &Clock): LiquidityPromise<Ty0>
+	34: StLoc[5](loc2: LiquidityPromise<Ty0>)
+	35: Call type_name::get<Ty0>(): TypeName
+	36: MoveLoc[4](loc1: u64)
+	37: ImmBorrowLoc[5](loc2: LiquidityPromise<Ty0>)
+	38: Call market::get_liquidity_promise<Ty0>(&LiquidityPromise<Ty0>): u64
+	39: Pack[15](CollectMarketFeeEvent)
+	40: Call events::emit_event<CollectMarketFeeEvent>(CollectMarketFeeEvent)
+	41: MoveLoc[5](loc2: LiquidityPromise<Ty0>)
+	42: Ret
+}
+
+public withdraw_protocol_fee<Ty0>(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: u64, Arg3: &Clock): LiquidityPromise<Ty0> {
+L4:	loc0: &mut Market
+L5:	loc1: LiquidityPromise<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: MoveLoc[0](Arg0: &mut LendingProtocol)
+	8: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	9: CopyLoc[2](Arg2: u64)
+	10: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	11: StLoc[4](loc0: &mut Market)
+	12: CopyLoc[4](loc0: &mut Market)
+	13: FreezeRef
+	14: Call market::get_coin_type(&Market): TypeName
+	15: Call type_name::get<Ty0>(): TypeName
+	16: Eq
+	17: BrFalse(19)
+B1:
+	18: Branch(25)
+B2:
+	19: MoveLoc[4](loc0: &mut Market)
+	20: Pop
+	21: MoveLoc[3](Arg3: &Clock)
+	22: Pop
+	23: LdConst[29](u64: 39)
+	24: Abort
+B3:
+	25: CopyLoc[4](loc0: &mut Market)
+	26: CopyLoc[3](Arg3: &Clock)
+	27: Call market::refresh(&mut Market, &Clock)
+	28: MoveLoc[4](loc0: &mut Market)
+	29: MoveLoc[3](Arg3: &Clock)
+	30: Call market::withdraw_protocol_fee<Ty0>(&mut Market, &Clock): LiquidityPromise<Ty0>
+	31: StLoc[5](loc1: LiquidityPromise<Ty0>)
+	32: Call type_name::get<Ty0>(): TypeName
+	33: MoveLoc[2](Arg2: u64)
+	34: ImmBorrowLoc[5](loc1: LiquidityPromise<Ty0>)
+	35: Call market::get_liquidity_promise<Ty0>(&LiquidityPromise<Ty0>): u64
+	36: Pack[16](CollectProtocolFeeEvent)
+	37: Call events::emit_event<CollectProtocolFeeEvent>(CollectProtocolFeeEvent)
+	38: MoveLoc[5](loc1: LiquidityPromise<Ty0>)
+	39: Ret
+}
+
+public change_protocol_fee_address(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: address) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: MoveLoc[2](Arg2: address)
+	8: MoveLoc[0](Arg0: &mut LendingProtocol)
+	9: MutBorrowField[10](LendingProtocol.protocol_fee_address: address)
+	10: WriteRef
+	11: Ret
+}
+
+public create_partner(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: address, Arg3: u64, Arg4: &mut TxContext): PartnerCap {
+L5:	loc0: Partner
+L6:	loc1: PartnerCap
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: MoveLoc[2](Arg2: address)
+	8: MoveLoc[3](Arg3: u64)
+	9: MoveLoc[4](Arg4: &mut TxContext)
+	10: Call partner::create_partner(address, u64, &mut TxContext): Partner * PartnerCap
+	11: StLoc[6](loc1: PartnerCap)
+	12: StLoc[5](loc0: Partner)
+	13: MoveLoc[0](Arg0: &mut LendingProtocol)
+	14: MutBorrowField[4](LendingProtocol.id: UID)
+	15: ImmBorrowLoc[6](loc1: PartnerCap)
+	16: Call partner::get_partner_id(&PartnerCap): ID
+	17: MoveLoc[5](loc0: Partner)
+	18: Call dynamic_field::add<ID, Partner>(&mut UID, ID, Partner)
+	19: MoveLoc[6](loc1: PartnerCap)
+	20: Ret
+}
+
+public update_partner_cap_discount(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: ID, Arg3: u64) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: MoveLoc[0](Arg0: &mut LendingProtocol)
+	8: MutBorrowField[4](LendingProtocol.id: UID)
+	9: MoveLoc[2](Arg2: ID)
+	10: Call dynamic_field::borrow_mut<ID, Partner>(&mut UID, ID): &mut Partner
+	11: MoveLoc[3](Arg3: u64)
+	12: Call partner::update_fee_discount_bps(&mut Partner, u64)
+	13: Ret
+}
+
+public set_price_staleness_threshold(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: u64) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: MoveLoc[0](Arg0: &mut LendingProtocol)
+	8: MutBorrowField[1](LendingProtocol.oracle: Oracle)
+	9: MoveLoc[2](Arg2: u64)
+	10: Call oracle::set_price_staleness_threshold(&mut Oracle, u64)
+	11: Ret
+}
+
+public update_version(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: u64) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &AdminCap)
+	3: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	4: CopyLoc[2](Arg2: u64)
+	5: CopyLoc[0](Arg0: &mut LendingProtocol)
+	6: ImmBorrowField[0](LendingProtocol.version: u64)
+	7: ReadRef
+	8: Gt
+	9: BrFalse(11)
+B1:
+	10: Branch(15)
+B2:
+	11: MoveLoc[0](Arg0: &mut LendingProtocol)
+	12: Pop
+	13: LdConst[7](u64: 7)
+	14: Abort
+B3:
+	15: MoveLoc[2](Arg2: u64)
+	16: MoveLoc[0](Arg0: &mut LendingProtocol)
+	17: MutBorrowField[0](LendingProtocol.version: u64)
+	18: WriteRef
+	19: Ret
+}
+
+public get_version(Arg0: &LendingProtocol): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &LendingProtocol)
+	1: ImmBorrowField[0](LendingProtocol.version: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public update_price(Arg0: &mut LendingProtocol, Arg1: &PriceInfo) {
+B0:
+	0: MoveLoc[0](Arg0: &mut LendingProtocol)
+	1: MutBorrowField[1](LendingProtocol.oracle: Oracle)
+	2: MoveLoc[1](Arg1: &PriceInfo)
+	3: Call oracle::update_price(&mut Oracle, &PriceInfo)
+	4: Ret
+}
+
+public update_market_fee_config(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: u64, Arg3: u64, Arg4: u64, Arg5: u64, Arg6: u64, Arg7: &Clock) {
+B0:
+	0: MoveLoc[0](Arg0: &mut LendingProtocol)
+	1: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	2: CopyLoc[1](Arg1: &MarketCap)
+	3: Call market::get_market_id(&MarketCap): u64
+	4: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	5: MoveLoc[1](Arg1: &MarketCap)
+	6: MoveLoc[2](Arg2: u64)
+	7: MoveLoc[3](Arg3: u64)
+	8: MoveLoc[4](Arg4: u64)
+	9: MoveLoc[5](Arg5: u64)
+	10: MoveLoc[6](Arg6: u64)
+	11: MoveLoc[7](Arg7: &Clock)
+	12: Call market::update_fee_config(&mut Market, &MarketCap, u64, u64, u64, u64, u64, &Clock)
+	13: Ret
+}
+
+public update_market_collateral_ratios(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: u8, Arg3: u8, Arg4: &Clock) {
+L5:	loc0: bool
+L6:	loc1: &mut Market
+L7:	loc2: u64
+B0:
+	0: CopyLoc[1](Arg1: &MarketCap)
+	1: Call market::get_market_id(&MarketCap): u64
+	2: StLoc[7](loc2: u64)
+	3: CopyLoc[2](Arg2: u8)
+	4: CopyLoc[0](Arg0: &mut LendingProtocol)
+	5: ImmBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	6: ImmBorrowField[12](LendingProtocolConfig.max_safe_collateral_ratio: u8)
+	7: ReadRef
+	8: Le
+	9: BrFalse(18)
+B1:
+	10: CopyLoc[3](Arg3: u8)
+	11: CopyLoc[0](Arg0: &mut LendingProtocol)
+	12: ImmBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	13: ImmBorrowField[13](LendingProtocolConfig.max_liquidation_threshold: u8)
+	14: ReadRef
+	15: Le
+	16: StLoc[5](loc0: bool)
+	17: Branch(20)
+B2:
+	18: LdFalse
+	19: StLoc[5](loc0: bool)
+B3:
+	20: MoveLoc[5](loc0: bool)
+	21: BrFalse(23)
+B4:
+	22: Branch(31)
+B5:
+	23: MoveLoc[0](Arg0: &mut LendingProtocol)
+	24: Pop
+	25: MoveLoc[1](Arg1: &MarketCap)
+	26: Pop
+	27: MoveLoc[4](Arg4: &Clock)
+	28: Pop
+	29: LdConst[10](u64: 20)
+	30: Abort
+B6:
+	31: CopyLoc[2](Arg2: u8)
+	32: CopyLoc[3](Arg3: u8)
+	33: Lt
+	34: BrFalse(36)
+B7:
+	35: Branch(44)
+B8:
+	36: MoveLoc[0](Arg0: &mut LendingProtocol)
+	37: Pop
+	38: MoveLoc[1](Arg1: &MarketCap)
+	39: Pop
+	40: MoveLoc[4](Arg4: &Clock)
+	41: Pop
+	42: LdConst[11](u64: 21)
+	43: Abort
+B9:
+	44: CopyLoc[3](Arg3: u8)
+	45: CastU16
+	46: CopyLoc[2](Arg2: u8)
+	47: CastU16
+	48: Sub
+	49: LdConst[38](u16: 5)
+	50: Ge
+	51: BrFalse(53)
+B10:
+	52: Branch(61)
+B11:
+	53: MoveLoc[0](Arg0: &mut LendingProtocol)
+	54: Pop
+	55: MoveLoc[1](Arg1: &MarketCap)
+	56: Pop
+	57: MoveLoc[4](Arg4: &Clock)
+	58: Pop
+	59: LdConst[11](u64: 21)
+	60: Abort
+B12:
+	61: MoveLoc[0](Arg0: &mut LendingProtocol)
+	62: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	63: MoveLoc[7](loc2: u64)
+	64: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	65: StLoc[6](loc1: &mut Market)
+	66: CopyLoc[6](loc1: &mut Market)
+	67: FreezeRef
+	68: CopyLoc[1](Arg1: &MarketCap)
+	69: Call market::verify_market_cap(&Market, &MarketCap)
+	70: MoveLoc[6](loc1: &mut Market)
+	71: MoveLoc[1](Arg1: &MarketCap)
+	72: MoveLoc[2](Arg2: u8)
+	73: MoveLoc[3](Arg3: u8)
+	74: MoveLoc[4](Arg4: &Clock)
+	75: Call market::update_collateral_ratios(&mut Market, &MarketCap, u8, u8, &Clock)
+	76: Ret
+}
+
+public update_market_interest_rate_config(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: vector<u8>, Arg3: vector<u64>, Arg4: &Clock) {
+L5:	loc0: bool
+L6:	loc1: &mut Market
+L7:	loc2: u64
+B0:
+	0: CopyLoc[1](Arg1: &MarketCap)
+	1: Call market::get_market_id(&MarketCap): u64
+	2: StLoc[7](loc2: u64)
+	3: ImmBorrowLoc[2](Arg2: vector<u8>)
+	4: VecLen(76)
+	5: ImmBorrowLoc[3](Arg3: vector<u64>)
+	6: VecLen(50)
+	7: Eq
+	8: BrFalse(15)
+B1:
+	9: ImmBorrowLoc[2](Arg2: vector<u8>)
+	10: VecLen(76)
+	11: LdU64(0)
+	12: Gt
+	13: StLoc[5](loc0: bool)
+	14: Branch(17)
+B2:
+	15: LdFalse
+	16: StLoc[5](loc0: bool)
+B3:
+	17: MoveLoc[5](loc0: bool)
+	18: BrFalse(20)
+B4:
+	19: Branch(28)
+B5:
+	20: MoveLoc[0](Arg0: &mut LendingProtocol)
+	21: Pop
+	22: MoveLoc[1](Arg1: &MarketCap)
+	23: Pop
+	24: MoveLoc[4](Arg4: &Clock)
+	25: Pop
+	26: LdConst[12](u64: 22)
+	27: Abort
+B6:
+	28: MoveLoc[0](Arg0: &mut LendingProtocol)
+	29: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	30: MoveLoc[7](loc2: u64)
+	31: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	32: StLoc[6](loc1: &mut Market)
+	33: CopyLoc[6](loc1: &mut Market)
+	34: FreezeRef
+	35: CopyLoc[1](Arg1: &MarketCap)
+	36: Call market::verify_market_cap(&Market, &MarketCap)
+	37: MoveLoc[6](loc1: &mut Market)
+	38: MoveLoc[1](Arg1: &MarketCap)
+	39: MoveLoc[2](Arg2: vector<u8>)
+	40: MoveLoc[3](Arg3: vector<u64>)
+	41: MoveLoc[4](Arg4: &Clock)
+	42: Call market::update_interest_rate_config(&mut Market, &MarketCap, vector<u8>, vector<u64>, &Clock)
+	43: Ret
+}
+
+public update_market_liquidation_config(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: u64, Arg3: u64, Arg4: u8, Arg5: &Clock) {
+L6:	loc0: bool
+B0:
+	0: CopyLoc[2](Arg2: u64)
+	1: CopyLoc[0](Arg0: &mut LendingProtocol)
+	2: ImmBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	3: ImmBorrowField[14](LendingProtocolConfig.max_liquidation_bonus_bps: u64)
+	4: ReadRef
+	5: Le
+	6: BrFalse(24)
+B1:
+	7: CopyLoc[3](Arg3: u64)
+	8: CopyLoc[0](Arg0: &mut LendingProtocol)
+	9: ImmBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	10: ImmBorrowField[15](LendingProtocolConfig.max_liquidation_fee_bps: u64)
+	11: ReadRef
+	12: Le
+	13: BrFalse(21)
+B2:
+	14: CopyLoc[2](Arg2: u64)
+	15: CopyLoc[3](Arg3: u64)
+	16: Add
+	17: LdU64(10000)
+	18: Le
+	19: StLoc[6](loc0: bool)
+	20: Branch(26)
+B3:
+	21: LdFalse
+	22: StLoc[6](loc0: bool)
+	23: Branch(26)
+B4:
+	24: LdFalse
+	25: StLoc[6](loc0: bool)
+B5:
+	26: MoveLoc[6](loc0: bool)
+	27: BrFalse(29)
+B6:
+	28: Branch(37)
+B7:
+	29: MoveLoc[0](Arg0: &mut LendingProtocol)
+	30: Pop
+	31: MoveLoc[1](Arg1: &MarketCap)
+	32: Pop
+	33: MoveLoc[5](Arg5: &Clock)
+	34: Pop
+	35: LdConst[28](u64: 38)
+	36: Abort
+B8:
+	37: MoveLoc[0](Arg0: &mut LendingProtocol)
+	38: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	39: CopyLoc[1](Arg1: &MarketCap)
+	40: Call market::get_market_id(&MarketCap): u64
+	41: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	42: MoveLoc[1](Arg1: &MarketCap)
+	43: MoveLoc[2](Arg2: u64)
+	44: MoveLoc[3](Arg3: u64)
+	45: MoveLoc[4](Arg4: u8)
+	46: MoveLoc[5](Arg5: &Clock)
+	47: Call market::update_liquidation_config(&mut Market, &MarketCap, u64, u64, u8, &Clock)
+	48: Ret
+}
+
+public update_market_limits(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: u64, Arg3: u64, Arg4: u8, Arg5: &Clock) {
+L6:	loc0: &mut Market
+B0:
+	0: MoveLoc[0](Arg0: &mut LendingProtocol)
+	1: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	2: CopyLoc[1](Arg1: &MarketCap)
+	3: Call market::get_market_id(&MarketCap): u64
+	4: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	5: StLoc[6](loc0: &mut Market)
+	6: CopyLoc[6](loc0: &mut Market)
+	7: FreezeRef
+	8: MoveLoc[1](Arg1: &MarketCap)
+	9: Call market::verify_market_cap(&Market, &MarketCap)
+	10: MoveLoc[6](loc0: &mut Market)
+	11: MoveLoc[2](Arg2: u64)
+	12: MoveLoc[3](Arg3: u64)
+	13: MoveLoc[4](Arg4: u8)
+	14: MoveLoc[5](Arg5: &Clock)
+	15: Call market::update_limits(&mut Market, u64, u64, u8, &Clock)
+	16: Ret
+}
+
+public get_claimable_rewards(Arg0: &mut LendingProtocol, Arg1: &PositionCap, Arg2: &Clock): vector<ClaimableReward> {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	2: MoveLoc[1](Arg1: &PositionCap)
+	3: Call position::get_position_id(&PositionCap): ID
+	4: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	5: MoveLoc[0](Arg0: &mut LendingProtocol)
+	6: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	7: MoveLoc[2](Arg2: &Clock)
+	8: Call position::get_claimable_rewards(&mut Position, &mut Table<u64, Market>, &Clock): vector<ClaimableReward>
+	9: Ret
+}
+
+public update_protocol_config(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: u8, Arg3: u8, Arg4: u64, Arg5: u64, Arg6: u8, Arg7: u8) {
+L8:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: CopyLoc[2](Arg2: u8)
+	8: LdU8(100)
+	9: Le
+	10: BrFalse(66)
+B1:
+	11: CopyLoc[3](Arg3: u8)
+	12: LdU8(100)
+	13: Le
+	14: BrFalse(63)
+B2:
+	15: CopyLoc[4](Arg4: u64)
+	16: LdConst[39](u64: 10000)
+	17: Le
+	18: BrFalse(60)
+B3:
+	19: CopyLoc[5](Arg5: u64)
+	20: LdConst[39](u64: 10000)
+	21: Le
+	22: BrFalse(57)
+B4:
+	23: CopyLoc[3](Arg3: u8)
+	24: CastU16
+	25: CopyLoc[2](Arg2: u8)
+	26: CastU16
+	27: Sub
+	28: LdConst[38](u16: 5)
+	29: Ge
+	30: BrFalse(54)
+B5:
+	31: CopyLoc[6](Arg6: u8)
+	32: LdU8(100)
+	33: Le
+	34: BrFalse(51)
+B6:
+	35: CopyLoc[7](Arg7: u8)
+	36: LdU8(100)
+	37: Le
+	38: BrFalse(48)
+B7:
+	39: CopyLoc[7](Arg7: u8)
+	40: CastU16
+	41: CopyLoc[6](Arg6: u8)
+	42: CastU16
+	43: Sub
+	44: LdConst[38](u16: 5)
+	45: Ge
+	46: StLoc[8](loc0: bool)
+	47: Branch(68)
+B8:
+	48: LdFalse
+	49: StLoc[8](loc0: bool)
+	50: Branch(68)
+B9:
+	51: LdFalse
+	52: StLoc[8](loc0: bool)
+	53: Branch(68)
+B10:
+	54: LdFalse
+	55: StLoc[8](loc0: bool)
+	56: Branch(68)
+B11:
+	57: LdFalse
+	58: StLoc[8](loc0: bool)
+	59: Branch(68)
+B12:
+	60: LdFalse
+	61: StLoc[8](loc0: bool)
+	62: Branch(68)
+B13:
+	63: LdFalse
+	64: StLoc[8](loc0: bool)
+	65: Branch(68)
+B14:
+	66: LdFalse
+	67: StLoc[8](loc0: bool)
+B15:
+	68: MoveLoc[8](loc0: bool)
+	69: BrFalse(71)
+B16:
+	70: Branch(75)
+B17:
+	71: MoveLoc[0](Arg0: &mut LendingProtocol)
+	72: Pop
+	73: LdConst[10](u64: 20)
+	74: Abort
+B18:
+	75: MoveLoc[2](Arg2: u8)
+	76: CopyLoc[0](Arg0: &mut LendingProtocol)
+	77: MutBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	78: MutBorrowField[12](LendingProtocolConfig.max_safe_collateral_ratio: u8)
+	79: WriteRef
+	80: MoveLoc[3](Arg3: u8)
+	81: CopyLoc[0](Arg0: &mut LendingProtocol)
+	82: MutBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	83: MutBorrowField[13](LendingProtocolConfig.max_liquidation_threshold: u8)
+	84: WriteRef
+	85: MoveLoc[4](Arg4: u64)
+	86: CopyLoc[0](Arg0: &mut LendingProtocol)
+	87: MutBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	88: MutBorrowField[14](LendingProtocolConfig.max_liquidation_bonus_bps: u64)
+	89: WriteRef
+	90: MoveLoc[5](Arg5: u64)
+	91: CopyLoc[0](Arg0: &mut LendingProtocol)
+	92: MutBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	93: MutBorrowField[15](LendingProtocolConfig.max_liquidation_fee_bps: u64)
+	94: WriteRef
+	95: MoveLoc[6](Arg6: u8)
+	96: CopyLoc[0](Arg0: &mut LendingProtocol)
+	97: MutBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	98: MutBorrowField[6](LendingProtocolConfig.lp_position_safe_collateral_ratio: u8)
+	99: WriteRef
+	100: MoveLoc[7](Arg7: u8)
+	101: MoveLoc[0](Arg0: &mut LendingProtocol)
+	102: MutBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	103: MutBorrowField[7](LendingProtocolConfig.lp_position_liquidation_threshold: u8)
+	104: WriteRef
+	105: Ret
+}
+
+public update_protocol_fee(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: u64, Arg3: u64, Arg4: u64) {
+L5:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &AdminCap)
+	3: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	4: CopyLoc[3](Arg3: u64)
+	5: LdConst[39](u64: 10000)
+	6: Le
+	7: BrFalse(13)
+B1:
+	8: CopyLoc[4](Arg4: u64)
+	9: LdConst[39](u64: 10000)
+	10: Le
+	11: StLoc[5](loc0: bool)
+	12: Branch(15)
+B2:
+	13: LdFalse
+	14: StLoc[5](loc0: bool)
+B3:
+	15: MoveLoc[5](loc0: bool)
+	16: BrFalse(18)
+B4:
+	17: Branch(22)
+B5:
+	18: MoveLoc[0](Arg0: &mut LendingProtocol)
+	19: Pop
+	20: LdConst[10](u64: 20)
+	21: Abort
+B6:
+	22: MoveLoc[0](Arg0: &mut LendingProtocol)
+	23: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	24: MoveLoc[2](Arg2: u64)
+	25: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	26: MoveLoc[3](Arg3: u64)
+	27: MoveLoc[4](Arg4: u64)
+	28: Call market::update_protocol_fee_share(&mut Market, u64, u64)
+	29: Ret
+}
+
+public update_flow_limiter(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: bool, Arg3: u64, Arg4: u64, Arg5: &Clock) {
+L6:	loc0: &mut Market
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	2: CopyLoc[1](Arg1: &MarketCap)
+	3: Call market::get_market_id(&MarketCap): u64
+	4: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	5: StLoc[6](loc0: &mut Market)
+	6: CopyLoc[6](loc0: &mut Market)
+	7: FreezeRef
+	8: MoveLoc[1](Arg1: &MarketCap)
+	9: Call market::verify_market_cap(&Market, &MarketCap)
+	10: MoveLoc[6](loc0: &mut Market)
+	11: MoveLoc[2](Arg2: bool)
+	12: MoveLoc[3](Arg3: u64)
+	13: MoveLoc[4](Arg4: u64)
+	14: MoveLoc[0](Arg0: &mut LendingProtocol)
+	15: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	16: MoveLoc[5](Arg5: &Clock)
+	17: Call market::update_flow_limiter(&mut Market, bool, u64, u64, &Oracle, &Clock)
+	18: Ret
+}
+
+public update_lp_position_config(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: ID, Arg3: u8, Arg4: u8, Arg5: u64, Arg6: u64, Arg7: u8) {
+L8:	loc0: bool
+L9:	loc1: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: CopyLoc[3](Arg3: u8)
+	8: LdU8(100)
+	9: Le
+	10: BrFalse(16)
+B1:
+	11: CopyLoc[4](Arg4: u8)
+	12: LdU8(100)
+	13: Le
+	14: StLoc[8](loc0: bool)
+	15: Branch(18)
+B2:
+	16: LdFalse
+	17: StLoc[8](loc0: bool)
+B3:
+	18: MoveLoc[8](loc0: bool)
+	19: BrFalse(21)
+B4:
+	20: Branch(25)
+B5:
+	21: MoveLoc[0](Arg0: &mut LendingProtocol)
+	22: Pop
+	23: LdConst[10](u64: 20)
+	24: Abort
+B6:
+	25: CopyLoc[5](Arg5: u64)
+	26: LdConst[39](u64: 10000)
+	27: Le
+	28: BrFalse(34)
+B7:
+	29: CopyLoc[6](Arg6: u64)
+	30: LdConst[39](u64: 10000)
+	31: Le
+	32: StLoc[9](loc1: bool)
+	33: Branch(36)
+B8:
+	34: LdFalse
+	35: StLoc[9](loc1: bool)
+B9:
+	36: MoveLoc[9](loc1: bool)
+	37: BrFalse(39)
+B10:
+	38: Branch(43)
+B11:
+	39: MoveLoc[0](Arg0: &mut LendingProtocol)
+	40: Pop
+	41: LdConst[10](u64: 20)
+	42: Abort
+B12:
+	43: CopyLoc[7](Arg7: u8)
+	44: LdU8(100)
+	45: Le
+	46: BrFalse(48)
+B13:
+	47: Branch(52)
+B14:
+	48: MoveLoc[0](Arg0: &mut LendingProtocol)
+	49: Pop
+	50: LdConst[10](u64: 20)
+	51: Abort
+B15:
+	52: MoveLoc[0](Arg0: &mut LendingProtocol)
+	53: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	54: MoveLoc[2](Arg2: ID)
+	55: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	56: MoveLoc[3](Arg3: u8)
+	57: MoveLoc[4](Arg4: u8)
+	58: MoveLoc[5](Arg5: u64)
+	59: MoveLoc[6](Arg6: u64)
+	60: MoveLoc[7](Arg7: u8)
+	61: Call position::update_lp_position_config(&mut Position, u8, u8, u64, u64, u8)
+	62: Ret
+}
+
+public update_market_isolation(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: u64, Arg3: bool, Arg4: u8, Arg5: u8, Arg6: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: MoveLoc[0](Arg0: &mut LendingProtocol)
+	8: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	9: MoveLoc[2](Arg2: u64)
+	10: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	11: MoveLoc[3](Arg3: bool)
+	12: MoveLoc[4](Arg4: u8)
+	13: MoveLoc[5](Arg5: u8)
+	14: MoveLoc[6](Arg6: &Clock)
+	15: Call market::update_market_isolation(&mut Market, bool, u8, u8, &Clock)
+	16: Ret
+}
+
+public loan_writeoff(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: ID, Arg3: &Clock) {
+L4:	loc0: &mut Position
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: Call verify_version(&LendingProtocol)
+	3: CopyLoc[0](Arg0: &mut LendingProtocol)
+	4: FreezeRef
+	5: MoveLoc[1](Arg1: &AdminCap)
+	6: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	7: CopyLoc[0](Arg0: &mut LendingProtocol)
+	8: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	9: MoveLoc[2](Arg2: ID)
+	10: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	11: StLoc[4](loc0: &mut Position)
+	12: CopyLoc[4](loc0: &mut Position)
+	13: CopyLoc[0](Arg0: &mut LendingProtocol)
+	14: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	15: CopyLoc[0](Arg0: &mut LendingProtocol)
+	16: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	17: CopyLoc[3](Arg3: &Clock)
+	18: Call position::refresh(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	19: MoveLoc[4](loc0: &mut Position)
+	20: CopyLoc[0](Arg0: &mut LendingProtocol)
+	21: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	22: MoveLoc[0](Arg0: &mut LendingProtocol)
+	23: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	24: MoveLoc[3](Arg3: &Clock)
+	25: Call position::loan_writeoff(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock)
+	26: Ret
+}
+
+public loan_bailout<Ty0>(Arg0: &mut LendingProtocol, Arg1: u64, Arg2: ID, Arg3: Coin<Ty0>, Arg4: &Clock, Arg5: &mut TxContext): Coin<Ty0> {
+B0:
+	0: MoveLoc[0](Arg0: &mut LendingProtocol)
+	1: MoveLoc[2](Arg2: ID)
+	2: MoveLoc[1](Arg1: u64)
+	3: MoveLoc[3](Arg3: Coin<Ty0>)
+	4: MoveLoc[4](Arg4: &Clock)
+	5: MoveLoc[5](Arg5: &mut TxContext)
+	6: Call repay_internal<Ty0>(&mut LendingProtocol, ID, u64, Coin<Ty0>, &Clock, &mut TxContext): Coin<Ty0>
+	7: Ret
+}
+
+public update_market_active(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: bool, Arg3: &Clock) {
+L4:	loc0: u64
+B0:
+	0: CopyLoc[1](Arg1: &MarketCap)
+	1: Call market::get_market_id(&MarketCap): u64
+	2: StLoc[4](loc0: u64)
+	3: MoveLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	5: MoveLoc[4](loc0: u64)
+	6: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	7: MoveLoc[1](Arg1: &MarketCap)
+	8: MoveLoc[2](Arg2: bool)
+	9: MoveLoc[3](Arg3: &Clock)
+	10: Call market::set_market_active(&mut Market, &MarketCap, bool, &Clock)
+	11: Ret
+}
+
+public create_new_admin_cap(Arg0: &mut LendingProtocol, Arg1: &LendingProtocolCap, Arg2: &mut TxContext): AdminCap {
+L3:	loc0: AdminCap
+B0:
+	0: MoveLoc[2](Arg2: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: Pack[1](AdminCap)
+	3: StLoc[3](loc0: AdminCap)
+	4: ImmBorrowLoc[3](loc0: AdminCap)
+	5: Call object::id<AdminCap>(&AdminCap): ID
+	6: MoveLoc[0](Arg0: &mut LendingProtocol)
+	7: MutBorrowField[16](LendingProtocol.admin_cap_id: ID)
+	8: WriteRef
+	9: MoveLoc[3](loc0: AdminCap)
+	10: Ret
+}
+
+verify_admin_cap(Arg0: &LendingProtocol, Arg1: &AdminCap) {
+B0:
+	0: MoveLoc[1](Arg1: &AdminCap)
+	1: Call object::id<AdminCap>(&AdminCap): ID
+	2: MoveLoc[0](Arg0: &LendingProtocol)
+	3: ImmBorrowField[16](LendingProtocol.admin_cap_id: ID)
+	4: ReadRef
+	5: Eq
+	6: BrFalse(8)
+B1:
+	7: Branch(10)
+B2:
+	8: LdConst[3](u64: 3)
+	9: Abort
+B3:
+	10: Ret
+}
+
+public update_sui_staking_enabled(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: address, Arg3: bool, Arg4: &mut SuiSystemState, Arg5: &mut TxContext) {
+L6:	loc0: Option<u64>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &AdminCap)
+	3: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	4: CopyLoc[0](Arg0: &mut LendingProtocol)
+	5: FreezeRef
+	6: Call type_name::get<SUI>(): TypeName
+	7: Call find_market_by_coin(&LendingProtocol, TypeName): Option<u64>
+	8: StLoc[6](loc0: Option<u64>)
+	9: ImmBorrowLoc[6](loc0: Option<u64>)
+	10: Call option::is_some<u64>(&Option<u64>): bool
+	11: BrFalse(13)
+B1:
+	12: Branch(21)
+B2:
+	13: MoveLoc[4](Arg4: &mut SuiSystemState)
+	14: Pop
+	15: MoveLoc[0](Arg0: &mut LendingProtocol)
+	16: Pop
+	17: MoveLoc[5](Arg5: &mut TxContext)
+	18: Pop
+	19: LdConst[26](u64: 36)
+	20: Abort
+B3:
+	21: CopyLoc[0](Arg0: &mut LendingProtocol)
+	22: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	23: MutBorrowLoc[6](loc0: Option<u64>)
+	24: Call option::extract<u64>(&mut Option<u64>): u64
+	25: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	26: MoveLoc[2](Arg2: address)
+	27: CopyLoc[3](Arg3: bool)
+	28: MoveLoc[4](Arg4: &mut SuiSystemState)
+	29: MoveLoc[5](Arg5: &mut TxContext)
+	30: Call market::set_sui_staking_enabled(&mut Market, address, bool, &mut SuiSystemState, &mut TxContext)
+	31: MoveLoc[3](Arg3: bool)
+	32: MoveLoc[0](Arg0: &mut LendingProtocol)
+	33: MutBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	34: MutBorrowField[17](LendingProtocolConfig.sui_staking_enabled: bool)
+	35: WriteRef
+	36: Ret
+}
+
+public update_reward_autocompounding(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: bool) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &AdminCap)
+	3: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	4: MoveLoc[2](Arg2: bool)
+	5: MoveLoc[0](Arg0: &mut LendingProtocol)
+	6: MutBorrowField[5](LendingProtocol.config: LendingProtocolConfig)
+	7: MutBorrowField[11](LendingProtocolConfig.reward_autocompounding: bool)
+	8: WriteRef
+	9: Ret
+}
+
+public update_partner_is_active(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: u64, Arg3: bool) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &AdminCap)
+	3: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	4: MoveLoc[0](Arg0: &mut LendingProtocol)
+	5: MutBorrowField[4](LendingProtocol.id: UID)
+	6: MoveLoc[2](Arg2: u64)
+	7: Call dynamic_field::borrow_mut<u64, Partner>(&mut UID, u64): &mut Partner
+	8: MoveLoc[3](Arg3: bool)
+	9: Call partner::update_is_active(&mut Partner, bool)
+	10: Ret
+}
+
+public set_time_lock(Arg0: &mut LendingProtocol, Arg1: &MarketCap, Arg2: u64, Arg3: &Clock) {
+L4:	loc0: u64
+B0:
+	0: CopyLoc[1](Arg1: &MarketCap)
+	1: Call market::get_market_id(&MarketCap): u64
+	2: StLoc[4](loc0: u64)
+	3: MoveLoc[0](Arg0: &mut LendingProtocol)
+	4: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	5: MoveLoc[4](loc0: u64)
+	6: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	7: MoveLoc[1](Arg1: &MarketCap)
+	8: MoveLoc[2](Arg2: u64)
+	9: MoveLoc[3](Arg3: &Clock)
+	10: Call market::set_time_lock(&mut Market, &MarketCap, u64, &Clock)
+	11: Ret
+}
+
+public generate_new_market_cap(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: u64, Arg3: address, Arg4: &mut TxContext): MarketCap {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &AdminCap)
+	3: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	4: MoveLoc[0](Arg0: &mut LendingProtocol)
+	5: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	6: MoveLoc[2](Arg2: u64)
+	7: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	8: MoveLoc[3](Arg3: address)
+	9: MoveLoc[4](Arg4: &mut TxContext)
+	10: Call market::generate_new_market_cap(&mut Market, address, &mut TxContext): MarketCap
+	11: Ret
+}
+
+public get_price_identifier(Arg0: &LendingProtocol, Arg1: TypeName): PriceIdentifier {
+B0:
+	0: MoveLoc[0](Arg0: &LendingProtocol)
+	1: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	2: MoveLoc[1](Arg1: TypeName)
+	3: Call oracle::get_price_identifier(&Oracle, TypeName): PriceIdentifier
+	4: Ret
+}
+
+public collect_staking_rewards(Arg0: &mut LendingProtocol, Arg1: &AdminCap, Arg2: &mut SuiSystemState, Arg3: &mut TxContext): Coin<SUI> {
+L4:	loc0: Option<u64>
+L5:	loc1: Coin<SUI>
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &AdminCap)
+	3: Call verify_admin_cap(&LendingProtocol, &AdminCap)
+	4: CopyLoc[0](Arg0: &mut LendingProtocol)
+	5: FreezeRef
+	6: Call type_name::get<SUI>(): TypeName
+	7: Call find_market_by_coin(&LendingProtocol, TypeName): Option<u64>
+	8: StLoc[4](loc0: Option<u64>)
+	9: ImmBorrowLoc[4](loc0: Option<u64>)
+	10: Call option::is_some<u64>(&Option<u64>): bool
+	11: BrFalse(13)
+B1:
+	12: Branch(21)
+B2:
+	13: MoveLoc[2](Arg2: &mut SuiSystemState)
+	14: Pop
+	15: MoveLoc[0](Arg0: &mut LendingProtocol)
+	16: Pop
+	17: MoveLoc[3](Arg3: &mut TxContext)
+	18: Pop
+	19: LdConst[26](u64: 36)
+	20: Abort
+B3:
+	21: MoveLoc[0](Arg0: &mut LendingProtocol)
+	22: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	23: MutBorrowLoc[4](loc0: Option<u64>)
+	24: Call option::extract<u64>(&mut Option<u64>): u64
+	25: Call table::borrow_mut<u64, Market>(&mut Table<u64, Market>, u64): &mut Market
+	26: MoveLoc[2](Arg2: &mut SuiSystemState)
+	27: MoveLoc[3](Arg3: &mut TxContext)
+	28: Call market::collect_staking_rewards(&mut Market, &mut SuiSystemState, &mut TxContext): Coin<SUI>
+	29: StLoc[5](loc1: Coin<SUI>)
+	30: Call type_name::get<SUI>(): TypeName
+	31: LdU64(1)
+	32: ImmBorrowLoc[5](loc1: Coin<SUI>)
+	33: Call coin::value<SUI>(&Coin<SUI>): u64
+	34: Pack[15](CollectMarketFeeEvent)
+	35: Call events::emit_event<CollectMarketFeeEvent>(CollectMarketFeeEvent)
+	36: MoveLoc[5](loc1: Coin<SUI>)
+	37: Ret
+}
+
+public get_safe_collateral_ratio(Arg0: &LendingProtocol, Arg1: u64): u8 {
+B0:
+	0: CopyLoc[0](Arg0: &LendingProtocol)
+	1: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	2: CopyLoc[1](Arg1: u64)
+	3: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(10)
+B2:
+	6: MoveLoc[0](Arg0: &LendingProtocol)
+	7: Pop
+	8: LdConst[33](u64: 43)
+	9: Abort
+B3:
+	10: MoveLoc[0](Arg0: &LendingProtocol)
+	11: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	12: MoveLoc[1](Arg1: u64)
+	13: Call table::borrow<u64, Market>(&Table<u64, Market>, u64): &Market
+	14: Call market::get_safe_collateral_ratio(&Market): u8
+	15: Ret
+}
+
+public get_borrow_amount(Arg0: &mut LendingProtocol, Arg1: u64, Arg2: ID, Arg3: &Clock): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: ImmBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	2: CopyLoc[2](Arg2: ID)
+	3: Call table::contains<ID, Position>(&Table<ID, Position>, ID): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(12)
+B2:
+	6: MoveLoc[0](Arg0: &mut LendingProtocol)
+	7: Pop
+	8: MoveLoc[3](Arg3: &Clock)
+	9: Pop
+	10: LdConst[34](u64: 44)
+	11: Abort
+B3:
+	12: CopyLoc[0](Arg0: &mut LendingProtocol)
+	13: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	14: MoveLoc[2](Arg2: ID)
+	15: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	16: CopyLoc[0](Arg0: &mut LendingProtocol)
+	17: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	18: MoveLoc[0](Arg0: &mut LendingProtocol)
+	19: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	20: MoveLoc[3](Arg3: &Clock)
+	21: MoveLoc[1](Arg1: u64)
+	22: Call position::get_borrow_amount(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock, u64): u64
+	23: Ret
+}
+
+public get_collateral_amount(Arg0: &mut LendingProtocol, Arg1: u64, Arg2: ID, Arg3: &Clock): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: ImmBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	2: CopyLoc[2](Arg2: ID)
+	3: Call table::contains<ID, Position>(&Table<ID, Position>, ID): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(12)
+B2:
+	6: MoveLoc[0](Arg0: &mut LendingProtocol)
+	7: Pop
+	8: MoveLoc[3](Arg3: &Clock)
+	9: Pop
+	10: LdConst[34](u64: 44)
+	11: Abort
+B3:
+	12: CopyLoc[0](Arg0: &mut LendingProtocol)
+	13: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	14: CopyLoc[1](Arg1: u64)
+	15: Call table::contains<u64, Market>(&Table<u64, Market>, u64): bool
+	16: BrFalse(18)
+B4:
+	17: Branch(24)
+B5:
+	18: MoveLoc[0](Arg0: &mut LendingProtocol)
+	19: Pop
+	20: MoveLoc[3](Arg3: &Clock)
+	21: Pop
+	22: LdConst[33](u64: 43)
+	23: Abort
+B6:
+	24: CopyLoc[0](Arg0: &mut LendingProtocol)
+	25: MutBorrowField[3](LendingProtocol.positions: Table<ID, Position>)
+	26: MoveLoc[2](Arg2: ID)
+	27: Call table::borrow_mut<ID, Position>(&mut Table<ID, Position>, ID): &mut Position
+	28: CopyLoc[0](Arg0: &mut LendingProtocol)
+	29: MutBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	30: MoveLoc[0](Arg0: &mut LendingProtocol)
+	31: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	32: MoveLoc[3](Arg3: &Clock)
+	33: MoveLoc[1](Arg1: u64)
+	34: Call position::get_collateral_amount(&mut Position, &mut Table<u64, Market>, &Oracle, &Clock, u64): u64
+	35: Ret
+}
+
+public get_asset_price(Arg0: &mut LendingProtocol, Arg1: u64): Number {
+B0:
+	0: CopyLoc[0](Arg0: &mut LendingProtocol)
+	1: ImmBorrowField[2](LendingProtocol.markets: Table<u64, Market>)
+	2: MoveLoc[1](Arg1: u64)
+	3: Call table::borrow<u64, Market>(&Table<u64, Market>, u64): &Market
+	4: MoveLoc[0](Arg0: &mut LendingProtocol)
+	5: ImmBorrowField[1](LendingProtocol.oracle: Oracle)
+	6: Call market::get_token_spot_price(&Market, &Oracle): Number
+	7: Ret
+}
+
+Constants [
+	0 => u64: 0
+	1 => u64: 1
+	2 => u64: 2
+	3 => u64: 3
+	4 => u64: 4
+	5 => u64: 5
+	6 => u64: 6
+	7 => u64: 7
+	8 => u64: 8
+	9 => u64: 9
+	10 => u64: 20
+	11 => u64: 21
+	12 => u64: 22
+	13 => u64: 23
+	14 => u64: 24
+	15 => u64: 25
+	16 => u64: 26
+	17 => u64: 27
+	18 => u64: 28
+	19 => u64: 29
+	20 => u64: 30
+	21 => u64: 31
+	22 => u64: 32
+	23 => u64: 33
+	24 => u64: 34
+	25 => u64: 35
+	26 => u64: 36
+	27 => u64: 37
+	28 => u64: 38
+	29 => u64: 39
+	30 => u64: 40
+	31 => u64: 41
+	32 => u64: 42
+	33 => u64: 43
+	34 => u64: 44
+	35 => u64: 45
+	36 => u64: 46
+	37 => u64: 18446744073709551615
+	38 => u16: 5
+	39 => u64: 10000
+	40 => u64: 100
+	41 => vector<u8>: "name" // interpreted as UTF8 string
+	42 => vector<u8>: "image_url" // interpreted as UTF8 string
+	43 => vector<u8>: "description" // interpreted as UTF8 string
+	44 => vector<u8>: "creator" // interpreted as UTF8 string
+	45 => vector<u8>: "AlphaLend Position Cap" // interpreted as UTF8 string
+	46 => vector<u8>: "{image_url}" // interpreted as UTF8 string
+	47 => vector<u8>: "AlphaLend Protocol Postion Capability" // interpreted as UTF8 string
+	48 => vector<u8>: "AlphaLend" // interpreted as UTF8 string
+]
+}

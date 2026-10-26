@@ -1,0 +1,1195 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.supply_pool {
+use 0d9dd55ac7eb676dc78f7d0ae3bc5529d7fd6b52ac0d0edb2d7820c52d080026::access;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::debt;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::debt_bag;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::equity;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::piecewise;
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::util;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000001::u128;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct ACreatePool has drop {
+	dummy_field: bool
+}
+
+struct AConfigLendFacil has drop {
+	dummy_field: bool
+}
+
+struct AConfigFees has drop {
+	dummy_field: bool
+}
+
+struct ATakeFees has drop {
+	dummy_field: bool
+}
+
+struct ADeposit has drop {
+	dummy_field: bool
+}
+
+struct AMigrate has drop {
+	dummy_field: bool
+}
+
+struct SupplyInfo has copy, drop {
+	supply_pool_id: ID,
+	deposited: u64,
+	share_balance: u64
+}
+
+struct WithdrawInfo has copy, drop {
+	supply_pool_id: ID,
+	share_balance: u64,
+	withdrawn: u64
+}
+
+struct LendFacilCap has store, key {
+	id: UID
+}
+
+struct LendFacilInfo<phantom Ty0> has store {
+	interest_model: Piecewise,
+	debt_registry: DebtRegistry<Ty0>,
+	max_liability_outstanding: u64,
+	max_utilization_bps: u64
+}
+
+struct FacilDebtShare<phantom Ty0> has store {
+	facil_id: ID,
+	inner: DebtShareBalance<Ty0>
+}
+
+struct FacilDebtBag has store, key {
+	id: UID,
+	facil_id: ID,
+	inner: DebtBag
+}
+
+struct SupplyPool<phantom Ty0, phantom Ty1> has key {
+	id: UID,
+	available_balance: Balance<Ty0>,
+	interest_fee_bps: u16,
+	debt_info: VecMap<ID, LendFacilInfo<Ty1>>,
+	total_liabilities_x64: u128,
+	last_update_ts_sec: u64,
+	supply_equity: EquityTreasury<Ty1>,
+	collected_fees: EquityShareBalance<Ty1>,
+	version: u16
+}
+
+public(friend) check_version<Ty0, Ty1>(Arg0: &SupplyPool<Ty0, Ty1>) {
+B0:
+	0: MoveLoc[0](Arg0: &SupplyPool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[0](SupplyPool.version: u16)
+	2: ReadRef
+	3: LdConst[1](u16: 2)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(9)
+B2:
+	7: LdConst[7](u64: 5)
+	8: Abort
+B3:
+	9: Ret
+}
+
+public migrate_supply_pool_version<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: &mut TxContext): ActionRequest {
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[0](SupplyPool.version: u16)
+	2: ReadRef
+	3: LdConst[1](u16: 2)
+	4: Lt
+	5: BrFalse(7)
+B1:
+	6: Branch(13)
+B2:
+	7: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	8: Pop
+	9: MoveLoc[1](Arg1: &mut TxContext)
+	10: Pop
+	11: LdConst[8](u64: 6)
+	12: Abort
+B3:
+	13: LdConst[1](u16: 2)
+	14: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	15: MutBorrowFieldGeneric[0](SupplyPool.version: u16)
+	16: WriteRef
+	17: LdFalse
+	18: Pack[5](AMigrate)
+	19: MoveLoc[1](Arg1: &mut TxContext)
+	20: Call access::new_request<AMigrate>(AMigrate, &mut TxContext): ActionRequest
+	21: Ret
+}
+
+public create_pool<Ty0, Ty1: drop>(Arg0: EquityTreasury<Ty1>, Arg1: &mut TxContext): ActionRequest {
+L2:	loc0: bool
+L3:	loc1: &EquityRegistry<Ty1>
+B0:
+	0: ImmBorrowLoc[0](Arg0: EquityTreasury<Ty1>)
+	1: Call equity::borrow_registry<Ty1>(&EquityTreasury<Ty1>): &EquityRegistry<Ty1>
+	2: StLoc[3](loc1: &EquityRegistry<Ty1>)
+	3: CopyLoc[3](loc1: &EquityRegistry<Ty1>)
+	4: Call equity::supply_x64<Ty1>(&EquityRegistry<Ty1>): u128
+	5: LdU128(0)
+	6: Eq
+	7: BrFalse(23)
+B1:
+	8: MoveLoc[3](loc1: &EquityRegistry<Ty1>)
+	9: Call equity::underlying_value_x64<Ty1>(&EquityRegistry<Ty1>): u128
+	10: LdU128(0)
+	11: Eq
+	12: BrFalse(20)
+B2:
+	13: ImmBorrowLoc[0](Arg0: EquityTreasury<Ty1>)
+	14: Call equity::borrow_treasury_cap<Ty1>(&EquityTreasury<Ty1>): &TreasuryCap<Ty1>
+	15: Call coin::total_supply<Ty1>(&TreasuryCap<Ty1>): u64
+	16: LdU64(0)
+	17: Eq
+	18: StLoc[2](loc0: bool)
+	19: Branch(27)
+B3:
+	20: LdFalse
+	21: StLoc[2](loc0: bool)
+	22: Branch(27)
+B4:
+	23: MoveLoc[3](loc1: &EquityRegistry<Ty1>)
+	24: Pop
+	25: LdFalse
+	26: StLoc[2](loc0: bool)
+B5:
+	27: MoveLoc[2](loc0: bool)
+	28: BrFalse(30)
+B6:
+	29: Branch(34)
+B7:
+	30: MoveLoc[1](Arg1: &mut TxContext)
+	31: Pop
+	32: LdConst[2](u64: 0)
+	33: Abort
+B8:
+	34: CopyLoc[1](Arg1: &mut TxContext)
+	35: Call object::new(&mut TxContext): UID
+	36: Call balance::zero<Ty0>(): Balance<Ty0>
+	37: LdU16(0)
+	38: Call vec_map::empty<ID, LendFacilInfo<Ty1>>(): VecMap<ID, LendFacilInfo<Ty1>>
+	39: LdU128(0)
+	40: LdU64(0)
+	41: MoveLoc[0](Arg0: EquityTreasury<Ty1>)
+	42: Call equity::zero<Ty1>(): EquityShareBalance<Ty1>
+	43: LdConst[1](u16: 2)
+	44: PackGeneric[0](SupplyPool<Ty0, Ty1>)
+	45: Call transfer::share_object<SupplyPool<Ty0, Ty1>>(SupplyPool<Ty0, Ty1>)
+	46: LdFalse
+	47: Pack[0](ACreatePool)
+	48: MoveLoc[1](Arg1: &mut TxContext)
+	49: Call access::new_request<ACreatePool>(ACreatePool, &mut TxContext): ActionRequest
+	50: Ret
+}
+
+public total_liabilities_x64<Ty0, Ty1>(Arg0: &SupplyPool<Ty0, Ty1>): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &SupplyPool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[1](SupplyPool.total_liabilities_x64: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public create_lend_facil_cap(Arg0: &mut TxContext): LendFacilCap {
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: Pack[8](LendFacilCap)
+	3: Ret
+}
+
+public add_lend_facil<Ty0, Ty1: drop>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: ID, Arg2: Piecewise, Arg3: &mut TxContext): ActionRequest {
+L4:	loc0: DebtRegistry<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: ImmBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	5: Call equity::borrow_treasury_cap<Ty1>(&EquityTreasury<Ty1>): &TreasuryCap<Ty1>
+	6: Call debt::create_registry_with_cap<Ty1>(&TreasuryCap<Ty1>): DebtRegistry<Ty1>
+	7: StLoc[4](loc0: DebtRegistry<Ty1>)
+	8: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	9: MutBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	10: MoveLoc[1](Arg1: ID)
+	11: MoveLoc[2](Arg2: Piecewise)
+	12: MoveLoc[4](loc0: DebtRegistry<Ty1>)
+	13: LdU64(0)
+	14: LdU64(10000)
+	15: PackGeneric[1](LendFacilInfo<Ty1>)
+	16: Call vec_map::insert<ID, LendFacilInfo<Ty1>>(&mut VecMap<ID, LendFacilInfo<Ty1>>, ID, LendFacilInfo<Ty1>)
+	17: LdFalse
+	18: Pack[1](AConfigLendFacil)
+	19: MoveLoc[3](Arg3: &mut TxContext)
+	20: Call access::new_request<AConfigLendFacil>(AConfigLendFacil, &mut TxContext): ActionRequest
+	21: Ret
+}
+
+public remove_lend_facil<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: ID, Arg2: &mut TxContext): ActionRequest {
+L3:	loc0: DebtRegistry<Ty1>
+L4:	loc1: LendFacilInfo<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MutBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	5: ImmBorrowLoc[1](Arg1: ID)
+	6: Call vec_map::remove<ID, LendFacilInfo<Ty1>>(&mut VecMap<ID, LendFacilInfo<Ty1>>, &ID): ID * LendFacilInfo<Ty1>
+	7: StLoc[4](loc1: LendFacilInfo<Ty1>)
+	8: Pop
+	9: MoveLoc[4](loc1: LendFacilInfo<Ty1>)
+	10: UnpackGeneric[1](LendFacilInfo<Ty1>)
+	11: Pop
+	12: Pop
+	13: StLoc[3](loc0: DebtRegistry<Ty1>)
+	14: Pop
+	15: MoveLoc[3](loc0: DebtRegistry<Ty1>)
+	16: Call debt::destroy_empty_registry<Ty1>(DebtRegistry<Ty1>)
+	17: LdFalse
+	18: Pack[1](AConfigLendFacil)
+	19: MoveLoc[2](Arg2: &mut TxContext)
+	20: Call access::new_request<AConfigLendFacil>(AConfigLendFacil, &mut TxContext): ActionRequest
+	21: Ret
+}
+
+public set_lend_facil_interest_model<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: ID, Arg2: Piecewise, Arg3: &mut TxContext): ActionRequest {
+L4:	loc0: &mut LendFacilInfo<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MutBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	5: ImmBorrowLoc[1](Arg1: ID)
+	6: Call vec_map::get_mut<ID, LendFacilInfo<Ty1>>(&mut VecMap<ID, LendFacilInfo<Ty1>>, &ID): &mut LendFacilInfo<Ty1>
+	7: StLoc[4](loc0: &mut LendFacilInfo<Ty1>)
+	8: MoveLoc[2](Arg2: Piecewise)
+	9: MoveLoc[4](loc0: &mut LendFacilInfo<Ty1>)
+	10: MutBorrowFieldGeneric[4](LendFacilInfo.interest_model: Piecewise)
+	11: WriteRef
+	12: LdFalse
+	13: Pack[1](AConfigLendFacil)
+	14: MoveLoc[3](Arg3: &mut TxContext)
+	15: Call access::new_request<AConfigLendFacil>(AConfigLendFacil, &mut TxContext): ActionRequest
+	16: Ret
+}
+
+public set_lend_facil_max_liability_outstanding<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: ID, Arg2: u64, Arg3: &mut TxContext): ActionRequest {
+L4:	loc0: &mut LendFacilInfo<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MutBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	5: ImmBorrowLoc[1](Arg1: ID)
+	6: Call vec_map::get_mut<ID, LendFacilInfo<Ty1>>(&mut VecMap<ID, LendFacilInfo<Ty1>>, &ID): &mut LendFacilInfo<Ty1>
+	7: StLoc[4](loc0: &mut LendFacilInfo<Ty1>)
+	8: MoveLoc[2](Arg2: u64)
+	9: MoveLoc[4](loc0: &mut LendFacilInfo<Ty1>)
+	10: MutBorrowFieldGeneric[5](LendFacilInfo.max_liability_outstanding: u64)
+	11: WriteRef
+	12: LdFalse
+	13: Pack[1](AConfigLendFacil)
+	14: MoveLoc[3](Arg3: &mut TxContext)
+	15: Call access::new_request<AConfigLendFacil>(AConfigLendFacil, &mut TxContext): ActionRequest
+	16: Ret
+}
+
+public set_lend_facil_max_utilization_bps<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: ID, Arg2: u64, Arg3: &mut TxContext): ActionRequest {
+L4:	loc0: &mut LendFacilInfo<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MutBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	5: ImmBorrowLoc[1](Arg1: ID)
+	6: Call vec_map::get_mut<ID, LendFacilInfo<Ty1>>(&mut VecMap<ID, LendFacilInfo<Ty1>>, &ID): &mut LendFacilInfo<Ty1>
+	7: StLoc[4](loc0: &mut LendFacilInfo<Ty1>)
+	8: MoveLoc[2](Arg2: u64)
+	9: MoveLoc[4](loc0: &mut LendFacilInfo<Ty1>)
+	10: MutBorrowFieldGeneric[6](LendFacilInfo.max_utilization_bps: u64)
+	11: WriteRef
+	12: LdFalse
+	13: Pack[1](AConfigLendFacil)
+	14: MoveLoc[3](Arg3: &mut TxContext)
+	15: Call access::new_request<AConfigLendFacil>(AConfigLendFacil, &mut TxContext): ActionRequest
+	16: Ret
+}
+
+public set_interest_fee_bps<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: u16, Arg2: &mut TxContext): ActionRequest {
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: MoveLoc[1](Arg1: u16)
+	4: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	5: MutBorrowFieldGeneric[7](SupplyPool.interest_fee_bps: u16)
+	6: WriteRef
+	7: LdFalse
+	8: Pack[2](AConfigFees)
+	9: MoveLoc[2](Arg2: &mut TxContext)
+	10: Call access::new_request<AConfigFees>(AConfigFees, &mut TxContext): ActionRequest
+	11: Ret
+}
+
+public take_collected_fees<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: &mut TxContext): EquityShareBalance<Ty1> * ActionRequest {
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MutBorrowFieldGeneric[8](SupplyPool.collected_fees: EquityShareBalance<Ty1>)
+	5: Call equity::withdraw_all<Ty1>(&mut EquityShareBalance<Ty1>): EquityShareBalance<Ty1>
+	6: LdFalse
+	7: Pack[3](ATakeFees)
+	8: MoveLoc[1](Arg1: &mut TxContext)
+	9: Call access::new_request<ATakeFees>(ATakeFees, &mut TxContext): ActionRequest
+	10: Ret
+}
+
+public available_balance_value<Ty0, Ty1>(Arg0: &SupplyPool<Ty0, Ty1>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &SupplyPool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[9](SupplyPool.available_balance: Balance<Ty0>)
+	2: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	3: Ret
+}
+
+public total_value_x64<Ty0, Ty1>(Arg0: &SupplyPool<Ty0, Ty1>): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &SupplyPool<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	2: Call equity::borrow_registry<Ty1>(&EquityTreasury<Ty1>): &EquityRegistry<Ty1>
+	3: Call equity::underlying_value_x64<Ty1>(&EquityRegistry<Ty1>): u128
+	4: Ret
+}
+
+public utilization_bps<Ty0, Ty1>(Arg0: &SupplyPool<Ty0, Ty1>): u64 {
+L1:	loc0: u128
+B0:
+	0: CopyLoc[0](Arg0: &SupplyPool<Ty0, Ty1>)
+	1: Call total_value_x64<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>): u128
+	2: StLoc[1](loc0: u128)
+	3: CopyLoc[1](loc0: u128)
+	4: LdU128(0)
+	5: Eq
+	6: BrFalse(11)
+B1:
+	7: MoveLoc[0](Arg0: &SupplyPool<Ty0, Ty1>)
+	8: Pop
+	9: LdU64(0)
+	10: Ret
+B2:
+	11: MoveLoc[0](Arg0: &SupplyPool<Ty0, Ty1>)
+	12: ImmBorrowFieldGeneric[1](SupplyPool.total_liabilities_x64: u128)
+	13: ReadRef
+	14: LdU128(10000)
+	15: MoveLoc[1](loc0: u128)
+	16: Call util::muldiv_u128(u128, u128, u128): u128
+	17: CastU64
+	18: Ret
+}
+
+public update_interest<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: &Clock) {
+L2:	loc0: u128
+L3:	loc1: u64
+L4:	loc2: u64
+L5:	loc3: u128
+L6:	loc4: u64
+L7:	loc5: &mut LendFacilInfo<Ty1>
+L8:	loc6: u64
+L9:	loc7: &mut EquityRegistry<Ty1>
+L10:	loc8: u128
+L11:	loc9: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[1](Arg1: &Clock)
+	4: Call util::timestamp_sec(&Clock): u64
+	5: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	6: ImmBorrowFieldGeneric[10](SupplyPool.last_update_ts_sec: u64)
+	7: ReadRef
+	8: Sub
+	9: StLoc[4](loc2: u64)
+	10: CopyLoc[4](loc2: u64)
+	11: LdU64(0)
+	12: Eq
+	13: BrFalse(19)
+B1:
+	14: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	15: Pop
+	16: MoveLoc[1](Arg1: &Clock)
+	17: Pop
+	18: Ret
+B2:
+	19: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	20: FreezeRef
+	21: Call utilization_bps<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>): u64
+	22: StLoc[11](loc9: u64)
+	23: LdU128(0)
+	24: StLoc[10](loc8: u128)
+	25: LdU64(0)
+	26: StLoc[6](loc4: u64)
+	27: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	28: ImmBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	29: Call vec_map::length<ID, LendFacilInfo<Ty1>>(&VecMap<ID, LendFacilInfo<Ty1>>): u64
+	30: StLoc[8](loc6: u64)
+B3:
+	31: CopyLoc[6](loc4: u64)
+	32: CopyLoc[8](loc6: u64)
+	33: Lt
+	34: BrFalse(97)
+B4:
+	35: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	36: MutBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	37: CopyLoc[6](loc4: u64)
+	38: Call vec_map::get_entry_by_idx_mut<ID, LendFacilInfo<Ty1>>(&mut VecMap<ID, LendFacilInfo<Ty1>>, u64): &ID * &mut LendFacilInfo<Ty1>
+	39: StLoc[7](loc5: &mut LendFacilInfo<Ty1>)
+	40: Pop
+	41: CopyLoc[7](loc5: &mut LendFacilInfo<Ty1>)
+	42: ImmBorrowFieldGeneric[4](LendFacilInfo.interest_model: Piecewise)
+	43: CopyLoc[11](loc9: u64)
+	44: Call piecewise::value_at(&Piecewise, u64): u64
+	45: StLoc[3](loc1: u64)
+	46: CopyLoc[7](loc5: &mut LendFacilInfo<Ty1>)
+	47: ImmBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	48: Call debt::liability_value_x64<Ty1>(&DebtRegistry<Ty1>): u128
+	49: MoveLoc[3](loc1: u64)
+	50: CastU128
+	51: CopyLoc[4](loc2: u64)
+	52: CastU128
+	53: Mul
+	54: LdU128(10000)
+	55: LdConst[0](u128: 3153..)
+	56: Mul
+	57: Call util::muldiv_u128(u128, u128, u128): u128
+	58: StLoc[2](loc0: u128)
+	59: CopyLoc[2](loc0: u128)
+	60: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	61: ImmBorrowFieldGeneric[7](SupplyPool.interest_fee_bps: u16)
+	62: ReadRef
+	63: CastU128
+	64: LdU128(10000)
+	65: Call util::muldiv_u128(u128, u128, u128): u128
+	66: StLoc[5](loc3: u128)
+	67: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	68: MutBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	69: Call equity::borrow_mut_registry<Ty1>(&mut EquityTreasury<Ty1>): &mut EquityRegistry<Ty1>
+	70: StLoc[9](loc7: &mut EquityRegistry<Ty1>)
+	71: CopyLoc[9](loc7: &mut EquityRegistry<Ty1>)
+	72: CopyLoc[2](loc0: u128)
+	73: CopyLoc[5](loc3: u128)
+	74: Sub
+	75: Call equity::increase_value_x64<Ty1>(&mut EquityRegistry<Ty1>, u128)
+	76: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	77: MutBorrowFieldGeneric[8](SupplyPool.collected_fees: EquityShareBalance<Ty1>)
+	78: MoveLoc[9](loc7: &mut EquityRegistry<Ty1>)
+	79: MoveLoc[5](loc3: u128)
+	80: Call equity::increase_value_and_issue_x64<Ty1>(&mut EquityRegistry<Ty1>, u128): EquityShareBalance<Ty1>
+	81: Call equity::join<Ty1>(&mut EquityShareBalance<Ty1>, EquityShareBalance<Ty1>)
+	82: CopyLoc[7](loc5: &mut LendFacilInfo<Ty1>)
+	83: MutBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	84: MoveLoc[2](loc0: u128)
+	85: Call debt::increase_liability_x64<Ty1>(&mut DebtRegistry<Ty1>, u128)
+	86: MoveLoc[10](loc8: u128)
+	87: MoveLoc[7](loc5: &mut LendFacilInfo<Ty1>)
+	88: ImmBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	89: Call debt::liability_value_x64<Ty1>(&DebtRegistry<Ty1>): u128
+	90: Add
+	91: StLoc[10](loc8: u128)
+	92: MoveLoc[6](loc4: u64)
+	93: LdU64(1)
+	94: Add
+	95: StLoc[6](loc4: u64)
+	96: Branch(31)
+B5:
+	97: MoveLoc[10](loc8: u128)
+	98: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	99: MutBorrowFieldGeneric[1](SupplyPool.total_liabilities_x64: u128)
+	100: WriteRef
+	101: MoveLoc[1](Arg1: &Clock)
+	102: Call util::timestamp_sec(&Clock): u64
+	103: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	104: MutBorrowFieldGeneric[10](SupplyPool.last_update_ts_sec: u64)
+	105: WriteRef
+	106: Ret
+}
+
+public(friend) borrow_debt_registry<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: &ID, Arg2: &Clock): &DebtRegistry<Ty1> {
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[2](Arg2: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	7: ImmBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	8: MoveLoc[1](Arg1: &ID)
+	9: Call vec_map::get<ID, LendFacilInfo<Ty1>>(&VecMap<ID, LendFacilInfo<Ty1>>, &ID): &LendFacilInfo<Ty1>
+	10: ImmBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	11: Ret
+}
+
+public supply<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: Balance<Ty0>, Arg2: &Clock, Arg3: &mut TxContext): Balance<Ty1> * ActionRequest {
+L4:	loc0: u64
+L5:	loc1: Balance<Ty1>
+L6:	loc2: EquityShareBalance<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[2](Arg2: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: ImmBorrowLoc[1](Arg1: Balance<Ty0>)
+	7: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	8: StLoc[4](loc0: u64)
+	9: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	10: MutBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	11: Call equity::borrow_mut_registry<Ty1>(&mut EquityTreasury<Ty1>): &mut EquityRegistry<Ty1>
+	12: ImmBorrowLoc[1](Arg1: Balance<Ty0>)
+	13: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	14: Call equity::increase_value_and_issue<Ty1>(&mut EquityRegistry<Ty1>, u64): EquityShareBalance<Ty1>
+	15: StLoc[6](loc2: EquityShareBalance<Ty1>)
+	16: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	17: MutBorrowFieldGeneric[9](SupplyPool.available_balance: Balance<Ty0>)
+	18: MoveLoc[1](Arg1: Balance<Ty0>)
+	19: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	20: Pop
+	21: MoveLoc[6](loc2: EquityShareBalance<Ty1>)
+	22: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	23: MutBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	24: Call equity::into_balance_lossy<Ty1>(EquityShareBalance<Ty1>, &mut EquityTreasury<Ty1>): Balance<Ty1>
+	25: StLoc[5](loc1: Balance<Ty1>)
+	26: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	27: ImmBorrowFieldGeneric[12](SupplyPool.id: UID)
+	28: Call object::uid_to_inner(&UID): ID
+	29: MoveLoc[4](loc0: u64)
+	30: ImmBorrowLoc[5](loc1: Balance<Ty1>)
+	31: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	32: Pack[6](SupplyInfo)
+	33: Call event::emit<SupplyInfo>(SupplyInfo)
+	34: MoveLoc[5](loc1: Balance<Ty1>)
+	35: LdFalse
+	36: Pack[4](ADeposit)
+	37: MoveLoc[3](Arg3: &mut TxContext)
+	38: Call access::new_request<ADeposit>(ADeposit, &mut TxContext): ActionRequest
+	39: Ret
+}
+
+public calc_withdraw_by_shares<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: u64, Arg2: &Clock): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[2](Arg2: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	7: ImmBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	8: Call equity::borrow_registry<Ty1>(&EquityTreasury<Ty1>): &EquityRegistry<Ty1>
+	9: MoveLoc[1](Arg1: u64)
+	10: CastU128
+	11: LdU8(64)
+	12: Shl
+	13: Call equity::calc_redeem_lossy<Ty1>(&EquityRegistry<Ty1>, u128): u64
+	14: Ret
+}
+
+public calc_withdraw_by_amount<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: u64, Arg2: &Clock): u64 * u64 {
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[2](Arg2: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	7: ImmBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	8: Call equity::borrow_registry<Ty1>(&EquityTreasury<Ty1>): &EquityRegistry<Ty1>
+	9: MoveLoc[1](Arg1: u64)
+	10: Call equity::calc_balance_redeem_for_amount<Ty1>(&EquityRegistry<Ty1>, u64): u64 * u64
+	11: Ret
+}
+
+public withdraw<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: Balance<Ty1>, Arg2: &Clock): Balance<Ty0> {
+L3:	loc0: u64
+L4:	loc1: EquityShareBalance<Ty1>
+L5:	loc2: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[2](Arg2: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: ImmBorrowLoc[1](Arg1: Balance<Ty1>)
+	7: Call balance::value<Ty1>(&Balance<Ty1>): u64
+	8: StLoc[3](loc0: u64)
+	9: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	10: MutBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	11: MoveLoc[1](Arg1: Balance<Ty1>)
+	12: Call equity::from_balance<Ty1>(&mut EquityTreasury<Ty1>, Balance<Ty1>): EquityShareBalance<Ty1>
+	13: StLoc[4](loc1: EquityShareBalance<Ty1>)
+	14: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	15: MutBorrowFieldGeneric[2](SupplyPool.supply_equity: EquityTreasury<Ty1>)
+	16: Call equity::borrow_mut_registry<Ty1>(&mut EquityTreasury<Ty1>): &mut EquityRegistry<Ty1>
+	17: MoveLoc[4](loc1: EquityShareBalance<Ty1>)
+	18: Call equity::redeem_lossy<Ty1>(&mut EquityRegistry<Ty1>, EquityShareBalance<Ty1>): u64
+	19: StLoc[5](loc2: u64)
+	20: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	21: ImmBorrowFieldGeneric[12](SupplyPool.id: UID)
+	22: Call object::uid_to_inner(&UID): ID
+	23: MoveLoc[3](loc0: u64)
+	24: CopyLoc[5](loc2: u64)
+	25: Pack[7](WithdrawInfo)
+	26: Call event::emit<WithdrawInfo>(WithdrawInfo)
+	27: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	28: MutBorrowFieldGeneric[9](SupplyPool.available_balance: Balance<Ty0>)
+	29: MoveLoc[5](loc2: u64)
+	30: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	31: Ret
+}
+
+public(friend) borrow<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: &LendFacilCap, Arg2: u64, Arg3: &Clock): Balance<Ty0> * FacilDebtShare<Ty1> {
+L4:	loc0: Balance<Ty0>
+L5:	loc1: ID
+L6:	loc2: FacilDebtShare<Ty1>
+L7:	loc3: &mut LendFacilInfo<Ty1>
+L8:	loc4: u64
+L9:	loc5: u64
+L10:	loc6: u64
+L11:	loc7: DebtShareBalance<Ty1>
+L12:	loc8: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[3](Arg3: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: MoveLoc[1](Arg1: &LendFacilCap)
+	7: Call object::id<LendFacilCap>(&LendFacilCap): ID
+	8: StLoc[5](loc1: ID)
+	9: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	10: MutBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	11: ImmBorrowLoc[5](loc1: ID)
+	12: Call vec_map::get_mut<ID, LendFacilInfo<Ty1>>(&mut VecMap<ID, LendFacilInfo<Ty1>>, &ID): &mut LendFacilInfo<Ty1>
+	13: StLoc[7](loc3: &mut LendFacilInfo<Ty1>)
+	14: CopyLoc[7](loc3: &mut LendFacilInfo<Ty1>)
+	15: ImmBorrowFieldGeneric[6](LendFacilInfo.max_utilization_bps: u64)
+	16: ReadRef
+	17: StLoc[10](loc6: u64)
+	18: CopyLoc[7](loc3: &mut LendFacilInfo<Ty1>)
+	19: ImmBorrowFieldGeneric[5](LendFacilInfo.max_liability_outstanding: u64)
+	20: ReadRef
+	21: StLoc[9](loc5: u64)
+	22: CopyLoc[7](loc3: &mut LendFacilInfo<Ty1>)
+	23: MutBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	24: CopyLoc[2](Arg2: u64)
+	25: Call debt::increase_liability_and_issue<Ty1>(&mut DebtRegistry<Ty1>, u64): DebtShareBalance<Ty1>
+	26: StLoc[11](loc7: DebtShareBalance<Ty1>)
+	27: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	28: MutBorrowFieldGeneric[9](SupplyPool.available_balance: Balance<Ty0>)
+	29: CopyLoc[2](Arg2: u64)
+	30: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	31: StLoc[4](loc0: Balance<Ty0>)
+	32: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	33: ImmBorrowFieldGeneric[1](SupplyPool.total_liabilities_x64: u128)
+	34: ReadRef
+	35: MoveLoc[2](Arg2: u64)
+	36: CastU128
+	37: LdU8(64)
+	38: Shl
+	39: Add
+	40: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	41: MutBorrowFieldGeneric[1](SupplyPool.total_liabilities_x64: u128)
+	42: WriteRef
+	43: MoveLoc[7](loc3: &mut LendFacilInfo<Ty1>)
+	44: ImmBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	45: Call debt::liability_value_x64<Ty1>(&DebtRegistry<Ty1>): u128
+	46: LdU8(64)
+	47: Shr
+	48: CastU64
+	49: StLoc[8](loc4: u64)
+	50: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	51: FreezeRef
+	52: Call utilization_bps<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>): u64
+	53: StLoc[12](loc8: u64)
+	54: MoveLoc[8](loc4: u64)
+	55: MoveLoc[9](loc5: u64)
+	56: Lt
+	57: BrFalse(59)
+B1:
+	58: Branch(61)
+B2:
+	59: LdConst[6](u64: 4)
+	60: Abort
+B3:
+	61: MoveLoc[12](loc8: u64)
+	62: MoveLoc[10](loc6: u64)
+	63: Le
+	64: BrFalse(66)
+B4:
+	65: Branch(68)
+B5:
+	66: LdConst[5](u64: 3)
+	67: Abort
+B6:
+	68: MoveLoc[5](loc1: ID)
+	69: MoveLoc[11](loc7: DebtShareBalance<Ty1>)
+	70: PackGeneric[2](FacilDebtShare<Ty1>)
+	71: StLoc[6](loc2: FacilDebtShare<Ty1>)
+	72: MoveLoc[4](loc0: Balance<Ty0>)
+	73: MoveLoc[6](loc2: FacilDebtShare<Ty1>)
+	74: Ret
+}
+
+public calc_repay_by_shares<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: ID, Arg2: u128, Arg3: &Clock): u64 {
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[3](Arg3: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	7: ImmBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	8: ImmBorrowLoc[1](Arg1: ID)
+	9: Call vec_map::get<ID, LendFacilInfo<Ty1>>(&VecMap<ID, LendFacilInfo<Ty1>>, &ID): &LendFacilInfo<Ty1>
+	10: ImmBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	11: MoveLoc[2](Arg2: u128)
+	12: Call debt::calc_repay_lossy<Ty1>(&DebtRegistry<Ty1>, u128): u64
+	13: Ret
+}
+
+public calc_repay_by_amount<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: ID, Arg2: u64, Arg3: &Clock): u128 {
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[3](Arg3: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	7: ImmBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	8: ImmBorrowLoc[1](Arg1: ID)
+	9: Call vec_map::get<ID, LendFacilInfo<Ty1>>(&VecMap<ID, LendFacilInfo<Ty1>>, &ID): &LendFacilInfo<Ty1>
+	10: ImmBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	11: MoveLoc[2](Arg2: u64)
+	12: Call debt::calc_repay_for_amount<Ty1>(&DebtRegistry<Ty1>, u64): u128
+	13: Ret
+}
+
+public(friend) repay<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: FacilDebtShare<Ty1>, Arg2: Balance<Ty0>, Arg3: &Clock) {
+L4:	loc0: u64
+L5:	loc1: u128
+L6:	loc2: ID
+L7:	loc3: DebtShareBalance<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	4: MoveLoc[3](Arg3: &Clock)
+	5: Call update_interest<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, &Clock)
+	6: MoveLoc[1](Arg1: FacilDebtShare<Ty1>)
+	7: UnpackGeneric[2](FacilDebtShare<Ty1>)
+	8: StLoc[7](loc3: DebtShareBalance<Ty1>)
+	9: StLoc[6](loc2: ID)
+	10: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	11: MutBorrowFieldGeneric[3](SupplyPool.debt_info: VecMap<ID, LendFacilInfo<Ty1>>)
+	12: ImmBorrowLoc[6](loc2: ID)
+	13: Call vec_map::get_mut<ID, LendFacilInfo<Ty1>>(&mut VecMap<ID, LendFacilInfo<Ty1>>, &ID): &mut LendFacilInfo<Ty1>
+	14: MutBorrowFieldGeneric[11](LendFacilInfo.debt_registry: DebtRegistry<Ty1>)
+	15: MoveLoc[7](loc3: DebtShareBalance<Ty1>)
+	16: Call debt::repay_lossy<Ty1>(&mut DebtRegistry<Ty1>, DebtShareBalance<Ty1>): u64
+	17: StLoc[4](loc0: u64)
+	18: ImmBorrowLoc[2](Arg2: Balance<Ty0>)
+	19: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	20: CopyLoc[4](loc0: u64)
+	21: Eq
+	22: BrFalse(24)
+B1:
+	23: Branch(28)
+B2:
+	24: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	25: Pop
+	26: LdConst[3](u64: 1)
+	27: Abort
+B3:
+	28: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	29: ImmBorrowFieldGeneric[1](SupplyPool.total_liabilities_x64: u128)
+	30: ReadRef
+	31: MoveLoc[4](loc0: u64)
+	32: CastU128
+	33: LdU8(64)
+	34: Shl
+	35: Call u128::min(u128, u128): u128
+	36: StLoc[5](loc1: u128)
+	37: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	38: ImmBorrowFieldGeneric[1](SupplyPool.total_liabilities_x64: u128)
+	39: ReadRef
+	40: MoveLoc[5](loc1: u128)
+	41: Sub
+	42: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	43: MutBorrowFieldGeneric[1](SupplyPool.total_liabilities_x64: u128)
+	44: WriteRef
+	45: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	46: MutBorrowFieldGeneric[9](SupplyPool.available_balance: Balance<Ty0>)
+	47: MoveLoc[2](Arg2: Balance<Ty0>)
+	48: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	49: Pop
+	50: Ret
+}
+
+public(friend) repay_max_possible<Ty0, Ty1>(Arg0: &mut SupplyPool<Ty0, Ty1>, Arg1: &mut FacilDebtShare<Ty1>, Arg2: &mut Balance<Ty0>, Arg3: &Clock): u128 * u64 {
+L4:	loc0: u128
+L5:	loc1: u64
+L6:	loc2: u64
+L7:	loc3: u64
+L8:	loc4: ID
+L9:	loc5: u128
+L10:	loc6: u128
+B0:
+	0: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	1: FreezeRef
+	2: Call check_version<Ty0, Ty1>(&SupplyPool<Ty0, Ty1>)
+	3: CopyLoc[1](Arg1: &mut FacilDebtShare<Ty1>)
+	4: ImmBorrowFieldGeneric[13](FacilDebtShare.facil_id: ID)
+	5: ReadRef
+	6: StLoc[8](loc4: ID)
+	7: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	8: CopyLoc[8](loc4: ID)
+	9: CopyLoc[1](Arg1: &mut FacilDebtShare<Ty1>)
+	10: FreezeRef
+	11: Call fds_value_x64<Ty1>(&FacilDebtShare<Ty1>): u128
+	12: CopyLoc[3](Arg3: &Clock)
+	13: Call calc_repay_by_shares<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, ID, u128, &Clock): u64
+	14: StLoc[7](loc3: u64)
+	15: CopyLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	16: MoveLoc[8](loc4: ID)
+	17: CopyLoc[2](Arg2: &mut Balance<Ty0>)
+	18: FreezeRef
+	19: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	20: CopyLoc[3](Arg3: &Clock)
+	21: Call calc_repay_by_amount<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, ID, u64, &Clock): u128
+	22: StLoc[10](loc6: u128)
+	23: CopyLoc[2](Arg2: &mut Balance<Ty0>)
+	24: FreezeRef
+	25: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	26: CopyLoc[7](loc3: u64)
+	27: Ge
+	28: BrFalse(36)
+B1:
+	29: CopyLoc[1](Arg1: &mut FacilDebtShare<Ty1>)
+	30: FreezeRef
+	31: Call fds_value_x64<Ty1>(&FacilDebtShare<Ty1>): u128
+	32: MoveLoc[7](loc3: u64)
+	33: StLoc[5](loc1: u64)
+	34: StLoc[4](loc0: u128)
+	35: Branch(42)
+B2:
+	36: MoveLoc[10](loc6: u128)
+	37: CopyLoc[2](Arg2: &mut Balance<Ty0>)
+	38: FreezeRef
+	39: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	40: StLoc[5](loc1: u64)
+	41: StLoc[4](loc0: u128)
+B3:
+	42: MoveLoc[4](loc0: u128)
+	43: MoveLoc[5](loc1: u64)
+	44: StLoc[6](loc2: u64)
+	45: StLoc[9](loc5: u128)
+	46: MoveLoc[0](Arg0: &mut SupplyPool<Ty0, Ty1>)
+	47: MoveLoc[1](Arg1: &mut FacilDebtShare<Ty1>)
+	48: CopyLoc[9](loc5: u128)
+	49: Call fds_split_x64<Ty1>(&mut FacilDebtShare<Ty1>, u128): FacilDebtShare<Ty1>
+	50: MoveLoc[2](Arg2: &mut Balance<Ty0>)
+	51: CopyLoc[6](loc2: u64)
+	52: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	53: MoveLoc[3](Arg3: &Clock)
+	54: Call repay<Ty0, Ty1>(&mut SupplyPool<Ty0, Ty1>, FacilDebtShare<Ty1>, Balance<Ty0>, &Clock)
+	55: MoveLoc[9](loc5: u128)
+	56: MoveLoc[6](loc2: u64)
+	57: Ret
+}
+
+public(friend) fds_facil_id<Ty0>(Arg0: &FacilDebtShare<Ty0>): ID {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtShare<Ty0>)
+	1: ImmBorrowFieldGeneric[14](FacilDebtShare.facil_id: ID)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) fds_borrow_inner<Ty0>(Arg0: &FacilDebtShare<Ty0>): &DebtShareBalance<Ty0> {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtShare<Ty0>)
+	1: ImmBorrowFieldGeneric[15](FacilDebtShare.inner: DebtShareBalance<Ty0>)
+	2: Ret
+}
+
+public(friend) fds_value_x64<Ty0>(Arg0: &FacilDebtShare<Ty0>): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtShare<Ty0>)
+	1: ImmBorrowFieldGeneric[15](FacilDebtShare.inner: DebtShareBalance<Ty0>)
+	2: Call debt::value_x64<Ty0>(&DebtShareBalance<Ty0>): u128
+	3: Ret
+}
+
+public(friend) fds_split_x64<Ty0>(Arg0: &mut FacilDebtShare<Ty0>, Arg1: u128): FacilDebtShare<Ty0> {
+L2:	loc0: DebtShareBalance<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	1: MutBorrowFieldGeneric[15](FacilDebtShare.inner: DebtShareBalance<Ty0>)
+	2: MoveLoc[1](Arg1: u128)
+	3: Call debt::split_x64<Ty0>(&mut DebtShareBalance<Ty0>, u128): DebtShareBalance<Ty0>
+	4: StLoc[2](loc0: DebtShareBalance<Ty0>)
+	5: MoveLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	6: ImmBorrowFieldGeneric[14](FacilDebtShare.facil_id: ID)
+	7: ReadRef
+	8: MoveLoc[2](loc0: DebtShareBalance<Ty0>)
+	9: PackGeneric[3](FacilDebtShare<Ty0>)
+	10: Ret
+}
+
+public(friend) fds_split<Ty0>(Arg0: &mut FacilDebtShare<Ty0>, Arg1: u64): FacilDebtShare<Ty0> {
+L2:	loc0: DebtShareBalance<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	1: MutBorrowFieldGeneric[15](FacilDebtShare.inner: DebtShareBalance<Ty0>)
+	2: MoveLoc[1](Arg1: u64)
+	3: Call debt::split<Ty0>(&mut DebtShareBalance<Ty0>, u64): DebtShareBalance<Ty0>
+	4: StLoc[2](loc0: DebtShareBalance<Ty0>)
+	5: MoveLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	6: ImmBorrowFieldGeneric[14](FacilDebtShare.facil_id: ID)
+	7: ReadRef
+	8: MoveLoc[2](loc0: DebtShareBalance<Ty0>)
+	9: PackGeneric[3](FacilDebtShare<Ty0>)
+	10: Ret
+}
+
+public(friend) fds_withdraw_all<Ty0>(Arg0: &mut FacilDebtShare<Ty0>): FacilDebtShare<Ty0> {
+L1:	loc0: DebtShareBalance<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	1: MutBorrowFieldGeneric[15](FacilDebtShare.inner: DebtShareBalance<Ty0>)
+	2: Call debt::withdraw_all<Ty0>(&mut DebtShareBalance<Ty0>): DebtShareBalance<Ty0>
+	3: StLoc[1](loc0: DebtShareBalance<Ty0>)
+	4: MoveLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	5: ImmBorrowFieldGeneric[14](FacilDebtShare.facil_id: ID)
+	6: ReadRef
+	7: MoveLoc[1](loc0: DebtShareBalance<Ty0>)
+	8: PackGeneric[3](FacilDebtShare<Ty0>)
+	9: Ret
+}
+
+public(friend) fds_join<Ty0>(Arg0: &mut FacilDebtShare<Ty0>, Arg1: FacilDebtShare<Ty0>) {
+L2:	loc0: DebtShareBalance<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	1: ImmBorrowFieldGeneric[14](FacilDebtShare.facil_id: ID)
+	2: ReadRef
+	3: ImmBorrowLoc[1](Arg1: FacilDebtShare<Ty0>)
+	4: ImmBorrowFieldGeneric[14](FacilDebtShare.facil_id: ID)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(13)
+B2:
+	9: MoveLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	10: Pop
+	11: LdConst[4](u64: 2)
+	12: Abort
+B3:
+	13: MoveLoc[1](Arg1: FacilDebtShare<Ty0>)
+	14: UnpackGeneric[3](FacilDebtShare<Ty0>)
+	15: StLoc[2](loc0: DebtShareBalance<Ty0>)
+	16: Pop
+	17: MoveLoc[0](Arg0: &mut FacilDebtShare<Ty0>)
+	18: MutBorrowFieldGeneric[15](FacilDebtShare.inner: DebtShareBalance<Ty0>)
+	19: MoveLoc[2](loc0: DebtShareBalance<Ty0>)
+	20: Call debt::join<Ty0>(&mut DebtShareBalance<Ty0>, DebtShareBalance<Ty0>)
+	21: Ret
+}
+
+public(friend) fds_destroy_zero<Ty0>(Arg0: FacilDebtShare<Ty0>) {
+L1:	loc0: DebtShareBalance<Ty0>
+B0:
+	0: MoveLoc[0](Arg0: FacilDebtShare<Ty0>)
+	1: UnpackGeneric[3](FacilDebtShare<Ty0>)
+	2: StLoc[1](loc0: DebtShareBalance<Ty0>)
+	3: Pop
+	4: MoveLoc[1](loc0: DebtShareBalance<Ty0>)
+	5: Call debt::destroy_zero<Ty0>(DebtShareBalance<Ty0>)
+	6: Ret
+}
+
+public(friend) empty_facil_debt_bag(Arg0: ID, Arg1: &mut TxContext): FacilDebtBag {
+B0:
+	0: CopyLoc[1](Arg1: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: MoveLoc[0](Arg0: ID)
+	3: MoveLoc[1](Arg1: &mut TxContext)
+	4: Call debt_bag::empty(&mut TxContext): DebtBag
+	5: Pack[11](FacilDebtBag)
+	6: Ret
+}
+
+public(friend) fdb_add<Ty0, Ty1>(Arg0: &mut FacilDebtBag, Arg1: FacilDebtShare<Ty1>) {
+L2:	loc0: DebtShareBalance<Ty1>
+B0:
+	0: CopyLoc[0](Arg0: &mut FacilDebtBag)
+	1: ImmBorrowField[15](FacilDebtBag.facil_id: ID)
+	2: ReadRef
+	3: ImmBorrowLoc[1](Arg1: FacilDebtShare<Ty1>)
+	4: ImmBorrowFieldGeneric[13](FacilDebtShare.facil_id: ID)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(13)
+B2:
+	9: MoveLoc[0](Arg0: &mut FacilDebtBag)
+	10: Pop
+	11: LdConst[4](u64: 2)
+	12: Abort
+B3:
+	13: MoveLoc[1](Arg1: FacilDebtShare<Ty1>)
+	14: UnpackGeneric[2](FacilDebtShare<Ty1>)
+	15: StLoc[2](loc0: DebtShareBalance<Ty1>)
+	16: Pop
+	17: MoveLoc[0](Arg0: &mut FacilDebtBag)
+	18: MutBorrowField[16](FacilDebtBag.inner: DebtBag)
+	19: MoveLoc[2](loc0: DebtShareBalance<Ty1>)
+	20: Call debt_bag::add<Ty0, Ty1>(&mut DebtBag, DebtShareBalance<Ty1>)
+	21: Ret
+}
+
+public(friend) fdb_take_amt<Ty0>(Arg0: &mut FacilDebtBag, Arg1: u128): FacilDebtShare<Ty0> {
+L2:	loc0: DebtShareBalance<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut FacilDebtBag)
+	1: MutBorrowField[16](FacilDebtBag.inner: DebtBag)
+	2: MoveLoc[1](Arg1: u128)
+	3: Call debt_bag::take_amt<Ty0>(&mut DebtBag, u128): DebtShareBalance<Ty0>
+	4: StLoc[2](loc0: DebtShareBalance<Ty0>)
+	5: MoveLoc[0](Arg0: &mut FacilDebtBag)
+	6: ImmBorrowField[15](FacilDebtBag.facil_id: ID)
+	7: ReadRef
+	8: MoveLoc[2](loc0: DebtShareBalance<Ty0>)
+	9: PackGeneric[3](FacilDebtShare<Ty0>)
+	10: Ret
+}
+
+public(friend) fdb_take_all<Ty0>(Arg0: &mut FacilDebtBag): FacilDebtShare<Ty0> {
+L1:	loc0: DebtShareBalance<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut FacilDebtBag)
+	1: MutBorrowField[16](FacilDebtBag.inner: DebtBag)
+	2: Call debt_bag::take_all<Ty0>(&mut DebtBag): DebtShareBalance<Ty0>
+	3: StLoc[1](loc0: DebtShareBalance<Ty0>)
+	4: MoveLoc[0](Arg0: &mut FacilDebtBag)
+	5: ImmBorrowField[15](FacilDebtBag.facil_id: ID)
+	6: ReadRef
+	7: MoveLoc[1](loc0: DebtShareBalance<Ty0>)
+	8: PackGeneric[3](FacilDebtShare<Ty0>)
+	9: Ret
+}
+
+public(friend) fdb_get_share_amount_by_asset_type<Ty0>(Arg0: &FacilDebtBag): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtBag)
+	1: ImmBorrowField[16](FacilDebtBag.inner: DebtBag)
+	2: Call debt_bag::get_share_amount_by_asset_type<Ty0>(&DebtBag): u128
+	3: Ret
+}
+
+public(friend) fdb_get_share_amount_by_share_type<Ty0>(Arg0: &FacilDebtBag): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtBag)
+	1: ImmBorrowField[16](FacilDebtBag.inner: DebtBag)
+	2: Call debt_bag::get_share_amount_by_share_type<Ty0>(&DebtBag): u128
+	3: Ret
+}
+
+public(friend) fdb_share_type_matches_asset_if_any_exists<Ty0, Ty1>(Arg0: &FacilDebtBag): bool {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtBag)
+	1: ImmBorrowField[16](FacilDebtBag.inner: DebtBag)
+	2: Call debt_bag::share_type_matches_asset_if_any_exists<Ty0, Ty1>(&DebtBag): bool
+	3: Ret
+}
+
+public(friend) fdb_get_share_type_for_asset<Ty0>(Arg0: &FacilDebtBag): TypeName {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtBag)
+	1: ImmBorrowField[16](FacilDebtBag.inner: DebtBag)
+	2: Call debt_bag::get_share_type_for_asset<Ty0>(&DebtBag): TypeName
+	3: Ret
+}
+
+public(friend) fdb_is_empty(Arg0: &FacilDebtBag): bool {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtBag)
+	1: ImmBorrowField[16](FacilDebtBag.inner: DebtBag)
+	2: Call debt_bag::is_empty(&DebtBag): bool
+	3: Ret
+}
+
+public(friend) fdb_destroy_empty(Arg0: FacilDebtBag) {
+L1:	loc0: DebtBag
+B0:
+	0: MoveLoc[0](Arg0: FacilDebtBag)
+	1: Unpack[11](FacilDebtBag)
+	2: StLoc[1](loc0: DebtBag)
+	3: Pop
+	4: Call object::delete(UID)
+	5: MoveLoc[1](loc0: DebtBag)
+	6: Call debt_bag::destroy_empty(DebtBag)
+	7: Ret
+}
+
+public(friend) fdb_length(Arg0: &FacilDebtBag): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &FacilDebtBag)
+	1: ImmBorrowField[16](FacilDebtBag.inner: DebtBag)
+	2: Call debt_bag::length(&DebtBag): u64
+	3: Ret
+}
+
+Constants [
+	0 => u128: 31536000
+	1 => u16: 2
+	2 => u64: 0
+	3 => u64: 1
+	4 => u64: 2
+	5 => u64: 3
+	6 => u64: 4
+	7 => u64: 5
+	8 => u64: 6
+]
+}

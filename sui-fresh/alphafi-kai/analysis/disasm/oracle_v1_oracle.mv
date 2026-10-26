@@ -1,0 +1,787 @@
+// Move bytecode v6
+module 378b2a104e8bcd7ed0317f5e6a0ec4fd271d4d12e2fe6c99bcd1f12be725cf4f.oracle {
+use 4b591bbc246c9fadd28e7ac895e0778fb0e102f1b0d9f441e78d35f0d1ea1fcc::math;
+use 8d97f1cd6ac663735be08d1d2b6d02a159e711586461306ce60a2b7a6a565a9e::i64;
+use 8d97f1cd6ac663735be08d1d2b6d02a159e711586461306ce60a2b7a6a565a9e::price;
+use 8d97f1cd6ac663735be08d1d2b6d02a159e711586461306ce60a2b7a6a565a9e::price_feed;
+use 8d97f1cd6ac663735be08d1d2b6d02a159e711586461306ce60a2b7a6a565a9e::price_identifier;
+use 8d97f1cd6ac663735be08d1d2b6d02a159e711586461306ce60a2b7a6a565a9e::price_info;
+use 8d97f1cd6ac663735be08d1d2b6d02a159e711586461306ce60a2b7a6a565a9e::pyth;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_field;
+use 0000000000000000000000000000000000000000000000000000000000000002::event;
+use 0000000000000000000000000000000000000000000000000000000000000002::math as 0math;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::table;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct ORACLE has drop {
+	dummy_field: bool
+}
+
+struct PythPriceUpdationEvent has copy, drop {
+	coin_type: TypeName,
+	pyth_price_id: PriceIdentifier,
+	price: Number,
+	ema_price: Number,
+	conf: Number,
+	last_updated: u64
+}
+
+struct AdminCap has store, key {
+	id: UID
+}
+
+struct OraclePyth has store, key {
+	id: UID,
+	coin_to_identifier: VecMap<TypeName, vector<PriceIdentifier>>,
+	identifier_map: VecMap<PriceIdentifier, TypeName>
+}
+
+struct OracleSupra has store, key {
+	id: UID,
+	coin_to_identifier: VecMap<TypeName, vector<u64>>,
+	identifier_map: VecMap<u64, TypeName>
+}
+
+struct Oracle has store, key {
+	id: UID,
+	price_infos: Table<TypeName, PriceInfo>,
+	max_age: u64
+}
+
+struct PriceInfo has copy, drop, store {
+	coin_type: TypeName,
+	price: Number,
+	ema_price: Number,
+	conf: Number,
+	coin_kind: u8,
+	active: bool,
+	circuit_breaker_threshold_bps: u16,
+	last_updated: u64
+}
+
+init(Arg0: ORACLE, Arg1: &mut TxContext) {
+L2:	loc0: AdminCap
+B0:
+	0: CopyLoc[1](Arg1: &mut TxContext)
+	1: Call create_oracle(&mut TxContext): Oracle * AdminCap
+	2: StLoc[2](loc0: AdminCap)
+	3: Call transfer::public_share_object<Oracle>(Oracle)
+	4: MoveLoc[2](loc0: AdminCap)
+	5: MoveLoc[1](Arg1: &mut TxContext)
+	6: FreezeRef
+	7: Call tx_context::sender(&TxContext): address
+	8: Call transfer::public_transfer<AdminCap>(AdminCap, address)
+	9: Ret
+}
+
+create_oracle(Arg0: &mut TxContext): Oracle * AdminCap {
+L1:	loc0: AdminCap
+L2:	loc1: Oracle
+L3:	loc2: OracleSupra
+L4:	loc3: OraclePyth
+B0:
+	0: CopyLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: CopyLoc[0](Arg0: &mut TxContext)
+	3: Call table::new<TypeName, PriceInfo>(&mut TxContext): Table<TypeName, PriceInfo>
+	4: LdU64(20)
+	5: Pack[5](Oracle)
+	6: StLoc[2](loc1: Oracle)
+	7: CopyLoc[0](Arg0: &mut TxContext)
+	8: Call object::new(&mut TxContext): UID
+	9: Call vec_map::empty<TypeName, vector<PriceIdentifier>>(): VecMap<TypeName, vector<PriceIdentifier>>
+	10: Call vec_map::empty<PriceIdentifier, TypeName>(): VecMap<PriceIdentifier, TypeName>
+	11: Pack[3](OraclePyth)
+	12: StLoc[4](loc3: OraclePyth)
+	13: CopyLoc[0](Arg0: &mut TxContext)
+	14: Call object::new(&mut TxContext): UID
+	15: Call vec_map::empty<TypeName, vector<u64>>(): VecMap<TypeName, vector<u64>>
+	16: Call vec_map::empty<u64, TypeName>(): VecMap<u64, TypeName>
+	17: Pack[4](OracleSupra)
+	18: StLoc[3](loc2: OracleSupra)
+	19: MutBorrowLoc[2](loc1: Oracle)
+	20: MutBorrowField[0](Oracle.id: UID)
+	21: LdConst[10](u64: 0)
+	22: MoveLoc[4](loc3: OraclePyth)
+	23: Call dynamic_field::add<u64, OraclePyth>(&mut UID, u64, OraclePyth)
+	24: MutBorrowLoc[2](loc1: Oracle)
+	25: MutBorrowField[0](Oracle.id: UID)
+	26: LdConst[3](u8: 1)
+	27: MoveLoc[3](loc2: OracleSupra)
+	28: Call dynamic_field::add<u8, OracleSupra>(&mut UID, u8, OracleSupra)
+	29: MoveLoc[0](Arg0: &mut TxContext)
+	30: Call object::new(&mut TxContext): UID
+	31: Pack[2](AdminCap)
+	32: StLoc[1](loc0: AdminCap)
+	33: MoveLoc[2](loc1: Oracle)
+	34: MoveLoc[1](loc0: AdminCap)
+	35: Ret
+}
+
+public create_additional_admin_cap(Arg0: &AdminCap, Arg1: &mut TxContext): AdminCap {
+B0:
+	0: MoveLoc[1](Arg1: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: Pack[2](AdminCap)
+	3: Ret
+}
+
+public update_max_age(Arg0: &mut Oracle, Arg1: &AdminCap, Arg2: u64) {
+B0:
+	0: MoveLoc[2](Arg2: u64)
+	1: MoveLoc[0](Arg0: &mut Oracle)
+	2: MutBorrowField[1](Oracle.max_age: u64)
+	3: WriteRef
+	4: Ret
+}
+
+public get_all_supported_price_pyth_identifiers(Arg0: &Oracle): vector<PriceIdentifier> {
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: ImmBorrowField[0](Oracle.id: UID)
+	2: LdConst[10](u64: 0)
+	3: Call dynamic_field::borrow<u64, OraclePyth>(&UID, u64): &OraclePyth
+	4: ImmBorrowField[2](OraclePyth.identifier_map: VecMap<PriceIdentifier, TypeName>)
+	5: Call vec_map::keys<PriceIdentifier, TypeName>(&VecMap<PriceIdentifier, TypeName>): vector<PriceIdentifier>
+	6: Ret
+}
+
+public add_coin_to_oracle(Arg0: &mut Oracle, Arg1: &AdminCap, Arg2: TypeName, Arg3: u8, Arg4: u16, Arg5: &mut TxContext) {
+L6:	loc0: PriceInfo
+B0:
+	0: CopyLoc[0](Arg0: &mut Oracle)
+	1: ImmBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	2: CopyLoc[2](Arg2: TypeName)
+	3: Call table::contains<TypeName, PriceInfo>(&Table<TypeName, PriceInfo>, TypeName): bool
+	4: Not
+	5: BrFalse(7)
+B1:
+	6: Branch(11)
+B2:
+	7: MoveLoc[0](Arg0: &mut Oracle)
+	8: Pop
+	9: LdU64(13906834938847690755)
+	10: Abort
+B3:
+	11: CopyLoc[2](Arg2: TypeName)
+	12: LdU64(0)
+	13: Call math::from(u64): Number
+	14: LdU64(0)
+	15: Call math::from(u64): Number
+	16: LdU64(0)
+	17: Call math::from(u64): Number
+	18: MoveLoc[3](Arg3: u8)
+	19: LdTrue
+	20: MoveLoc[4](Arg4: u16)
+	21: LdU64(0)
+	22: Pack[6](PriceInfo)
+	23: StLoc[6](loc0: PriceInfo)
+	24: MoveLoc[0](Arg0: &mut Oracle)
+	25: MutBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	26: MoveLoc[2](Arg2: TypeName)
+	27: MoveLoc[6](loc0: PriceInfo)
+	28: Call table::add<TypeName, PriceInfo>(&mut Table<TypeName, PriceInfo>, TypeName, PriceInfo)
+	29: Ret
+}
+
+public update_pyth_identifier_for_coin(Arg0: &mut Oracle, Arg1: &AdminCap, Arg2: TypeName, Arg3: PriceIdentifier, Arg4: Option<PriceIdentifier>) {
+L5:	loc0: PriceIdentifier
+L6:	loc1: vector<PriceIdentifier>
+L7:	loc2: &mut OraclePyth
+B0:
+	0: CopyLoc[0](Arg0: &mut Oracle)
+	1: ImmBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	2: CopyLoc[2](Arg2: TypeName)
+	3: Call table::contains<TypeName, PriceInfo>(&Table<TypeName, PriceInfo>, TypeName): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(10)
+B2:
+	6: MoveLoc[0](Arg0: &mut Oracle)
+	7: Pop
+	8: LdU64(13906835054811938821)
+	9: Abort
+B3:
+	10: CopyLoc[0](Arg0: &mut Oracle)
+	11: MutBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	12: CopyLoc[2](Arg2: TypeName)
+	13: Call table::borrow_mut<TypeName, PriceInfo>(&mut Table<TypeName, PriceInfo>, TypeName): &mut PriceInfo
+	14: Pop
+	15: MoveLoc[0](Arg0: &mut Oracle)
+	16: MutBorrowField[0](Oracle.id: UID)
+	17: LdConst[10](u64: 0)
+	18: Call dynamic_field::borrow_mut<u64, OraclePyth>(&mut UID, u64): &mut OraclePyth
+	19: StLoc[7](loc2: &mut OraclePyth)
+	20: VecPack(51, 0)
+	21: StLoc[6](loc1: vector<PriceIdentifier>)
+	22: MutBorrowLoc[6](loc1: vector<PriceIdentifier>)
+	23: MoveLoc[3](Arg3: PriceIdentifier)
+	24: VecPushBack(51)
+	25: ImmBorrowLoc[4](Arg4: Option<PriceIdentifier>)
+	26: Call option::is_some<PriceIdentifier>(&Option<PriceIdentifier>): bool
+	27: BrFalse(44)
+B4:
+	28: MutBorrowLoc[4](Arg4: Option<PriceIdentifier>)
+	29: Call option::extract<PriceIdentifier>(&mut Option<PriceIdentifier>): PriceIdentifier
+	30: StLoc[5](loc0: PriceIdentifier)
+	31: CopyLoc[7](loc2: &mut OraclePyth)
+	32: ImmBorrowField[2](OraclePyth.identifier_map: VecMap<PriceIdentifier, TypeName>)
+	33: ImmBorrowLoc[5](loc0: PriceIdentifier)
+	34: Call vec_map::contains<PriceIdentifier, TypeName>(&VecMap<PriceIdentifier, TypeName>, &PriceIdentifier): bool
+	35: BrFalse(37)
+B5:
+	36: Branch(41)
+B6:
+	37: MoveLoc[7](loc2: &mut OraclePyth)
+	38: Pop
+	39: LdU64(13906835102056710151)
+	40: Abort
+B7:
+	41: MutBorrowLoc[6](loc1: vector<PriceIdentifier>)
+	42: MoveLoc[5](loc0: PriceIdentifier)
+	43: VecPushBack(51)
+B8:
+	44: CopyLoc[7](loc2: &mut OraclePyth)
+	45: MutBorrowField[4](OraclePyth.coin_to_identifier: VecMap<TypeName, vector<PriceIdentifier>>)
+	46: ImmBorrowLoc[2](Arg2: TypeName)
+	47: Call vec_map::remove<TypeName, vector<PriceIdentifier>>(&mut VecMap<TypeName, vector<PriceIdentifier>>, &TypeName): TypeName * vector<PriceIdentifier>
+	48: Pop
+	49: Pop
+	50: MoveLoc[7](loc2: &mut OraclePyth)
+	51: MutBorrowField[4](OraclePyth.coin_to_identifier: VecMap<TypeName, vector<PriceIdentifier>>)
+	52: MoveLoc[2](Arg2: TypeName)
+	53: MoveLoc[6](loc1: vector<PriceIdentifier>)
+	54: Call vec_map::insert<TypeName, vector<PriceIdentifier>>(&mut VecMap<TypeName, vector<PriceIdentifier>>, TypeName, vector<PriceIdentifier>)
+	55: Ret
+}
+
+public add_coin_to_supra(Arg0: &mut Oracle, Arg1: &AdminCap, Arg2: TypeName, Arg3: u64, Arg4: Option<u64>) {
+L5:	loc0: u64
+L6:	loc1: vector<u64>
+L7:	loc2: &mut OracleSupra
+B0:
+	0: CopyLoc[0](Arg0: &mut Oracle)
+	1: ImmBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	2: CopyLoc[2](Arg2: TypeName)
+	3: Call table::contains<TypeName, PriceInfo>(&Table<TypeName, PriceInfo>, TypeName): bool
+	4: BrFalse(6)
+B1:
+	5: Branch(10)
+B2:
+	6: MoveLoc[0](Arg0: &mut Oracle)
+	7: Pop
+	8: LdU64(13906835166481088517)
+	9: Abort
+B3:
+	10: MoveLoc[0](Arg0: &mut Oracle)
+	11: MutBorrowField[0](Oracle.id: UID)
+	12: LdConst[3](u8: 1)
+	13: Call dynamic_field::borrow_mut<u8, OracleSupra>(&mut UID, u8): &mut OracleSupra
+	14: StLoc[7](loc2: &mut OracleSupra)
+	15: VecPack(18, 0)
+	16: StLoc[6](loc1: vector<u64>)
+	17: MutBorrowLoc[6](loc1: vector<u64>)
+	18: CopyLoc[3](Arg3: u64)
+	19: VecPushBack(18)
+	20: ImmBorrowLoc[4](Arg4: Option<u64>)
+	21: Call option::is_some<u64>(&Option<u64>): bool
+	22: BrFalse(39)
+B4:
+	23: MutBorrowLoc[4](Arg4: Option<u64>)
+	24: Call option::extract<u64>(&mut Option<u64>): u64
+	25: StLoc[5](loc0: u64)
+	26: CopyLoc[7](loc2: &mut OracleSupra)
+	27: ImmBorrowField[5](OracleSupra.identifier_map: VecMap<u64, TypeName>)
+	28: ImmBorrowLoc[5](loc0: u64)
+	29: Call vec_map::contains<u64, TypeName>(&VecMap<u64, TypeName>, &u64): bool
+	30: BrFalse(32)
+B5:
+	31: Branch(36)
+B6:
+	32: MoveLoc[7](loc2: &mut OracleSupra)
+	33: Pop
+	34: LdU64(13906835200840957959)
+	35: Abort
+B7:
+	36: MutBorrowLoc[6](loc1: vector<u64>)
+	37: MoveLoc[5](loc0: u64)
+	38: VecPushBack(18)
+B8:
+	39: CopyLoc[7](loc2: &mut OracleSupra)
+	40: MutBorrowField[6](OracleSupra.coin_to_identifier: VecMap<TypeName, vector<u64>>)
+	41: CopyLoc[2](Arg2: TypeName)
+	42: MoveLoc[6](loc1: vector<u64>)
+	43: Call vec_map::insert<TypeName, vector<u64>>(&mut VecMap<TypeName, vector<u64>>, TypeName, vector<u64>)
+	44: MoveLoc[7](loc2: &mut OracleSupra)
+	45: MutBorrowField[5](OracleSupra.identifier_map: VecMap<u64, TypeName>)
+	46: MoveLoc[3](Arg3: u64)
+	47: MoveLoc[2](Arg2: TypeName)
+	48: Call vec_map::insert<u64, TypeName>(&mut VecMap<u64, TypeName>, u64, TypeName)
+	49: Ret
+}
+
+public remove_coin_type(Arg0: &mut Oracle, Arg1: &AdminCap, Arg2: TypeName) {
+L3:	loc0: vector<PriceIdentifier>
+L4:	loc1: vector<u64>
+L5:	loc2: &mut OraclePyth
+L6:	loc3: &mut OracleSupra
+L7:	loc4: PriceInfo
+B0:
+	0: CopyLoc[0](Arg0: &mut Oracle)
+	1: MutBorrowField[0](Oracle.id: UID)
+	2: LdConst[10](u64: 0)
+	3: Call dynamic_field::borrow_mut<u64, OraclePyth>(&mut UID, u64): &mut OraclePyth
+	4: StLoc[5](loc2: &mut OraclePyth)
+	5: CopyLoc[0](Arg0: &mut Oracle)
+	6: ImmBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	7: CopyLoc[2](Arg2: TypeName)
+	8: Call table::contains<TypeName, PriceInfo>(&Table<TypeName, PriceInfo>, TypeName): bool
+	9: BrFalse(11)
+B1:
+	10: Branch(17)
+B2:
+	11: MoveLoc[0](Arg0: &mut Oracle)
+	12: Pop
+	13: MoveLoc[5](loc2: &mut OraclePyth)
+	14: Pop
+	15: LdU64(13906835265265336325)
+	16: Abort
+B3:
+	17: CopyLoc[0](Arg0: &mut Oracle)
+	18: MutBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	19: CopyLoc[2](Arg2: TypeName)
+	20: Call table::remove<TypeName, PriceInfo>(&mut Table<TypeName, PriceInfo>, TypeName): PriceInfo
+	21: StLoc[7](loc4: PriceInfo)
+	22: CopyLoc[5](loc2: &mut OraclePyth)
+	23: MutBorrowField[4](OraclePyth.coin_to_identifier: VecMap<TypeName, vector<PriceIdentifier>>)
+	24: ImmBorrowLoc[2](Arg2: TypeName)
+	25: Call vec_map::remove<TypeName, vector<PriceIdentifier>>(&mut VecMap<TypeName, vector<PriceIdentifier>>, &TypeName): TypeName * vector<PriceIdentifier>
+	26: StLoc[3](loc0: vector<PriceIdentifier>)
+	27: Pop
+	28: MoveLoc[5](loc2: &mut OraclePyth)
+	29: MutBorrowField[2](OraclePyth.identifier_map: VecMap<PriceIdentifier, TypeName>)
+	30: ImmBorrowLoc[3](loc0: vector<PriceIdentifier>)
+	31: LdU64(0)
+	32: VecImmBorrow(51)
+	33: Call vec_map::remove<PriceIdentifier, TypeName>(&mut VecMap<PriceIdentifier, TypeName>, &PriceIdentifier): PriceIdentifier * TypeName
+	34: Pop
+	35: Pop
+	36: MoveLoc[0](Arg0: &mut Oracle)
+	37: MutBorrowField[0](Oracle.id: UID)
+	38: LdConst[3](u8: 1)
+	39: Call dynamic_field::borrow_mut<u8, OracleSupra>(&mut UID, u8): &mut OracleSupra
+	40: StLoc[6](loc3: &mut OracleSupra)
+	41: CopyLoc[6](loc3: &mut OracleSupra)
+	42: MutBorrowField[6](OracleSupra.coin_to_identifier: VecMap<TypeName, vector<u64>>)
+	43: ImmBorrowLoc[2](Arg2: TypeName)
+	44: Call vec_map::remove<TypeName, vector<u64>>(&mut VecMap<TypeName, vector<u64>>, &TypeName): TypeName * vector<u64>
+	45: StLoc[4](loc1: vector<u64>)
+	46: Pop
+	47: MoveLoc[6](loc3: &mut OracleSupra)
+	48: MutBorrowField[5](OracleSupra.identifier_map: VecMap<u64, TypeName>)
+	49: ImmBorrowLoc[4](loc1: vector<u64>)
+	50: LdU64(0)
+	51: VecImmBorrow(18)
+	52: Call vec_map::remove<u64, TypeName>(&mut VecMap<u64, TypeName>, &u64): u64 * TypeName
+	53: Pop
+	54: Pop
+	55: MoveLoc[7](loc4: PriceInfo)
+	56: Unpack[6](PriceInfo)
+	57: Pop
+	58: Pop
+	59: Pop
+	60: Pop
+	61: Pop
+	62: Pop
+	63: Pop
+	64: Pop
+	65: Ret
+}
+
+public get_price_info(Arg0: &Oracle, Arg1: TypeName): PriceInfo {
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: ImmBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	2: MoveLoc[1](Arg1: TypeName)
+	3: Call table::borrow<TypeName, PriceInfo>(&Table<TypeName, PriceInfo>, TypeName): &PriceInfo
+	4: ReadRef
+	5: Ret
+}
+
+public get_price(Arg0: &PriceInfo): Number {
+B0:
+	0: MoveLoc[0](Arg0: &PriceInfo)
+	1: ImmBorrowField[7](PriceInfo.price: Number)
+	2: ReadRef
+	3: Ret
+}
+
+public get_ema_price(Arg0: &PriceInfo): Number {
+B0:
+	0: MoveLoc[0](Arg0: &PriceInfo)
+	1: ImmBorrowField[8](PriceInfo.ema_price: Number)
+	2: ReadRef
+	3: Ret
+}
+
+public coin_type(Arg0: &PriceInfo): TypeName {
+B0:
+	0: MoveLoc[0](Arg0: &PriceInfo)
+	1: ImmBorrowField[9](PriceInfo.coin_type: TypeName)
+	2: ReadRef
+	3: Ret
+}
+
+public get_updated_time(Arg0: &PriceInfo): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &PriceInfo)
+	1: ImmBorrowField[10](PriceInfo.last_updated: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public get_pyth_identifiers_for_coin(Arg0: &Oracle, Arg1: TypeName): vector<PriceIdentifier> {
+L2:	loc0: &OraclePyth
+B0:
+	0: MoveLoc[0](Arg0: &Oracle)
+	1: ImmBorrowField[0](Oracle.id: UID)
+	2: LdConst[10](u64: 0)
+	3: Call dynamic_field::borrow<u64, OraclePyth>(&UID, u64): &OraclePyth
+	4: StLoc[2](loc0: &OraclePyth)
+	5: CopyLoc[2](loc0: &OraclePyth)
+	6: ImmBorrowField[4](OraclePyth.coin_to_identifier: VecMap<TypeName, vector<PriceIdentifier>>)
+	7: ImmBorrowLoc[1](Arg1: TypeName)
+	8: Call vec_map::contains<TypeName, vector<PriceIdentifier>>(&VecMap<TypeName, vector<PriceIdentifier>>, &TypeName): bool
+	9: BrFalse(11)
+B1:
+	10: Branch(15)
+B2:
+	11: MoveLoc[2](loc0: &OraclePyth)
+	12: Pop
+	13: LdU64(13906835527258079231)
+	14: Abort
+B3:
+	15: MoveLoc[2](loc0: &OraclePyth)
+	16: ImmBorrowField[4](OraclePyth.coin_to_identifier: VecMap<TypeName, vector<PriceIdentifier>>)
+	17: ImmBorrowLoc[1](Arg1: TypeName)
+	18: Call vec_map::get<TypeName, vector<PriceIdentifier>>(&VecMap<TypeName, vector<PriceIdentifier>>, &TypeName): &vector<PriceIdentifier>
+	19: ReadRef
+	20: Ret
+}
+
+parse_price_to_number(Arg0: &Price): Number * Number {
+L1:	loc0: I64
+L2:	loc1: Number
+L3:	loc2: Number
+L4:	loc3: u64
+L5:	loc4: I64
+L6:	loc5: u64
+B0:
+	0: CopyLoc[0](Arg0: &Price)
+	1: Call price::get_price(&Price): I64
+	2: StLoc[1](loc0: I64)
+	3: ImmBorrowLoc[1](loc0: I64)
+	4: Call i64::get_magnitude_if_positive(&I64): u64
+	5: StLoc[6](loc5: u64)
+	6: CopyLoc[0](Arg0: &Price)
+	7: Call price::get_conf(&Price): u64
+	8: StLoc[4](loc3: u64)
+	9: MoveLoc[0](Arg0: &Price)
+	10: Call price::get_expo(&Price): I64
+	11: StLoc[5](loc4: I64)
+	12: ImmBorrowLoc[5](loc4: I64)
+	13: Call i64::get_is_negative(&I64): bool
+	14: BrFalse(36)
+B1:
+	15: MoveLoc[6](loc5: u64)
+	16: Call math::from(u64): Number
+	17: LdU64(10)
+	18: ImmBorrowLoc[5](loc4: I64)
+	19: Call i64::get_magnitude_if_negative(&I64): u64
+	20: CastU8
+	21: Call 0math::pow(u64, u8): u64
+	22: Call math::from(u64): Number
+	23: Call math::div(Number, Number): Number
+	24: MoveLoc[4](loc3: u64)
+	25: Call math::from(u64): Number
+	26: LdU64(10)
+	27: ImmBorrowLoc[5](loc4: I64)
+	28: Call i64::get_magnitude_if_negative(&I64): u64
+	29: CastU8
+	30: Call 0math::pow(u64, u8): u64
+	31: Call math::from(u64): Number
+	32: Call math::div(Number, Number): Number
+	33: StLoc[3](loc2: Number)
+	34: StLoc[2](loc1: Number)
+	35: Branch(56)
+B2:
+	36: MoveLoc[6](loc5: u64)
+	37: Call math::from(u64): Number
+	38: LdU64(10)
+	39: ImmBorrowLoc[5](loc4: I64)
+	40: Call i64::get_magnitude_if_positive(&I64): u64
+	41: CastU8
+	42: Call 0math::pow(u64, u8): u64
+	43: Call math::from(u64): Number
+	44: Call math::mul(Number, Number): Number
+	45: MoveLoc[4](loc3: u64)
+	46: Call math::from(u64): Number
+	47: LdU64(10)
+	48: ImmBorrowLoc[5](loc4: I64)
+	49: Call i64::get_magnitude_if_positive(&I64): u64
+	50: CastU8
+	51: Call 0math::pow(u64, u8): u64
+	52: Call math::from(u64): Number
+	53: Call math::div(Number, Number): Number
+	54: StLoc[3](loc2: Number)
+	55: StLoc[2](loc1: Number)
+B3:
+	56: MoveLoc[2](loc1: Number)
+	57: MoveLoc[3](loc2: Number)
+	58: Ret
+}
+
+validate_price_update(Arg0: Number, Arg1: Number, Arg2: u8, Arg3: u16) {
+L4:	loc0: Number
+L5:	loc1: Number
+L6:	loc2: Number
+L7:	loc3: Number
+L8:	loc4: Number
+B0:
+	0: MoveLoc[2](Arg2: u8)
+	1: LdConst[1](u8: 0)
+	2: Eq
+	3: BrFalse(19)
+B1:
+	4: CopyLoc[1](Arg1: Number)
+	5: CopyLoc[0](Arg0: Number)
+	6: Call math::lt(Number, Number): bool
+	7: BrFalse(12)
+B2:
+	8: LdU64(0)
+	9: Call math::from(u64): Number
+	10: StLoc[4](loc0: Number)
+	11: Branch(16)
+B3:
+	12: CopyLoc[1](Arg1: Number)
+	13: MoveLoc[0](Arg0: Number)
+	14: Call math::sub(Number, Number): Number
+	15: StLoc[4](loc0: Number)
+B4:
+	16: MoveLoc[4](loc0: Number)
+	17: StLoc[6](loc2: Number)
+	18: Branch(34)
+B5:
+	19: CopyLoc[0](Arg0: Number)
+	20: CopyLoc[1](Arg1: Number)
+	21: Call math::gt(Number, Number): bool
+	22: BrFalse(28)
+B6:
+	23: MoveLoc[0](Arg0: Number)
+	24: CopyLoc[1](Arg1: Number)
+	25: Call math::sub(Number, Number): Number
+	26: StLoc[5](loc1: Number)
+	27: Branch(32)
+B7:
+	28: CopyLoc[1](Arg1: Number)
+	29: MoveLoc[0](Arg0: Number)
+	30: Call math::sub(Number, Number): Number
+	31: StLoc[5](loc1: Number)
+B8:
+	32: MoveLoc[5](loc1: Number)
+	33: StLoc[6](loc2: Number)
+B9:
+	34: MoveLoc[6](loc2: Number)
+	35: StLoc[7](loc3: Number)
+	36: MoveLoc[3](Arg3: u16)
+	37: CastU64
+	38: Call math::from(u64): Number
+	39: MoveLoc[1](Arg1: Number)
+	40: Call math::mul(Number, Number): Number
+	41: LdU64(10000)
+	42: Call math::from(u64): Number
+	43: Call math::div(Number, Number): Number
+	44: StLoc[8](loc4: Number)
+	45: MoveLoc[7](loc3: Number)
+	46: MoveLoc[8](loc4: Number)
+	47: Call math::gt(Number, Number): bool
+	48: BrFalse(51)
+B10:
+	49: LdU64(13906836034064744457)
+	50: Abort
+B11:
+	51: Ret
+}
+
+public update_price_from_pyth(Arg0: &mut Oracle, Arg1: &PriceInfoObject, Arg2: &Clock) {
+L3:	loc0: Price
+L4:	loc1: bool
+L5:	loc2: &TypeName
+L6:	loc3: Number
+L7:	loc4: Number
+L8:	loc5: Number
+L9:	loc6: Number
+L10:	loc7: u64
+L11:	loc8: Number
+L12:	loc9: &PriceFeed
+L13:	loc10: PriceIdentifier
+L14:	loc11: PriceInfo
+L15:	loc12: &PriceInfo
+L16:	loc13: &mut PriceInfo
+L17:	loc14: Price
+L18:	loc15: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut Oracle)
+	1: ImmBorrowField[1](Oracle.max_age: u64)
+	2: ReadRef
+	3: StLoc[10](loc7: u64)
+	4: CopyLoc[1](Arg1: &PriceInfoObject)
+	5: MoveLoc[2](Arg2: &Clock)
+	6: MoveLoc[10](loc7: u64)
+	7: Call pyth::get_price_no_older_than(&PriceInfoObject, &Clock, u64): Price
+	8: StLoc[17](loc14: Price)
+	9: MoveLoc[1](Arg1: &PriceInfoObject)
+	10: Call price_info::get_price_info_from_price_info_object(&PriceInfoObject): PriceInfo
+	11: StLoc[14](loc11: PriceInfo)
+	12: ImmBorrowLoc[14](loc11: PriceInfo)
+	13: Call price_info::get_price_identifier(&PriceInfo): PriceIdentifier
+	14: StLoc[13](loc10: PriceIdentifier)
+	15: ImmBorrowLoc[14](loc11: PriceInfo)
+	16: Call price_info::get_price_feed(&PriceInfo): &PriceFeed
+	17: StLoc[12](loc9: &PriceFeed)
+	18: ImmBorrowLoc[13](loc10: PriceIdentifier)
+	19: Call price_identifier::get_bytes(&PriceIdentifier): vector<u8>
+	20: Pop
+	21: ImmBorrowLoc[17](loc14: Price)
+	22: Call parse_price_to_number(&Price): Number * Number
+	23: StLoc[6](loc3: Number)
+	24: StLoc[11](loc8: Number)
+	25: MoveLoc[6](loc3: Number)
+	26: LdU64(100)
+	27: Call math::from(u64): Number
+	28: Call math::mul(Number, Number): Number
+	29: LdConst[11](u8: 10)
+	30: Call math::from_u8(u8): Number
+	31: Call math::div(Number, Number): Number
+	32: StLoc[6](loc3: Number)
+	33: ImmBorrowLoc[17](loc14: Price)
+	34: Call price::get_timestamp(&Price): u64
+	35: StLoc[18](loc15: u64)
+	36: MoveLoc[12](loc9: &PriceFeed)
+	37: Call price_feed::get_ema_price(&PriceFeed): Price
+	38: StLoc[3](loc0: Price)
+	39: ImmBorrowLoc[3](loc0: Price)
+	40: Call parse_price_to_number(&Price): Number * Number
+	41: StLoc[8](loc5: Number)
+	42: StLoc[9](loc6: Number)
+	43: MoveLoc[8](loc5: Number)
+	44: LdU64(100)
+	45: Call math::from(u64): Number
+	46: Call math::mul(Number, Number): Number
+	47: LdConst[11](u8: 10)
+	48: Call math::from_u8(u8): Number
+	49: Call math::div(Number, Number): Number
+	50: StLoc[8](loc5: Number)
+	51: MoveLoc[6](loc3: Number)
+	52: CopyLoc[11](loc8: Number)
+	53: Call math::gt(Number, Number): bool
+	54: BrFalse(58)
+B1:
+	55: LdTrue
+	56: StLoc[4](loc1: bool)
+	57: Branch(62)
+B2:
+	58: MoveLoc[8](loc5: Number)
+	59: CopyLoc[9](loc6: Number)
+	60: Call math::gt(Number, Number): bool
+	61: StLoc[4](loc1: bool)
+B3:
+	62: MoveLoc[4](loc1: bool)
+	63: BrFalse(67)
+B4:
+	64: MoveLoc[0](Arg0: &mut Oracle)
+	65: Pop
+	66: Ret
+B5:
+	67: CopyLoc[0](Arg0: &mut Oracle)
+	68: ImmBorrowField[0](Oracle.id: UID)
+	69: LdConst[10](u64: 0)
+	70: Call dynamic_field::borrow<u64, OraclePyth>(&UID, u64): &OraclePyth
+	71: ImmBorrowField[2](OraclePyth.identifier_map: VecMap<PriceIdentifier, TypeName>)
+	72: ImmBorrowLoc[13](loc10: PriceIdentifier)
+	73: Call vec_map::get<PriceIdentifier, TypeName>(&VecMap<PriceIdentifier, TypeName>, &PriceIdentifier): &TypeName
+	74: StLoc[5](loc2: &TypeName)
+	75: CopyLoc[0](Arg0: &mut Oracle)
+	76: ImmBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	77: CopyLoc[5](loc2: &TypeName)
+	78: ReadRef
+	79: Call table::borrow<TypeName, PriceInfo>(&Table<TypeName, PriceInfo>, TypeName): &PriceInfo
+	80: StLoc[15](loc12: &PriceInfo)
+	81: CopyLoc[9](loc6: Number)
+	82: CopyLoc[11](loc8: Number)
+	83: CopyLoc[15](loc12: &PriceInfo)
+	84: ImmBorrowField[11](PriceInfo.coin_kind: u8)
+	85: ReadRef
+	86: MoveLoc[15](loc12: &PriceInfo)
+	87: ImmBorrowField[12](PriceInfo.circuit_breaker_threshold_bps: u16)
+	88: ReadRef
+	89: Call validate_price_update(Number, Number, u8, u16)
+	90: MoveLoc[0](Arg0: &mut Oracle)
+	91: MutBorrowField[3](Oracle.price_infos: Table<TypeName, PriceInfo>)
+	92: MoveLoc[5](loc2: &TypeName)
+	93: ReadRef
+	94: Call table::borrow_mut<TypeName, PriceInfo>(&mut Table<TypeName, PriceInfo>, TypeName): &mut PriceInfo
+	95: StLoc[16](loc13: &mut PriceInfo)
+	96: CopyLoc[9](loc6: Number)
+	97: CopyLoc[16](loc13: &mut PriceInfo)
+	98: MutBorrowField[8](PriceInfo.ema_price: Number)
+	99: WriteRef
+	100: CopyLoc[11](loc8: Number)
+	101: CopyLoc[16](loc13: &mut PriceInfo)
+	102: MutBorrowField[7](PriceInfo.price: Number)
+	103: WriteRef
+	104: LdU64(0)
+	105: Call math::from(u64): Number
+	106: StLoc[7](loc4: Number)
+	107: CopyLoc[7](loc4: Number)
+	108: CopyLoc[16](loc13: &mut PriceInfo)
+	109: MutBorrowField[13](PriceInfo.conf: Number)
+	110: WriteRef
+	111: CopyLoc[18](loc15: u64)
+	112: CopyLoc[16](loc13: &mut PriceInfo)
+	113: MutBorrowField[10](PriceInfo.last_updated: u64)
+	114: WriteRef
+	115: MoveLoc[16](loc13: &mut PriceInfo)
+	116: ImmBorrowField[9](PriceInfo.coin_type: TypeName)
+	117: ReadRef
+	118: MoveLoc[13](loc10: PriceIdentifier)
+	119: MoveLoc[11](loc8: Number)
+	120: MoveLoc[9](loc6: Number)
+	121: MoveLoc[7](loc4: Number)
+	122: MoveLoc[18](loc15: u64)
+	123: Pack[1](PythPriceUpdationEvent)
+	124: Call event::emit<PythPriceUpdationEvent>(PythPriceUpdationEvent)
+	125: Ret
+}
+
+Constants [
+	0 => vector<u8>: "ErrIdentifierAlreadyPresent" // interpreted as UTF8 string
+	1 => u8: 0
+	2 => vector<u8>: "ErrCoinTypeAlreadyPresent" // interpreted as UTF8 string
+	3 => u8: 1
+	4 => vector<u8>: "ErrCoinTypeNotPresent" // interpreted as UTF8 string
+	5 => u8: 2
+	6 => vector<u8>: "ErrParentPriceIdentifierNotPresent" // interpreted as UTF8 string
+	7 => u8: 3
+	8 => vector<u8>: "ErrEmaSpotDiffThresholdExceeded" // interpreted as UTF8 string
+	9 => u8: 4
+	10 => u64: 0
+	11 => u8: 10
+]
+}

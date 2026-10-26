@@ -1,0 +1,574 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.equity {
+use 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523::util;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::url;
+
+struct EquityShareBalance<phantom Ty0> has store {
+	value_x64: u128
+}
+
+struct EquityRegistry<phantom Ty0> has store {
+	supply_x64: u128,
+	underlying_value_x64: u128
+}
+
+struct EquityTreasury<phantom Ty0> has store {
+	registry: EquityRegistry<Ty0>,
+	cap: TreasuryCap<Ty0>
+}
+
+public value_x64<Ty0>(Arg0: &EquityShareBalance<Ty0>): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &EquityShareBalance<Ty0>)
+	1: ImmBorrowFieldGeneric[0](EquityShareBalance.value_x64: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public supply_x64<Ty0>(Arg0: &EquityRegistry<Ty0>): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &EquityRegistry<Ty0>)
+	1: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public underlying_value_x64<Ty0>(Arg0: &EquityRegistry<Ty0>): u128 {
+B0:
+	0: MoveLoc[0](Arg0: &EquityRegistry<Ty0>)
+	1: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	2: ReadRef
+	3: Ret
+}
+
+public borrow_registry<Ty0>(Arg0: &EquityTreasury<Ty0>): &EquityRegistry<Ty0> {
+B0:
+	0: MoveLoc[0](Arg0: &EquityTreasury<Ty0>)
+	1: ImmBorrowFieldGeneric[3](EquityTreasury.registry: EquityRegistry<Ty0>)
+	2: Ret
+}
+
+public borrow_mut_registry<Ty0>(Arg0: &mut EquityTreasury<Ty0>): &mut EquityRegistry<Ty0> {
+B0:
+	0: MoveLoc[0](Arg0: &mut EquityTreasury<Ty0>)
+	1: MutBorrowFieldGeneric[3](EquityTreasury.registry: EquityRegistry<Ty0>)
+	2: Ret
+}
+
+public borrow_treasury_cap<Ty0>(Arg0: &EquityTreasury<Ty0>): &TreasuryCap<Ty0> {
+B0:
+	0: MoveLoc[0](Arg0: &EquityTreasury<Ty0>)
+	1: ImmBorrowFieldGeneric[4](EquityTreasury.cap: TreasuryCap<Ty0>)
+	2: Ret
+}
+
+public create_registry<Ty0: drop>(Arg0: Ty0): EquityRegistry<Ty0> {
+B0:
+	0: LdU128(0)
+	1: LdU128(0)
+	2: PackGeneric[0](EquityRegistry<Ty0>)
+	3: Ret
+}
+
+public create_registry_with_cap<Ty0: drop>(Arg0: &TreasuryCap<Ty0>): EquityRegistry<Ty0> {
+B0:
+	0: LdU128(0)
+	1: LdU128(0)
+	2: PackGeneric[0](EquityRegistry<Ty0>)
+	3: Ret
+}
+
+public create_treasury<Ty0: drop>(Arg0: Ty0, Arg1: u8, Arg2: vector<u8>, Arg3: vector<u8>, Arg4: vector<u8>, Arg5: Option<Url>, Arg6: &mut TxContext): EquityTreasury<Ty0> * CoinMetadata<Ty0> {
+L7:	loc0: TreasuryCap<Ty0>
+L8:	loc1: CoinMetadata<Ty0>
+B0:
+	0: MoveLoc[0](Arg0: Ty0)
+	1: MoveLoc[1](Arg1: u8)
+	2: MoveLoc[2](Arg2: vector<u8>)
+	3: MoveLoc[3](Arg3: vector<u8>)
+	4: MoveLoc[4](Arg4: vector<u8>)
+	5: MoveLoc[5](Arg5: Option<Url>)
+	6: MoveLoc[6](Arg6: &mut TxContext)
+	7: Call coin::create_currency<Ty0>(Ty0, u8, vector<u8>, vector<u8>, vector<u8>, Option<Url>, &mut TxContext): TreasuryCap<Ty0> * CoinMetadata<Ty0>
+	8: StLoc[8](loc1: CoinMetadata<Ty0>)
+	9: StLoc[7](loc0: TreasuryCap<Ty0>)
+	10: LdU128(0)
+	11: LdU128(0)
+	12: PackGeneric[0](EquityRegistry<Ty0>)
+	13: MoveLoc[7](loc0: TreasuryCap<Ty0>)
+	14: PackGeneric[1](EquityTreasury<Ty0>)
+	15: MoveLoc[8](loc1: CoinMetadata<Ty0>)
+	16: Ret
+}
+
+public zero<Ty0>(): EquityShareBalance<Ty0> {
+B0:
+	0: LdU128(0)
+	1: PackGeneric[2](EquityShareBalance<Ty0>)
+	2: Ret
+}
+
+public increase_value_and_issue_x64<Ty0>(Arg0: &mut EquityRegistry<Ty0>, Arg1: u128): EquityShareBalance<Ty0> {
+L2:	loc0: u128
+B0:
+	0: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	1: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	2: ReadRef
+	3: LdU128(0)
+	4: Eq
+	5: BrFalse(17)
+B1:
+	6: CopyLoc[1](Arg1: u128)
+	7: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	8: MutBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	9: WriteRef
+	10: CopyLoc[1](Arg1: u128)
+	11: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	12: MutBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	13: WriteRef
+	14: MoveLoc[1](Arg1: u128)
+	15: PackGeneric[2](EquityShareBalance<Ty0>)
+	16: Ret
+B2:
+	17: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	18: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	19: ReadRef
+	20: CopyLoc[1](Arg1: u128)
+	21: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	22: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	23: ReadRef
+	24: Call util::muldiv_u128(u128, u128, u128): u128
+	25: StLoc[2](loc0: u128)
+	26: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	27: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	28: ReadRef
+	29: MoveLoc[1](Arg1: u128)
+	30: Add
+	31: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	32: MutBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	33: WriteRef
+	34: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	35: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	36: ReadRef
+	37: CopyLoc[2](loc0: u128)
+	38: Add
+	39: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	40: MutBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	41: WriteRef
+	42: MoveLoc[2](loc0: u128)
+	43: PackGeneric[2](EquityShareBalance<Ty0>)
+	44: Ret
+}
+
+public increase_value_and_issue<Ty0>(Arg0: &mut EquityRegistry<Ty0>, Arg1: u64): EquityShareBalance<Ty0> {
+L2:	loc0: u128
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CastU128
+	2: LdConst[0](u128: 1844..)
+	3: Mul
+	4: StLoc[2](loc0: u128)
+	5: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	6: MoveLoc[2](loc0: u128)
+	7: Call increase_value_and_issue_x64<Ty0>(&mut EquityRegistry<Ty0>, u128): EquityShareBalance<Ty0>
+	8: Ret
+}
+
+public increase_value_x64<Ty0>(Arg0: &mut EquityRegistry<Ty0>, Arg1: u128) {
+B0:
+	0: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	1: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: u128)
+	4: Add
+	5: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	6: MutBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	7: WriteRef
+	8: Ret
+}
+
+public increase_value<Ty0>(Arg0: &mut EquityRegistry<Ty0>, Arg1: u64) {
+L2:	loc0: u128
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CastU128
+	2: LdConst[0](u128: 1844..)
+	3: Mul
+	4: StLoc[2](loc0: u128)
+	5: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	6: MoveLoc[2](loc0: u128)
+	7: Call increase_value_x64<Ty0>(&mut EquityRegistry<Ty0>, u128)
+	8: Ret
+}
+
+public decrease_value_x64<Ty0>(Arg0: &mut EquityRegistry<Ty0>, Arg1: u128) {
+B0:
+	0: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	1: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: u128)
+	4: Sub
+	5: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	6: MutBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	7: WriteRef
+	8: Ret
+}
+
+public decrease_value<Ty0>(Arg0: &mut EquityRegistry<Ty0>, Arg1: u64) {
+L2:	loc0: u128
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CastU128
+	2: LdConst[0](u128: 1844..)
+	3: Mul
+	4: StLoc[2](loc0: u128)
+	5: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	6: MoveLoc[2](loc0: u128)
+	7: Call decrease_value_x64<Ty0>(&mut EquityRegistry<Ty0>, u128)
+	8: Ret
+}
+
+public calc_redeem_x64<Ty0>(Arg0: &EquityRegistry<Ty0>, Arg1: u128): u128 {
+B0:
+	0: CopyLoc[0](Arg0: &EquityRegistry<Ty0>)
+	1: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: u128)
+	4: MoveLoc[0](Arg0: &EquityRegistry<Ty0>)
+	5: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	6: ReadRef
+	7: Call util::muldiv_u128(u128, u128, u128): u128
+	8: Ret
+}
+
+public redeem_x64<Ty0>(Arg0: &mut EquityRegistry<Ty0>, Arg1: EquityShareBalance<Ty0>): u128 {
+L2:	loc0: u128
+L3:	loc1: u128
+B0:
+	0: MoveLoc[1](Arg1: EquityShareBalance<Ty0>)
+	1: UnpackGeneric[2](EquityShareBalance<Ty0>)
+	2: StLoc[2](loc0: u128)
+	3: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	4: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	5: ReadRef
+	6: CopyLoc[2](loc0: u128)
+	7: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	8: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	9: ReadRef
+	10: Call util::muldiv_u128(u128, u128, u128): u128
+	11: StLoc[3](loc1: u128)
+	12: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	13: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	14: ReadRef
+	15: CopyLoc[3](loc1: u128)
+	16: Sub
+	17: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	18: MutBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	19: WriteRef
+	20: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	21: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	22: ReadRef
+	23: MoveLoc[2](loc0: u128)
+	24: Sub
+	25: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	26: MutBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	27: WriteRef
+	28: MoveLoc[3](loc1: u128)
+	29: Ret
+}
+
+public calc_redeem_lossy<Ty0>(Arg0: &EquityRegistry<Ty0>, Arg1: u128): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &EquityRegistry<Ty0>)
+	1: MoveLoc[1](Arg1: u128)
+	2: Call calc_redeem_x64<Ty0>(&EquityRegistry<Ty0>, u128): u128
+	3: LdConst[0](u128: 1844..)
+	4: Div
+	5: CastU64
+	6: Ret
+}
+
+public redeem_lossy<Ty0>(Arg0: &mut EquityRegistry<Ty0>, Arg1: EquityShareBalance<Ty0>): u64 {
+L2:	loc0: u128
+L3:	loc1: u64
+L4:	loc2: u128
+B0:
+	0: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	1: MoveLoc[1](Arg1: EquityShareBalance<Ty0>)
+	2: Call redeem_x64<Ty0>(&mut EquityRegistry<Ty0>, EquityShareBalance<Ty0>): u128
+	3: StLoc[4](loc2: u128)
+	4: CopyLoc[4](loc2: u128)
+	5: LdConst[0](u128: 1844..)
+	6: Div
+	7: CastU64
+	8: StLoc[3](loc1: u64)
+	9: MoveLoc[4](loc2: u128)
+	10: LdConst[0](u128: 1844..)
+	11: Mod
+	12: StLoc[2](loc0: u128)
+	13: CopyLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	14: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	15: ReadRef
+	16: MoveLoc[2](loc0: u128)
+	17: Add
+	18: MoveLoc[0](Arg0: &mut EquityRegistry<Ty0>)
+	19: MutBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	20: WriteRef
+	21: MoveLoc[3](loc1: u64)
+	22: Ret
+}
+
+public calc_redeem_for_amount_x64<Ty0>(Arg0: &EquityRegistry<Ty0>, Arg1: u128): u128 * u128 {
+L2:	loc0: u128
+B0:
+	0: MoveLoc[1](Arg1: u128)
+	1: CopyLoc[0](Arg0: &EquityRegistry<Ty0>)
+	2: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	3: ReadRef
+	4: CopyLoc[0](Arg0: &EquityRegistry<Ty0>)
+	5: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	6: ReadRef
+	7: Call util::muldiv_round_up_u128(u128, u128, u128): u128
+	8: StLoc[2](loc0: u128)
+	9: CopyLoc[2](loc0: u128)
+	10: MoveLoc[0](Arg0: &EquityRegistry<Ty0>)
+	11: MoveLoc[2](loc0: u128)
+	12: Call calc_redeem_x64<Ty0>(&EquityRegistry<Ty0>, u128): u128
+	13: Ret
+}
+
+public calc_redeem_for_amount<Ty0>(Arg0: &EquityRegistry<Ty0>, Arg1: u64): u128 {
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CastU128
+	2: LdConst[0](u128: 1844..)
+	3: Mul
+	4: CopyLoc[0](Arg0: &EquityRegistry<Ty0>)
+	5: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	6: ReadRef
+	7: MoveLoc[0](Arg0: &EquityRegistry<Ty0>)
+	8: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	9: ReadRef
+	10: Call util::muldiv_round_up_u128(u128, u128, u128): u128
+	11: Ret
+}
+
+public calc_balance_redeem_for_amount<Ty0>(Arg0: &EquityRegistry<Ty0>, Arg1: u64): u64 * u64 {
+L2:	loc0: u64
+L3:	loc1: u64
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CastU128
+	2: CopyLoc[0](Arg0: &EquityRegistry<Ty0>)
+	3: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	4: ReadRef
+	5: CopyLoc[0](Arg0: &EquityRegistry<Ty0>)
+	6: ImmBorrowFieldGeneric[2](EquityRegistry.underlying_value_x64: u128)
+	7: ReadRef
+	8: Call util::muldiv_round_up_u128(u128, u128, u128): u128
+	9: CastU64
+	10: StLoc[3](loc1: u64)
+	11: MoveLoc[0](Arg0: &EquityRegistry<Ty0>)
+	12: CopyLoc[3](loc1: u64)
+	13: CastU128
+	14: LdConst[0](u128: 1844..)
+	15: Mul
+	16: Call calc_redeem_lossy<Ty0>(&EquityRegistry<Ty0>, u128): u64
+	17: StLoc[2](loc0: u64)
+	18: MoveLoc[3](loc1: u64)
+	19: MoveLoc[2](loc0: u64)
+	20: Ret
+}
+
+public into_balance_lossy<Ty0>(Arg0: EquityShareBalance<Ty0>, Arg1: &mut EquityTreasury<Ty0>): Balance<Ty0> {
+L2:	loc0: u128
+L3:	loc1: u128
+L4:	loc2: u64
+B0:
+	0: MoveLoc[0](Arg0: EquityShareBalance<Ty0>)
+	1: UnpackGeneric[2](EquityShareBalance<Ty0>)
+	2: StLoc[3](loc1: u128)
+	3: CopyLoc[3](loc1: u128)
+	4: LdConst[0](u128: 1844..)
+	5: Div
+	6: CastU64
+	7: StLoc[4](loc2: u64)
+	8: MoveLoc[3](loc1: u128)
+	9: LdConst[0](u128: 1844..)
+	10: Mod
+	11: StLoc[2](loc0: u128)
+	12: CopyLoc[1](Arg1: &mut EquityTreasury<Ty0>)
+	13: ImmBorrowFieldGeneric[3](EquityTreasury.registry: EquityRegistry<Ty0>)
+	14: ImmBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	15: ReadRef
+	16: MoveLoc[2](loc0: u128)
+	17: Sub
+	18: CopyLoc[1](Arg1: &mut EquityTreasury<Ty0>)
+	19: MutBorrowFieldGeneric[3](EquityTreasury.registry: EquityRegistry<Ty0>)
+	20: MutBorrowFieldGeneric[1](EquityRegistry.supply_x64: u128)
+	21: WriteRef
+	22: MoveLoc[1](Arg1: &mut EquityTreasury<Ty0>)
+	23: MutBorrowFieldGeneric[4](EquityTreasury.cap: TreasuryCap<Ty0>)
+	24: MoveLoc[4](loc2: u64)
+	25: Call coin::mint_balance<Ty0>(&mut TreasuryCap<Ty0>, u64): Balance<Ty0>
+	26: Ret
+}
+
+public into_balance<Ty0>(Arg0: &mut EquityShareBalance<Ty0>, Arg1: &mut EquityTreasury<Ty0>): Balance<Ty0> {
+L2:	loc0: u128
+B0:
+	0: CopyLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	1: ImmBorrowFieldGeneric[0](EquityShareBalance.value_x64: u128)
+	2: ReadRef
+	3: LdConst[0](u128: 1844..)
+	4: Div
+	5: LdConst[0](u128: 1844..)
+	6: Mul
+	7: StLoc[2](loc0: u128)
+	8: MoveLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	9: MoveLoc[2](loc0: u128)
+	10: Call split_x64<Ty0>(&mut EquityShareBalance<Ty0>, u128): EquityShareBalance<Ty0>
+	11: MoveLoc[1](Arg1: &mut EquityTreasury<Ty0>)
+	12: Call into_balance_lossy<Ty0>(EquityShareBalance<Ty0>, &mut EquityTreasury<Ty0>): Balance<Ty0>
+	13: Ret
+}
+
+public from_balance<Ty0>(Arg0: &mut EquityTreasury<Ty0>, Arg1: Balance<Ty0>): EquityShareBalance<Ty0> {
+L2:	loc0: u128
+B0:
+	0: ImmBorrowLoc[1](Arg1: Balance<Ty0>)
+	1: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	2: CastU128
+	3: LdConst[0](u128: 1844..)
+	4: Mul
+	5: StLoc[2](loc0: u128)
+	6: MoveLoc[0](Arg0: &mut EquityTreasury<Ty0>)
+	7: MutBorrowFieldGeneric[4](EquityTreasury.cap: TreasuryCap<Ty0>)
+	8: Call coin::supply_mut<Ty0>(&mut TreasuryCap<Ty0>): &mut Supply<Ty0>
+	9: MoveLoc[1](Arg1: Balance<Ty0>)
+	10: Call balance::decrease_supply<Ty0>(&mut Supply<Ty0>, Balance<Ty0>): u64
+	11: Pop
+	12: MoveLoc[2](loc0: u128)
+	13: PackGeneric[2](EquityShareBalance<Ty0>)
+	14: Ret
+}
+
+public split_x64<Ty0>(Arg0: &mut EquityShareBalance<Ty0>, Arg1: u128): EquityShareBalance<Ty0> {
+L2:	loc0: EquityShareBalance<Ty0>
+B0:
+	0: CopyLoc[1](Arg1: u128)
+	1: PackGeneric[2](EquityShareBalance<Ty0>)
+	2: StLoc[2](loc0: EquityShareBalance<Ty0>)
+	3: CopyLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	4: ImmBorrowFieldGeneric[0](EquityShareBalance.value_x64: u128)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: u128)
+	7: Sub
+	8: MoveLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	9: MutBorrowFieldGeneric[0](EquityShareBalance.value_x64: u128)
+	10: WriteRef
+	11: MoveLoc[2](loc0: EquityShareBalance<Ty0>)
+	12: Ret
+}
+
+public withdraw_all<Ty0>(Arg0: &mut EquityShareBalance<Ty0>): EquityShareBalance<Ty0> {
+L1:	loc0: u128
+B0:
+	0: CopyLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	1: ImmBorrowFieldGeneric[0](EquityShareBalance.value_x64: u128)
+	2: ReadRef
+	3: StLoc[1](loc0: u128)
+	4: MoveLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	5: MoveLoc[1](loc0: u128)
+	6: Call split_x64<Ty0>(&mut EquityShareBalance<Ty0>, u128): EquityShareBalance<Ty0>
+	7: Ret
+}
+
+public split<Ty0>(Arg0: &mut EquityShareBalance<Ty0>, Arg1: u64): EquityShareBalance<Ty0> {
+L2:	loc0: u128
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CastU128
+	2: LdConst[0](u128: 1844..)
+	3: Mul
+	4: StLoc[2](loc0: u128)
+	5: MoveLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	6: MoveLoc[2](loc0: u128)
+	7: Call split_x64<Ty0>(&mut EquityShareBalance<Ty0>, u128): EquityShareBalance<Ty0>
+	8: Ret
+}
+
+public join<Ty0>(Arg0: &mut EquityShareBalance<Ty0>, Arg1: EquityShareBalance<Ty0>) {
+L2:	loc0: u128
+B0:
+	0: MoveLoc[1](Arg1: EquityShareBalance<Ty0>)
+	1: UnpackGeneric[2](EquityShareBalance<Ty0>)
+	2: StLoc[2](loc0: u128)
+	3: CopyLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	4: ImmBorrowFieldGeneric[0](EquityShareBalance.value_x64: u128)
+	5: ReadRef
+	6: MoveLoc[2](loc0: u128)
+	7: Add
+	8: MoveLoc[0](Arg0: &mut EquityShareBalance<Ty0>)
+	9: MutBorrowFieldGeneric[0](EquityShareBalance.value_x64: u128)
+	10: WriteRef
+	11: Ret
+}
+
+public destroy_zero<Ty0>(Arg0: EquityShareBalance<Ty0>) {
+B0:
+	0: ImmBorrowLoc[0](Arg0: EquityShareBalance<Ty0>)
+	1: ImmBorrowFieldGeneric[0](EquityShareBalance.value_x64: u128)
+	2: ReadRef
+	3: LdU128(0)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(9)
+B2:
+	7: LdConst[1](u64: 0)
+	8: Abort
+B3:
+	9: MoveLoc[0](Arg0: EquityShareBalance<Ty0>)
+	10: UnpackGeneric[2](EquityShareBalance<Ty0>)
+	11: Pop
+	12: Ret
+}
+
+public destroy_empty_registry<Ty0>(Arg0: EquityRegistry<Ty0>) {
+L1:	loc0: u128
+B0:
+	0: MoveLoc[0](Arg0: EquityRegistry<Ty0>)
+	1: UnpackGeneric[0](EquityRegistry<Ty0>)
+	2: StLoc[1](loc0: u128)
+	3: LdU128(0)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(9)
+B2:
+	7: LdConst[1](u64: 0)
+	8: Abort
+B3:
+	9: MoveLoc[1](loc0: u128)
+	10: LdU128(0)
+	11: Eq
+	12: BrFalse(14)
+B4:
+	13: Branch(16)
+B5:
+	14: LdConst[1](u64: 0)
+	15: Abort
+B6:
+	16: Ret
+}
+
+Constants [
+	0 => u128: 18446744073709551616
+	1 => u64: 0
+]
+}

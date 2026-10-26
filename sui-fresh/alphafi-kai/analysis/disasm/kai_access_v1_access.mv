@@ -1,0 +1,1145 @@
+// Move bytecode v6
+module d9dd55ac7eb676dc78f7d0ae3bc5529d7fd6b52ac0d0edb2d7820c52d080026.access {
+use 0d9dd55ac7eb676dc78f7d0ae3bc5529d7fd6b52ac0d0edb2d7820c52d080026::dynamic_map;
+use 0000000000000000000000000000000000000000000000000000000000000001::ascii;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::transfer;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000002::types;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_set;
+
+struct PackageAdmin has store, key {
+	id: UID,
+	package: String
+}
+
+struct Entity has store, key {
+	id: UID
+}
+
+struct Rule has store {
+	actions: VecSet<TypeName>,
+	conditions: VecSet<TypeName>,
+	condition_configs: DynamicMap<TypeName>
+}
+
+struct Policy has key {
+	id: UID,
+	package: String,
+	allowed_entities: VecSet<ID>,
+	rules: VecMap<address, Rule>,
+	enabled: bool,
+	version: u16
+}
+
+struct ActionRequest {
+	action_name: TypeName,
+	context: DynamicMap<String>,
+	approved_conditions: VecMap<TypeName, address>
+}
+
+struct ConditionWitness<phantom Ty0, Ty1: copy + drop + store> has drop {
+	rule_id: address,
+	config: Ty1,
+	policy: ID,
+	entity: ID
+}
+
+struct ConfigNone has copy, drop, store {
+	dummy_field: bool
+}
+
+public(friend) check_version(Arg0: &Policy) {
+B0:
+	0: MoveLoc[0](Arg0: &Policy)
+	1: ImmBorrowField[0](Policy.version: u16)
+	2: ReadRef
+	3: LdConst[10](u16: 1)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(9)
+B2:
+	7: LdConst[8](u64: 8)
+	8: Abort
+B3:
+	9: Ret
+}
+
+public migrate_policy_version(Arg0: &mut Policy, Arg1: &PackageAdmin) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: ImmBorrowField[0](Policy.version: u16)
+	2: ReadRef
+	3: LdConst[10](u16: 1)
+	4: Lt
+	5: BrFalse(7)
+B1:
+	6: Branch(13)
+B2:
+	7: MoveLoc[0](Arg0: &mut Policy)
+	8: Pop
+	9: MoveLoc[1](Arg1: &PackageAdmin)
+	10: Pop
+	11: LdConst[9](u64: 9)
+	12: Abort
+B3:
+	13: CopyLoc[0](Arg0: &mut Policy)
+	14: ImmBorrowField[1](Policy.package: String)
+	15: ReadRef
+	16: MoveLoc[1](Arg1: &PackageAdmin)
+	17: ImmBorrowField[2](PackageAdmin.package: String)
+	18: ReadRef
+	19: Eq
+	20: BrFalse(22)
+B4:
+	21: Branch(26)
+B5:
+	22: MoveLoc[0](Arg0: &mut Policy)
+	23: Pop
+	24: LdConst[2](u64: 2)
+	25: Abort
+B6:
+	26: LdConst[10](u16: 1)
+	27: MoveLoc[0](Arg0: &mut Policy)
+	28: MutBorrowField[0](Policy.version: u16)
+	29: WriteRef
+	30: Ret
+}
+
+public claim_package<Ty0: drop>(Arg0: Ty0, Arg1: &mut TxContext): PackageAdmin {
+L2:	loc0: TypeName
+B0:
+	0: ImmBorrowLoc[0](Arg0: Ty0)
+	1: Call types::is_one_time_witness<Ty0>(&Ty0): bool
+	2: BrFalse(4)
+B1:
+	3: Branch(8)
+B2:
+	4: MoveLoc[1](Arg1: &mut TxContext)
+	5: Pop
+	6: LdConst[0](u64: 0)
+	7: Abort
+B3:
+	8: Call type_name::get_with_original_ids<Ty0>(): TypeName
+	9: StLoc[2](loc0: TypeName)
+	10: ImmBorrowLoc[2](loc0: TypeName)
+	11: Call type_name::get_module(&TypeName): String
+	12: LdConst[11](vector<u8>: "acc..)
+	13: Call ascii::string(vector<u8>): String
+	14: Eq
+	15: BrFalse(17)
+B4:
+	16: Branch(21)
+B5:
+	17: MoveLoc[1](Arg1: &mut TxContext)
+	18: Pop
+	19: LdConst[1](u64: 1)
+	20: Abort
+B6:
+	21: MoveLoc[1](Arg1: &mut TxContext)
+	22: Call object::new(&mut TxContext): UID
+	23: ImmBorrowLoc[2](loc0: TypeName)
+	24: Call type_name::get_address(&TypeName): String
+	25: Pack[0](PackageAdmin)
+	26: Ret
+}
+
+public irreversibly_destroy_admin(Arg0: PackageAdmin) {
+B0:
+	0: MoveLoc[0](Arg0: PackageAdmin)
+	1: Unpack[0](PackageAdmin)
+	2: Pop
+	3: Call object::delete(UID)
+	4: Ret
+}
+
+public create_entity(Arg0: &mut TxContext): Entity {
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: Pack[1](Entity)
+	3: Ret
+}
+
+public destroy_entity(Arg0: Entity) {
+B0:
+	0: MoveLoc[0](Arg0: Entity)
+	1: Unpack[1](Entity)
+	2: Call object::delete(UID)
+	3: Ret
+}
+
+public create_empty_policy(Arg0: &PackageAdmin, Arg1: &mut TxContext): Policy {
+B0:
+	0: MoveLoc[1](Arg1: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: MoveLoc[0](Arg0: &PackageAdmin)
+	3: ImmBorrowField[2](PackageAdmin.package: String)
+	4: ReadRef
+	5: Call vec_set::empty<ID>(): VecSet<ID>
+	6: Call vec_map::empty<address, Rule>(): VecMap<address, Rule>
+	7: LdTrue
+	8: LdConst[10](u16: 1)
+	9: Pack[3](Policy)
+	10: Ret
+}
+
+public allowlist_entity_for_policy(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: &ID) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(18)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: MoveLoc[2](Arg2: &ID)
+	15: Pop
+	16: LdConst[2](u64: 2)
+	17: Abort
+B3:
+	18: MoveLoc[0](Arg0: &mut Policy)
+	19: MutBorrowField[3](Policy.allowed_entities: VecSet<ID>)
+	20: MoveLoc[2](Arg2: &ID)
+	21: ReadRef
+	22: Call vec_set::insert<ID>(&mut VecSet<ID>, ID)
+	23: Ret
+}
+
+public remove_entity_from_policy(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: &ID) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(18)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: MoveLoc[2](Arg2: &ID)
+	15: Pop
+	16: LdConst[2](u64: 2)
+	17: Abort
+B3:
+	18: MoveLoc[0](Arg0: &mut Policy)
+	19: MutBorrowField[3](Policy.allowed_entities: VecSet<ID>)
+	20: MoveLoc[2](Arg2: &ID)
+	21: Call vec_set::remove<ID>(&mut VecSet<ID>, &ID)
+	22: Ret
+}
+
+public enable_policy(Arg0: &mut Policy, Arg1: &PackageAdmin) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: LdTrue
+	17: MoveLoc[0](Arg0: &mut Policy)
+	18: MutBorrowField[4](Policy.enabled: bool)
+	19: WriteRef
+	20: Ret
+}
+
+public disable_policy(Arg0: &mut Policy, Arg1: &PackageAdmin) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: LdFalse
+	17: MoveLoc[0](Arg0: &mut Policy)
+	18: MutBorrowField[4](Policy.enabled: bool)
+	19: WriteRef
+	20: Ret
+}
+
+public destroy_empty_policy(Arg0: Policy, Arg1: &PackageAdmin) {
+L2:	loc0: VecMap<address, Rule>
+B0:
+	0: ImmBorrowLoc[0](Arg0: Policy)
+	1: Call check_version(&Policy)
+	2: ImmBorrowLoc[0](Arg0: Policy)
+	3: ImmBorrowField[1](Policy.package: String)
+	4: ReadRef
+	5: MoveLoc[1](Arg1: &PackageAdmin)
+	6: ImmBorrowField[2](PackageAdmin.package: String)
+	7: ReadRef
+	8: Eq
+	9: BrFalse(11)
+B1:
+	10: Branch(13)
+B2:
+	11: LdConst[2](u64: 2)
+	12: Abort
+B3:
+	13: MoveLoc[0](Arg0: Policy)
+	14: Unpack[3](Policy)
+	15: Pop
+	16: Pop
+	17: StLoc[2](loc0: VecMap<address, Rule>)
+	18: Pop
+	19: Pop
+	20: Call object::delete(UID)
+	21: MoveLoc[2](loc0: VecMap<address, Rule>)
+	22: Call vec_map::destroy_empty<address, Rule>(VecMap<address, Rule>)
+	23: Ret
+}
+
+public share_policy(Arg0: Policy, Arg1: &PackageAdmin) {
+B0:
+	0: ImmBorrowLoc[0](Arg0: Policy)
+	1: Call check_version(&Policy)
+	2: ImmBorrowLoc[0](Arg0: Policy)
+	3: ImmBorrowField[1](Policy.package: String)
+	4: ReadRef
+	5: MoveLoc[1](Arg1: &PackageAdmin)
+	6: ImmBorrowField[2](PackageAdmin.package: String)
+	7: ReadRef
+	8: Eq
+	9: BrFalse(11)
+B1:
+	10: Branch(13)
+B2:
+	11: LdConst[2](u64: 2)
+	12: Abort
+B3:
+	13: MoveLoc[0](Arg0: Policy)
+	14: Call transfer::share_object<Policy>(Policy)
+	15: Ret
+}
+
+public add_empty_rule(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: &mut TxContext): address {
+L3:	loc0: Rule
+L4:	loc1: address
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(18)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: MoveLoc[2](Arg2: &mut TxContext)
+	15: Pop
+	16: LdConst[2](u64: 2)
+	17: Abort
+B3:
+	18: CopyLoc[2](Arg2: &mut TxContext)
+	19: Call tx_context::fresh_object_address(&mut TxContext): address
+	20: StLoc[4](loc1: address)
+	21: Call vec_set::empty<TypeName>(): VecSet<TypeName>
+	22: Call vec_set::empty<TypeName>(): VecSet<TypeName>
+	23: MoveLoc[2](Arg2: &mut TxContext)
+	24: Call dynamic_map::new<TypeName>(&mut TxContext): DynamicMap<TypeName>
+	25: Pack[2](Rule)
+	26: StLoc[3](loc0: Rule)
+	27: MoveLoc[0](Arg0: &mut Policy)
+	28: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	29: CopyLoc[4](loc1: address)
+	30: MoveLoc[3](loc0: Rule)
+	31: Call vec_map::insert<address, Rule>(&mut VecMap<address, Rule>, address, Rule)
+	32: MoveLoc[4](loc1: address)
+	33: Ret
+}
+
+public drop_rule(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address) {
+L3:	loc0: DynamicMap<TypeName>
+L4:	loc1: Rule
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: MoveLoc[0](Arg0: &mut Policy)
+	17: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	18: ImmBorrowLoc[2](Arg2: address)
+	19: Call vec_map::remove<address, Rule>(&mut VecMap<address, Rule>, &address): address * Rule
+	20: StLoc[4](loc1: Rule)
+	21: Pop
+	22: MoveLoc[4](loc1: Rule)
+	23: Unpack[2](Rule)
+	24: StLoc[3](loc0: DynamicMap<TypeName>)
+	25: Pop
+	26: Pop
+	27: MoveLoc[3](loc0: DynamicMap<TypeName>)
+	28: Call dynamic_map::force_drop<TypeName>(DynamicMap<TypeName>)
+	29: Ret
+}
+
+public add_action_to_rule<Ty0: drop>(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address) {
+L3:	loc0: TypeName
+L4:	loc1: &mut Rule
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: CopyLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(18)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: MoveLoc[1](Arg1: &PackageAdmin)
+	15: Pop
+	16: LdConst[2](u64: 2)
+	17: Abort
+B3:
+	18: MoveLoc[0](Arg0: &mut Policy)
+	19: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	20: ImmBorrowLoc[2](Arg2: address)
+	21: Call vec_map::get_mut<address, Rule>(&mut VecMap<address, Rule>, &address): &mut Rule
+	22: StLoc[4](loc1: &mut Rule)
+	23: Call type_name::get<Ty0>(): TypeName
+	24: StLoc[3](loc0: TypeName)
+	25: ImmBorrowLoc[3](loc0: TypeName)
+	26: Call type_name::get_address(&TypeName): String
+	27: MoveLoc[1](Arg1: &PackageAdmin)
+	28: ImmBorrowField[2](PackageAdmin.package: String)
+	29: ReadRef
+	30: Eq
+	31: BrFalse(33)
+B4:
+	32: Branch(37)
+B5:
+	33: MoveLoc[4](loc1: &mut Rule)
+	34: Pop
+	35: LdConst[3](u64: 3)
+	36: Abort
+B6:
+	37: MoveLoc[4](loc1: &mut Rule)
+	38: MutBorrowField[6](Rule.actions: VecSet<TypeName>)
+	39: MoveLoc[3](loc0: TypeName)
+	40: Call vec_set::insert<TypeName>(&mut VecSet<TypeName>, TypeName)
+	41: Ret
+}
+
+public remove_action_from_rule<Ty0: drop>(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address) {
+L3:	loc0: TypeName
+L4:	loc1: &mut Rule
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: MoveLoc[0](Arg0: &mut Policy)
+	17: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	18: ImmBorrowLoc[2](Arg2: address)
+	19: Call vec_map::get_mut<address, Rule>(&mut VecMap<address, Rule>, &address): &mut Rule
+	20: StLoc[4](loc1: &mut Rule)
+	21: Call type_name::get<Ty0>(): TypeName
+	22: StLoc[3](loc0: TypeName)
+	23: MoveLoc[4](loc1: &mut Rule)
+	24: MutBorrowField[6](Rule.actions: VecSet<TypeName>)
+	25: ImmBorrowLoc[3](loc0: TypeName)
+	26: Call vec_set::remove<TypeName>(&mut VecSet<TypeName>, &TypeName)
+	27: Ret
+}
+
+public add_condition_to_rule_with_config<Ty0: drop, Ty1: copy + drop + store>(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address, Arg3: Ty1) {
+L4:	loc0: TypeName
+L5:	loc1: &mut Rule
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: MoveLoc[0](Arg0: &mut Policy)
+	17: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	18: ImmBorrowLoc[2](Arg2: address)
+	19: Call vec_map::get_mut<address, Rule>(&mut VecMap<address, Rule>, &address): &mut Rule
+	20: StLoc[5](loc1: &mut Rule)
+	21: Call type_name::get<Ty0>(): TypeName
+	22: StLoc[4](loc0: TypeName)
+	23: CopyLoc[5](loc1: &mut Rule)
+	24: MutBorrowField[7](Rule.conditions: VecSet<TypeName>)
+	25: CopyLoc[4](loc0: TypeName)
+	26: Call vec_set::insert<TypeName>(&mut VecSet<TypeName>, TypeName)
+	27: MoveLoc[5](loc1: &mut Rule)
+	28: MutBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	29: MoveLoc[4](loc0: TypeName)
+	30: MoveLoc[3](Arg3: Ty1)
+	31: Call dynamic_map::insert<TypeName, Ty1>(&mut DynamicMap<TypeName>, TypeName, Ty1)
+	32: Ret
+}
+
+public add_condition_to_rule<Ty0: drop>(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: MoveLoc[0](Arg0: &mut Policy)
+	4: MoveLoc[1](Arg1: &PackageAdmin)
+	5: MoveLoc[2](Arg2: address)
+	6: LdFalse
+	7: Pack[6](ConfigNone)
+	8: Call add_condition_to_rule_with_config<Ty0, ConfigNone>(&mut Policy, &PackageAdmin, address, ConfigNone)
+	9: Ret
+}
+
+public remove_condition_from_rule<Ty0: drop>(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address) {
+L3:	loc0: TypeName
+L4:	loc1: &mut Rule
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: MoveLoc[0](Arg0: &mut Policy)
+	17: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	18: ImmBorrowLoc[2](Arg2: address)
+	19: Call vec_map::get_mut<address, Rule>(&mut VecMap<address, Rule>, &address): &mut Rule
+	20: StLoc[4](loc1: &mut Rule)
+	21: Call type_name::get<Ty0>(): TypeName
+	22: StLoc[3](loc0: TypeName)
+	23: CopyLoc[4](loc1: &mut Rule)
+	24: MutBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	25: CopyLoc[3](loc0: TypeName)
+	26: Call dynamic_map::remove<TypeName, ConfigNone>(&mut DynamicMap<TypeName>, TypeName): ConfigNone
+	27: Pop
+	28: MoveLoc[4](loc1: &mut Rule)
+	29: MutBorrowField[7](Rule.conditions: VecSet<TypeName>)
+	30: ImmBorrowLoc[3](loc0: TypeName)
+	31: Call vec_set::remove<TypeName>(&mut VecSet<TypeName>, &TypeName)
+	32: Ret
+}
+
+public add_config_for_condition<Ty0, Ty1: copy + drop + store>(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address, Arg3: Ty1) {
+L4:	loc0: TypeName
+L5:	loc1: &mut Rule
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: MoveLoc[0](Arg0: &mut Policy)
+	17: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	18: ImmBorrowLoc[2](Arg2: address)
+	19: Call vec_map::get_mut<address, Rule>(&mut VecMap<address, Rule>, &address): &mut Rule
+	20: StLoc[5](loc1: &mut Rule)
+	21: Call type_name::get<Ty0>(): TypeName
+	22: StLoc[4](loc0: TypeName)
+	23: CopyLoc[5](loc1: &mut Rule)
+	24: MutBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	25: CopyLoc[4](loc0: TypeName)
+	26: Call dynamic_map::remove<TypeName, ConfigNone>(&mut DynamicMap<TypeName>, TypeName): ConfigNone
+	27: Pop
+	28: MoveLoc[5](loc1: &mut Rule)
+	29: MutBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	30: MoveLoc[4](loc0: TypeName)
+	31: MoveLoc[3](Arg3: Ty1)
+	32: Call dynamic_map::insert<TypeName, Ty1>(&mut DynamicMap<TypeName>, TypeName, Ty1)
+	33: Ret
+}
+
+public remove_config_for_condition<Ty0, Ty1: copy + drop + store>(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address) {
+L3:	loc0: TypeName
+L4:	loc1: &mut Rule
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: MoveLoc[0](Arg0: &mut Policy)
+	17: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	18: ImmBorrowLoc[2](Arg2: address)
+	19: Call vec_map::get_mut<address, Rule>(&mut VecMap<address, Rule>, &address): &mut Rule
+	20: StLoc[4](loc1: &mut Rule)
+	21: Call type_name::get<Ty0>(): TypeName
+	22: StLoc[3](loc0: TypeName)
+	23: CopyLoc[4](loc1: &mut Rule)
+	24: MutBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	25: CopyLoc[3](loc0: TypeName)
+	26: Call dynamic_map::remove<TypeName, Ty1>(&mut DynamicMap<TypeName>, TypeName): Ty1
+	27: Pop
+	28: MoveLoc[4](loc1: &mut Rule)
+	29: MutBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	30: MoveLoc[3](loc0: TypeName)
+	31: LdFalse
+	32: Pack[6](ConfigNone)
+	33: Call dynamic_map::insert<TypeName, ConfigNone>(&mut DynamicMap<TypeName>, TypeName, ConfigNone)
+	34: Ret
+}
+
+public borrow_condition_config<Ty0, Ty1: copy + drop + store>(Arg0: &Policy, Arg1: &address): &Ty1 {
+L2:	loc0: TypeName
+L3:	loc1: &Rule
+B0:
+	0: CopyLoc[0](Arg0: &Policy)
+	1: Call check_version(&Policy)
+	2: MoveLoc[0](Arg0: &Policy)
+	3: ImmBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	4: MoveLoc[1](Arg1: &address)
+	5: Call vec_map::get<address, Rule>(&VecMap<address, Rule>, &address): &Rule
+	6: StLoc[3](loc1: &Rule)
+	7: Call type_name::get<Ty0>(): TypeName
+	8: StLoc[2](loc0: TypeName)
+	9: MoveLoc[3](loc1: &Rule)
+	10: ImmBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	11: MoveLoc[2](loc0: TypeName)
+	12: Call dynamic_map::borrow<TypeName, Ty1>(&DynamicMap<TypeName>, TypeName): &Ty1
+	13: Ret
+}
+
+public borrow_mut_condition_config<Ty0, Ty1: copy + drop + store>(Arg0: &mut Policy, Arg1: &PackageAdmin, Arg2: address): &mut Ty1 {
+L3:	loc0: TypeName
+L4:	loc1: &mut Rule
+B0:
+	0: CopyLoc[0](Arg0: &mut Policy)
+	1: FreezeRef
+	2: Call check_version(&Policy)
+	3: CopyLoc[0](Arg0: &mut Policy)
+	4: ImmBorrowField[1](Policy.package: String)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &PackageAdmin)
+	7: ImmBorrowField[2](PackageAdmin.package: String)
+	8: ReadRef
+	9: Eq
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &mut Policy)
+	13: Pop
+	14: LdConst[2](u64: 2)
+	15: Abort
+B3:
+	16: MoveLoc[0](Arg0: &mut Policy)
+	17: MutBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	18: ImmBorrowLoc[2](Arg2: address)
+	19: Call vec_map::get_mut<address, Rule>(&mut VecMap<address, Rule>, &address): &mut Rule
+	20: StLoc[4](loc1: &mut Rule)
+	21: Call type_name::get<Ty0>(): TypeName
+	22: StLoc[3](loc0: TypeName)
+	23: MoveLoc[4](loc1: &mut Rule)
+	24: MutBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	25: MoveLoc[3](loc0: TypeName)
+	26: Call dynamic_map::borrow_mut<TypeName, Ty1>(&mut DynamicMap<TypeName>, TypeName): &mut Ty1
+	27: Ret
+}
+
+public new_request<Ty0: drop>(Arg0: Ty0, Arg1: &mut TxContext): ActionRequest {
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: MoveLoc[1](Arg1: &mut TxContext)
+	2: Call dynamic_map::new<String>(&mut TxContext): DynamicMap<String>
+	3: Call vec_map::empty<TypeName, address>(): VecMap<TypeName, address>
+	4: Pack[4](ActionRequest)
+	5: Ret
+}
+
+public new_request_for_resource<Ty0: key>(Arg0: String, Arg1: &Ty0, Arg2: &mut TxContext): ActionRequest {
+L3:	loc0: ActionRequest
+B0:
+	0: MoveLoc[0](Arg0: String)
+	1: MoveLoc[2](Arg2: &mut TxContext)
+	2: Call new_request<String>(String, &mut TxContext): ActionRequest
+	3: StLoc[3](loc0: ActionRequest)
+	4: MutBorrowLoc[3](loc0: ActionRequest)
+	5: MutBorrowField[9](ActionRequest.context: DynamicMap<String>)
+	6: LdConst[12](vector<u8>: "res..)
+	7: Call ascii::string(vector<u8>): String
+	8: MoveLoc[1](Arg1: &Ty0)
+	9: Call object::id<Ty0>(&Ty0): ID
+	10: Call dynamic_map::insert<String, ID>(&mut DynamicMap<String>, String, ID)
+	11: MutBorrowLoc[3](loc0: ActionRequest)
+	12: MutBorrowField[9](ActionRequest.context: DynamicMap<String>)
+	13: LdConst[13](vector<u8>: "res..)
+	14: Call ascii::string(vector<u8>): String
+	15: Call type_name::get<Ty0>(): TypeName
+	16: Call dynamic_map::insert<String, TypeName>(&mut DynamicMap<String>, String, TypeName)
+	17: MoveLoc[3](loc0: ActionRequest)
+	18: Ret
+}
+
+public new_request_with_context<Ty0: drop>(Arg0: Ty0, Arg1: DynamicMap<String>): ActionRequest {
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: MoveLoc[1](Arg1: DynamicMap<String>)
+	2: Call vec_map::empty<TypeName, address>(): VecMap<TypeName, address>
+	3: Pack[4](ActionRequest)
+	4: Ret
+}
+
+public borrow_context(Arg0: &ActionRequest): &DynamicMap<String> {
+B0:
+	0: MoveLoc[0](Arg0: &ActionRequest)
+	1: ImmBorrowField[9](ActionRequest.context: DynamicMap<String>)
+	2: Ret
+}
+
+public context_value<Ty0: copy + drop + store>(Arg0: &ActionRequest, Arg1: String): &Ty0 {
+B0:
+	0: MoveLoc[0](Arg0: &ActionRequest)
+	1: ImmBorrowField[9](ActionRequest.context: DynamicMap<String>)
+	2: MoveLoc[1](Arg1: String)
+	3: Call dynamic_map::borrow<String, Ty0>(&DynamicMap<String>, String): &Ty0
+	4: Ret
+}
+
+public get_condition_witness<Ty0, Ty1: drop, Ty2: copy + drop + store>(Arg0: &Policy, Arg1: &Entity, Arg2: address): ConditionWitness<Ty0, Ty2> {
+L3:	loc0: ID
+L4:	loc1: &VecSet<ID>
+L5:	loc2: TypeName
+L6:	loc3: TypeName
+L7:	loc4: Ty2
+L8:	loc5: &Rule
+B0:
+	0: CopyLoc[0](Arg0: &Policy)
+	1: Call check_version(&Policy)
+	2: CopyLoc[0](Arg0: &Policy)
+	3: ImmBorrowField[4](Policy.enabled: bool)
+	4: ReadRef
+	5: BrFalse(7)
+B1:
+	6: Branch(13)
+B2:
+	7: MoveLoc[0](Arg0: &Policy)
+	8: Pop
+	9: MoveLoc[1](Arg1: &Entity)
+	10: Pop
+	11: LdConst[4](u64: 4)
+	12: Abort
+B3:
+	13: CopyLoc[0](Arg0: &Policy)
+	14: ImmBorrowField[3](Policy.allowed_entities: VecSet<ID>)
+	15: StLoc[4](loc1: &VecSet<ID>)
+	16: CopyLoc[1](Arg1: &Entity)
+	17: Call object::id<Entity>(&Entity): ID
+	18: StLoc[3](loc0: ID)
+	19: MoveLoc[4](loc1: &VecSet<ID>)
+	20: ImmBorrowLoc[3](loc0: ID)
+	21: Call vec_set::contains<ID>(&VecSet<ID>, &ID): bool
+	22: BrFalse(24)
+B4:
+	23: Branch(30)
+B5:
+	24: MoveLoc[0](Arg0: &Policy)
+	25: Pop
+	26: MoveLoc[1](Arg1: &Entity)
+	27: Pop
+	28: LdConst[5](u64: 5)
+	29: Abort
+B6:
+	30: CopyLoc[0](Arg0: &Policy)
+	31: ImmBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	32: ImmBorrowLoc[2](Arg2: address)
+	33: Call vec_map::get<address, Rule>(&VecMap<address, Rule>, &address): &Rule
+	34: StLoc[8](loc5: &Rule)
+	35: Call type_name::get<Ty1>(): TypeName
+	36: StLoc[5](loc2: TypeName)
+	37: CopyLoc[8](loc5: &Rule)
+	38: ImmBorrowField[6](Rule.actions: VecSet<TypeName>)
+	39: ImmBorrowLoc[5](loc2: TypeName)
+	40: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	41: BrFalse(43)
+B7:
+	42: Branch(51)
+B8:
+	43: MoveLoc[8](loc5: &Rule)
+	44: Pop
+	45: MoveLoc[0](Arg0: &Policy)
+	46: Pop
+	47: MoveLoc[1](Arg1: &Entity)
+	48: Pop
+	49: LdConst[6](u64: 6)
+	50: Abort
+B9:
+	51: Call type_name::get<Ty0>(): TypeName
+	52: StLoc[6](loc3: TypeName)
+	53: MoveLoc[8](loc5: &Rule)
+	54: ImmBorrowField[8](Rule.condition_configs: DynamicMap<TypeName>)
+	55: MoveLoc[6](loc3: TypeName)
+	56: Call dynamic_map::borrow<TypeName, Ty2>(&DynamicMap<TypeName>, TypeName): &Ty2
+	57: ReadRef
+	58: StLoc[7](loc4: Ty2)
+	59: MoveLoc[2](Arg2: address)
+	60: MoveLoc[7](loc4: Ty2)
+	61: MoveLoc[0](Arg0: &Policy)
+	62: Call object::id<Policy>(&Policy): ID
+	63: MoveLoc[1](Arg1: &Entity)
+	64: Call object::id<Entity>(&Entity): ID
+	65: PackGeneric[0](ConditionWitness<Ty0, Ty2>)
+	66: Ret
+}
+
+public cw_rule_id<Ty0, Ty1: copy + drop + store>(Arg0: &ConditionWitness<Ty0, Ty1>): address {
+B0:
+	0: MoveLoc[0](Arg0: &ConditionWitness<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[0](ConditionWitness.rule_id: address)
+	2: ReadRef
+	3: Ret
+}
+
+public cw_config<Ty0, Ty1: copy + drop + store>(Arg0: &ConditionWitness<Ty0, Ty1>): Ty1 {
+B0:
+	0: MoveLoc[0](Arg0: &ConditionWitness<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[1](ConditionWitness.config: Ty1)
+	2: ReadRef
+	3: Ret
+}
+
+public cw_policy_id<Ty0, Ty1: copy + drop + store>(Arg0: &ConditionWitness<Ty0, Ty1>): ID {
+B0:
+	0: MoveLoc[0](Arg0: &ConditionWitness<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[2](ConditionWitness.policy: ID)
+	2: ReadRef
+	3: Ret
+}
+
+public cw_entity_id<Ty0, Ty1: copy + drop + store>(Arg0: &ConditionWitness<Ty0, Ty1>): ID {
+B0:
+	0: MoveLoc[0](Arg0: &ConditionWitness<Ty0, Ty1>)
+	1: ImmBorrowFieldGeneric[3](ConditionWitness.entity: ID)
+	2: ReadRef
+	3: Ret
+}
+
+public approve_condition<Ty0: drop, Ty1: copy + drop + store>(Arg0: &mut ActionRequest, Arg1: &ConditionWitness<Ty0, Ty1>, Arg2: Ty0) {
+L3:	loc0: TypeName
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: StLoc[3](loc0: TypeName)
+	2: MoveLoc[0](Arg0: &mut ActionRequest)
+	3: MutBorrowField[14](ActionRequest.approved_conditions: VecMap<TypeName, address>)
+	4: MoveLoc[3](loc0: TypeName)
+	5: MoveLoc[1](Arg1: &ConditionWitness<Ty0, Ty1>)
+	6: ImmBorrowFieldGeneric[0](ConditionWitness.rule_id: address)
+	7: ReadRef
+	8: Call vec_map::insert<TypeName, address>(&mut VecMap<TypeName, address>, TypeName, address)
+	9: Ret
+}
+
+public approve_and_return_context(Arg0: ActionRequest, Arg1: &Entity, Arg2: &Policy, Arg3: address): DynamicMap<String> {
+L4:	loc0: ID
+L5:	loc1: &VecSet<ID>
+L6:	loc2: TypeName
+L7:	loc3: TypeName
+L8:	loc4: VecMap<TypeName, address>
+L9:	loc5: address
+L10:	loc6: DynamicMap<String>
+L11:	loc7: u64
+L12:	loc8: VecSet<TypeName>
+L13:	loc9: &Rule
+L14:	loc10: u64
+B0:
+	0: CopyLoc[2](Arg2: &Policy)
+	1: Call check_version(&Policy)
+	2: CopyLoc[2](Arg2: &Policy)
+	3: ImmBorrowField[4](Policy.enabled: bool)
+	4: ReadRef
+	5: BrFalse(7)
+B1:
+	6: Branch(13)
+B2:
+	7: MoveLoc[2](Arg2: &Policy)
+	8: Pop
+	9: MoveLoc[1](Arg1: &Entity)
+	10: Pop
+	11: LdConst[4](u64: 4)
+	12: Abort
+B3:
+	13: CopyLoc[2](Arg2: &Policy)
+	14: ImmBorrowField[3](Policy.allowed_entities: VecSet<ID>)
+	15: StLoc[5](loc1: &VecSet<ID>)
+	16: MoveLoc[1](Arg1: &Entity)
+	17: Call object::id<Entity>(&Entity): ID
+	18: StLoc[4](loc0: ID)
+	19: MoveLoc[5](loc1: &VecSet<ID>)
+	20: ImmBorrowLoc[4](loc0: ID)
+	21: Call vec_set::contains<ID>(&VecSet<ID>, &ID): bool
+	22: BrFalse(24)
+B4:
+	23: Branch(28)
+B5:
+	24: MoveLoc[2](Arg2: &Policy)
+	25: Pop
+	26: LdConst[5](u64: 5)
+	27: Abort
+B6:
+	28: MoveLoc[2](Arg2: &Policy)
+	29: ImmBorrowField[5](Policy.rules: VecMap<address, Rule>)
+	30: ImmBorrowLoc[3](Arg3: address)
+	31: Call vec_map::get<address, Rule>(&VecMap<address, Rule>, &address): &Rule
+	32: StLoc[13](loc9: &Rule)
+	33: MoveLoc[0](Arg0: ActionRequest)
+	34: Unpack[4](ActionRequest)
+	35: StLoc[8](loc4: VecMap<TypeName, address>)
+	36: StLoc[10](loc6: DynamicMap<String>)
+	37: StLoc[6](loc2: TypeName)
+	38: CopyLoc[13](loc9: &Rule)
+	39: ImmBorrowField[6](Rule.actions: VecSet<TypeName>)
+	40: ImmBorrowLoc[6](loc2: TypeName)
+	41: Call vec_set::contains<TypeName>(&VecSet<TypeName>, &TypeName): bool
+	42: BrFalse(44)
+B7:
+	43: Branch(48)
+B8:
+	44: MoveLoc[13](loc9: &Rule)
+	45: Pop
+	46: LdConst[6](u64: 6)
+	47: Abort
+B9:
+	48: MoveLoc[13](loc9: &Rule)
+	49: ImmBorrowField[7](Rule.conditions: VecSet<TypeName>)
+	50: ReadRef
+	51: StLoc[12](loc8: VecSet<TypeName>)
+	52: ImmBorrowLoc[12](loc8: VecSet<TypeName>)
+	53: Call vec_set::size<TypeName>(&VecSet<TypeName>): u64
+	54: StLoc[14](loc10: u64)
+	55: LdU64(0)
+	56: StLoc[11](loc7: u64)
+B10:
+	57: CopyLoc[11](loc7: u64)
+	58: CopyLoc[14](loc10: u64)
+	59: Lt
+	60: BrFalse(80)
+B11:
+	61: MutBorrowLoc[8](loc4: VecMap<TypeName, address>)
+	62: Call vec_map::pop<TypeName, address>(&mut VecMap<TypeName, address>): TypeName * address
+	63: StLoc[9](loc5: address)
+	64: StLoc[7](loc3: TypeName)
+	65: MoveLoc[9](loc5: address)
+	66: CopyLoc[3](Arg3: address)
+	67: Eq
+	68: BrFalse(70)
+B12:
+	69: Branch(72)
+B13:
+	70: LdConst[7](u64: 7)
+	71: Abort
+B14:
+	72: MutBorrowLoc[12](loc8: VecSet<TypeName>)
+	73: ImmBorrowLoc[7](loc3: TypeName)
+	74: Call vec_set::remove<TypeName>(&mut VecSet<TypeName>, &TypeName)
+	75: MoveLoc[11](loc7: u64)
+	76: LdU64(1)
+	77: Add
+	78: StLoc[11](loc7: u64)
+	79: Branch(57)
+B15:
+	80: MoveLoc[10](loc6: DynamicMap<String>)
+	81: Ret
+}
+
+public approve_request(Arg0: ActionRequest, Arg1: &Entity, Arg2: &Policy, Arg3: address) {
+B0:
+	0: CopyLoc[2](Arg2: &Policy)
+	1: Call check_version(&Policy)
+	2: MoveLoc[0](Arg0: ActionRequest)
+	3: MoveLoc[1](Arg1: &Entity)
+	4: MoveLoc[2](Arg2: &Policy)
+	5: MoveLoc[3](Arg3: address)
+	6: Call approve_and_return_context(ActionRequest, &Entity, &Policy, address): DynamicMap<String>
+	7: Call dynamic_map::force_drop<String>(DynamicMap<String>)
+	8: Ret
+}
+
+public admin_approve_request_and_return_context(Arg0: ActionRequest, Arg1: &PackageAdmin): DynamicMap<String> {
+L2:	loc0: DynamicMap<String>
+B0:
+	0: ImmBorrowLoc[0](Arg0: ActionRequest)
+	1: ImmBorrowField[15](ActionRequest.action_name: TypeName)
+	2: Call type_name::get_address(&TypeName): String
+	3: MoveLoc[1](Arg1: &PackageAdmin)
+	4: ImmBorrowField[2](PackageAdmin.package: String)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(11)
+B2:
+	9: LdConst[3](u64: 3)
+	10: Abort
+B3:
+	11: MoveLoc[0](Arg0: ActionRequest)
+	12: Unpack[4](ActionRequest)
+	13: Pop
+	14: StLoc[2](loc0: DynamicMap<String>)
+	15: Pop
+	16: MoveLoc[2](loc0: DynamicMap<String>)
+	17: Ret
+}
+
+public admin_approve_request(Arg0: ActionRequest, Arg1: &PackageAdmin) {
+B0:
+	0: MoveLoc[0](Arg0: ActionRequest)
+	1: MoveLoc[1](Arg1: &PackageAdmin)
+	2: Call admin_approve_request_and_return_context(ActionRequest, &PackageAdmin): DynamicMap<String>
+	3: Call dynamic_map::force_drop<String>(DynamicMap<String>)
+	4: Ret
+}
+
+Constants [
+	0 => u64: 0
+	1 => u64: 1
+	2 => u64: 2
+	3 => u64: 3
+	4 => u64: 4
+	5 => u64: 5
+	6 => u64: 6
+	7 => u64: 7
+	8 => u64: 8
+	9 => u64: 9
+	10 => u16: 1
+	11 => vector<u8>: "access_init" // interpreted as UTF8 string
+	12 => vector<u8>: "resource_id" // interpreted as UTF8 string
+	13 => vector<u8>: "resource_type_name" // interpreted as UTF8 string
+]
+}

@@ -1,0 +1,645 @@
+// Move bytecode v7
+module 51e0ccce48f0763f98f1cb4856847c2e1531adacada99cdd7626ab999db57523.oracle_price {
+use 55300367a2d40813727ccac4ecee977a39fb9cdb46f2e6b2c354b9798f5de2c0::i64;
+use 55300367a2d40813727ccac4ecee977a39fb9cdb46f2e6b2c354b9798f5de2c0::price;
+use 55300367a2d40813727ccac4ecee977a39fb9cdb46f2e6b2c354b9798f5de2c0::price_feed;
+use 55300367a2d40813727ccac4ecee977a39fb9cdb46f2e6b2c354b9798f5de2c0::price_info;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000001::u64;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin_registry;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::vec_map;
+
+struct Quote has copy, drop {
+	price: u64,
+	conf: Option<u64>,
+	expo_neg: u64
+}
+
+struct PriceData has copy, drop {
+	spot: Quote,
+	smoothed: Option<Quote>,
+	timestamp_sec: u64
+}
+
+struct PriceCollection has copy, drop {
+	map: VecMap<ID, PriceData>,
+	decimals: VecMap<TypeName, u8>,
+	created_at_sec: u64
+}
+
+struct ValidatedPrices has copy, drop {
+	map: VecMap<TypeName, PriceData>,
+	decimals: VecMap<TypeName, u8>,
+	current_ts_sec: u64,
+	max_age_secs: u64
+}
+
+public create(Arg0: &Clock): PriceCollection {
+B0:
+	0: Call vec_map::empty<ID, PriceData>(): VecMap<ID, PriceData>
+	1: Call vec_map::empty<TypeName, u8>(): VecMap<TypeName, u8>
+	2: MoveLoc[0](Arg0: &Clock)
+	3: Call clock::timestamp_ms(&Clock): u64
+	4: LdU64(1000)
+	5: Div
+	6: Pack[2](PriceCollection)
+	7: Ret
+}
+
+public add_pyth_pro(Arg0: &mut PriceCollection, Arg1: &PriceInfoObject) {
+L2:	loc0: I64
+L3:	loc1: Option<u64>
+L4:	loc2: I64
+L5:	loc3: u64
+L6:	loc4: I64
+L7:	loc5: Option<u64>
+L8:	loc6: I64
+L9:	loc7: u64
+L10:	loc8: Quote
+L11:	loc9: PriceData
+L12:	loc10: Price
+L13:	loc11: ID
+L14:	loc12: Price
+L15:	loc13: &PriceFeed
+L16:	loc14: PriceInfo
+B0:
+	0: CopyLoc[1](Arg1: &PriceInfoObject)
+	1: Call object::id<PriceInfoObject>(&PriceInfoObject): ID
+	2: StLoc[13](loc11: ID)
+	3: CopyLoc[0](Arg0: &mut PriceCollection)
+	4: ImmBorrowField[0](PriceCollection.map: VecMap<ID, PriceData>)
+	5: ImmBorrowLoc[13](loc11: ID)
+	6: Call vec_map::contains<ID, PriceData>(&VecMap<ID, PriceData>, &ID): bool
+	7: BrFalse(13)
+B1:
+	8: MoveLoc[0](Arg0: &mut PriceCollection)
+	9: Pop
+	10: MoveLoc[1](Arg1: &PriceInfoObject)
+	11: Pop
+	12: Ret
+B2:
+	13: MoveLoc[1](Arg1: &PriceInfoObject)
+	14: Call price_info::get_price_info_from_price_info_object(&PriceInfoObject): PriceInfo
+	15: StLoc[16](loc14: PriceInfo)
+	16: ImmBorrowLoc[16](loc14: PriceInfo)
+	17: Call price_info::get_price_feed(&PriceInfo): &PriceFeed
+	18: StLoc[15](loc13: &PriceFeed)
+	19: CopyLoc[15](loc13: &PriceFeed)
+	20: Call price_feed::get_price(&PriceFeed): Price
+	21: StLoc[14](loc12: Price)
+	22: MoveLoc[15](loc13: &PriceFeed)
+	23: Call price_feed::get_ema_price(&PriceFeed): Price
+	24: StLoc[12](loc10: Price)
+	25: ImmBorrowLoc[14](loc12: Price)
+	26: Call price::get_price(&Price): I64
+	27: StLoc[8](loc6: I64)
+	28: ImmBorrowLoc[8](loc6: I64)
+	29: Call i64::get_magnitude_if_positive(&I64): u64
+	30: StLoc[9](loc7: u64)
+	31: ImmBorrowLoc[14](loc12: Price)
+	32: Call price::get_conf(&Price): u64
+	33: Call option::some<u64>(u64): Option<u64>
+	34: StLoc[7](loc5: Option<u64>)
+	35: ImmBorrowLoc[14](loc12: Price)
+	36: Call price::get_expo(&Price): I64
+	37: StLoc[6](loc4: I64)
+	38: MoveLoc[9](loc7: u64)
+	39: MoveLoc[7](loc5: Option<u64>)
+	40: ImmBorrowLoc[6](loc4: I64)
+	41: Call i64::get_magnitude_if_negative(&I64): u64
+	42: Pack[0](Quote)
+	43: StLoc[10](loc8: Quote)
+	44: ImmBorrowLoc[12](loc10: Price)
+	45: Call price::get_price(&Price): I64
+	46: StLoc[4](loc2: I64)
+	47: ImmBorrowLoc[4](loc2: I64)
+	48: Call i64::get_magnitude_if_positive(&I64): u64
+	49: StLoc[5](loc3: u64)
+	50: ImmBorrowLoc[12](loc10: Price)
+	51: Call price::get_conf(&Price): u64
+	52: Call option::some<u64>(u64): Option<u64>
+	53: StLoc[3](loc1: Option<u64>)
+	54: ImmBorrowLoc[12](loc10: Price)
+	55: Call price::get_expo(&Price): I64
+	56: StLoc[2](loc0: I64)
+	57: MoveLoc[10](loc8: Quote)
+	58: MoveLoc[5](loc3: u64)
+	59: MoveLoc[3](loc1: Option<u64>)
+	60: ImmBorrowLoc[2](loc0: I64)
+	61: Call i64::get_magnitude_if_negative(&I64): u64
+	62: Pack[0](Quote)
+	63: Call option::some<Quote>(Quote): Option<Quote>
+	64: ImmBorrowLoc[14](loc12: Price)
+	65: Call price::get_timestamp(&Price): u64
+	66: Pack[1](PriceData)
+	67: StLoc[11](loc9: PriceData)
+	68: MoveLoc[0](Arg0: &mut PriceCollection)
+	69: MutBorrowField[0](PriceCollection.map: VecMap<ID, PriceData>)
+	70: MoveLoc[13](loc11: ID)
+	71: MoveLoc[11](loc9: PriceData)
+	72: Call vec_map::insert<ID, PriceData>(&mut VecMap<ID, PriceData>, ID, PriceData)
+	73: Ret
+}
+
+public add_currency<Ty0>(Arg0: &mut PriceCollection, Arg1: &Currency<Ty0>) {
+L2:	loc0: TypeName
+B0:
+	0: Call type_name::with_defining_ids<Ty0>(): TypeName
+	1: StLoc[2](loc0: TypeName)
+	2: CopyLoc[0](Arg0: &mut PriceCollection)
+	3: ImmBorrowField[1](PriceCollection.decimals: VecMap<TypeName, u8>)
+	4: ImmBorrowLoc[2](loc0: TypeName)
+	5: Call vec_map::contains<TypeName, u8>(&VecMap<TypeName, u8>, &TypeName): bool
+	6: BrFalse(12)
+B1:
+	7: MoveLoc[0](Arg0: &mut PriceCollection)
+	8: Pop
+	9: MoveLoc[1](Arg1: &Currency<Ty0>)
+	10: Pop
+	11: Ret
+B2:
+	12: MoveLoc[0](Arg0: &mut PriceCollection)
+	13: MutBorrowField[1](PriceCollection.decimals: VecMap<TypeName, u8>)
+	14: MoveLoc[2](loc0: TypeName)
+	15: MoveLoc[1](Arg1: &Currency<Ty0>)
+	16: Call coin_registry::decimals<Ty0>(&Currency<Ty0>): u8
+	17: Call vec_map::insert<TypeName, u8>(&mut VecMap<TypeName, u8>, TypeName, u8)
+	18: Ret
+}
+
+public(friend) validate(Arg0: &PriceCollection, Arg1: u64, Arg2: &VecMap<TypeName, ID>): ValidatedPrices {
+L3:	loc0: u64
+L4:	loc1: &TypeName
+L5:	loc2: PriceData
+L6:	loc3: Option<PriceData>
+L7:	loc4: Option<u8>
+L8:	loc5: VecMap<TypeName, u8>
+L9:	loc6: u64
+L10:	loc7: &ID
+L11:	loc8: VecMap<TypeName, PriceData>
+L12:	loc9: u64
+L13:	loc10: u64
+B0:
+	0: Call vec_map::empty<TypeName, PriceData>(): VecMap<TypeName, PriceData>
+	1: StLoc[11](loc8: VecMap<TypeName, PriceData>)
+	2: Call vec_map::empty<TypeName, u8>(): VecMap<TypeName, u8>
+	3: StLoc[8](loc5: VecMap<TypeName, u8>)
+	4: LdU64(0)
+	5: StLoc[12](loc9: u64)
+	6: LdU64(0)
+	7: StLoc[9](loc6: u64)
+	8: CopyLoc[2](Arg2: &VecMap<TypeName, ID>)
+	9: Call vec_map::length<TypeName, ID>(&VecMap<TypeName, ID>): u64
+	10: StLoc[13](loc10: u64)
+B1:
+	11: CopyLoc[9](loc6: u64)
+	12: CopyLoc[13](loc10: u64)
+	13: Lt
+	14: BrFalse(118)
+B2:
+	15: Branch(16)
+B3:
+	16: CopyLoc[2](Arg2: &VecMap<TypeName, ID>)
+	17: CopyLoc[9](loc6: u64)
+	18: Call vec_map::get_entry_by_idx<TypeName, ID>(&VecMap<TypeName, ID>, u64): &TypeName * &ID
+	19: StLoc[10](loc7: &ID)
+	20: StLoc[4](loc1: &TypeName)
+	21: CopyLoc[0](Arg0: &PriceCollection)
+	22: ImmBorrowField[0](PriceCollection.map: VecMap<ID, PriceData>)
+	23: MoveLoc[10](loc7: &ID)
+	24: Call vec_map::try_get<ID, PriceData>(&VecMap<ID, PriceData>, &ID): Option<PriceData>
+	25: StLoc[6](loc3: Option<PriceData>)
+	26: ImmBorrowLoc[6](loc3: Option<PriceData>)
+	27: Call option::is_some<PriceData>(&Option<PriceData>): bool
+	28: BrFalse(30)
+B4:
+	29: Branch(38)
+B5:
+	30: MoveLoc[0](Arg0: &PriceCollection)
+	31: Pop
+	32: MoveLoc[2](Arg2: &VecMap<TypeName, ID>)
+	33: Pop
+	34: MoveLoc[4](loc1: &TypeName)
+	35: Pop
+	36: LdConst[2](u64: 3)
+	37: Abort
+B6:
+	38: MoveLoc[6](loc3: Option<PriceData>)
+	39: Call option::destroy_some<PriceData>(Option<PriceData>): PriceData
+	40: StLoc[5](loc2: PriceData)
+	41: ImmBorrowLoc[5](loc2: PriceData)
+	42: ImmBorrowField[2](PriceData.timestamp_sec: u64)
+	43: ReadRef
+	44: CopyLoc[0](Arg0: &PriceCollection)
+	45: ImmBorrowField[3](PriceCollection.created_at_sec: u64)
+	46: ReadRef
+	47: LdConst[6](u64: 60)
+	48: Add
+	49: Le
+	50: BrFalse(52)
+B7:
+	51: Branch(60)
+B8:
+	52: MoveLoc[0](Arg0: &PriceCollection)
+	53: Pop
+	54: MoveLoc[2](Arg2: &VecMap<TypeName, ID>)
+	55: Pop
+	56: MoveLoc[4](loc1: &TypeName)
+	57: Pop
+	58: LdConst[5](u64: 6)
+	59: Abort
+B9:
+	60: CopyLoc[0](Arg0: &PriceCollection)
+	61: ImmBorrowField[3](PriceCollection.created_at_sec: u64)
+	62: ReadRef
+	63: ImmBorrowLoc[5](loc2: PriceData)
+	64: ImmBorrowField[2](PriceData.timestamp_sec: u64)
+	65: ReadRef
+	66: Call u64::saturating_sub(u64, u64): u64
+	67: StLoc[3](loc0: u64)
+	68: CopyLoc[3](loc0: u64)
+	69: CopyLoc[1](Arg1: u64)
+	70: Le
+	71: BrFalse(73)
+B10:
+	72: Branch(81)
+B11:
+	73: MoveLoc[0](Arg0: &PriceCollection)
+	74: Pop
+	75: MoveLoc[2](Arg2: &VecMap<TypeName, ID>)
+	76: Pop
+	77: MoveLoc[4](loc1: &TypeName)
+	78: Pop
+	79: LdConst[0](u64: 1)
+	80: Abort
+B12:
+	81: MoveLoc[12](loc9: u64)
+	82: MoveLoc[3](loc0: u64)
+	83: Call u64::max(u64, u64): u64
+	84: StLoc[12](loc9: u64)
+	85: CopyLoc[0](Arg0: &PriceCollection)
+	86: ImmBorrowField[1](PriceCollection.decimals: VecMap<TypeName, u8>)
+	87: CopyLoc[4](loc1: &TypeName)
+	88: Call vec_map::try_get<TypeName, u8>(&VecMap<TypeName, u8>, &TypeName): Option<u8>
+	89: StLoc[7](loc4: Option<u8>)
+	90: ImmBorrowLoc[7](loc4: Option<u8>)
+	91: Call option::is_some<u8>(&Option<u8>): bool
+	92: BrFalse(94)
+B13:
+	93: Branch(102)
+B14:
+	94: MoveLoc[0](Arg0: &PriceCollection)
+	95: Pop
+	96: MoveLoc[2](Arg2: &VecMap<TypeName, ID>)
+	97: Pop
+	98: MoveLoc[4](loc1: &TypeName)
+	99: Pop
+	100: LdConst[4](u64: 5)
+	101: Abort
+B15:
+	102: MutBorrowLoc[11](loc8: VecMap<TypeName, PriceData>)
+	103: CopyLoc[4](loc1: &TypeName)
+	104: ReadRef
+	105: MoveLoc[5](loc2: PriceData)
+	106: Call vec_map::insert<TypeName, PriceData>(&mut VecMap<TypeName, PriceData>, TypeName, PriceData)
+	107: MutBorrowLoc[8](loc5: VecMap<TypeName, u8>)
+	108: MoveLoc[4](loc1: &TypeName)
+	109: ReadRef
+	110: MoveLoc[7](loc4: Option<u8>)
+	111: Call option::destroy_some<u8>(Option<u8>): u8
+	112: Call vec_map::insert<TypeName, u8>(&mut VecMap<TypeName, u8>, TypeName, u8)
+	113: MoveLoc[9](loc6: u64)
+	114: LdU64(1)
+	115: Add
+	116: StLoc[9](loc6: u64)
+	117: Branch(11)
+B16:
+	118: MoveLoc[2](Arg2: &VecMap<TypeName, ID>)
+	119: Pop
+	120: MoveLoc[11](loc8: VecMap<TypeName, PriceData>)
+	121: MoveLoc[8](loc5: VecMap<TypeName, u8>)
+	122: MoveLoc[0](Arg0: &PriceCollection)
+	123: ImmBorrowField[3](PriceCollection.created_at_sec: u64)
+	124: ReadRef
+	125: MoveLoc[12](loc9: u64)
+	126: Pack[3](ValidatedPrices)
+	127: Ret
+}
+
+public max_age_secs(Arg0: &ValidatedPrices): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedPrices)
+	1: ImmBorrowField[4](ValidatedPrices.max_age_secs: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public get_price(Arg0: &ValidatedPrices, Arg1: TypeName): Quote {
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedPrices)
+	1: ImmBorrowField[5](ValidatedPrices.map: VecMap<TypeName, PriceData>)
+	2: ImmBorrowLoc[1](Arg1: TypeName)
+	3: Call vec_map::get<TypeName, PriceData>(&VecMap<TypeName, PriceData>, &TypeName): &PriceData
+	4: ImmBorrowField[6](PriceData.spot: Quote)
+	5: ReadRef
+	6: Ret
+}
+
+public get_smoothed_price(Arg0: &ValidatedPrices, Arg1: TypeName): Quote {
+L2:	loc0: &PriceData
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedPrices)
+	1: ImmBorrowField[5](ValidatedPrices.map: VecMap<TypeName, PriceData>)
+	2: ImmBorrowLoc[1](Arg1: TypeName)
+	3: Call vec_map::get<TypeName, PriceData>(&VecMap<TypeName, PriceData>, &TypeName): &PriceData
+	4: StLoc[2](loc0: &PriceData)
+	5: CopyLoc[2](loc0: &PriceData)
+	6: ImmBorrowField[7](PriceData.smoothed: Option<Quote>)
+	7: Call option::is_some<Quote>(&Option<Quote>): bool
+	8: BrFalse(10)
+B1:
+	9: Branch(14)
+B2:
+	10: MoveLoc[2](loc0: &PriceData)
+	11: Pop
+	12: LdConst[3](u64: 4)
+	13: Abort
+B3:
+	14: MoveLoc[2](loc0: &PriceData)
+	15: ImmBorrowField[7](PriceData.smoothed: Option<Quote>)
+	16: Call option::borrow<Quote>(&Option<Quote>): &Quote
+	17: ReadRef
+	18: Ret
+}
+
+public quote_price(Arg0: &Quote): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Quote)
+	1: ImmBorrowField[8](Quote.price: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public quote_conf(Arg0: &Quote): Option<u64> {
+B0:
+	0: MoveLoc[0](Arg0: &Quote)
+	1: ImmBorrowField[9](Quote.conf: Option<u64>)
+	2: ReadRef
+	3: Ret
+}
+
+public quote_expo_neg(Arg0: &Quote): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Quote)
+	1: ImmBorrowField[10](Quote.expo_neg: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public decimals(Arg0: &ValidatedPrices, Arg1: TypeName): u8 {
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedPrices)
+	1: ImmBorrowField[11](ValidatedPrices.decimals: VecMap<TypeName, u8>)
+	2: ImmBorrowLoc[1](Arg1: TypeName)
+	3: Call vec_map::get<TypeName, u8>(&VecMap<TypeName, u8>, &TypeName): &u8
+	4: ReadRef
+	5: Ret
+}
+
+quote_price_expo_dec(Arg0: &ValidatedPrices, Arg1: &Quote, Arg2: TypeName): u64 * u64 * u64 {
+B0:
+	0: CopyLoc[1](Arg1: &Quote)
+	1: ImmBorrowField[8](Quote.price: u64)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: &Quote)
+	4: ImmBorrowField[10](Quote.expo_neg: u64)
+	5: ReadRef
+	6: MoveLoc[0](Arg0: &ValidatedPrices)
+	7: MoveLoc[2](Arg2: TypeName)
+	8: Call decimals(&ValidatedPrices, TypeName): u8
+	9: CastU64
+	10: Ret
+}
+
+div_numeric_x128_inner(Arg0: &ValidatedPrices, Arg1: TypeName, Arg2: TypeName, Arg3: bool): u256 {
+L4:	loc0: Quote
+L5:	loc1: Quote
+L6:	loc2: &ValidatedPrices
+L7:	loc3: u64
+L8:	loc4: u64
+L9:	loc5: u64
+L10:	loc6: u64
+L11:	loc7: u64
+L12:	loc8: &ValidatedPrices
+L13:	loc9: Quote
+L14:	loc10: &ValidatedPrices
+L15:	loc11: u64
+L16:	loc12: u64
+L17:	loc13: u64
+L18:	loc14: Quote
+L19:	loc15: &ValidatedPrices
+L20:	loc16: u64
+L21:	loc17: u64
+L22:	loc18: u64
+L23:	loc19: u8
+L24:	loc20: u8
+L25:	loc21: u64
+L26:	loc22: u64
+L27:	loc23: u64
+L28:	loc24: u64
+L29:	loc25: u64
+L30:	loc26: u256
+B0:
+	0: CopyLoc[3](Arg3: bool)
+	1: BrFalse(16)
+B1:
+	2: CopyLoc[0](Arg0: &ValidatedPrices)
+	3: StLoc[12](loc8: &ValidatedPrices)
+	4: CopyLoc[0](Arg0: &ValidatedPrices)
+	5: CopyLoc[1](Arg1: TypeName)
+	6: Call get_smoothed_price(&ValidatedPrices, TypeName): Quote
+	7: StLoc[4](loc0: Quote)
+	8: MoveLoc[12](loc8: &ValidatedPrices)
+	9: ImmBorrowLoc[4](loc0: Quote)
+	10: MoveLoc[1](Arg1: TypeName)
+	11: Call quote_price_expo_dec(&ValidatedPrices, &Quote, TypeName): u64 * u64 * u64
+	12: StLoc[17](loc13: u64)
+	13: StLoc[16](loc12: u64)
+	14: StLoc[15](loc11: u64)
+	15: Branch(29)
+B2:
+	16: CopyLoc[0](Arg0: &ValidatedPrices)
+	17: StLoc[14](loc10: &ValidatedPrices)
+	18: CopyLoc[0](Arg0: &ValidatedPrices)
+	19: CopyLoc[1](Arg1: TypeName)
+	20: Call get_price(&ValidatedPrices, TypeName): Quote
+	21: StLoc[13](loc9: Quote)
+	22: MoveLoc[14](loc10: &ValidatedPrices)
+	23: ImmBorrowLoc[13](loc9: Quote)
+	24: MoveLoc[1](Arg1: TypeName)
+	25: Call quote_price_expo_dec(&ValidatedPrices, &Quote, TypeName): u64 * u64 * u64
+	26: StLoc[17](loc13: u64)
+	27: StLoc[16](loc12: u64)
+	28: StLoc[15](loc11: u64)
+B3:
+	29: MoveLoc[15](loc11: u64)
+	30: MoveLoc[16](loc12: u64)
+	31: MoveLoc[17](loc13: u64)
+	32: StLoc[20](loc16: u64)
+	33: StLoc[22](loc18: u64)
+	34: StLoc[26](loc22: u64)
+	35: MoveLoc[3](Arg3: bool)
+	36: BrFalse(51)
+B4:
+	37: CopyLoc[0](Arg0: &ValidatedPrices)
+	38: StLoc[19](loc15: &ValidatedPrices)
+	39: MoveLoc[0](Arg0: &ValidatedPrices)
+	40: CopyLoc[2](Arg2: TypeName)
+	41: Call get_smoothed_price(&ValidatedPrices, TypeName): Quote
+	42: StLoc[18](loc14: Quote)
+	43: MoveLoc[19](loc15: &ValidatedPrices)
+	44: ImmBorrowLoc[18](loc14: Quote)
+	45: MoveLoc[2](Arg2: TypeName)
+	46: Call quote_price_expo_dec(&ValidatedPrices, &Quote, TypeName): u64 * u64 * u64
+	47: StLoc[9](loc5: u64)
+	48: StLoc[8](loc4: u64)
+	49: StLoc[7](loc3: u64)
+	50: Branch(64)
+B5:
+	51: CopyLoc[0](Arg0: &ValidatedPrices)
+	52: StLoc[6](loc2: &ValidatedPrices)
+	53: MoveLoc[0](Arg0: &ValidatedPrices)
+	54: CopyLoc[2](Arg2: TypeName)
+	55: Call get_price(&ValidatedPrices, TypeName): Quote
+	56: StLoc[5](loc1: Quote)
+	57: MoveLoc[6](loc2: &ValidatedPrices)
+	58: ImmBorrowLoc[5](loc1: Quote)
+	59: MoveLoc[2](Arg2: TypeName)
+	60: Call quote_price_expo_dec(&ValidatedPrices, &Quote, TypeName): u64 * u64 * u64
+	61: StLoc[9](loc5: u64)
+	62: StLoc[8](loc4: u64)
+	63: StLoc[7](loc3: u64)
+B6:
+	64: MoveLoc[7](loc3: u64)
+	65: MoveLoc[8](loc4: u64)
+	66: MoveLoc[9](loc5: u64)
+	67: StLoc[21](loc17: u64)
+	68: StLoc[25](loc21: u64)
+	69: StLoc[27](loc23: u64)
+	70: CopyLoc[25](loc21: u64)
+	71: CopyLoc[21](loc17: u64)
+	72: Add
+	73: CopyLoc[22](loc18: u64)
+	74: CopyLoc[20](loc16: u64)
+	75: Add
+	76: Gt
+	77: BrFalse(94)
+B7:
+	78: MoveLoc[25](loc21: u64)
+	79: MoveLoc[21](loc17: u64)
+	80: Add
+	81: MoveLoc[22](loc18: u64)
+	82: Sub
+	83: MoveLoc[20](loc16: u64)
+	84: Sub
+	85: CastU8
+	86: StLoc[23](loc19: u8)
+	87: LdU64(10)
+	88: MoveLoc[23](loc19: u8)
+	89: Call u64::pow(u64, u8): u64
+	90: LdU64(1)
+	91: StLoc[11](loc7: u64)
+	92: StLoc[10](loc6: u64)
+	93: Branch(109)
+B8:
+	94: MoveLoc[22](loc18: u64)
+	95: MoveLoc[20](loc16: u64)
+	96: Add
+	97: MoveLoc[25](loc21: u64)
+	98: Sub
+	99: MoveLoc[21](loc17: u64)
+	100: Sub
+	101: CastU8
+	102: StLoc[24](loc20: u8)
+	103: LdU64(1)
+	104: LdU64(10)
+	105: MoveLoc[24](loc20: u8)
+	106: Call u64::pow(u64, u8): u64
+	107: StLoc[11](loc7: u64)
+	108: StLoc[10](loc6: u64)
+B9:
+	109: MoveLoc[10](loc6: u64)
+	110: MoveLoc[11](loc7: u64)
+	111: StLoc[28](loc24: u64)
+	112: StLoc[29](loc25: u64)
+	113: CopyLoc[27](loc23: u64)
+	114: LdU64(0)
+	115: Gt
+	116: BrFalse(118)
+B10:
+	117: Branch(120)
+B11:
+	118: LdConst[1](u64: 2)
+	119: Abort
+B12:
+	120: MoveLoc[26](loc22: u64)
+	121: CastU256
+	122: MoveLoc[29](loc25: u64)
+	123: CastU256
+	124: Mul
+	125: LdU8(128)
+	126: Shl
+	127: MoveLoc[27](loc23: u64)
+	128: CastU256
+	129: MoveLoc[28](loc24: u64)
+	130: CastU256
+	131: Mul
+	132: Div
+	133: StLoc[30](loc26: u256)
+	134: CopyLoc[30](loc26: u256)
+	135: LdU256(6277101735386680763835789423207666416102355444464034512895)
+	136: Le
+	137: BrFalse(139)
+B13:
+	138: Branch(141)
+B14:
+	139: LdConst[1](u64: 2)
+	140: Abort
+B15:
+	141: MoveLoc[30](loc26: u256)
+	142: Ret
+}
+
+public div_price_numeric_x128(Arg0: &ValidatedPrices, Arg1: TypeName, Arg2: TypeName): u256 {
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedPrices)
+	1: MoveLoc[1](Arg1: TypeName)
+	2: MoveLoc[2](Arg2: TypeName)
+	3: LdFalse
+	4: Call div_numeric_x128_inner(&ValidatedPrices, TypeName, TypeName, bool): u256
+	5: Ret
+}
+
+public div_smoothed_price_numeric_x128(Arg0: &ValidatedPrices, Arg1: TypeName, Arg2: TypeName): u256 {
+B0:
+	0: MoveLoc[0](Arg0: &ValidatedPrices)
+	1: MoveLoc[1](Arg1: TypeName)
+	2: MoveLoc[2](Arg2: TypeName)
+	3: LdTrue
+	4: Call div_numeric_x128_inner(&ValidatedPrices, TypeName, TypeName, bool): u256
+	5: Ret
+}
+
+Constants [
+	0 => u64: 1
+	1 => u64: 2
+	2 => u64: 3
+	3 => u64: 4
+	4 => u64: 5
+	5 => u64: 6
+	6 => u64: 60
+]
+}

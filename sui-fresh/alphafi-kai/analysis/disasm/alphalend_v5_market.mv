@@ -1,0 +1,4126 @@
+// Move bytecode v6
+module d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4.market {
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::events;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::flow_limiter;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::oracle;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::rewards;
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::sui_staker;
+use 4b591bbc246c9fadd28e7ac895e0778fb0e102f1b0d9f441e78d35f0d1ea1fcc::math;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000002::bag;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::coin;
+use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_field;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::sui;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+use 0000000000000000000000000000000000000000000000000000000000000003::sui_system;
+
+struct LiquidityPromise<phantom Ty0> {
+	market_id: u64,
+	coin_type: TypeName,
+	liquidity_promise: u64,
+	fee: u64
+}
+
+struct MarketConfigUpdateEvent has copy, drop {
+	market_id: u64,
+	safe_collateral_ratio: u8,
+	liquidation_threshold: u8,
+	deposit_limit: u64,
+	borrow_limit: u64,
+	borrow_limit_percentage: u8,
+	partner_cap_required_for_deposit: bool,
+	partner_cap_required_for_borrow: bool,
+	borrow_fee_bps: u64,
+	deposit_fee_bps: u64,
+	withdraw_fee_bps: u64,
+	collateral_types: vector<TypeName>,
+	interest_rate_kinks: vector<u8>,
+	interest_rates: vector<u64>,
+	liquidation_bonus_bps: u64,
+	liquidation_fee_bps: u64,
+	spread_fee_bps: u64,
+	isolated: bool,
+	protocol_fee_share_bps: u64,
+	protocol_spread_fee_share_bps: u64,
+	time_lock: u64,
+	last_updated: u64,
+	is_native: bool,
+	borrow_weight: Number,
+	active: bool,
+	close_factor_percentage: u8,
+	staking_enabled: bool
+}
+
+struct MarketDataUpdateEvent has copy, drop {
+	market_id: u64,
+	coin_type: TypeName,
+	xtoken_type: TypeName,
+	xtoken_supply: u64,
+	xtoken_ratio: Number,
+	borrowed_amount: u64,
+	writeoff_amount: u64,
+	balance_holding: u64,
+	unclaimed_spread_fee: u64,
+	unclaimed_spread_fee_protocol: u64,
+	compounded_interest: Number,
+	last_auto_compound: u64,
+	price_identifier: PriceIdentifier,
+	decimal_digit: Number
+}
+
+struct RepayExceedBorrowEvent has copy, drop {
+	market_id: u64,
+	repay_amount: u64,
+	borrow_amount: u64
+}
+
+struct MarketTreasuryUpdateEvent has copy, drop {
+	market_id: u64,
+	balance: u64,
+	supply: u64,
+	market_fee: u64,
+	protocol_fee: u64
+}
+
+struct FeeEarnedEvent has copy, drop {
+	coin_type: TypeName,
+	market_fee: u64,
+	protocol_fee: u64
+}
+
+struct XToken<phantom Ty0> has drop, store {
+	dummy_field: bool
+}
+
+struct TreasuryKey has copy, drop, store {
+	dummy_field: bool
+}
+
+struct SuiStakingEnabledKey has copy, drop, store {
+	dummy_field: bool
+}
+
+struct SuiCoinType has copy, drop, store {
+	dummy_field: bool
+}
+
+struct Treasury<phantom Ty0> has store {
+	balance: Balance<Ty0>,
+	supply: Supply<XToken<Ty0>>,
+	market_fee: Balance<XToken<Ty0>>,
+	protocol_fee: Balance<XToken<Ty0>>
+}
+
+struct MarketConfig has store {
+	safe_collateral_ratio: u8,
+	liquidation_threshold: u8,
+	deposit_limit: u64,
+	borrow_limit: u64,
+	borrow_limit_percentage: u8,
+	partner_cap_required_for_deposit: bool,
+	partner_cap_required_for_borrow: bool,
+	borrow_fee_bps: u64,
+	deposit_fee_bps: u64,
+	withdraw_fee_bps: u64,
+	collateral_types: vector<TypeName>,
+	interest_rate_kinks: vector<u8>,
+	interest_rates: vector<u64>,
+	liquidation_bonus_bps: u64,
+	liquidation_fee_bps: u64,
+	spread_fee_bps: u64,
+	isolated: bool,
+	protocol_fee_share_bps: u64,
+	protocol_spread_fee_share_bps: u64,
+	time_lock: u64,
+	last_updated: u64,
+	is_native: bool,
+	borrow_weight: Number,
+	extension_fields: Bag,
+	active: bool,
+	close_factor_percentage: u8,
+	staking_enabled: bool
+}
+
+struct Market has store, key {
+	id: UID,
+	market_id: u64,
+	coin_type: TypeName,
+	xtoken_type: TypeName,
+	xtoken_supply: u64,
+	xtoken_ratio: Number,
+	borrowed_amount: u64,
+	writeoff_amount: u64,
+	balance_holding: u64,
+	unclaimed_spread_fee: u64,
+	unclaimed_spread_fee_protocol: u64,
+	compounded_interest: Number,
+	last_auto_compound: u64,
+	config: MarketConfig,
+	price_identifier: PriceIdentifier,
+	deposit_reward_distributor: RewardDistributor,
+	borrow_reward_distributor: RewardDistributor,
+	deposit_flow_limiter: FlowLimiter,
+	outflow_limiter: FlowLimiter,
+	decimal_digit: Number,
+	market_cap_id: ID
+}
+
+struct MarketCap has store, key {
+	id: UID,
+	market_id: u64,
+	client_address: address
+}
+
+public emit_repay_exceed_borrow_event(Arg0: u64, Arg1: u64, Arg2: u64) {
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: MoveLoc[1](Arg1: u64)
+	2: MoveLoc[2](Arg2: u64)
+	3: Pack[3](RepayExceedBorrowEvent)
+	4: Call events::emit_event<RepayExceedBorrowEvent>(RepayExceedBorrowEvent)
+	5: Ret
+}
+
+emit_market_treasury_update_event<Ty0>(Arg0: u64, Arg1: &Treasury<Ty0>) {
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: CopyLoc[1](Arg1: &Treasury<Ty0>)
+	2: ImmBorrowFieldGeneric[0](Treasury.balance: Balance<Ty0>)
+	3: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	4: CopyLoc[1](Arg1: &Treasury<Ty0>)
+	5: ImmBorrowFieldGeneric[1](Treasury.supply: Supply<XToken<Ty0>>)
+	6: Call balance::supply_value<XToken<Ty0>>(&Supply<XToken<Ty0>>): u64
+	7: CopyLoc[1](Arg1: &Treasury<Ty0>)
+	8: ImmBorrowFieldGeneric[2](Treasury.market_fee: Balance<XToken<Ty0>>)
+	9: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	10: MoveLoc[1](Arg1: &Treasury<Ty0>)
+	11: ImmBorrowFieldGeneric[3](Treasury.protocol_fee: Balance<XToken<Ty0>>)
+	12: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	13: Pack[4](MarketTreasuryUpdateEvent)
+	14: Call events::emit_event<MarketTreasuryUpdateEvent>(MarketTreasuryUpdateEvent)
+	15: Ret
+}
+
+generate_market_config_update_event(Arg0: u64, Arg1: &MarketConfig) {
+L2:	loc0: u64
+L3:	loc1: u64
+L4:	loc2: u64
+L5:	loc3: vector<TypeName>
+L6:	loc4: vector<u8>
+L7:	loc5: vector<u64>
+L8:	loc6: u64
+L9:	loc7: u64
+L10:	loc8: u64
+L11:	loc9: bool
+L12:	loc10: u64
+L13:	loc11: u8
+L14:	loc12: u64
+L15:	loc13: u64
+L16:	loc14: u64
+L17:	loc15: u8
+L18:	loc16: bool
+L19:	loc17: Number
+L20:	loc18: bool
+L21:	loc19: bool
+L22:	loc20: u8
+L23:	loc21: u64
+L24:	loc22: u64
+L25:	loc23: u8
+L26:	loc24: bool
+L27:	loc25: bool
+L28:	loc26: u64
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: StLoc[2](loc0: u64)
+	2: CopyLoc[1](Arg1: &MarketConfig)
+	3: ImmBorrowField[4](MarketConfig.safe_collateral_ratio: u8)
+	4: ReadRef
+	5: StLoc[13](loc11: u8)
+	6: CopyLoc[1](Arg1: &MarketConfig)
+	7: ImmBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	8: ReadRef
+	9: StLoc[22](loc20: u8)
+	10: CopyLoc[1](Arg1: &MarketConfig)
+	11: ImmBorrowField[6](MarketConfig.deposit_limit: u64)
+	12: ReadRef
+	13: StLoc[23](loc21: u64)
+	14: CopyLoc[1](Arg1: &MarketConfig)
+	15: ImmBorrowField[7](MarketConfig.borrow_limit: u64)
+	16: ReadRef
+	17: StLoc[24](loc22: u64)
+	18: CopyLoc[1](Arg1: &MarketConfig)
+	19: ImmBorrowField[8](MarketConfig.borrow_limit_percentage: u8)
+	20: ReadRef
+	21: StLoc[25](loc23: u8)
+	22: CopyLoc[1](Arg1: &MarketConfig)
+	23: ImmBorrowField[9](MarketConfig.partner_cap_required_for_deposit: bool)
+	24: ReadRef
+	25: StLoc[26](loc24: bool)
+	26: CopyLoc[1](Arg1: &MarketConfig)
+	27: ImmBorrowField[10](MarketConfig.partner_cap_required_for_borrow: bool)
+	28: ReadRef
+	29: StLoc[27](loc25: bool)
+	30: CopyLoc[1](Arg1: &MarketConfig)
+	31: ImmBorrowField[11](MarketConfig.borrow_fee_bps: u64)
+	32: ReadRef
+	33: StLoc[28](loc26: u64)
+	34: CopyLoc[1](Arg1: &MarketConfig)
+	35: ImmBorrowField[12](MarketConfig.deposit_fee_bps: u64)
+	36: ReadRef
+	37: StLoc[3](loc1: u64)
+	38: CopyLoc[1](Arg1: &MarketConfig)
+	39: ImmBorrowField[13](MarketConfig.withdraw_fee_bps: u64)
+	40: ReadRef
+	41: StLoc[4](loc2: u64)
+	42: CopyLoc[1](Arg1: &MarketConfig)
+	43: ImmBorrowField[14](MarketConfig.collateral_types: vector<TypeName>)
+	44: ReadRef
+	45: StLoc[5](loc3: vector<TypeName>)
+	46: CopyLoc[1](Arg1: &MarketConfig)
+	47: ImmBorrowField[15](MarketConfig.interest_rate_kinks: vector<u8>)
+	48: ReadRef
+	49: StLoc[6](loc4: vector<u8>)
+	50: CopyLoc[1](Arg1: &MarketConfig)
+	51: ImmBorrowField[16](MarketConfig.interest_rates: vector<u64>)
+	52: ReadRef
+	53: StLoc[7](loc5: vector<u64>)
+	54: CopyLoc[1](Arg1: &MarketConfig)
+	55: ImmBorrowField[17](MarketConfig.liquidation_bonus_bps: u64)
+	56: ReadRef
+	57: StLoc[8](loc6: u64)
+	58: CopyLoc[1](Arg1: &MarketConfig)
+	59: ImmBorrowField[18](MarketConfig.liquidation_fee_bps: u64)
+	60: ReadRef
+	61: StLoc[9](loc7: u64)
+	62: CopyLoc[1](Arg1: &MarketConfig)
+	63: ImmBorrowField[19](MarketConfig.spread_fee_bps: u64)
+	64: ReadRef
+	65: StLoc[10](loc8: u64)
+	66: CopyLoc[1](Arg1: &MarketConfig)
+	67: ImmBorrowField[20](MarketConfig.isolated: bool)
+	68: ReadRef
+	69: StLoc[11](loc9: bool)
+	70: CopyLoc[1](Arg1: &MarketConfig)
+	71: ImmBorrowField[21](MarketConfig.protocol_fee_share_bps: u64)
+	72: ReadRef
+	73: StLoc[12](loc10: u64)
+	74: CopyLoc[1](Arg1: &MarketConfig)
+	75: ImmBorrowField[22](MarketConfig.protocol_spread_fee_share_bps: u64)
+	76: ReadRef
+	77: StLoc[14](loc12: u64)
+	78: CopyLoc[1](Arg1: &MarketConfig)
+	79: ImmBorrowField[23](MarketConfig.time_lock: u64)
+	80: ReadRef
+	81: StLoc[15](loc13: u64)
+	82: CopyLoc[1](Arg1: &MarketConfig)
+	83: ImmBorrowField[24](MarketConfig.last_updated: u64)
+	84: ReadRef
+	85: StLoc[16](loc14: u64)
+	86: CopyLoc[1](Arg1: &MarketConfig)
+	87: ImmBorrowField[25](MarketConfig.close_factor_percentage: u8)
+	88: ReadRef
+	89: StLoc[17](loc15: u8)
+	90: CopyLoc[1](Arg1: &MarketConfig)
+	91: ImmBorrowField[26](MarketConfig.is_native: bool)
+	92: ReadRef
+	93: StLoc[18](loc16: bool)
+	94: CopyLoc[1](Arg1: &MarketConfig)
+	95: ImmBorrowField[27](MarketConfig.borrow_weight: Number)
+	96: ReadRef
+	97: StLoc[19](loc17: Number)
+	98: CopyLoc[1](Arg1: &MarketConfig)
+	99: ImmBorrowField[28](MarketConfig.active: bool)
+	100: ReadRef
+	101: StLoc[20](loc18: bool)
+	102: MoveLoc[1](Arg1: &MarketConfig)
+	103: ImmBorrowField[29](MarketConfig.staking_enabled: bool)
+	104: ReadRef
+	105: StLoc[21](loc19: bool)
+	106: MoveLoc[2](loc0: u64)
+	107: MoveLoc[13](loc11: u8)
+	108: MoveLoc[22](loc20: u8)
+	109: MoveLoc[23](loc21: u64)
+	110: MoveLoc[24](loc22: u64)
+	111: MoveLoc[25](loc23: u8)
+	112: MoveLoc[26](loc24: bool)
+	113: MoveLoc[27](loc25: bool)
+	114: MoveLoc[28](loc26: u64)
+	115: MoveLoc[3](loc1: u64)
+	116: MoveLoc[4](loc2: u64)
+	117: MoveLoc[5](loc3: vector<TypeName>)
+	118: MoveLoc[6](loc4: vector<u8>)
+	119: MoveLoc[7](loc5: vector<u64>)
+	120: MoveLoc[8](loc6: u64)
+	121: MoveLoc[9](loc7: u64)
+	122: MoveLoc[10](loc8: u64)
+	123: MoveLoc[11](loc9: bool)
+	124: MoveLoc[12](loc10: u64)
+	125: MoveLoc[14](loc12: u64)
+	126: MoveLoc[15](loc13: u64)
+	127: MoveLoc[16](loc14: u64)
+	128: MoveLoc[18](loc16: bool)
+	129: MoveLoc[19](loc17: Number)
+	130: MoveLoc[20](loc18: bool)
+	131: MoveLoc[17](loc15: u8)
+	132: MoveLoc[21](loc19: bool)
+	133: Pack[1](MarketConfigUpdateEvent)
+	134: Call events::emit_event<MarketConfigUpdateEvent>(MarketConfigUpdateEvent)
+	135: Ret
+}
+
+public(friend) get_supply<Ty0>(): Supply<XToken<Ty0>> {
+B0:
+	0: LdFalse
+	1: PackGeneric[0](XToken<Ty0>)
+	2: Call balance::create_supply<XToken<Ty0>>(XToken<Ty0>): Supply<XToken<Ty0>>
+	3: Ret
+}
+
+public(friend) create_market<Ty0>(Arg0: u64, Arg1: TypeName, Arg2: Balance<Ty0>, Arg3: u8, Arg4: u8, Arg5: u64, Arg6: u64, Arg7: u8, Arg8: u64, Arg9: u64, Arg10: u64, Arg11: PriceIdentifier, Arg12: vector<TypeName>, Arg13: vector<u8>, Arg14: vector<u64>, Arg15: u64, Arg16: u64, Arg17: u64, Arg18: bool, Arg19: u64, Arg20: u64, Arg21: bool, Arg22: u8, Arg23: &Clock, Arg24: &mut TxContext): Market * MarketCap {
+L25:	loc0: bool
+L26:	loc1: u64
+L27:	loc2: u64
+L28:	loc3: vector<TypeName>
+L29:	loc4: vector<u8>
+L30:	loc5: vector<u64>
+L31:	loc6: u64
+L32:	loc7: u64
+L33:	loc8: u64
+L34:	loc9: bool
+L35:	loc10: bool
+L36:	loc11: u64
+L37:	loc12: u64
+L38:	loc13: u64
+L39:	loc14: u64
+L40:	loc15: bool
+L41:	loc16: Number
+L42:	loc17: Bag
+L43:	loc18: bool
+L44:	loc19: UID
+L45:	loc20: u64
+L46:	loc21: TypeName
+L47:	loc22: TypeName
+L48:	loc23: Number
+L49:	loc24: u8
+L50:	loc25: Number
+L51:	loc26: u64
+L52:	loc27: MarketConfig
+L53:	loc28: PriceIdentifier
+L54:	loc29: RewardDistributor
+L55:	loc30: RewardDistributor
+L56:	loc31: FlowLimiter
+L57:	loc32: FlowLimiter
+L58:	loc33: u8
+L59:	loc34: Number
+L60:	loc35: ID
+L61:	loc36: u64
+L62:	loc37: u64
+L63:	loc38: u8
+L64:	loc39: u64
+L65:	loc40: MarketConfig
+L66:	loc41: Market
+L67:	loc42: MarketCap
+L68:	loc43: u64
+L69:	loc44: Treasury<Ty0>
+L70:	loc45: Balance<XToken<Ty0>>
+B0:
+	0: CopyLoc[0](Arg0: u64)
+	1: LdU64(0)
+	2: Neq
+	3: BrFalse(5)
+B1:
+	4: Branch(11)
+B2:
+	5: MoveLoc[24](Arg24: &mut TxContext)
+	6: Pop
+	7: MoveLoc[23](Arg23: &Clock)
+	8: Pop
+	9: LdConst[15](u64: 22)
+	10: Abort
+B3:
+	11: CopyLoc[19](Arg19: u64)
+	12: LdU64(10000)
+	13: Le
+	14: BrFalse(16)
+B4:
+	15: Branch(22)
+B5:
+	16: MoveLoc[24](Arg24: &mut TxContext)
+	17: Pop
+	18: MoveLoc[23](Arg23: &Clock)
+	19: Pop
+	20: LdConst[9](u64: 8)
+	21: Abort
+B6:
+	22: CopyLoc[8](Arg8: u64)
+	23: LdU64(10000)
+	24: Le
+	25: BrFalse(45)
+B7:
+	26: CopyLoc[9](Arg9: u64)
+	27: LdU64(10000)
+	28: Le
+	29: BrFalse(42)
+B8:
+	30: CopyLoc[10](Arg10: u64)
+	31: LdU64(10000)
+	32: Le
+	33: BrFalse(39)
+B9:
+	34: CopyLoc[17](Arg17: u64)
+	35: LdU64(10000)
+	36: Le
+	37: StLoc[25](loc0: bool)
+	38: Branch(47)
+B10:
+	39: LdFalse
+	40: StLoc[25](loc0: bool)
+	41: Branch(47)
+B11:
+	42: LdFalse
+	43: StLoc[25](loc0: bool)
+	44: Branch(47)
+B12:
+	45: LdFalse
+	46: StLoc[25](loc0: bool)
+B13:
+	47: MoveLoc[25](loc0: bool)
+	48: BrFalse(50)
+B14:
+	49: Branch(56)
+B15:
+	50: MoveLoc[24](Arg24: &mut TxContext)
+	51: Pop
+	52: MoveLoc[23](Arg23: &Clock)
+	53: Pop
+	54: LdConst[14](u64: 16)
+	55: Abort
+B16:
+	56: ImmBorrowLoc[2](Arg2: Balance<Ty0>)
+	57: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	58: LdU64(0)
+	59: Eq
+	60: BrFalse(62)
+B17:
+	61: Branch(68)
+B18:
+	62: MoveLoc[24](Arg24: &mut TxContext)
+	63: Pop
+	64: MoveLoc[23](Arg23: &Clock)
+	65: Pop
+	66: LdConst[17](u64: 24)
+	67: Abort
+B19:
+	68: CopyLoc[18](Arg18: bool)
+	69: BrFalse(73)
+B20:
+	70: LdTrue
+	71: StLoc[34](loc9: bool)
+	72: Branch(77)
+B21:
+	73: CopyLoc[21](Arg21: bool)
+	74: LdFalse
+	75: Eq
+	76: StLoc[34](loc9: bool)
+B22:
+	77: MoveLoc[34](loc9: bool)
+	78: BrFalse(99)
+B23:
+	79: CopyLoc[3](Arg3: u8)
+	80: LdU8(0)
+	81: Eq
+	82: BrFalse(88)
+B24:
+	83: CopyLoc[4](Arg4: u8)
+	84: LdU8(0)
+	85: Eq
+	86: StLoc[43](loc18: bool)
+	87: Branch(90)
+B25:
+	88: LdFalse
+	89: StLoc[43](loc18: bool)
+B26:
+	90: MoveLoc[43](loc18: bool)
+	91: BrFalse(93)
+B27:
+	92: Branch(99)
+B28:
+	93: MoveLoc[24](Arg24: &mut TxContext)
+	94: Pop
+	95: MoveLoc[23](Arg23: &Clock)
+	96: Pop
+	97: LdConst[20](u64: 27)
+	98: Abort
+B29:
+	99: CopyLoc[14](Arg14: vector<u64>)
+	100: CopyLoc[13](Arg13: vector<u8>)
+	101: Call validate_interest_rates(vector<u64>, vector<u8>)
+	102: Call balance::zero<Ty0>(): Balance<Ty0>
+	103: LdFalse
+	104: PackGeneric[0](XToken<Ty0>)
+	105: Call balance::create_supply<XToken<Ty0>>(XToken<Ty0>): Supply<XToken<Ty0>>
+	106: Call balance::zero<XToken<Ty0>>(): Balance<XToken<Ty0>>
+	107: Call balance::zero<XToken<Ty0>>(): Balance<XToken<Ty0>>
+	108: PackGeneric[1](Treasury<Ty0>)
+	109: StLoc[69](loc44: Treasury<Ty0>)
+	110: MoveLoc[3](Arg3: u8)
+	111: StLoc[49](loc24: u8)
+	112: MoveLoc[4](Arg4: u8)
+	113: StLoc[58](loc33: u8)
+	114: MoveLoc[5](Arg5: u64)
+	115: StLoc[61](loc36: u64)
+	116: MoveLoc[6](Arg6: u64)
+	117: StLoc[62](loc37: u64)
+	118: MoveLoc[7](Arg7: u8)
+	119: StLoc[63](loc38: u8)
+	120: MoveLoc[8](Arg8: u64)
+	121: StLoc[64](loc39: u64)
+	122: MoveLoc[9](Arg9: u64)
+	123: StLoc[26](loc1: u64)
+	124: MoveLoc[10](Arg10: u64)
+	125: StLoc[27](loc2: u64)
+	126: MoveLoc[12](Arg12: vector<TypeName>)
+	127: StLoc[28](loc3: vector<TypeName>)
+	128: MoveLoc[13](Arg13: vector<u8>)
+	129: StLoc[29](loc4: vector<u8>)
+	130: MoveLoc[14](Arg14: vector<u64>)
+	131: StLoc[30](loc5: vector<u64>)
+	132: MoveLoc[15](Arg15: u64)
+	133: StLoc[31](loc6: u64)
+	134: MoveLoc[16](Arg16: u64)
+	135: StLoc[32](loc7: u64)
+	136: MoveLoc[17](Arg17: u64)
+	137: StLoc[33](loc8: u64)
+	138: MoveLoc[18](Arg18: bool)
+	139: StLoc[35](loc10: bool)
+	140: MoveLoc[19](Arg19: u64)
+	141: StLoc[36](loc11: u64)
+	142: MoveLoc[20](Arg20: u64)
+	143: StLoc[37](loc12: u64)
+	144: CopyLoc[23](Arg23: &Clock)
+	145: Call clock::timestamp_ms(&Clock): u64
+	146: LdConst[36](u64: 8640..)
+	147: Add
+	148: StLoc[38](loc13: u64)
+	149: CopyLoc[23](Arg23: &Clock)
+	150: Call clock::timestamp_ms(&Clock): u64
+	151: StLoc[39](loc14: u64)
+	152: MoveLoc[21](Arg21: bool)
+	153: StLoc[40](loc15: bool)
+	154: LdU64(10000)
+	155: Call math::from_bps(u64): Number
+	156: StLoc[41](loc16: Number)
+	157: CopyLoc[24](Arg24: &mut TxContext)
+	158: Call bag::new(&mut TxContext): Bag
+	159: StLoc[42](loc17: Bag)
+	160: MoveLoc[49](loc24: u8)
+	161: MoveLoc[58](loc33: u8)
+	162: MoveLoc[61](loc36: u64)
+	163: MoveLoc[62](loc37: u64)
+	164: MoveLoc[63](loc38: u8)
+	165: LdFalse
+	166: LdFalse
+	167: MoveLoc[64](loc39: u64)
+	168: MoveLoc[26](loc1: u64)
+	169: MoveLoc[27](loc2: u64)
+	170: MoveLoc[28](loc3: vector<TypeName>)
+	171: MoveLoc[29](loc4: vector<u8>)
+	172: MoveLoc[30](loc5: vector<u64>)
+	173: MoveLoc[31](loc6: u64)
+	174: MoveLoc[32](loc7: u64)
+	175: MoveLoc[33](loc8: u64)
+	176: MoveLoc[35](loc10: bool)
+	177: MoveLoc[36](loc11: u64)
+	178: MoveLoc[37](loc12: u64)
+	179: MoveLoc[38](loc13: u64)
+	180: MoveLoc[39](loc14: u64)
+	181: MoveLoc[40](loc15: bool)
+	182: MoveLoc[41](loc16: Number)
+	183: MoveLoc[42](loc17: Bag)
+	184: LdTrue
+	185: LdConst[1](u8: 20)
+	186: LdFalse
+	187: Pack[11](MarketConfig)
+	188: StLoc[65](loc40: MarketConfig)
+	189: CopyLoc[24](Arg24: &mut TxContext)
+	190: Call object::new(&mut TxContext): UID
+	191: CopyLoc[0](Arg0: u64)
+	192: CopyLoc[24](Arg24: &mut TxContext)
+	193: FreezeRef
+	194: Call tx_context::sender(&TxContext): address
+	195: Pack[13](MarketCap)
+	196: StLoc[67](loc42: MarketCap)
+	197: CopyLoc[23](Arg23: &Clock)
+	198: Call clock::timestamp_ms(&Clock): u64
+	199: LdConst[0](u64: 1000)
+	200: Div
+	201: LdConst[0](u64: 1000)
+	202: Mul
+	203: StLoc[68](loc43: u64)
+	204: CopyLoc[24](Arg24: &mut TxContext)
+	205: Call object::new(&mut TxContext): UID
+	206: StLoc[44](loc19: UID)
+	207: CopyLoc[0](Arg0: u64)
+	208: StLoc[45](loc20: u64)
+	209: MoveLoc[1](Arg1: TypeName)
+	210: StLoc[46](loc21: TypeName)
+	211: Call type_name::get<XToken<Ty0>>(): TypeName
+	212: StLoc[47](loc22: TypeName)
+	213: LdU64(1)
+	214: Call math::from(u64): Number
+	215: StLoc[48](loc23: Number)
+	216: LdU64(1)
+	217: Call math::from(u64): Number
+	218: StLoc[50](loc25: Number)
+	219: MoveLoc[68](loc43: u64)
+	220: StLoc[51](loc26: u64)
+	221: MoveLoc[65](loc40: MarketConfig)
+	222: StLoc[52](loc27: MarketConfig)
+	223: MoveLoc[11](Arg11: PriceIdentifier)
+	224: StLoc[53](loc28: PriceIdentifier)
+	225: CopyLoc[24](Arg24: &mut TxContext)
+	226: CopyLoc[0](Arg0: u64)
+	227: Call rewards::create_reward_distributor(&mut TxContext, u64): RewardDistributor
+	228: StLoc[54](loc29: RewardDistributor)
+	229: CopyLoc[24](Arg24: &mut TxContext)
+	230: MoveLoc[0](Arg0: u64)
+	231: Call rewards::create_reward_distributor(&mut TxContext, u64): RewardDistributor
+	232: StLoc[55](loc30: RewardDistributor)
+	233: LdU64(0)
+	234: LdU64(0)
+	235: CopyLoc[23](Arg23: &Clock)
+	236: Call flow_limiter::new(u64, u64, &Clock): FlowLimiter
+	237: StLoc[56](loc31: FlowLimiter)
+	238: LdU64(0)
+	239: LdU64(0)
+	240: CopyLoc[23](Arg23: &Clock)
+	241: Call flow_limiter::new(u64, u64, &Clock): FlowLimiter
+	242: StLoc[57](loc32: FlowLimiter)
+	243: LdU64(10)
+	244: Call math::from(u64): Number
+	245: MoveLoc[22](Arg22: u8)
+	246: CastU64
+	247: Call math::pow(Number, u64): Number
+	248: StLoc[59](loc34: Number)
+	249: ImmBorrowLoc[67](loc42: MarketCap)
+	250: Call object::id<MarketCap>(&MarketCap): ID
+	251: StLoc[60](loc35: ID)
+	252: MoveLoc[44](loc19: UID)
+	253: MoveLoc[45](loc20: u64)
+	254: MoveLoc[46](loc21: TypeName)
+	255: MoveLoc[47](loc22: TypeName)
+	256: LdU64(0)
+	257: MoveLoc[48](loc23: Number)
+	258: LdU64(0)
+	259: LdU64(0)
+	260: LdU64(0)
+	261: LdU64(0)
+	262: LdU64(0)
+	263: MoveLoc[50](loc25: Number)
+	264: MoveLoc[51](loc26: u64)
+	265: MoveLoc[52](loc27: MarketConfig)
+	266: MoveLoc[53](loc28: PriceIdentifier)
+	267: MoveLoc[54](loc29: RewardDistributor)
+	268: MoveLoc[55](loc30: RewardDistributor)
+	269: MoveLoc[56](loc31: FlowLimiter)
+	270: MoveLoc[57](loc32: FlowLimiter)
+	271: MoveLoc[59](loc34: Number)
+	272: MoveLoc[60](loc35: ID)
+	273: Pack[12](Market)
+	274: StLoc[66](loc41: Market)
+	275: MutBorrowLoc[66](loc41: Market)
+	276: MutBorrowField[30](Market.id: UID)
+	277: LdFalse
+	278: Pack[7](TreasuryKey)
+	279: MoveLoc[69](loc44: Treasury<Ty0>)
+	280: Call dynamic_field::add<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey, Treasury<Ty0>)
+	281: MutBorrowLoc[66](loc41: Market)
+	282: MoveLoc[2](Arg2: Balance<Ty0>)
+	283: MoveLoc[24](Arg24: &mut TxContext)
+	284: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	285: MoveLoc[23](Arg23: &Clock)
+	286: Call add_liquidity_to_treasury<Ty0>(&mut Market, Coin<Ty0>, &Clock): Balance<XToken<Ty0>>
+	287: StLoc[70](loc45: Balance<XToken<Ty0>>)
+	288: ImmBorrowLoc[66](loc41: Market)
+	289: Call emit_market_data_update_event(&Market)
+	290: ImmBorrowLoc[66](loc41: Market)
+	291: ImmBorrowField[31](Market.config: MarketConfig)
+	292: Call validate_collateral_ratios(&MarketConfig)
+	293: ImmBorrowLoc[66](loc41: Market)
+	294: ImmBorrowField[31](Market.config: MarketConfig)
+	295: Call validate_liquidation_config(&MarketConfig)
+	296: MoveLoc[70](loc45: Balance<XToken<Ty0>>)
+	297: Call balance::destroy_zero<XToken<Ty0>>(Balance<XToken<Ty0>>)
+	298: MoveLoc[66](loc41: Market)
+	299: MoveLoc[67](loc42: MarketCap)
+	300: Ret
+}
+
+public(friend) deposit_limit_exceeded(Arg0: &Market, Arg1: u64): bool {
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: ImmBorrowField[32](Market.balance_holding: u64)
+	2: ReadRef
+	3: CopyLoc[0](Arg0: &Market)
+	4: ImmBorrowField[33](Market.borrowed_amount: u64)
+	5: ReadRef
+	6: Add
+	7: MoveLoc[1](Arg1: u64)
+	8: Add
+	9: MoveLoc[0](Arg0: &Market)
+	10: ImmBorrowField[31](Market.config: MarketConfig)
+	11: ImmBorrowField[6](MarketConfig.deposit_limit: u64)
+	12: ReadRef
+	13: Gt
+	14: Ret
+}
+
+public(friend) add_liquidity<Ty0>(Arg0: &mut Market, Arg1: Coin<Ty0>, Arg2: &Clock): Balance<XToken<Ty0>> {
+L3:	loc0: u64
+L4:	loc1: Balance<XToken<Ty0>>
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: CopyLoc[2](Arg2: &Clock)
+	2: Call refresh(&mut Market, &Clock)
+	3: ImmBorrowLoc[1](Arg1: Coin<Ty0>)
+	4: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	5: StLoc[3](loc0: u64)
+	6: CopyLoc[0](Arg0: &mut Market)
+	7: MutBorrowField[34](Market.deposit_flow_limiter: FlowLimiter)
+	8: MoveLoc[3](loc0: u64)
+	9: CopyLoc[2](Arg2: &Clock)
+	10: Call flow_limiter::check_and_update(&mut FlowLimiter, u64, &Clock)
+	11: CopyLoc[0](Arg0: &mut Market)
+	12: MoveLoc[1](Arg1: Coin<Ty0>)
+	13: MoveLoc[2](Arg2: &Clock)
+	14: Call add_liquidity_to_treasury<Ty0>(&mut Market, Coin<Ty0>, &Clock): Balance<XToken<Ty0>>
+	15: StLoc[4](loc1: Balance<XToken<Ty0>>)
+	16: MoveLoc[0](Arg0: &mut Market)
+	17: FreezeRef
+	18: Call emit_market_data_update_event(&Market)
+	19: MoveLoc[4](loc1: Balance<XToken<Ty0>>)
+	20: Ret
+}
+
+public(friend) remove_liquidity<Ty0>(Arg0: &mut Market, Arg1: Balance<XToken<Ty0>>, Arg2: &Oracle, Arg3: &Clock): LiquidityPromise<Ty0> {
+L4:	loc0: LiquidityPromise<Ty0>
+L5:	loc1: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: MoveLoc[2](Arg2: &Oracle)
+	2: CopyLoc[3](Arg3: &Clock)
+	3: Call refresh_with_price(&mut Market, &Oracle, &Clock)
+	4: ImmBorrowLoc[1](Arg1: Balance<XToken<Ty0>>)
+	5: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	6: StLoc[5](loc1: u64)
+	7: CopyLoc[0](Arg0: &mut Market)
+	8: MutBorrowField[35](Market.outflow_limiter: FlowLimiter)
+	9: MoveLoc[5](loc1: u64)
+	10: CopyLoc[3](Arg3: &Clock)
+	11: Call flow_limiter::check_and_update(&mut FlowLimiter, u64, &Clock)
+	12: CopyLoc[0](Arg0: &mut Market)
+	13: MoveLoc[1](Arg1: Balance<XToken<Ty0>>)
+	14: MoveLoc[3](Arg3: &Clock)
+	15: Call burn_xtokens_generate_promise<Ty0>(&mut Market, Balance<XToken<Ty0>>, &Clock): LiquidityPromise<Ty0>
+	16: StLoc[4](loc0: LiquidityPromise<Ty0>)
+	17: MoveLoc[0](Arg0: &mut Market)
+	18: FreezeRef
+	19: Call emit_market_data_update_event(&Market)
+	20: MoveLoc[4](loc0: LiquidityPromise<Ty0>)
+	21: Ret
+}
+
+public(friend) get_token_price(Arg0: &Market, Arg1: &Oracle): Number * Number {
+L2:	loc0: Number
+B0:
+	0: MoveLoc[1](Arg1: &Oracle)
+	1: CopyLoc[0](Arg0: &Market)
+	2: ImmBorrowField[36](Market.price_identifier: PriceIdentifier)
+	3: Call oracle::get_price(&Oracle, &PriceIdentifier): Number * Number
+	4: StLoc[2](loc0: Number)
+	5: CopyLoc[0](Arg0: &Market)
+	6: ImmBorrowField[37](Market.decimal_digit: Number)
+	7: ReadRef
+	8: Call math::div(Number, Number): Number
+	9: MoveLoc[2](loc0: Number)
+	10: MoveLoc[0](Arg0: &Market)
+	11: ImmBorrowField[37](Market.decimal_digit: Number)
+	12: ReadRef
+	13: Call math::div(Number, Number): Number
+	14: Ret
+}
+
+public(friend) get_token_spot_price(Arg0: &Market, Arg1: &Oracle): Number {
+B0:
+	0: MoveLoc[1](Arg1: &Oracle)
+	1: CopyLoc[0](Arg0: &Market)
+	2: ImmBorrowField[36](Market.price_identifier: PriceIdentifier)
+	3: Call oracle::get_price(&Oracle, &PriceIdentifier): Number * Number
+	4: Pop
+	5: MoveLoc[0](Arg0: &Market)
+	6: ImmBorrowField[37](Market.decimal_digit: Number)
+	7: ReadRef
+	8: Call math::div(Number, Number): Number
+	9: Ret
+}
+
+public(friend) get_token_price_for_collateral(Arg0: &Market, Arg1: &Oracle): Number * Number {
+L2:	loc0: Number
+B0:
+	0: MoveLoc[1](Arg1: &Oracle)
+	1: CopyLoc[0](Arg0: &Market)
+	2: ImmBorrowField[36](Market.price_identifier: PriceIdentifier)
+	3: Call oracle::get_price(&Oracle, &PriceIdentifier): Number * Number
+	4: StLoc[2](loc0: Number)
+	5: CopyLoc[0](Arg0: &Market)
+	6: ImmBorrowField[37](Market.decimal_digit: Number)
+	7: ReadRef
+	8: Call math::div(Number, Number): Number
+	9: MoveLoc[2](loc0: Number)
+	10: MoveLoc[0](Arg0: &Market)
+	11: ImmBorrowField[37](Market.decimal_digit: Number)
+	12: ReadRef
+	13: Call math::div(Number, Number): Number
+	14: Ret
+}
+
+public(friend) get_token_count(Arg0: &Market, Arg1: &Oracle, Arg2: Number): Number {
+L3:	loc0: Number
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: MoveLoc[1](Arg1: &Oracle)
+	2: Call get_token_price(&Market, &Oracle): Number * Number
+	3: Pop
+	4: StLoc[3](loc0: Number)
+	5: MoveLoc[2](Arg2: Number)
+	6: MoveLoc[3](loc0: Number)
+	7: Call math::div(Number, Number): Number
+	8: Ret
+}
+
+public(friend) get_xtoken_spot_price(Arg0: &Market, Arg1: &Oracle): Number {
+L2:	loc0: Number
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: MoveLoc[1](Arg1: &Oracle)
+	2: Call get_token_price(&Market, &Oracle): Number * Number
+	3: Pop
+	4: StLoc[2](loc0: Number)
+	5: MoveLoc[0](Arg0: &Market)
+	6: ImmBorrowField[38](Market.xtoken_ratio: Number)
+	7: ReadRef
+	8: MoveLoc[2](loc0: Number)
+	9: Call math::mul(Number, Number): Number
+	10: Ret
+}
+
+public(friend) get_xtoken_price(Arg0: &Market, Arg1: &Oracle): Number {
+L2:	loc0: Number
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: MoveLoc[1](Arg1: &Oracle)
+	2: Call get_token_price(&Market, &Oracle): Number * Number
+	3: Call math::min(Number, Number): Number
+	4: StLoc[2](loc0: Number)
+	5: MoveLoc[0](Arg0: &Market)
+	6: ImmBorrowField[38](Market.xtoken_ratio: Number)
+	7: ReadRef
+	8: MoveLoc[2](loc0: Number)
+	9: Call math::mul(Number, Number): Number
+	10: Ret
+}
+
+public(friend) get_ltv_value(Arg0: &Market, Arg1: Number): Number {
+B0:
+	0: MoveLoc[1](Arg1: Number)
+	1: MoveLoc[0](Arg0: &Market)
+	2: ImmBorrowField[31](Market.config: MarketConfig)
+	3: ImmBorrowField[4](MarketConfig.safe_collateral_ratio: u8)
+	4: ReadRef
+	5: CastU16
+	6: Call math::from_percentage(u16): Number
+	7: Call math::mul(Number, Number): Number
+	8: Ret
+}
+
+public(friend) get_liquidation_value(Arg0: &Market, Arg1: Number): Number {
+B0:
+	0: MoveLoc[1](Arg1: Number)
+	1: MoveLoc[0](Arg0: &Market)
+	2: ImmBorrowField[31](Market.config: MarketConfig)
+	3: ImmBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	4: ReadRef
+	5: CastU16
+	6: Call math::from_percentage(u16): Number
+	7: Call math::mul(Number, Number): Number
+	8: Ret
+}
+
+public(friend) add_reward<Ty0>(Arg0: &mut Market, Arg1: &MarketCap, Arg2: bool, Arg3: Balance<Ty0>, Arg4: TypeName, Arg5: bool, Arg6: u64, Arg7: u64, Arg8: u64, Arg9: &Clock, Arg10: &mut TxContext) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: FreezeRef
+	2: CopyLoc[1](Arg1: &MarketCap)
+	3: Call verify_market_cap(&Market, &MarketCap)
+	4: MoveLoc[1](Arg1: &MarketCap)
+	5: ImmBorrowField[39](MarketCap.market_id: u64)
+	6: ReadRef
+	7: CopyLoc[0](Arg0: &mut Market)
+	8: ImmBorrowField[40](Market.market_id: u64)
+	9: ReadRef
+	10: Eq
+	11: BrFalse(13)
+B1:
+	12: Branch(21)
+B2:
+	13: MoveLoc[0](Arg0: &mut Market)
+	14: Pop
+	15: MoveLoc[10](Arg10: &mut TxContext)
+	16: Pop
+	17: MoveLoc[9](Arg9: &Clock)
+	18: Pop
+	19: LdConst[8](u64: 7)
+	20: Abort
+B3:
+	21: MoveLoc[2](Arg2: bool)
+	22: LdTrue
+	23: Eq
+	24: BrFalse(41)
+B4:
+	25: CopyLoc[0](Arg0: &mut Market)
+	26: MutBorrowField[41](Market.deposit_reward_distributor: RewardDistributor)
+	27: CopyLoc[9](Arg9: &Clock)
+	28: Call rewards::refresh(&mut RewardDistributor, &Clock)
+	29: MoveLoc[0](Arg0: &mut Market)
+	30: MutBorrowField[41](Market.deposit_reward_distributor: RewardDistributor)
+	31: MoveLoc[3](Arg3: Balance<Ty0>)
+	32: MoveLoc[4](Arg4: TypeName)
+	33: MoveLoc[5](Arg5: bool)
+	34: MoveLoc[6](Arg6: u64)
+	35: MoveLoc[7](Arg7: u64)
+	36: MoveLoc[8](Arg8: u64)
+	37: MoveLoc[9](Arg9: &Clock)
+	38: MoveLoc[10](Arg10: &mut TxContext)
+	39: Call rewards::add_reward<Ty0>(&mut RewardDistributor, Balance<Ty0>, TypeName, bool, u64, u64, u64, &Clock, &mut TxContext)
+	40: Branch(56)
+B5:
+	41: CopyLoc[0](Arg0: &mut Market)
+	42: MutBorrowField[42](Market.borrow_reward_distributor: RewardDistributor)
+	43: CopyLoc[9](Arg9: &Clock)
+	44: Call rewards::refresh(&mut RewardDistributor, &Clock)
+	45: MoveLoc[0](Arg0: &mut Market)
+	46: MutBorrowField[42](Market.borrow_reward_distributor: RewardDistributor)
+	47: MoveLoc[3](Arg3: Balance<Ty0>)
+	48: MoveLoc[4](Arg4: TypeName)
+	49: MoveLoc[5](Arg5: bool)
+	50: MoveLoc[6](Arg6: u64)
+	51: MoveLoc[7](Arg7: u64)
+	52: MoveLoc[8](Arg8: u64)
+	53: MoveLoc[9](Arg9: &Clock)
+	54: MoveLoc[10](Arg10: &mut TxContext)
+	55: Call rewards::add_reward<Ty0>(&mut RewardDistributor, Balance<Ty0>, TypeName, bool, u64, u64, u64, &Clock, &mut TxContext)
+B6:
+	56: Ret
+}
+
+set_xtoken_ratio_rounded_down(Arg0: &mut Market) {
+L1:	loc0: Number
+L2:	loc1: bool
+L3:	loc2: Number
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: ImmBorrowField[43](Market.xtoken_supply: u64)
+	2: ReadRef
+	3: LdU64(0)
+	4: Eq
+	5: BrFalse(27)
+B1:
+	6: CopyLoc[0](Arg0: &mut Market)
+	7: FreezeRef
+	8: Call total_liquidity(&Market): u128
+	9: LdU128(0)
+	10: Neq
+	11: BrFalse(23)
+B2:
+	12: CopyLoc[0](Arg0: &mut Market)
+	13: ImmBorrowField[44](Market.unclaimed_spread_fee: u64)
+	14: ReadRef
+	15: CopyLoc[0](Arg0: &mut Market)
+	16: FreezeRef
+	17: Call total_liquidity(&Market): u128
+	18: CastU64
+	19: Add
+	20: CopyLoc[0](Arg0: &mut Market)
+	21: MutBorrowField[44](Market.unclaimed_spread_fee: u64)
+	22: WriteRef
+B3:
+	23: LdU64(1)
+	24: Call math::from(u64): Number
+	25: StLoc[1](loc0: Number)
+	26: Branch(37)
+B4:
+	27: CopyLoc[0](Arg0: &mut Market)
+	28: FreezeRef
+	29: Call total_liquidity(&Market): u128
+	30: Call math::from_u128(u128): Number
+	31: CopyLoc[0](Arg0: &mut Market)
+	32: ImmBorrowField[43](Market.xtoken_supply: u64)
+	33: ReadRef
+	34: Call math::from(u64): Number
+	35: Call math::div(Number, Number): Number
+	36: StLoc[1](loc0: Number)
+B5:
+	37: MoveLoc[1](loc0: Number)
+	38: StLoc[3](loc2: Number)
+	39: CopyLoc[0](Arg0: &mut Market)
+	40: ImmBorrowField[45](Market.writeoff_amount: u64)
+	41: ReadRef
+	42: LdU64(0)
+	43: Eq
+	44: BrFalse(52)
+B6:
+	45: CopyLoc[0](Arg0: &mut Market)
+	46: ImmBorrowField[43](Market.xtoken_supply: u64)
+	47: ReadRef
+	48: LdU64(0)
+	49: Neq
+	50: StLoc[2](loc1: bool)
+	51: Branch(54)
+B7:
+	52: LdFalse
+	53: StLoc[2](loc1: bool)
+B8:
+	54: MoveLoc[2](loc1: bool)
+	55: BrFalse(67)
+B9:
+	56: CopyLoc[3](loc2: Number)
+	57: CopyLoc[0](Arg0: &mut Market)
+	58: ImmBorrowField[38](Market.xtoken_ratio: Number)
+	59: ReadRef
+	60: Call math::ge(Number, Number): bool
+	61: BrFalse(63)
+B10:
+	62: Branch(87)
+B11:
+	63: MoveLoc[0](Arg0: &mut Market)
+	64: Pop
+	65: LdConst[16](u64: 23)
+	66: Abort
+B12:
+	67: CopyLoc[0](Arg0: &mut Market)
+	68: ImmBorrowField[45](Market.writeoff_amount: u64)
+	69: ReadRef
+	70: LdU64(0)
+	71: Neq
+	72: BrFalse(87)
+B13:
+	73: CopyLoc[0](Arg0: &mut Market)
+	74: ImmBorrowField[33](Market.borrowed_amount: u64)
+	75: ReadRef
+	76: CopyLoc[0](Arg0: &mut Market)
+	77: ImmBorrowField[45](Market.writeoff_amount: u64)
+	78: ReadRef
+	79: Sub
+	80: CopyLoc[0](Arg0: &mut Market)
+	81: MutBorrowField[33](Market.borrowed_amount: u64)
+	82: WriteRef
+	83: LdU64(0)
+	84: CopyLoc[0](Arg0: &mut Market)
+	85: MutBorrowField[45](Market.writeoff_amount: u64)
+	86: WriteRef
+B14:
+	87: MoveLoc[3](loc2: Number)
+	88: MoveLoc[0](Arg0: &mut Market)
+	89: MutBorrowField[38](Market.xtoken_ratio: Number)
+	90: WriteRef
+	91: Ret
+}
+
+public(friend) get_xtoken_ratio(Arg0: &Market): Number {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[38](Market.xtoken_ratio: Number)
+	2: ReadRef
+	3: Ret
+}
+
+add_liquidity_to_treasury<Ty0>(Arg0: &mut Market, Arg1: Coin<Ty0>, Arg2: &Clock): Balance<XToken<Ty0>> {
+L3:	loc0: u64
+L4:	loc1: &mut Treasury<Ty0>
+L5:	loc2: Balance<XToken<Ty0>>
+L6:	loc3: u64
+L7:	loc4: Number
+B0:
+	0: MoveLoc[2](Arg2: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: CopyLoc[0](Arg0: &mut Market)
+	3: ImmBorrowField[46](Market.last_auto_compound: u64)
+	4: ReadRef
+	5: LdConst[0](u64: 1000)
+	6: Add
+	7: Le
+	8: BrFalse(10)
+B1:
+	9: Branch(14)
+B2:
+	10: MoveLoc[0](Arg0: &mut Market)
+	11: Pop
+	12: LdConst[4](u64: 3)
+	13: Abort
+B3:
+	14: ImmBorrowLoc[1](Arg1: Coin<Ty0>)
+	15: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	16: StLoc[3](loc0: u64)
+	17: CopyLoc[0](Arg0: &mut Market)
+	18: ImmBorrowField[38](Market.xtoken_ratio: Number)
+	19: ReadRef
+	20: StLoc[7](loc4: Number)
+	21: ImmBorrowLoc[1](Arg1: Coin<Ty0>)
+	22: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	23: Call math::from(u64): Number
+	24: MoveLoc[7](loc4: Number)
+	25: Call math::div(Number, Number): Number
+	26: Call math::to_u64(Number): u64
+	27: StLoc[6](loc3: u64)
+	28: CopyLoc[0](Arg0: &mut Market)
+	29: MutBorrowField[30](Market.id: UID)
+	30: LdFalse
+	31: Pack[7](TreasuryKey)
+	32: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey): &mut Treasury<Ty0>
+	33: StLoc[4](loc1: &mut Treasury<Ty0>)
+	34: CopyLoc[4](loc1: &mut Treasury<Ty0>)
+	35: MutBorrowFieldGeneric[1](Treasury.supply: Supply<XToken<Ty0>>)
+	36: MoveLoc[6](loc3: u64)
+	37: CastU64
+	38: Call balance::increase_supply<XToken<Ty0>>(&mut Supply<XToken<Ty0>>, u64): Balance<XToken<Ty0>>
+	39: StLoc[5](loc2: Balance<XToken<Ty0>>)
+	40: CopyLoc[4](loc1: &mut Treasury<Ty0>)
+	41: ImmBorrowFieldGeneric[1](Treasury.supply: Supply<XToken<Ty0>>)
+	42: Call balance::supply_value<XToken<Ty0>>(&Supply<XToken<Ty0>>): u64
+	43: CopyLoc[0](Arg0: &mut Market)
+	44: MutBorrowField[43](Market.xtoken_supply: u64)
+	45: WriteRef
+	46: CopyLoc[4](loc1: &mut Treasury<Ty0>)
+	47: MutBorrowFieldGeneric[0](Treasury.balance: Balance<Ty0>)
+	48: MoveLoc[1](Arg1: Coin<Ty0>)
+	49: Call coin::into_balance<Ty0>(Coin<Ty0>): Balance<Ty0>
+	50: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	51: Pop
+	52: CopyLoc[0](Arg0: &mut Market)
+	53: ImmBorrowField[32](Market.balance_holding: u64)
+	54: ReadRef
+	55: MoveLoc[3](loc0: u64)
+	56: Add
+	57: CopyLoc[0](Arg0: &mut Market)
+	58: MutBorrowField[32](Market.balance_holding: u64)
+	59: WriteRef
+	60: MoveLoc[0](Arg0: &mut Market)
+	61: ImmBorrowField[40](Market.market_id: u64)
+	62: ReadRef
+	63: MoveLoc[4](loc1: &mut Treasury<Ty0>)
+	64: FreezeRef
+	65: Call emit_market_treasury_update_event<Ty0>(u64, &Treasury<Ty0>)
+	66: MoveLoc[5](loc2: Balance<XToken<Ty0>>)
+	67: Ret
+}
+
+public(friend) burn_xtokens_generate_promise<Ty0>(Arg0: &mut Market, Arg1: Balance<XToken<Ty0>>, Arg2: &Clock): LiquidityPromise<Ty0> {
+L3:	loc0: Number
+L4:	loc1: LiquidityPromise<Ty0>
+L5:	loc2: &mut Treasury<Ty0>
+L6:	loc3: Number
+B0:
+	0: MoveLoc[2](Arg2: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: CopyLoc[0](Arg0: &mut Market)
+	3: ImmBorrowField[46](Market.last_auto_compound: u64)
+	4: ReadRef
+	5: LdConst[0](u64: 1000)
+	6: Add
+	7: Le
+	8: BrFalse(10)
+B1:
+	9: Branch(14)
+B2:
+	10: MoveLoc[0](Arg0: &mut Market)
+	11: Pop
+	12: LdConst[4](u64: 3)
+	13: Abort
+B3:
+	14: CopyLoc[0](Arg0: &mut Market)
+	15: ImmBorrowField[38](Market.xtoken_ratio: Number)
+	16: ReadRef
+	17: StLoc[6](loc3: Number)
+	18: ImmBorrowLoc[1](Arg1: Balance<XToken<Ty0>>)
+	19: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	20: Call math::from(u64): Number
+	21: MoveLoc[6](loc3: Number)
+	22: Call math::mul(Number, Number): Number
+	23: StLoc[3](loc0: Number)
+	24: CopyLoc[3](loc0: Number)
+	25: Call math::to_u64(Number): u64
+	26: CopyLoc[0](Arg0: &mut Market)
+	27: ImmBorrowField[32](Market.balance_holding: u64)
+	28: ReadRef
+	29: Le
+	30: BrFalse(32)
+B4:
+	31: Branch(36)
+B5:
+	32: MoveLoc[0](Arg0: &mut Market)
+	33: Pop
+	34: LdConst[12](u64: 14)
+	35: Abort
+B6:
+	36: CopyLoc[0](Arg0: &mut Market)
+	37: MutBorrowField[30](Market.id: UID)
+	38: LdFalse
+	39: Pack[7](TreasuryKey)
+	40: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey): &mut Treasury<Ty0>
+	41: StLoc[5](loc2: &mut Treasury<Ty0>)
+	42: CopyLoc[5](loc2: &mut Treasury<Ty0>)
+	43: MutBorrowFieldGeneric[1](Treasury.supply: Supply<XToken<Ty0>>)
+	44: MoveLoc[1](Arg1: Balance<XToken<Ty0>>)
+	45: Call balance::decrease_supply<XToken<Ty0>>(&mut Supply<XToken<Ty0>>, Balance<XToken<Ty0>>): u64
+	46: Pop
+	47: CopyLoc[5](loc2: &mut Treasury<Ty0>)
+	48: ImmBorrowFieldGeneric[1](Treasury.supply: Supply<XToken<Ty0>>)
+	49: Call balance::supply_value<XToken<Ty0>>(&Supply<XToken<Ty0>>): u64
+	50: CopyLoc[0](Arg0: &mut Market)
+	51: MutBorrowField[43](Market.xtoken_supply: u64)
+	52: WriteRef
+	53: CopyLoc[0](Arg0: &mut Market)
+	54: ImmBorrowField[40](Market.market_id: u64)
+	55: ReadRef
+	56: CopyLoc[0](Arg0: &mut Market)
+	57: ImmBorrowField[47](Market.coin_type: TypeName)
+	58: ReadRef
+	59: MoveLoc[3](loc0: Number)
+	60: Call math::to_u64(Number): u64
+	61: LdU64(0)
+	62: PackGeneric[2](LiquidityPromise<Ty0>)
+	63: StLoc[4](loc1: LiquidityPromise<Ty0>)
+	64: MoveLoc[0](Arg0: &mut Market)
+	65: ImmBorrowField[40](Market.market_id: u64)
+	66: ReadRef
+	67: MoveLoc[5](loc2: &mut Treasury<Ty0>)
+	68: FreezeRef
+	69: Call emit_market_treasury_update_event<Ty0>(u64, &Treasury<Ty0>)
+	70: MoveLoc[4](loc1: LiquidityPromise<Ty0>)
+	71: Ret
+}
+
+public(friend) refresh_with_price(Arg0: &mut Market, Arg1: &Oracle, Arg2: &Clock) {
+B0:
+	0: MoveLoc[1](Arg1: &Oracle)
+	1: CopyLoc[0](Arg0: &mut Market)
+	2: ImmBorrowField[36](Market.price_identifier: PriceIdentifier)
+	3: CopyLoc[2](Arg2: &Clock)
+	4: Call oracle::verify_price(&Oracle, &PriceIdentifier, &Clock)
+	5: MoveLoc[0](Arg0: &mut Market)
+	6: MoveLoc[2](Arg2: &Clock)
+	7: Call refresh(&mut Market, &Clock)
+	8: Ret
+}
+
+public(friend) refresh(Arg0: &mut Market, Arg1: &Clock) {
+L2:	loc0: bool
+B0:
+	0: CopyLoc[1](Arg1: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: CopyLoc[0](Arg0: &mut Market)
+	3: ImmBorrowField[46](Market.last_auto_compound: u64)
+	4: ReadRef
+	5: LdConst[0](u64: 1000)
+	6: Add
+	7: Lt
+	8: BrFalse(16)
+B1:
+	9: CopyLoc[0](Arg0: &mut Market)
+	10: ImmBorrowField[45](Market.writeoff_amount: u64)
+	11: ReadRef
+	12: LdU64(0)
+	13: Eq
+	14: StLoc[2](loc0: bool)
+	15: Branch(18)
+B2:
+	16: LdFalse
+	17: StLoc[2](loc0: bool)
+B3:
+	18: MoveLoc[2](loc0: bool)
+	19: BrFalse(25)
+B4:
+	20: MoveLoc[0](Arg0: &mut Market)
+	21: Pop
+	22: MoveLoc[1](Arg1: &Clock)
+	23: Pop
+	24: Ret
+B5:
+	25: CopyLoc[0](Arg0: &mut Market)
+	26: CopyLoc[1](Arg1: &Clock)
+	27: Call compound_interest(&mut Market, &Clock)
+	28: CopyLoc[0](Arg0: &mut Market)
+	29: Call set_xtoken_ratio_rounded_down(&mut Market)
+	30: CopyLoc[0](Arg0: &mut Market)
+	31: MutBorrowField[41](Market.deposit_reward_distributor: RewardDistributor)
+	32: CopyLoc[1](Arg1: &Clock)
+	33: Call rewards::refresh(&mut RewardDistributor, &Clock)
+	34: CopyLoc[0](Arg0: &mut Market)
+	35: MutBorrowField[42](Market.borrow_reward_distributor: RewardDistributor)
+	36: MoveLoc[1](Arg1: &Clock)
+	37: Call rewards::refresh(&mut RewardDistributor, &Clock)
+	38: MoveLoc[0](Arg0: &mut Market)
+	39: FreezeRef
+	40: Call emit_market_data_update_event(&Market)
+	41: Ret
+}
+
+emit_market_data_update_event(Arg0: &Market) {
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: ImmBorrowField[40](Market.market_id: u64)
+	2: ReadRef
+	3: CopyLoc[0](Arg0: &Market)
+	4: ImmBorrowField[47](Market.coin_type: TypeName)
+	5: ReadRef
+	6: CopyLoc[0](Arg0: &Market)
+	7: ImmBorrowField[48](Market.xtoken_type: TypeName)
+	8: ReadRef
+	9: CopyLoc[0](Arg0: &Market)
+	10: ImmBorrowField[43](Market.xtoken_supply: u64)
+	11: ReadRef
+	12: CopyLoc[0](Arg0: &Market)
+	13: ImmBorrowField[38](Market.xtoken_ratio: Number)
+	14: ReadRef
+	15: CopyLoc[0](Arg0: &Market)
+	16: ImmBorrowField[33](Market.borrowed_amount: u64)
+	17: ReadRef
+	18: CopyLoc[0](Arg0: &Market)
+	19: ImmBorrowField[45](Market.writeoff_amount: u64)
+	20: ReadRef
+	21: CopyLoc[0](Arg0: &Market)
+	22: ImmBorrowField[32](Market.balance_holding: u64)
+	23: ReadRef
+	24: CopyLoc[0](Arg0: &Market)
+	25: ImmBorrowField[44](Market.unclaimed_spread_fee: u64)
+	26: ReadRef
+	27: CopyLoc[0](Arg0: &Market)
+	28: ImmBorrowField[49](Market.unclaimed_spread_fee_protocol: u64)
+	29: ReadRef
+	30: CopyLoc[0](Arg0: &Market)
+	31: ImmBorrowField[50](Market.compounded_interest: Number)
+	32: ReadRef
+	33: CopyLoc[0](Arg0: &Market)
+	34: ImmBorrowField[46](Market.last_auto_compound: u64)
+	35: ReadRef
+	36: CopyLoc[0](Arg0: &Market)
+	37: ImmBorrowField[36](Market.price_identifier: PriceIdentifier)
+	38: ReadRef
+	39: MoveLoc[0](Arg0: &Market)
+	40: ImmBorrowField[37](Market.decimal_digit: Number)
+	41: ReadRef
+	42: Pack[2](MarketDataUpdateEvent)
+	43: Call events::emit_event<MarketDataUpdateEvent>(MarketDataUpdateEvent)
+	44: Ret
+}
+
+public(friend) compound_interest(Arg0: &mut Market, Arg1: &Clock) {
+L2:	loc0: Number
+L3:	loc1: Number
+L4:	loc2: u64
+L5:	loc3: u64
+L6:	loc4: u64
+L7:	loc5: u64
+B0:
+	0: MoveLoc[1](Arg1: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: CopyLoc[0](Arg0: &mut Market)
+	3: ImmBorrowField[46](Market.last_auto_compound: u64)
+	4: ReadRef
+	5: Sub
+	6: LdConst[0](u64: 1000)
+	7: Div
+	8: StLoc[7](loc5: u64)
+	9: CopyLoc[7](loc5: u64)
+	10: LdU64(0)
+	11: Eq
+	12: BrFalse(16)
+B1:
+	13: MoveLoc[0](Arg0: &mut Market)
+	14: Pop
+	15: Ret
+B2:
+	16: CopyLoc[0](Arg0: &mut Market)
+	17: ImmBorrowField[33](Market.borrowed_amount: u64)
+	18: ReadRef
+	19: LdU64(0)
+	20: Eq
+	21: BrFalse(33)
+B3:
+	22: CopyLoc[0](Arg0: &mut Market)
+	23: ImmBorrowField[46](Market.last_auto_compound: u64)
+	24: ReadRef
+	25: MoveLoc[7](loc5: u64)
+	26: LdConst[0](u64: 1000)
+	27: Mul
+	28: Add
+	29: MoveLoc[0](Arg0: &mut Market)
+	30: MutBorrowField[46](Market.last_auto_compound: u64)
+	31: WriteRef
+	32: Ret
+B4:
+	33: CopyLoc[0](Arg0: &mut Market)
+	34: FreezeRef
+	35: Call calculate_current_interest_rate_apr(&Market): u64
+	36: StLoc[4](loc2: u64)
+	37: LdU64(1)
+	38: Call math::from(u64): Number
+	39: MoveLoc[4](loc2: u64)
+	40: Call math::per_second_from_apr(u64): Number
+	41: Call math::add(Number, Number): Number
+	42: CopyLoc[7](loc5: u64)
+	43: Call math::pow(Number, u64): Number
+	44: StLoc[3](loc1: Number)
+	45: CopyLoc[0](Arg0: &mut Market)
+	46: ImmBorrowField[33](Market.borrowed_amount: u64)
+	47: ReadRef
+	48: Call math::from(u64): Number
+	49: CopyLoc[3](loc1: Number)
+	50: Call math::mul(Number, Number): Number
+	51: Call math::to_u64(Number): u64
+	52: StLoc[5](loc3: u64)
+	53: CopyLoc[5](loc3: u64)
+	54: CopyLoc[0](Arg0: &mut Market)
+	55: ImmBorrowField[33](Market.borrowed_amount: u64)
+	56: ReadRef
+	57: Gt
+	58: BrFalse(100)
+B5:
+	59: CopyLoc[5](loc3: u64)
+	60: CopyLoc[0](Arg0: &mut Market)
+	61: ImmBorrowField[33](Market.borrowed_amount: u64)
+	62: ReadRef
+	63: Sub
+	64: Call math::from(u64): Number
+	65: CopyLoc[0](Arg0: &mut Market)
+	66: ImmBorrowField[31](Market.config: MarketConfig)
+	67: ImmBorrowField[19](MarketConfig.spread_fee_bps: u64)
+	68: ReadRef
+	69: Call math::from_bps(u64): Number
+	70: Call math::mul(Number, Number): Number
+	71: StLoc[2](loc0: Number)
+	72: CopyLoc[2](loc0: Number)
+	73: CopyLoc[0](Arg0: &mut Market)
+	74: ImmBorrowField[31](Market.config: MarketConfig)
+	75: ImmBorrowField[22](MarketConfig.protocol_spread_fee_share_bps: u64)
+	76: ReadRef
+	77: Call math::from_bps(u64): Number
+	78: Call math::mul(Number, Number): Number
+	79: Call math::to_u64(Number): u64
+	80: StLoc[6](loc4: u64)
+	81: CopyLoc[0](Arg0: &mut Market)
+	82: ImmBorrowField[49](Market.unclaimed_spread_fee_protocol: u64)
+	83: ReadRef
+	84: CopyLoc[6](loc4: u64)
+	85: Add
+	86: CopyLoc[0](Arg0: &mut Market)
+	87: MutBorrowField[49](Market.unclaimed_spread_fee_protocol: u64)
+	88: WriteRef
+	89: CopyLoc[0](Arg0: &mut Market)
+	90: ImmBorrowField[44](Market.unclaimed_spread_fee: u64)
+	91: ReadRef
+	92: MoveLoc[2](loc0: Number)
+	93: Call math::to_u64(Number): u64
+	94: Add
+	95: MoveLoc[6](loc4: u64)
+	96: Sub
+	97: CopyLoc[0](Arg0: &mut Market)
+	98: MutBorrowField[44](Market.unclaimed_spread_fee: u64)
+	99: WriteRef
+B6:
+	100: MoveLoc[5](loc3: u64)
+	101: CopyLoc[0](Arg0: &mut Market)
+	102: MutBorrowField[33](Market.borrowed_amount: u64)
+	103: WriteRef
+	104: CopyLoc[0](Arg0: &mut Market)
+	105: ImmBorrowField[50](Market.compounded_interest: Number)
+	106: ReadRef
+	107: MoveLoc[3](loc1: Number)
+	108: Call math::mul(Number, Number): Number
+	109: CopyLoc[0](Arg0: &mut Market)
+	110: MutBorrowField[50](Market.compounded_interest: Number)
+	111: WriteRef
+	112: CopyLoc[0](Arg0: &mut Market)
+	113: ImmBorrowField[46](Market.last_auto_compound: u64)
+	114: ReadRef
+	115: MoveLoc[7](loc5: u64)
+	116: LdConst[0](u64: 1000)
+	117: Mul
+	118: Add
+	119: MoveLoc[0](Arg0: &mut Market)
+	120: MutBorrowField[46](Market.last_auto_compound: u64)
+	121: WriteRef
+	122: Ret
+}
+
+total_liquidity(Arg0: &Market): u128 {
+L1:	loc0: u128
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: ImmBorrowField[32](Market.balance_holding: u64)
+	2: ReadRef
+	3: CastU128
+	4: CopyLoc[0](Arg0: &Market)
+	5: ImmBorrowField[33](Market.borrowed_amount: u64)
+	6: ReadRef
+	7: CastU128
+	8: Add
+	9: CopyLoc[0](Arg0: &Market)
+	10: ImmBorrowField[44](Market.unclaimed_spread_fee: u64)
+	11: ReadRef
+	12: CastU128
+	13: CopyLoc[0](Arg0: &Market)
+	14: ImmBorrowField[45](Market.writeoff_amount: u64)
+	15: ReadRef
+	16: CastU128
+	17: Add
+	18: CopyLoc[0](Arg0: &Market)
+	19: ImmBorrowField[49](Market.unclaimed_spread_fee_protocol: u64)
+	20: ReadRef
+	21: CastU128
+	22: Add
+	23: Ge
+	24: BrFalse(51)
+B1:
+	25: CopyLoc[0](Arg0: &Market)
+	26: ImmBorrowField[32](Market.balance_holding: u64)
+	27: ReadRef
+	28: CastU128
+	29: CopyLoc[0](Arg0: &Market)
+	30: ImmBorrowField[33](Market.borrowed_amount: u64)
+	31: ReadRef
+	32: CastU128
+	33: Add
+	34: CopyLoc[0](Arg0: &Market)
+	35: ImmBorrowField[44](Market.unclaimed_spread_fee: u64)
+	36: ReadRef
+	37: CastU128
+	38: CopyLoc[0](Arg0: &Market)
+	39: ImmBorrowField[45](Market.writeoff_amount: u64)
+	40: ReadRef
+	41: CastU128
+	42: Add
+	43: MoveLoc[0](Arg0: &Market)
+	44: ImmBorrowField[49](Market.unclaimed_spread_fee_protocol: u64)
+	45: ReadRef
+	46: CastU128
+	47: Add
+	48: Sub
+	49: StLoc[1](loc0: u128)
+	50: Branch(55)
+B2:
+	51: MoveLoc[0](Arg0: &Market)
+	52: Pop
+	53: LdU128(0)
+	54: StLoc[1](loc0: u128)
+B3:
+	55: MoveLoc[1](loc0: u128)
+	56: Ret
+}
+
+get_current_utilization_rate(Arg0: &Market): Number {
+L1:	loc0: Number
+L2:	loc1: Number
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: Call total_liquidity(&Market): u128
+	2: LdU128(0)
+	3: Eq
+	4: BrFalse(11)
+B1:
+	5: MoveLoc[0](Arg0: &Market)
+	6: Pop
+	7: LdU64(0)
+	8: Call math::from(u64): Number
+	9: StLoc[2](loc1: Number)
+	10: Branch(36)
+B2:
+	11: CopyLoc[0](Arg0: &Market)
+	12: ImmBorrowField[33](Market.borrowed_amount: u64)
+	13: ReadRef
+	14: CastU128
+	15: CopyLoc[0](Arg0: &Market)
+	16: Call total_liquidity(&Market): u128
+	17: Gt
+	18: BrFalse(25)
+B3:
+	19: MoveLoc[0](Arg0: &Market)
+	20: Pop
+	21: LdU64(1)
+	22: Call math::from(u64): Number
+	23: StLoc[1](loc0: Number)
+	24: Branch(34)
+B4:
+	25: CopyLoc[0](Arg0: &Market)
+	26: ImmBorrowField[33](Market.borrowed_amount: u64)
+	27: ReadRef
+	28: Call math::from(u64): Number
+	29: MoveLoc[0](Arg0: &Market)
+	30: Call total_liquidity(&Market): u128
+	31: Call math::from_u128(u128): Number
+	32: Call math::div(Number, Number): Number
+	33: StLoc[1](loc0: Number)
+B5:
+	34: MoveLoc[1](loc0: Number)
+	35: StLoc[2](loc1: Number)
+B6:
+	36: MoveLoc[2](loc1: Number)
+	37: Ret
+}
+
+calculate_current_interest_rate_apr(Arg0: &Market): u64 {
+L1:	loc0: u64
+L2:	loc1: u64
+L3:	loc2: u8
+L4:	loc3: u64
+L5:	loc4: u64
+L6:	loc5: u8
+L7:	loc6: u8
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: Call get_current_utilization_rate(&Market): Number
+	2: Call math::to_percentage(Number): u16
+	3: CastU8
+	4: StLoc[7](loc6: u8)
+	5: CopyLoc[0](Arg0: &Market)
+	6: ImmBorrowField[31](Market.config: MarketConfig)
+	7: ImmBorrowField[15](MarketConfig.interest_rate_kinks: vector<u8>)
+	8: VecLen(47)
+	9: StLoc[4](loc3: u64)
+	10: LdU64(1)
+	11: StLoc[1](loc0: u64)
+B1:
+	12: CopyLoc[1](loc0: u64)
+	13: CopyLoc[4](loc3: u64)
+	14: Lt
+	15: BrFalse(85)
+B2:
+	16: Branch(17)
+B3:
+	17: CopyLoc[7](loc6: u8)
+	18: CopyLoc[0](Arg0: &Market)
+	19: ImmBorrowField[31](Market.config: MarketConfig)
+	20: ImmBorrowField[15](MarketConfig.interest_rate_kinks: vector<u8>)
+	21: CopyLoc[1](loc0: u64)
+	22: VecImmBorrow(47)
+	23: ReadRef
+	24: Ge
+	25: BrFalse(31)
+B4:
+	26: MoveLoc[1](loc0: u64)
+	27: LdU64(1)
+	28: Add
+	29: StLoc[1](loc0: u64)
+	30: Branch(12)
+B5:
+	31: CopyLoc[0](Arg0: &Market)
+	32: ImmBorrowField[31](Market.config: MarketConfig)
+	33: ImmBorrowField[16](MarketConfig.interest_rates: vector<u64>)
+	34: CopyLoc[1](loc0: u64)
+	35: LdU64(1)
+	36: Sub
+	37: VecImmBorrow(25)
+	38: ReadRef
+	39: StLoc[2](loc1: u64)
+	40: CopyLoc[0](Arg0: &Market)
+	41: ImmBorrowField[31](Market.config: MarketConfig)
+	42: ImmBorrowField[16](MarketConfig.interest_rates: vector<u64>)
+	43: CopyLoc[1](loc0: u64)
+	44: VecImmBorrow(25)
+	45: ReadRef
+	46: StLoc[5](loc4: u64)
+	47: CopyLoc[0](Arg0: &Market)
+	48: ImmBorrowField[31](Market.config: MarketConfig)
+	49: ImmBorrowField[15](MarketConfig.interest_rate_kinks: vector<u8>)
+	50: CopyLoc[1](loc0: u64)
+	51: LdU64(1)
+	52: Sub
+	53: VecImmBorrow(47)
+	54: ReadRef
+	55: StLoc[3](loc2: u8)
+	56: MoveLoc[0](Arg0: &Market)
+	57: ImmBorrowField[31](Market.config: MarketConfig)
+	58: ImmBorrowField[15](MarketConfig.interest_rate_kinks: vector<u8>)
+	59: MoveLoc[1](loc0: u64)
+	60: VecImmBorrow(47)
+	61: ReadRef
+	62: StLoc[6](loc5: u8)
+	63: CopyLoc[2](loc1: u64)
+	64: CastU32
+	65: MoveLoc[5](loc4: u64)
+	66: CastU32
+	67: MoveLoc[2](loc1: u64)
+	68: CastU32
+	69: Sub
+	70: MoveLoc[7](loc6: u8)
+	71: CastU32
+	72: CopyLoc[3](loc2: u8)
+	73: CastU32
+	74: Sub
+	75: Mul
+	76: MoveLoc[6](loc5: u8)
+	77: CastU32
+	78: MoveLoc[3](loc2: u8)
+	79: CastU32
+	80: Sub
+	81: Div
+	82: Add
+	83: CastU64
+	84: Ret
+B6:
+	85: MoveLoc[0](Arg0: &Market)
+	86: ImmBorrowField[31](Market.config: MarketConfig)
+	87: ImmBorrowField[16](MarketConfig.interest_rates: vector<u64>)
+	88: MoveLoc[4](loc3: u64)
+	89: LdU64(1)
+	90: Sub
+	91: VecImmBorrow(25)
+	92: ReadRef
+	93: Ret
+}
+
+public(friend) borrow<Ty0>(Arg0: &mut Market, Arg1: u64, Arg2: &Oracle, Arg3: &Clock): LiquidityPromise<Ty0> {
+L4:	loc0: bool
+L5:	loc1: u64
+L6:	loc2: LiquidityPromise<Ty0>
+L7:	loc3: &mut SuiStaker
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: ImmBorrowField[47](Market.coin_type: TypeName)
+	2: ReadRef
+	3: Call type_name::get<Ty0>(): TypeName
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(15)
+B2:
+	7: MoveLoc[2](Arg2: &Oracle)
+	8: Pop
+	9: MoveLoc[0](Arg0: &mut Market)
+	10: Pop
+	11: MoveLoc[3](Arg3: &Clock)
+	12: Pop
+	13: LdConst[6](u64: 5)
+	14: Abort
+B3:
+	15: CopyLoc[0](Arg0: &mut Market)
+	16: MoveLoc[2](Arg2: &Oracle)
+	17: CopyLoc[3](Arg3: &Clock)
+	18: Call refresh_with_price(&mut Market, &Oracle, &Clock)
+	19: CopyLoc[0](Arg0: &mut Market)
+	20: FreezeRef
+	21: CopyLoc[1](Arg1: u64)
+	22: Call verify_borrow_limit(&Market, u64)
+	23: CopyLoc[0](Arg0: &mut Market)
+	24: MutBorrowField[35](Market.outflow_limiter: FlowLimiter)
+	25: CopyLoc[1](Arg1: u64)
+	26: MoveLoc[3](Arg3: &Clock)
+	27: Call flow_limiter::check_and_update(&mut FlowLimiter, u64, &Clock)
+	28: CopyLoc[0](Arg0: &mut Market)
+	29: MutBorrowField[30](Market.id: UID)
+	30: LdFalse
+	31: Pack[7](TreasuryKey)
+	32: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey): &mut Treasury<Ty0>
+	33: ImmBorrowFieldGeneric[0](Treasury.balance: Balance<Ty0>)
+	34: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	35: StLoc[5](loc1: u64)
+	36: Call type_name::get<Ty0>(): TypeName
+	37: Call type_name::get<SUI>(): TypeName
+	38: Eq
+	39: BrFalse(46)
+B4:
+	40: CopyLoc[0](Arg0: &mut Market)
+	41: ImmBorrowField[31](Market.config: MarketConfig)
+	42: ImmBorrowField[29](MarketConfig.staking_enabled: bool)
+	43: ReadRef
+	44: StLoc[4](loc0: bool)
+	45: Branch(48)
+B5:
+	46: LdFalse
+	47: StLoc[4](loc0: bool)
+B6:
+	48: MoveLoc[4](loc0: bool)
+	49: BrFalse(69)
+B7:
+	50: CopyLoc[0](Arg0: &mut Market)
+	51: MutBorrowField[30](Market.id: UID)
+	52: LdFalse
+	53: Pack[8](SuiStakingEnabledKey)
+	54: Call dynamic_field::borrow_mut<SuiStakingEnabledKey, SuiStaker>(&mut UID, SuiStakingEnabledKey): &mut SuiStaker
+	55: StLoc[7](loc3: &mut SuiStaker)
+	56: CopyLoc[1](Arg1: u64)
+	57: MoveLoc[7](loc3: &mut SuiStaker)
+	58: FreezeRef
+	59: Call sui_staker::get_staked_sui_count(&SuiStaker): u64
+	60: MoveLoc[5](loc1: u64)
+	61: Add
+	62: Le
+	63: BrFalse(65)
+B8:
+	64: Branch(78)
+B9:
+	65: MoveLoc[0](Arg0: &mut Market)
+	66: Pop
+	67: LdConst[35](u64: 42)
+	68: Abort
+B10:
+	69: CopyLoc[1](Arg1: u64)
+	70: MoveLoc[5](loc1: u64)
+	71: Le
+	72: BrFalse(74)
+B11:
+	73: Branch(78)
+B12:
+	74: MoveLoc[0](Arg0: &mut Market)
+	75: Pop
+	76: LdConst[5](u64: 4)
+	77: Abort
+B13:
+	78: CopyLoc[0](Arg0: &mut Market)
+	79: ImmBorrowField[33](Market.borrowed_amount: u64)
+	80: ReadRef
+	81: CopyLoc[1](Arg1: u64)
+	82: Add
+	83: CopyLoc[0](Arg0: &mut Market)
+	84: MutBorrowField[33](Market.borrowed_amount: u64)
+	85: WriteRef
+	86: CopyLoc[0](Arg0: &mut Market)
+	87: ImmBorrowField[40](Market.market_id: u64)
+	88: ReadRef
+	89: CopyLoc[0](Arg0: &mut Market)
+	90: ImmBorrowField[47](Market.coin_type: TypeName)
+	91: ReadRef
+	92: MoveLoc[1](Arg1: u64)
+	93: LdU64(0)
+	94: PackGeneric[2](LiquidityPromise<Ty0>)
+	95: StLoc[6](loc2: LiquidityPromise<Ty0>)
+	96: MoveLoc[0](Arg0: &mut Market)
+	97: FreezeRef
+	98: Call emit_market_data_update_event(&Market)
+	99: MoveLoc[6](loc2: LiquidityPromise<Ty0>)
+	100: Ret
+}
+
+verify_borrow_limit(Arg0: &Market, Arg1: u64) {
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: ImmBorrowField[33](Market.borrowed_amount: u64)
+	2: ReadRef
+	3: CopyLoc[1](Arg1: u64)
+	4: Add
+	5: CopyLoc[0](Arg0: &Market)
+	6: ImmBorrowField[31](Market.config: MarketConfig)
+	7: ImmBorrowField[7](MarketConfig.borrow_limit: u64)
+	8: ReadRef
+	9: Le
+	10: BrFalse(12)
+B1:
+	11: Branch(16)
+B2:
+	12: MoveLoc[0](Arg0: &Market)
+	13: Pop
+	14: LdConst[23](u64: 30)
+	15: Abort
+B3:
+	16: CopyLoc[0](Arg0: &Market)
+	17: ImmBorrowField[33](Market.borrowed_amount: u64)
+	18: ReadRef
+	19: MoveLoc[1](Arg1: u64)
+	20: Add
+	21: Call math::from(u64): Number
+	22: CopyLoc[0](Arg0: &Market)
+	23: Call total_liquidity(&Market): u128
+	24: Call math::from_u128(u128): Number
+	25: Call math::div(Number, Number): Number
+	26: MoveLoc[0](Arg0: &Market)
+	27: ImmBorrowField[31](Market.config: MarketConfig)
+	28: ImmBorrowField[8](MarketConfig.borrow_limit_percentage: u8)
+	29: ReadRef
+	30: CastU16
+	31: Call math::from_percentage(u16): Number
+	32: Call math::le(Number, Number): bool
+	33: BrFalse(35)
+B4:
+	34: Branch(37)
+B5:
+	35: LdConst[23](u64: 30)
+	36: Abort
+B6:
+	37: Ret
+}
+
+public(friend) repay<Ty0>(Arg0: &mut Market, Arg1: Coin<Ty0>, Arg2: &Clock) {
+L3:	loc0: u64
+L4:	loc1: &mut Treasury<Ty0>
+B0:
+	0: Call type_name::get<Ty0>(): TypeName
+	1: CopyLoc[0](Arg0: &mut Market)
+	2: ImmBorrowField[47](Market.coin_type: TypeName)
+	3: ReadRef
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(13)
+B2:
+	7: MoveLoc[0](Arg0: &mut Market)
+	8: Pop
+	9: MoveLoc[2](Arg2: &Clock)
+	10: Pop
+	11: LdConst[6](u64: 5)
+	12: Abort
+B3:
+	13: CopyLoc[0](Arg0: &mut Market)
+	14: MoveLoc[2](Arg2: &Clock)
+	15: Call refresh(&mut Market, &Clock)
+	16: ImmBorrowLoc[1](Arg1: Coin<Ty0>)
+	17: Call coin::value<Ty0>(&Coin<Ty0>): u64
+	18: StLoc[3](loc0: u64)
+	19: CopyLoc[3](loc0: u64)
+	20: CopyLoc[0](Arg0: &mut Market)
+	21: ImmBorrowField[33](Market.borrowed_amount: u64)
+	22: ReadRef
+	23: Le
+	24: BrFalse(34)
+B4:
+	25: CopyLoc[0](Arg0: &mut Market)
+	26: ImmBorrowField[33](Market.borrowed_amount: u64)
+	27: ReadRef
+	28: CopyLoc[3](loc0: u64)
+	29: Sub
+	30: CopyLoc[0](Arg0: &mut Market)
+	31: MutBorrowField[33](Market.borrowed_amount: u64)
+	32: WriteRef
+	33: Branch(58)
+B5:
+	34: CopyLoc[0](Arg0: &mut Market)
+	35: ImmBorrowField[44](Market.unclaimed_spread_fee: u64)
+	36: ReadRef
+	37: CopyLoc[3](loc0: u64)
+	38: CopyLoc[0](Arg0: &mut Market)
+	39: ImmBorrowField[33](Market.borrowed_amount: u64)
+	40: ReadRef
+	41: Sub
+	42: Add
+	43: CopyLoc[0](Arg0: &mut Market)
+	44: MutBorrowField[44](Market.unclaimed_spread_fee: u64)
+	45: WriteRef
+	46: LdU64(0)
+	47: CopyLoc[0](Arg0: &mut Market)
+	48: MutBorrowField[33](Market.borrowed_amount: u64)
+	49: WriteRef
+	50: CopyLoc[0](Arg0: &mut Market)
+	51: ImmBorrowField[40](Market.market_id: u64)
+	52: ReadRef
+	53: CopyLoc[3](loc0: u64)
+	54: CopyLoc[0](Arg0: &mut Market)
+	55: ImmBorrowField[33](Market.borrowed_amount: u64)
+	56: ReadRef
+	57: Call emit_repay_exceed_borrow_event(u64, u64, u64)
+B6:
+	58: CopyLoc[0](Arg0: &mut Market)
+	59: MutBorrowField[30](Market.id: UID)
+	60: LdFalse
+	61: Pack[7](TreasuryKey)
+	62: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey): &mut Treasury<Ty0>
+	63: StLoc[4](loc1: &mut Treasury<Ty0>)
+	64: CopyLoc[4](loc1: &mut Treasury<Ty0>)
+	65: MutBorrowFieldGeneric[0](Treasury.balance: Balance<Ty0>)
+	66: MoveLoc[1](Arg1: Coin<Ty0>)
+	67: Call coin::into_balance<Ty0>(Coin<Ty0>): Balance<Ty0>
+	68: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	69: Pop
+	70: CopyLoc[0](Arg0: &mut Market)
+	71: ImmBorrowField[32](Market.balance_holding: u64)
+	72: ReadRef
+	73: MoveLoc[3](loc0: u64)
+	74: Add
+	75: CopyLoc[0](Arg0: &mut Market)
+	76: MutBorrowField[32](Market.balance_holding: u64)
+	77: WriteRef
+	78: CopyLoc[0](Arg0: &mut Market)
+	79: ImmBorrowField[40](Market.market_id: u64)
+	80: ReadRef
+	81: MoveLoc[4](loc1: &mut Treasury<Ty0>)
+	82: FreezeRef
+	83: Call emit_market_treasury_update_event<Ty0>(u64, &Treasury<Ty0>)
+	84: MoveLoc[0](Arg0: &mut Market)
+	85: FreezeRef
+	86: Call emit_market_data_update_event(&Market)
+	87: Ret
+}
+
+public(friend) get_compounded_interest(Arg0: &Market): Number {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[50](Market.compounded_interest: Number)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_last_auto_compound(Arg0: &Market): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[46](Market.last_auto_compound: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_liquidation_bonus_bps(Arg0: &Market): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[17](MarketConfig.liquidation_bonus_bps: u64)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) get_liquidation_fee_bps(Arg0: &Market): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[18](MarketConfig.liquidation_fee_bps: u64)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) get_deposit_fee_bps(Arg0: &Market): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[12](MarketConfig.deposit_fee_bps: u64)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) get_withdrawl_fee_bps(Arg0: &Market): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[13](MarketConfig.withdraw_fee_bps: u64)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) get_borrow_fee_bps(Arg0: &Market): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[11](MarketConfig.borrow_fee_bps: u64)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) is_isolated(Arg0: &Market): bool {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[20](MarketConfig.isolated: bool)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) add_fee<Ty0>(Arg0: &mut Market, Arg1: Balance<XToken<Ty0>>) {
+L2:	loc0: u64
+L3:	loc1: Balance<XToken<Ty0>>
+L4:	loc2: u64
+L5:	loc3: &mut Treasury<Ty0>
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: MutBorrowField[30](Market.id: UID)
+	2: LdFalse
+	3: Pack[7](TreasuryKey)
+	4: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey): &mut Treasury<Ty0>
+	5: StLoc[5](loc3: &mut Treasury<Ty0>)
+	6: ImmBorrowLoc[1](Arg1: Balance<XToken<Ty0>>)
+	7: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	8: StLoc[4](loc2: u64)
+	9: CopyLoc[4](loc2: u64)
+	10: Call math::from(u64): Number
+	11: CopyLoc[0](Arg0: &mut Market)
+	12: ImmBorrowField[31](Market.config: MarketConfig)
+	13: ImmBorrowField[21](MarketConfig.protocol_fee_share_bps: u64)
+	14: ReadRef
+	15: Call math::bps_round_up(Number, u64): Number
+	16: Call math::to_u64(Number): u64
+	17: StLoc[2](loc0: u64)
+	18: MutBorrowLoc[1](Arg1: Balance<XToken<Ty0>>)
+	19: CopyLoc[2](loc0: u64)
+	20: Call balance::split<XToken<Ty0>>(&mut Balance<XToken<Ty0>>, u64): Balance<XToken<Ty0>>
+	21: StLoc[3](loc1: Balance<XToken<Ty0>>)
+	22: Call type_name::get<Ty0>(): TypeName
+	23: MoveLoc[4](loc2: u64)
+	24: CopyLoc[2](loc0: u64)
+	25: Sub
+	26: MoveLoc[2](loc0: u64)
+	27: Pack[5](FeeEarnedEvent)
+	28: Call events::emit_event<FeeEarnedEvent>(FeeEarnedEvent)
+	29: CopyLoc[5](loc3: &mut Treasury<Ty0>)
+	30: MutBorrowFieldGeneric[3](Treasury.protocol_fee: Balance<XToken<Ty0>>)
+	31: MoveLoc[3](loc1: Balance<XToken<Ty0>>)
+	32: Call balance::join<XToken<Ty0>>(&mut Balance<XToken<Ty0>>, Balance<XToken<Ty0>>): u64
+	33: Pop
+	34: CopyLoc[5](loc3: &mut Treasury<Ty0>)
+	35: MutBorrowFieldGeneric[2](Treasury.market_fee: Balance<XToken<Ty0>>)
+	36: MoveLoc[1](Arg1: Balance<XToken<Ty0>>)
+	37: Call balance::join<XToken<Ty0>>(&mut Balance<XToken<Ty0>>, Balance<XToken<Ty0>>): u64
+	38: Pop
+	39: CopyLoc[0](Arg0: &mut Market)
+	40: ImmBorrowField[40](Market.market_id: u64)
+	41: ReadRef
+	42: MoveLoc[5](loc3: &mut Treasury<Ty0>)
+	43: FreezeRef
+	44: Call emit_market_treasury_update_event<Ty0>(u64, &Treasury<Ty0>)
+	45: MoveLoc[0](Arg0: &mut Market)
+	46: FreezeRef
+	47: Call emit_market_data_update_event(&Market)
+	48: Ret
+}
+
+public(friend) get_market_id(Arg0: &MarketCap): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &MarketCap)
+	1: ImmBorrowField[39](MarketCap.market_id: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_deposit_reward_distributor(Arg0: &mut Market): &mut RewardDistributor {
+B0:
+	0: MoveLoc[0](Arg0: &mut Market)
+	1: MutBorrowField[41](Market.deposit_reward_distributor: RewardDistributor)
+	2: Ret
+}
+
+public(friend) get_borrow_reward_distributor(Arg0: &mut Market): &mut RewardDistributor {
+B0:
+	0: MoveLoc[0](Arg0: &mut Market)
+	1: MutBorrowField[42](Market.borrow_reward_distributor: RewardDistributor)
+	2: Ret
+}
+
+public(friend) get_id(Arg0: &Market): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[40](Market.market_id: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_coin_type(Arg0: &Market): TypeName {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[47](Market.coin_type: TypeName)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_is_native(Arg0: &Market): bool {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[26](MarketConfig.is_native: bool)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) withdraw_market_fee<Ty0>(Arg0: &mut Market, Arg1: &Clock): LiquidityPromise<Ty0> {
+L2:	loc0: u64
+L3:	loc1: LiquidityPromise<Ty0>
+L4:	loc2: LiquidityPromise<Ty0>
+L5:	loc3: &mut Treasury<Ty0>
+L6:	loc4: Balance<XToken<Ty0>>
+B0:
+	0: CopyLoc[1](Arg1: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: CopyLoc[0](Arg0: &mut Market)
+	3: ImmBorrowField[46](Market.last_auto_compound: u64)
+	4: ReadRef
+	5: LdConst[0](u64: 1000)
+	6: Add
+	7: Lt
+	8: BrFalse(10)
+B1:
+	9: Branch(16)
+B2:
+	10: MoveLoc[0](Arg0: &mut Market)
+	11: Pop
+	12: MoveLoc[1](Arg1: &Clock)
+	13: Pop
+	14: LdConst[4](u64: 3)
+	15: Abort
+B3:
+	16: CopyLoc[0](Arg0: &mut Market)
+	17: MutBorrowField[30](Market.id: UID)
+	18: LdFalse
+	19: Pack[7](TreasuryKey)
+	20: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey): &mut Treasury<Ty0>
+	21: StLoc[5](loc3: &mut Treasury<Ty0>)
+	22: CopyLoc[0](Arg0: &mut Market)
+	23: ImmBorrowField[44](Market.unclaimed_spread_fee: u64)
+	24: ReadRef
+	25: StLoc[2](loc0: u64)
+	26: CopyLoc[0](Arg0: &mut Market)
+	27: ImmBorrowField[40](Market.market_id: u64)
+	28: ReadRef
+	29: CopyLoc[0](Arg0: &mut Market)
+	30: ImmBorrowField[47](Market.coin_type: TypeName)
+	31: ReadRef
+	32: MoveLoc[2](loc0: u64)
+	33: LdU64(0)
+	34: PackGeneric[2](LiquidityPromise<Ty0>)
+	35: StLoc[3](loc1: LiquidityPromise<Ty0>)
+	36: LdU64(0)
+	37: CopyLoc[0](Arg0: &mut Market)
+	38: MutBorrowField[44](Market.unclaimed_spread_fee: u64)
+	39: WriteRef
+	40: MoveLoc[5](loc3: &mut Treasury<Ty0>)
+	41: MutBorrowFieldGeneric[2](Treasury.market_fee: Balance<XToken<Ty0>>)
+	42: Call balance::withdraw_all<XToken<Ty0>>(&mut Balance<XToken<Ty0>>): Balance<XToken<Ty0>>
+	43: StLoc[6](loc4: Balance<XToken<Ty0>>)
+	44: ImmBorrowLoc[6](loc4: Balance<XToken<Ty0>>)
+	45: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	46: LdU64(0)
+	47: Gt
+	48: BrFalse(58)
+B4:
+	49: CopyLoc[0](Arg0: &mut Market)
+	50: MoveLoc[6](loc4: Balance<XToken<Ty0>>)
+	51: MoveLoc[1](Arg1: &Clock)
+	52: Call burn_xtokens_generate_promise<Ty0>(&mut Market, Balance<XToken<Ty0>>, &Clock): LiquidityPromise<Ty0>
+	53: StLoc[4](loc2: LiquidityPromise<Ty0>)
+	54: MutBorrowLoc[3](loc1: LiquidityPromise<Ty0>)
+	55: MoveLoc[4](loc2: LiquidityPromise<Ty0>)
+	56: Call join_promise<Ty0>(&mut LiquidityPromise<Ty0>, LiquidityPromise<Ty0>)
+	57: Branch(62)
+B5:
+	58: MoveLoc[1](Arg1: &Clock)
+	59: Pop
+	60: MoveLoc[6](loc4: Balance<XToken<Ty0>>)
+	61: Call balance::destroy_zero<XToken<Ty0>>(Balance<XToken<Ty0>>)
+B6:
+	62: MoveLoc[0](Arg0: &mut Market)
+	63: FreezeRef
+	64: Call emit_market_data_update_event(&Market)
+	65: MoveLoc[3](loc1: LiquidityPromise<Ty0>)
+	66: Ret
+}
+
+public(friend) withdraw_protocol_fee<Ty0>(Arg0: &mut Market, Arg1: &Clock): LiquidityPromise<Ty0> {
+L2:	loc0: LiquidityPromise<Ty0>
+L3:	loc1: LiquidityPromise<Ty0>
+L4:	loc2: u64
+L5:	loc3: &mut Treasury<Ty0>
+L6:	loc4: Balance<XToken<Ty0>>
+B0:
+	0: CopyLoc[1](Arg1: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: CopyLoc[0](Arg0: &mut Market)
+	3: ImmBorrowField[46](Market.last_auto_compound: u64)
+	4: ReadRef
+	5: LdConst[0](u64: 1000)
+	6: Add
+	7: Lt
+	8: BrFalse(10)
+B1:
+	9: Branch(16)
+B2:
+	10: MoveLoc[0](Arg0: &mut Market)
+	11: Pop
+	12: MoveLoc[1](Arg1: &Clock)
+	13: Pop
+	14: LdConst[4](u64: 3)
+	15: Abort
+B3:
+	16: CopyLoc[0](Arg0: &mut Market)
+	17: MutBorrowField[30](Market.id: UID)
+	18: LdFalse
+	19: Pack[7](TreasuryKey)
+	20: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey): &mut Treasury<Ty0>
+	21: StLoc[5](loc3: &mut Treasury<Ty0>)
+	22: CopyLoc[0](Arg0: &mut Market)
+	23: ImmBorrowField[49](Market.unclaimed_spread_fee_protocol: u64)
+	24: ReadRef
+	25: StLoc[4](loc2: u64)
+	26: CopyLoc[0](Arg0: &mut Market)
+	27: ImmBorrowField[40](Market.market_id: u64)
+	28: ReadRef
+	29: CopyLoc[0](Arg0: &mut Market)
+	30: ImmBorrowField[47](Market.coin_type: TypeName)
+	31: ReadRef
+	32: MoveLoc[4](loc2: u64)
+	33: LdU64(0)
+	34: PackGeneric[2](LiquidityPromise<Ty0>)
+	35: StLoc[2](loc0: LiquidityPromise<Ty0>)
+	36: LdU64(0)
+	37: CopyLoc[0](Arg0: &mut Market)
+	38: MutBorrowField[49](Market.unclaimed_spread_fee_protocol: u64)
+	39: WriteRef
+	40: MoveLoc[5](loc3: &mut Treasury<Ty0>)
+	41: MutBorrowFieldGeneric[3](Treasury.protocol_fee: Balance<XToken<Ty0>>)
+	42: Call balance::withdraw_all<XToken<Ty0>>(&mut Balance<XToken<Ty0>>): Balance<XToken<Ty0>>
+	43: StLoc[6](loc4: Balance<XToken<Ty0>>)
+	44: ImmBorrowLoc[6](loc4: Balance<XToken<Ty0>>)
+	45: Call balance::value<XToken<Ty0>>(&Balance<XToken<Ty0>>): u64
+	46: LdU64(0)
+	47: Gt
+	48: BrFalse(58)
+B4:
+	49: CopyLoc[0](Arg0: &mut Market)
+	50: MoveLoc[6](loc4: Balance<XToken<Ty0>>)
+	51: MoveLoc[1](Arg1: &Clock)
+	52: Call burn_xtokens_generate_promise<Ty0>(&mut Market, Balance<XToken<Ty0>>, &Clock): LiquidityPromise<Ty0>
+	53: StLoc[3](loc1: LiquidityPromise<Ty0>)
+	54: MutBorrowLoc[2](loc0: LiquidityPromise<Ty0>)
+	55: MoveLoc[3](loc1: LiquidityPromise<Ty0>)
+	56: Call join_promise<Ty0>(&mut LiquidityPromise<Ty0>, LiquidityPromise<Ty0>)
+	57: Branch(62)
+B5:
+	58: MoveLoc[1](Arg1: &Clock)
+	59: Pop
+	60: MoveLoc[6](loc4: Balance<XToken<Ty0>>)
+	61: Call balance::destroy_zero<XToken<Ty0>>(Balance<XToken<Ty0>>)
+B6:
+	62: MoveLoc[0](Arg0: &mut Market)
+	63: FreezeRef
+	64: Call emit_market_data_update_event(&Market)
+	65: MoveLoc[2](loc0: LiquidityPromise<Ty0>)
+	66: Ret
+}
+
+public(friend) update_flow_limiter(Arg0: &mut Market, Arg1: bool, Arg2: u64, Arg3: u64, Arg4: &Oracle, Arg5: &Clock) {
+L6:	loc0: Number
+B0:
+	0: CopyLoc[3](Arg3: u64)
+	1: LdConst[0](u64: 1000)
+	2: Ge
+	3: BrFalse(5)
+B1:
+	4: Branch(13)
+B2:
+	5: MoveLoc[4](Arg4: &Oracle)
+	6: Pop
+	7: MoveLoc[0](Arg0: &mut Market)
+	8: Pop
+	9: MoveLoc[5](Arg5: &Clock)
+	10: Pop
+	11: LdConst[10](u64: 11)
+	12: Abort
+B3:
+	13: CopyLoc[2](Arg2: u64)
+	14: LdU64(0)
+	15: Neq
+	16: BrFalse(48)
+B4:
+	17: CopyLoc[0](Arg0: &mut Market)
+	18: FreezeRef
+	19: MoveLoc[4](Arg4: &Oracle)
+	20: Call get_token_price(&Market, &Oracle): Number * Number
+	21: Pop
+	22: StLoc[6](loc0: Number)
+	23: CopyLoc[2](Arg2: u64)
+	24: Call math::from(u64): Number
+	25: MoveLoc[6](loc0: Number)
+	26: Call math::mul(Number, Number): Number
+	27: LdConst[0](u64: 1000)
+	28: LdU64(60)
+	29: Mul
+	30: LdU64(60)
+	31: Mul
+	32: Call math::from(u64): Number
+	33: CopyLoc[3](Arg3: u64)
+	34: Call math::from(u64): Number
+	35: Call math::div(Number, Number): Number
+	36: Call math::mul(Number, Number): Number
+	37: Call math::to_u64(Number): u64
+	38: LdConst[37](u64: 1000..)
+	39: Le
+	40: BrFalse(42)
+B5:
+	41: Branch(50)
+B6:
+	42: MoveLoc[0](Arg0: &mut Market)
+	43: Pop
+	44: MoveLoc[5](Arg5: &Clock)
+	45: Pop
+	46: LdConst[11](u64: 12)
+	47: Abort
+B7:
+	48: MoveLoc[4](Arg4: &Oracle)
+	49: Pop
+B8:
+	50: MoveLoc[1](Arg1: bool)
+	51: BrFalse(59)
+B9:
+	52: MoveLoc[0](Arg0: &mut Market)
+	53: MutBorrowField[34](Market.deposit_flow_limiter: FlowLimiter)
+	54: MoveLoc[2](Arg2: u64)
+	55: MoveLoc[3](Arg3: u64)
+	56: MoveLoc[5](Arg5: &Clock)
+	57: Call flow_limiter::update_config(&mut FlowLimiter, u64, u64, &Clock)
+	58: Branch(65)
+B10:
+	59: MoveLoc[0](Arg0: &mut Market)
+	60: MutBorrowField[35](Market.outflow_limiter: FlowLimiter)
+	61: MoveLoc[2](Arg2: u64)
+	62: MoveLoc[3](Arg3: u64)
+	63: MoveLoc[5](Arg5: &Clock)
+	64: Call flow_limiter::update_config(&mut FlowLimiter, u64, u64, &Clock)
+B11:
+	65: Ret
+}
+
+verify_time_lock(Arg0: &Market, Arg1: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[26](MarketConfig.is_native: bool)
+	3: ReadRef
+	4: Not
+	5: BrFalse(17)
+B1:
+	6: MoveLoc[1](Arg1: &Clock)
+	7: Call clock::timestamp_ms(&Clock): u64
+	8: MoveLoc[0](Arg0: &Market)
+	9: ImmBorrowField[31](Market.config: MarketConfig)
+	10: ImmBorrowField[23](MarketConfig.time_lock: u64)
+	11: ReadRef
+	12: Ge
+	13: BrFalse(15)
+B2:
+	14: Branch(21)
+B3:
+	15: LdConst[13](u64: 15)
+	16: Abort
+B4:
+	17: MoveLoc[0](Arg0: &Market)
+	18: Pop
+	19: MoveLoc[1](Arg1: &Clock)
+	20: Pop
+B5:
+	21: Ret
+}
+
+public(friend) update_fee_config(Arg0: &mut Market, Arg1: &MarketCap, Arg2: u64, Arg3: u64, Arg4: u64, Arg5: u64, Arg6: u64, Arg7: &Clock) {
+L8:	loc0: bool
+L9:	loc1: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &MarketCap)
+	3: Call verify_market_cap(&Market, &MarketCap)
+	4: CopyLoc[0](Arg0: &mut Market)
+	5: FreezeRef
+	6: CopyLoc[7](Arg7: &Clock)
+	7: Call verify_time_lock(&Market, &Clock)
+	8: CopyLoc[0](Arg0: &mut Market)
+	9: CopyLoc[7](Arg7: &Clock)
+	10: Call refresh(&mut Market, &Clock)
+	11: CopyLoc[2](Arg2: u64)
+	12: LdU64(10000)
+	13: Le
+	14: BrFalse(34)
+B1:
+	15: CopyLoc[3](Arg3: u64)
+	16: LdU64(10000)
+	17: Le
+	18: BrFalse(31)
+B2:
+	19: CopyLoc[4](Arg4: u64)
+	20: LdU64(10000)
+	21: Le
+	22: BrFalse(28)
+B3:
+	23: CopyLoc[5](Arg5: u64)
+	24: LdU64(10000)
+	25: Le
+	26: StLoc[8](loc0: bool)
+	27: Branch(36)
+B4:
+	28: LdFalse
+	29: StLoc[8](loc0: bool)
+	30: Branch(36)
+B5:
+	31: LdFalse
+	32: StLoc[8](loc0: bool)
+	33: Branch(36)
+B6:
+	34: LdFalse
+	35: StLoc[8](loc0: bool)
+B7:
+	36: MoveLoc[8](loc0: bool)
+	37: BrFalse(39)
+B8:
+	38: Branch(45)
+B9:
+	39: MoveLoc[0](Arg0: &mut Market)
+	40: Pop
+	41: MoveLoc[7](Arg7: &Clock)
+	42: Pop
+	43: LdConst[14](u64: 16)
+	44: Abort
+B10:
+	45: CopyLoc[6](Arg6: u64)
+	46: LdConst[38](u64: 10000)
+	47: Ge
+	48: BrFalse(54)
+B11:
+	49: CopyLoc[6](Arg6: u64)
+	50: LdConst[39](u64: 100000)
+	51: Le
+	52: StLoc[9](loc1: bool)
+	53: Branch(56)
+B12:
+	54: LdFalse
+	55: StLoc[9](loc1: bool)
+B13:
+	56: MoveLoc[9](loc1: bool)
+	57: BrFalse(59)
+B14:
+	58: Branch(65)
+B15:
+	59: MoveLoc[0](Arg0: &mut Market)
+	60: Pop
+	61: MoveLoc[7](Arg7: &Clock)
+	62: Pop
+	63: LdConst[19](u64: 26)
+	64: Abort
+B16:
+	65: MoveLoc[2](Arg2: u64)
+	66: CopyLoc[0](Arg0: &mut Market)
+	67: MutBorrowField[31](Market.config: MarketConfig)
+	68: MutBorrowField[11](MarketConfig.borrow_fee_bps: u64)
+	69: WriteRef
+	70: MoveLoc[3](Arg3: u64)
+	71: CopyLoc[0](Arg0: &mut Market)
+	72: MutBorrowField[31](Market.config: MarketConfig)
+	73: MutBorrowField[12](MarketConfig.deposit_fee_bps: u64)
+	74: WriteRef
+	75: MoveLoc[4](Arg4: u64)
+	76: CopyLoc[0](Arg0: &mut Market)
+	77: MutBorrowField[31](Market.config: MarketConfig)
+	78: MutBorrowField[13](MarketConfig.withdraw_fee_bps: u64)
+	79: WriteRef
+	80: MoveLoc[5](Arg5: u64)
+	81: CopyLoc[0](Arg0: &mut Market)
+	82: MutBorrowField[31](Market.config: MarketConfig)
+	83: MutBorrowField[19](MarketConfig.spread_fee_bps: u64)
+	84: WriteRef
+	85: MoveLoc[6](Arg6: u64)
+	86: Call math::from_bps(u64): Number
+	87: CopyLoc[0](Arg0: &mut Market)
+	88: MutBorrowField[31](Market.config: MarketConfig)
+	89: MutBorrowField[27](MarketConfig.borrow_weight: Number)
+	90: WriteRef
+	91: CopyLoc[0](Arg0: &mut Market)
+	92: MutBorrowField[31](Market.config: MarketConfig)
+	93: MoveLoc[7](Arg7: &Clock)
+	94: Call update_config_timestamp(&mut MarketConfig, &Clock)
+	95: CopyLoc[0](Arg0: &mut Market)
+	96: ImmBorrowField[40](Market.market_id: u64)
+	97: ReadRef
+	98: MoveLoc[0](Arg0: &mut Market)
+	99: ImmBorrowField[31](Market.config: MarketConfig)
+	100: Call generate_market_config_update_event(u64, &MarketConfig)
+	101: Ret
+}
+
+public(friend) update_protocol_fee_share(Arg0: &mut Market, Arg1: u64, Arg2: u64) {
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CopyLoc[0](Arg0: &mut Market)
+	2: MutBorrowField[31](Market.config: MarketConfig)
+	3: MutBorrowField[21](MarketConfig.protocol_fee_share_bps: u64)
+	4: WriteRef
+	5: MoveLoc[2](Arg2: u64)
+	6: MoveLoc[0](Arg0: &mut Market)
+	7: MutBorrowField[31](Market.config: MarketConfig)
+	8: MutBorrowField[22](MarketConfig.protocol_spread_fee_share_bps: u64)
+	9: WriteRef
+	10: Ret
+}
+
+public(friend) update_collateral_ratios(Arg0: &mut Market, Arg1: &MarketCap, Arg2: u8, Arg3: u8, Arg4: &Clock) {
+L5:	loc0: bool
+L6:	loc1: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[20](MarketConfig.isolated: bool)
+	3: ReadRef
+	4: Not
+	5: BrFalse(12)
+B1:
+	6: CopyLoc[0](Arg0: &mut Market)
+	7: ImmBorrowField[31](Market.config: MarketConfig)
+	8: ImmBorrowField[26](MarketConfig.is_native: bool)
+	9: ReadRef
+	10: StLoc[5](loc0: bool)
+	11: Branch(14)
+B2:
+	12: LdFalse
+	13: StLoc[5](loc0: bool)
+B3:
+	14: MoveLoc[5](loc0: bool)
+	15: BrFalse(17)
+B4:
+	16: Branch(25)
+B5:
+	17: MoveLoc[1](Arg1: &MarketCap)
+	18: Pop
+	19: MoveLoc[0](Arg0: &mut Market)
+	20: Pop
+	21: MoveLoc[4](Arg4: &Clock)
+	22: Pop
+	23: LdConst[20](u64: 27)
+	24: Abort
+B6:
+	25: CopyLoc[0](Arg0: &mut Market)
+	26: FreezeRef
+	27: MoveLoc[1](Arg1: &MarketCap)
+	28: Call verify_market_cap(&Market, &MarketCap)
+	29: CopyLoc[0](Arg0: &mut Market)
+	30: FreezeRef
+	31: CopyLoc[4](Arg4: &Clock)
+	32: Call verify_time_lock(&Market, &Clock)
+	33: CopyLoc[0](Arg0: &mut Market)
+	34: ImmBorrowField[31](Market.config: MarketConfig)
+	35: ImmBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	36: ReadRef
+	37: CopyLoc[3](Arg3: u8)
+	38: Gt
+	39: BrFalse(47)
+B7:
+	40: CopyLoc[0](Arg0: &mut Market)
+	41: ImmBorrowField[32](Market.balance_holding: u64)
+	42: ReadRef
+	43: LdU64(0)
+	44: Gt
+	45: StLoc[6](loc1: bool)
+	46: Branch(49)
+B8:
+	47: LdFalse
+	48: StLoc[6](loc1: bool)
+B9:
+	49: MoveLoc[6](loc1: bool)
+	50: BrFalse(67)
+B10:
+	51: CopyLoc[0](Arg0: &mut Market)
+	52: ImmBorrowField[31](Market.config: MarketConfig)
+	53: ImmBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	54: ReadRef
+	55: CopyLoc[3](Arg3: u8)
+	56: Sub
+	57: LdConst[40](u8: 2)
+	58: Lt
+	59: BrFalse(61)
+B11:
+	60: Branch(67)
+B12:
+	61: MoveLoc[0](Arg0: &mut Market)
+	62: Pop
+	63: MoveLoc[4](Arg4: &Clock)
+	64: Pop
+	65: LdConst[20](u64: 27)
+	66: Abort
+B13:
+	67: MoveLoc[2](Arg2: u8)
+	68: CopyLoc[0](Arg0: &mut Market)
+	69: MutBorrowField[31](Market.config: MarketConfig)
+	70: MutBorrowField[4](MarketConfig.safe_collateral_ratio: u8)
+	71: WriteRef
+	72: MoveLoc[3](Arg3: u8)
+	73: CopyLoc[0](Arg0: &mut Market)
+	74: MutBorrowField[31](Market.config: MarketConfig)
+	75: MutBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	76: WriteRef
+	77: CopyLoc[0](Arg0: &mut Market)
+	78: ImmBorrowField[31](Market.config: MarketConfig)
+	79: Call validate_collateral_ratios(&MarketConfig)
+	80: CopyLoc[0](Arg0: &mut Market)
+	81: ImmBorrowField[31](Market.config: MarketConfig)
+	82: Call validate_liquidation_config(&MarketConfig)
+	83: CopyLoc[0](Arg0: &mut Market)
+	84: MutBorrowField[31](Market.config: MarketConfig)
+	85: MoveLoc[4](Arg4: &Clock)
+	86: Call update_config_timestamp(&mut MarketConfig, &Clock)
+	87: CopyLoc[0](Arg0: &mut Market)
+	88: ImmBorrowField[40](Market.market_id: u64)
+	89: ReadRef
+	90: MoveLoc[0](Arg0: &mut Market)
+	91: ImmBorrowField[31](Market.config: MarketConfig)
+	92: Call generate_market_config_update_event(u64, &MarketConfig)
+	93: Ret
+}
+
+validate_collateral_ratios(Arg0: &MarketConfig) {
+L1:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &MarketConfig)
+	1: ImmBorrowField[4](MarketConfig.safe_collateral_ratio: u8)
+	2: ReadRef
+	3: CopyLoc[0](Arg0: &MarketConfig)
+	4: ImmBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	5: ReadRef
+	6: Lt
+	7: BrFalse(9)
+B1:
+	8: Branch(13)
+B2:
+	9: MoveLoc[0](Arg0: &MarketConfig)
+	10: Pop
+	11: LdConst[20](u64: 27)
+	12: Abort
+B3:
+	13: CopyLoc[0](Arg0: &MarketConfig)
+	14: ImmBorrowField[4](MarketConfig.safe_collateral_ratio: u8)
+	15: ReadRef
+	16: LdU8(0)
+	17: Ge
+	18: BrFalse(26)
+B4:
+	19: MoveLoc[0](Arg0: &MarketConfig)
+	20: ImmBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	21: ReadRef
+	22: LdU8(100)
+	23: Le
+	24: StLoc[1](loc0: bool)
+	25: Branch(30)
+B5:
+	26: MoveLoc[0](Arg0: &MarketConfig)
+	27: Pop
+	28: LdFalse
+	29: StLoc[1](loc0: bool)
+B6:
+	30: MoveLoc[1](loc0: bool)
+	31: BrFalse(33)
+B7:
+	32: Branch(35)
+B8:
+	33: LdConst[20](u64: 27)
+	34: Abort
+B9:
+	35: Ret
+}
+
+validate_liquidation_config(Arg0: &MarketConfig) {
+B0:
+	0: CopyLoc[0](Arg0: &MarketConfig)
+	1: ImmBorrowField[17](MarketConfig.liquidation_bonus_bps: u64)
+	2: ReadRef
+	3: CopyLoc[0](Arg0: &MarketConfig)
+	4: ImmBorrowField[18](MarketConfig.liquidation_fee_bps: u64)
+	5: ReadRef
+	6: Add
+	7: Call math::from_bps(u64): Number
+	8: LdU64(1)
+	9: Call math::from(u64): Number
+	10: MoveLoc[0](Arg0: &MarketConfig)
+	11: ImmBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	12: ReadRef
+	13: CastU16
+	14: Call math::from_percentage(u16): Number
+	15: Call math::sub(Number, Number): Number
+	16: Call math::lt(Number, Number): bool
+	17: BrFalse(19)
+B1:
+	18: Branch(21)
+B2:
+	19: LdConst[25](u64: 32)
+	20: Abort
+B3:
+	21: Ret
+}
+
+public(friend) update_liquidation_config(Arg0: &mut Market, Arg1: &MarketCap, Arg2: u64, Arg3: u64, Arg4: u8, Arg5: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &MarketCap)
+	3: Call verify_market_cap(&Market, &MarketCap)
+	4: CopyLoc[0](Arg0: &mut Market)
+	5: FreezeRef
+	6: CopyLoc[5](Arg5: &Clock)
+	7: Call verify_time_lock(&Market, &Clock)
+	8: MoveLoc[2](Arg2: u64)
+	9: CopyLoc[0](Arg0: &mut Market)
+	10: MutBorrowField[31](Market.config: MarketConfig)
+	11: MutBorrowField[17](MarketConfig.liquidation_bonus_bps: u64)
+	12: WriteRef
+	13: MoveLoc[3](Arg3: u64)
+	14: CopyLoc[0](Arg0: &mut Market)
+	15: MutBorrowField[31](Market.config: MarketConfig)
+	16: MutBorrowField[18](MarketConfig.liquidation_fee_bps: u64)
+	17: WriteRef
+	18: MoveLoc[4](Arg4: u8)
+	19: CopyLoc[0](Arg0: &mut Market)
+	20: MutBorrowField[31](Market.config: MarketConfig)
+	21: MutBorrowField[25](MarketConfig.close_factor_percentage: u8)
+	22: WriteRef
+	23: CopyLoc[0](Arg0: &mut Market)
+	24: ImmBorrowField[31](Market.config: MarketConfig)
+	25: Call validate_liquidation_config(&MarketConfig)
+	26: CopyLoc[0](Arg0: &mut Market)
+	27: MutBorrowField[31](Market.config: MarketConfig)
+	28: MoveLoc[5](Arg5: &Clock)
+	29: Call update_config_timestamp(&mut MarketConfig, &Clock)
+	30: CopyLoc[0](Arg0: &mut Market)
+	31: ImmBorrowField[40](Market.market_id: u64)
+	32: ReadRef
+	33: MoveLoc[0](Arg0: &mut Market)
+	34: ImmBorrowField[31](Market.config: MarketConfig)
+	35: Call generate_market_config_update_event(u64, &MarketConfig)
+	36: Ret
+}
+
+public(friend) update_limits(Arg0: &mut Market, Arg1: u64, Arg2: u64, Arg3: u8, Arg4: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: FreezeRef
+	2: CopyLoc[4](Arg4: &Clock)
+	3: Call verify_time_lock(&Market, &Clock)
+	4: CopyLoc[3](Arg3: u8)
+	5: LdU8(100)
+	6: Le
+	7: BrFalse(9)
+B1:
+	8: Branch(15)
+B2:
+	9: MoveLoc[0](Arg0: &mut Market)
+	10: Pop
+	11: MoveLoc[4](Arg4: &Clock)
+	12: Pop
+	13: LdConst[24](u64: 31)
+	14: Abort
+B3:
+	15: MoveLoc[1](Arg1: u64)
+	16: CopyLoc[0](Arg0: &mut Market)
+	17: MutBorrowField[31](Market.config: MarketConfig)
+	18: MutBorrowField[6](MarketConfig.deposit_limit: u64)
+	19: WriteRef
+	20: MoveLoc[2](Arg2: u64)
+	21: CopyLoc[0](Arg0: &mut Market)
+	22: MutBorrowField[31](Market.config: MarketConfig)
+	23: MutBorrowField[7](MarketConfig.borrow_limit: u64)
+	24: WriteRef
+	25: MoveLoc[3](Arg3: u8)
+	26: CopyLoc[0](Arg0: &mut Market)
+	27: MutBorrowField[31](Market.config: MarketConfig)
+	28: MutBorrowField[8](MarketConfig.borrow_limit_percentage: u8)
+	29: WriteRef
+	30: CopyLoc[0](Arg0: &mut Market)
+	31: MutBorrowField[31](Market.config: MarketConfig)
+	32: MoveLoc[4](Arg4: &Clock)
+	33: Call update_config_timestamp(&mut MarketConfig, &Clock)
+	34: CopyLoc[0](Arg0: &mut Market)
+	35: ImmBorrowField[40](Market.market_id: u64)
+	36: ReadRef
+	37: MoveLoc[0](Arg0: &mut Market)
+	38: ImmBorrowField[31](Market.config: MarketConfig)
+	39: Call generate_market_config_update_event(u64, &MarketConfig)
+	40: Ret
+}
+
+public(friend) verify_market_cap(Arg0: &Market, Arg1: &MarketCap) {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[51](Market.market_cap_id: ID)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: &MarketCap)
+	4: Call object::id<MarketCap>(&MarketCap): ID
+	5: Eq
+	6: BrFalse(8)
+B1:
+	7: Branch(10)
+B2:
+	8: LdConst[8](u64: 7)
+	9: Abort
+B3:
+	10: Ret
+}
+
+update_config_timestamp(Arg0: &mut MarketConfig, Arg1: &Clock) {
+B0:
+	0: MoveLoc[1](Arg1: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: MoveLoc[0](Arg0: &mut MarketConfig)
+	3: MutBorrowField[24](MarketConfig.last_updated: u64)
+	4: WriteRef
+	5: Ret
+}
+
+public(friend) update_interest_rate_config(Arg0: &mut Market, Arg1: &MarketCap, Arg2: vector<u8>, Arg3: vector<u64>, Arg4: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &MarketCap)
+	3: Call verify_market_cap(&Market, &MarketCap)
+	4: CopyLoc[0](Arg0: &mut Market)
+	5: FreezeRef
+	6: CopyLoc[4](Arg4: &Clock)
+	7: Call verify_time_lock(&Market, &Clock)
+	8: CopyLoc[3](Arg3: vector<u64>)
+	9: CopyLoc[2](Arg2: vector<u8>)
+	10: Call validate_interest_rates(vector<u64>, vector<u8>)
+	11: CopyLoc[0](Arg0: &mut Market)
+	12: CopyLoc[4](Arg4: &Clock)
+	13: Call refresh(&mut Market, &Clock)
+	14: MoveLoc[2](Arg2: vector<u8>)
+	15: CopyLoc[0](Arg0: &mut Market)
+	16: MutBorrowField[31](Market.config: MarketConfig)
+	17: MutBorrowField[15](MarketConfig.interest_rate_kinks: vector<u8>)
+	18: WriteRef
+	19: MoveLoc[3](Arg3: vector<u64>)
+	20: CopyLoc[0](Arg0: &mut Market)
+	21: MutBorrowField[31](Market.config: MarketConfig)
+	22: MutBorrowField[16](MarketConfig.interest_rates: vector<u64>)
+	23: WriteRef
+	24: CopyLoc[0](Arg0: &mut Market)
+	25: MutBorrowField[31](Market.config: MarketConfig)
+	26: MoveLoc[4](Arg4: &Clock)
+	27: Call update_config_timestamp(&mut MarketConfig, &Clock)
+	28: CopyLoc[0](Arg0: &mut Market)
+	29: ImmBorrowField[40](Market.market_id: u64)
+	30: ReadRef
+	31: MoveLoc[0](Arg0: &mut Market)
+	32: ImmBorrowField[31](Market.config: MarketConfig)
+	33: Call generate_market_config_update_event(u64, &MarketConfig)
+	34: Ret
+}
+
+public(friend) get_spot_usd_value(Arg0: &Market, Arg1: &Oracle, Arg2: u64): Number {
+L3:	loc0: Number
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: MoveLoc[1](Arg1: &Oracle)
+	2: Call get_token_spot_price(&Market, &Oracle): Number
+	3: StLoc[3](loc0: Number)
+	4: MoveLoc[2](Arg2: u64)
+	5: Call math::from(u64): Number
+	6: MoveLoc[3](loc0: Number)
+	7: Call math::mul(Number, Number): Number
+	8: Ret
+}
+
+validate_interest_rates(Arg0: vector<u64>, Arg1: vector<u8>) {
+L2:	loc0: u64
+B0:
+	0: ImmBorrowLoc[0](Arg0: vector<u64>)
+	1: VecLen(25)
+	2: LdU64(2)
+	3: Ge
+	4: BrFalse(6)
+B1:
+	5: Branch(8)
+B2:
+	6: LdConst[18](u64: 25)
+	7: Abort
+B3:
+	8: ImmBorrowLoc[0](Arg0: vector<u64>)
+	9: VecLen(25)
+	10: ImmBorrowLoc[1](Arg1: vector<u8>)
+	11: VecLen(47)
+	12: Eq
+	13: BrFalse(15)
+B4:
+	14: Branch(17)
+B5:
+	15: LdConst[3](u64: 2)
+	16: Abort
+B6:
+	17: ImmBorrowLoc[1](Arg1: vector<u8>)
+	18: LdU64(0)
+	19: VecImmBorrow(47)
+	20: ReadRef
+	21: LdU8(0)
+	22: Eq
+	23: BrFalse(25)
+B7:
+	24: Branch(27)
+B8:
+	25: LdConst[18](u64: 25)
+	26: Abort
+B9:
+	27: ImmBorrowLoc[1](Arg1: vector<u8>)
+	28: ImmBorrowLoc[1](Arg1: vector<u8>)
+	29: VecLen(47)
+	30: LdU64(1)
+	31: Sub
+	32: VecImmBorrow(47)
+	33: ReadRef
+	34: LdU8(100)
+	35: Eq
+	36: BrFalse(38)
+B10:
+	37: Branch(40)
+B11:
+	38: LdConst[18](u64: 25)
+	39: Abort
+B12:
+	40: LdU64(1)
+	41: StLoc[2](loc0: u64)
+B13:
+	42: CopyLoc[2](loc0: u64)
+	43: ImmBorrowLoc[0](Arg0: vector<u64>)
+	44: VecLen(25)
+	45: Lt
+	46: BrFalse(67)
+B14:
+	47: ImmBorrowLoc[0](Arg0: vector<u64>)
+	48: CopyLoc[2](loc0: u64)
+	49: LdU64(1)
+	50: Sub
+	51: VecImmBorrow(25)
+	52: ReadRef
+	53: ImmBorrowLoc[0](Arg0: vector<u64>)
+	54: CopyLoc[2](loc0: u64)
+	55: VecImmBorrow(25)
+	56: ReadRef
+	57: Le
+	58: BrFalse(60)
+B15:
+	59: Branch(62)
+B16:
+	60: LdConst[18](u64: 25)
+	61: Abort
+B17:
+	62: MoveLoc[2](loc0: u64)
+	63: LdU64(1)
+	64: Add
+	65: StLoc[2](loc0: u64)
+	66: Branch(42)
+B18:
+	67: LdU64(1)
+	68: StLoc[2](loc0: u64)
+	69: Branch(70)
+B19:
+	70: CopyLoc[2](loc0: u64)
+	71: ImmBorrowLoc[1](Arg1: vector<u8>)
+	72: VecLen(47)
+	73: Lt
+	74: BrFalse(95)
+B20:
+	75: ImmBorrowLoc[1](Arg1: vector<u8>)
+	76: CopyLoc[2](loc0: u64)
+	77: LdU64(1)
+	78: Sub
+	79: VecImmBorrow(47)
+	80: ReadRef
+	81: ImmBorrowLoc[1](Arg1: vector<u8>)
+	82: CopyLoc[2](loc0: u64)
+	83: VecImmBorrow(47)
+	84: ReadRef
+	85: Lt
+	86: BrFalse(88)
+B21:
+	87: Branch(90)
+B22:
+	88: LdConst[18](u64: 25)
+	89: Abort
+B23:
+	90: MoveLoc[2](loc0: u64)
+	91: LdU64(1)
+	92: Add
+	93: StLoc[2](loc0: u64)
+	94: Branch(70)
+B24:
+	95: Ret
+}
+
+public(friend) get_borrow_weight(Arg0: &Market): Number {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[27](MarketConfig.borrow_weight: Number)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) update_market_isolation(Arg0: &mut Market, Arg1: bool, Arg2: u8, Arg3: u8, Arg4: &Clock) {
+L5:	loc0: bool
+L6:	loc1: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[26](MarketConfig.is_native: bool)
+	3: ReadRef
+	4: BrFalse(6)
+B1:
+	5: Branch(12)
+B2:
+	6: MoveLoc[0](Arg0: &mut Market)
+	7: Pop
+	8: MoveLoc[4](Arg4: &Clock)
+	9: Pop
+	10: LdConst[33](u64: 40)
+	11: Abort
+B3:
+	12: CopyLoc[1](Arg1: bool)
+	13: Not
+	14: BrFalse(46)
+B4:
+	15: CopyLoc[2](Arg2: u8)
+	16: CopyLoc[3](Arg3: u8)
+	17: Lt
+	18: BrFalse(20)
+B5:
+	19: Branch(26)
+B6:
+	20: MoveLoc[0](Arg0: &mut Market)
+	21: Pop
+	22: MoveLoc[4](Arg4: &Clock)
+	23: Pop
+	24: LdConst[20](u64: 27)
+	25: Abort
+B7:
+	26: CopyLoc[2](Arg2: u8)
+	27: LdU8(0)
+	28: Ge
+	29: BrFalse(35)
+B8:
+	30: CopyLoc[3](Arg3: u8)
+	31: LdU8(100)
+	32: Le
+	33: StLoc[5](loc0: bool)
+	34: Branch(37)
+B9:
+	35: LdFalse
+	36: StLoc[5](loc0: bool)
+B10:
+	37: MoveLoc[5](loc0: bool)
+	38: BrFalse(40)
+B11:
+	39: Branch(66)
+B12:
+	40: MoveLoc[0](Arg0: &mut Market)
+	41: Pop
+	42: MoveLoc[4](Arg4: &Clock)
+	43: Pop
+	44: LdConst[20](u64: 27)
+	45: Abort
+B13:
+	46: CopyLoc[2](Arg2: u8)
+	47: LdU8(0)
+	48: Eq
+	49: BrFalse(55)
+B14:
+	50: CopyLoc[3](Arg3: u8)
+	51: LdU8(100)
+	52: Le
+	53: StLoc[6](loc1: bool)
+	54: Branch(57)
+B15:
+	55: LdFalse
+	56: StLoc[6](loc1: bool)
+B16:
+	57: MoveLoc[6](loc1: bool)
+	58: BrFalse(60)
+B17:
+	59: Branch(66)
+B18:
+	60: MoveLoc[0](Arg0: &mut Market)
+	61: Pop
+	62: MoveLoc[4](Arg4: &Clock)
+	63: Pop
+	64: LdConst[20](u64: 27)
+	65: Abort
+B19:
+	66: MoveLoc[1](Arg1: bool)
+	67: CopyLoc[0](Arg0: &mut Market)
+	68: MutBorrowField[31](Market.config: MarketConfig)
+	69: MutBorrowField[20](MarketConfig.isolated: bool)
+	70: WriteRef
+	71: MoveLoc[2](Arg2: u8)
+	72: CopyLoc[0](Arg0: &mut Market)
+	73: MutBorrowField[31](Market.config: MarketConfig)
+	74: MutBorrowField[4](MarketConfig.safe_collateral_ratio: u8)
+	75: WriteRef
+	76: MoveLoc[3](Arg3: u8)
+	77: CopyLoc[0](Arg0: &mut Market)
+	78: MutBorrowField[31](Market.config: MarketConfig)
+	79: MutBorrowField[5](MarketConfig.liquidation_threshold: u8)
+	80: WriteRef
+	81: CopyLoc[0](Arg0: &mut Market)
+	82: ImmBorrowField[31](Market.config: MarketConfig)
+	83: Call validate_collateral_ratios(&MarketConfig)
+	84: CopyLoc[0](Arg0: &mut Market)
+	85: ImmBorrowField[31](Market.config: MarketConfig)
+	86: Call validate_liquidation_config(&MarketConfig)
+	87: CopyLoc[0](Arg0: &mut Market)
+	88: MutBorrowField[31](Market.config: MarketConfig)
+	89: MoveLoc[4](Arg4: &Clock)
+	90: Call update_config_timestamp(&mut MarketConfig, &Clock)
+	91: CopyLoc[0](Arg0: &mut Market)
+	92: ImmBorrowField[40](Market.market_id: u64)
+	93: ReadRef
+	94: MoveLoc[0](Arg0: &mut Market)
+	95: ImmBorrowField[31](Market.config: MarketConfig)
+	96: Call generate_market_config_update_event(u64, &MarketConfig)
+	97: Ret
+}
+
+public(friend) writeoff_borrow(Arg0: &mut Market, Arg1: u64) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: ImmBorrowField[45](Market.writeoff_amount: u64)
+	2: ReadRef
+	3: CopyLoc[1](Arg1: u64)
+	4: Add
+	5: CopyLoc[0](Arg0: &mut Market)
+	6: ImmBorrowField[33](Market.borrowed_amount: u64)
+	7: ReadRef
+	8: Le
+	9: BrFalse(11)
+B1:
+	10: Branch(15)
+B2:
+	11: MoveLoc[0](Arg0: &mut Market)
+	12: Pop
+	13: LdConst[21](u64: 28)
+	14: Abort
+B3:
+	15: CopyLoc[0](Arg0: &mut Market)
+	16: FreezeRef
+	17: Call get_is_native(&Market): bool
+	18: LdTrue
+	19: Eq
+	20: BrFalse(22)
+B4:
+	21: Branch(26)
+B5:
+	22: MoveLoc[0](Arg0: &mut Market)
+	23: Pop
+	24: LdConst[22](u64: 29)
+	25: Abort
+B6:
+	26: CopyLoc[0](Arg0: &mut Market)
+	27: ImmBorrowField[45](Market.writeoff_amount: u64)
+	28: ReadRef
+	29: MoveLoc[1](Arg1: u64)
+	30: Add
+	31: MoveLoc[0](Arg0: &mut Market)
+	32: MutBorrowField[45](Market.writeoff_amount: u64)
+	33: WriteRef
+	34: Ret
+}
+
+public(friend) set_market_active(Arg0: &mut Market, Arg1: &MarketCap, Arg2: bool, Arg3: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &MarketCap)
+	3: Call verify_market_cap(&Market, &MarketCap)
+	4: CopyLoc[0](Arg0: &mut Market)
+	5: FreezeRef
+	6: CopyLoc[3](Arg3: &Clock)
+	7: Call verify_time_lock(&Market, &Clock)
+	8: MoveLoc[2](Arg2: bool)
+	9: CopyLoc[0](Arg0: &mut Market)
+	10: MutBorrowField[31](Market.config: MarketConfig)
+	11: MutBorrowField[28](MarketConfig.active: bool)
+	12: WriteRef
+	13: MoveLoc[0](Arg0: &mut Market)
+	14: MutBorrowField[31](Market.config: MarketConfig)
+	15: MoveLoc[3](Arg3: &Clock)
+	16: Call update_config_timestamp(&mut MarketConfig, &Clock)
+	17: Ret
+}
+
+public(friend) get_active(Arg0: &Market): bool {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[28](MarketConfig.active: bool)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) get_close_factor_percentage(Arg0: &Market): u8 {
+B0:
+	0: MoveLoc[0](Arg0: &Market)
+	1: ImmBorrowField[31](Market.config: MarketConfig)
+	2: ImmBorrowField[25](MarketConfig.close_factor_percentage: u8)
+	3: ReadRef
+	4: Ret
+}
+
+public(friend) set_sui_staking_enabled(Arg0: &mut Market, Arg1: address, Arg2: bool, Arg3: &mut SuiSystemState, Arg4: &mut TxContext) {
+L5:	loc0: Coin<SUI>
+L6:	loc1: Coin<SUI>
+L7:	loc2: SuiStaker
+L8:	loc3: &mut Treasury<SUI>
+L9:	loc4: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: ImmBorrowField[47](Market.coin_type: TypeName)
+	2: ReadRef
+	3: Call type_name::get<SUI>(): TypeName
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(15)
+B2:
+	7: MoveLoc[3](Arg3: &mut SuiSystemState)
+	8: Pop
+	9: MoveLoc[0](Arg0: &mut Market)
+	10: Pop
+	11: MoveLoc[4](Arg4: &mut TxContext)
+	12: Pop
+	13: LdConst[29](u64: 36)
+	14: Abort
+B3:
+	15: MoveLoc[2](Arg2: bool)
+	16: BrFalse(80)
+B4:
+	17: CopyLoc[0](Arg0: &mut Market)
+	18: ImmBorrowField[31](Market.config: MarketConfig)
+	19: ImmBorrowField[29](MarketConfig.staking_enabled: bool)
+	20: ReadRef
+	21: LdFalse
+	22: Eq
+	23: BrFalse(25)
+B5:
+	24: Branch(33)
+B6:
+	25: MoveLoc[3](Arg3: &mut SuiSystemState)
+	26: Pop
+	27: MoveLoc[0](Arg0: &mut Market)
+	28: Pop
+	29: MoveLoc[4](Arg4: &mut TxContext)
+	30: Pop
+	31: LdConst[27](u64: 34)
+	32: Abort
+B7:
+	33: LdTrue
+	34: CopyLoc[0](Arg0: &mut Market)
+	35: MutBorrowField[31](Market.config: MarketConfig)
+	36: MutBorrowField[29](MarketConfig.staking_enabled: bool)
+	37: WriteRef
+	38: CopyLoc[0](Arg0: &mut Market)
+	39: MutBorrowField[30](Market.id: UID)
+	40: LdFalse
+	41: Pack[7](TreasuryKey)
+	42: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<SUI>>(&mut UID, TreasuryKey): &mut Treasury<SUI>
+	43: StLoc[8](loc3: &mut Treasury<SUI>)
+	44: CopyLoc[8](loc3: &mut Treasury<SUI>)
+	45: ImmBorrowFieldGeneric[4](Treasury.balance: Balance<SUI>)
+	46: Call balance::value<SUI>(&Balance<SUI>): u64
+	47: StLoc[9](loc4: u64)
+	48: MoveLoc[8](loc3: &mut Treasury<SUI>)
+	49: MutBorrowFieldGeneric[4](Treasury.balance: Balance<SUI>)
+	50: MoveLoc[9](loc4: u64)
+	51: Call balance::split<SUI>(&mut Balance<SUI>, u64): Balance<SUI>
+	52: CopyLoc[4](Arg4: &mut TxContext)
+	53: Call coin::from_balance<SUI>(Balance<SUI>, &mut TxContext): Coin<SUI>
+	54: StLoc[5](loc0: Coin<SUI>)
+	55: CopyLoc[0](Arg0: &mut Market)
+	56: ImmBorrowField[30](Market.id: UID)
+	57: LdFalse
+	58: Pack[8](SuiStakingEnabledKey)
+	59: Call dynamic_field::exists_<SuiStakingEnabledKey>(&UID, SuiStakingEnabledKey): bool
+	60: BrFalse(67)
+B8:
+	61: CopyLoc[0](Arg0: &mut Market)
+	62: MutBorrowField[30](Market.id: UID)
+	63: LdFalse
+	64: Pack[8](SuiStakingEnabledKey)
+	65: Call dynamic_field::remove<SuiStakingEnabledKey, SuiStaker>(&mut UID, SuiStakingEnabledKey): SuiStaker
+	66: Call sui_staker::delete_sui_staker(SuiStaker)
+B9:
+	67: MoveLoc[1](Arg1: address)
+	68: MoveLoc[5](loc0: Coin<SUI>)
+	69: MoveLoc[3](Arg3: &mut SuiSystemState)
+	70: MoveLoc[4](Arg4: &mut TxContext)
+	71: Call sui_staker::init_staker(address, Coin<SUI>, &mut SuiSystemState, &mut TxContext): SuiStaker
+	72: StLoc[7](loc2: SuiStaker)
+	73: MoveLoc[0](Arg0: &mut Market)
+	74: MutBorrowField[30](Market.id: UID)
+	75: LdFalse
+	76: Pack[8](SuiStakingEnabledKey)
+	77: MoveLoc[7](loc2: SuiStaker)
+	78: Call dynamic_field::add<SuiStakingEnabledKey, SuiStaker>(&mut UID, SuiStakingEnabledKey, SuiStaker)
+	79: Branch(136)
+B10:
+	80: CopyLoc[0](Arg0: &mut Market)
+	81: ImmBorrowField[31](Market.config: MarketConfig)
+	82: ImmBorrowField[29](MarketConfig.staking_enabled: bool)
+	83: ReadRef
+	84: LdTrue
+	85: Eq
+	86: BrFalse(88)
+B11:
+	87: Branch(96)
+B12:
+	88: MoveLoc[3](Arg3: &mut SuiSystemState)
+	89: Pop
+	90: MoveLoc[0](Arg0: &mut Market)
+	91: Pop
+	92: MoveLoc[4](Arg4: &mut TxContext)
+	93: Pop
+	94: LdConst[28](u64: 35)
+	95: Abort
+B13:
+	96: LdFalse
+	97: CopyLoc[0](Arg0: &mut Market)
+	98: MutBorrowField[31](Market.config: MarketConfig)
+	99: MutBorrowField[29](MarketConfig.staking_enabled: bool)
+	100: WriteRef
+	101: CopyLoc[0](Arg0: &mut Market)
+	102: ImmBorrowField[30](Market.id: UID)
+	103: LdFalse
+	104: Pack[8](SuiStakingEnabledKey)
+	105: Call dynamic_field::exists_<SuiStakingEnabledKey>(&UID, SuiStakingEnabledKey): bool
+	106: BrFalse(130)
+B14:
+	107: CopyLoc[0](Arg0: &mut Market)
+	108: MutBorrowField[30](Market.id: UID)
+	109: LdFalse
+	110: Pack[8](SuiStakingEnabledKey)
+	111: Call dynamic_field::borrow_mut<SuiStakingEnabledKey, SuiStaker>(&mut UID, SuiStakingEnabledKey): &mut SuiStaker
+	112: CopyLoc[0](Arg0: &mut Market)
+	113: ImmBorrowField[32](Market.balance_holding: u64)
+	114: ReadRef
+	115: MoveLoc[3](Arg3: &mut SuiSystemState)
+	116: MoveLoc[4](Arg4: &mut TxContext)
+	117: Call sui_staker::remove_stake(&mut SuiStaker, u64, &mut SuiSystemState, &mut TxContext): Coin<SUI>
+	118: StLoc[6](loc1: Coin<SUI>)
+	119: MoveLoc[0](Arg0: &mut Market)
+	120: MutBorrowField[30](Market.id: UID)
+	121: LdFalse
+	122: Pack[7](TreasuryKey)
+	123: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<SUI>>(&mut UID, TreasuryKey): &mut Treasury<SUI>
+	124: MutBorrowFieldGeneric[4](Treasury.balance: Balance<SUI>)
+	125: MoveLoc[6](loc1: Coin<SUI>)
+	126: Call coin::into_balance<SUI>(Coin<SUI>): Balance<SUI>
+	127: Call balance::join<SUI>(&mut Balance<SUI>, Balance<SUI>): u64
+	128: Pop
+	129: Branch(136)
+B15:
+	130: MoveLoc[3](Arg3: &mut SuiSystemState)
+	131: Pop
+	132: MoveLoc[0](Arg0: &mut Market)
+	133: Pop
+	134: MoveLoc[4](Arg4: &mut TxContext)
+	135: Pop
+B16:
+	136: Ret
+}
+
+public(friend) get_promise_market_id<Ty0>(Arg0: &LiquidityPromise<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &LiquidityPromise<Ty0>)
+	1: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_liquidity_promise<Ty0>(Arg0: &LiquidityPromise<Ty0>): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &LiquidityPromise<Ty0>)
+	1: ImmBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) split_promise_market_fee<Ty0>(Arg0: &mut LiquidityPromise<Ty0>, Arg1: u64) {
+B0:
+	0: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	1: ImmBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	2: ReadRef
+	3: CopyLoc[1](Arg1: u64)
+	4: Sub
+	5: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	6: MutBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	7: WriteRef
+	8: MoveLoc[1](Arg1: u64)
+	9: MoveLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	10: MutBorrowFieldGeneric[7](LiquidityPromise.fee: u64)
+	11: WriteRef
+	12: Ret
+}
+
+public(friend) get_promise_coin_type<Ty0>(Arg0: &LiquidityPromise<Ty0>): TypeName {
+B0:
+	0: MoveLoc[0](Arg0: &LiquidityPromise<Ty0>)
+	1: ImmBorrowFieldGeneric[8](LiquidityPromise.coin_type: TypeName)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) join_promise<Ty0>(Arg0: &mut LiquidityPromise<Ty0>, Arg1: LiquidityPromise<Ty0>) {
+L2:	loc0: bool
+B0:
+	0: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	1: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	2: ReadRef
+	3: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	4: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(11)
+B1:
+	8: LdTrue
+	9: StLoc[2](loc0: bool)
+	10: Branch(26)
+B2:
+	11: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	12: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	13: ReadRef
+	14: LdU64(0)
+	15: Eq
+	16: BrFalse(20)
+B3:
+	17: LdTrue
+	18: StLoc[2](loc0: bool)
+	19: Branch(26)
+B4:
+	20: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	21: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	22: ReadRef
+	23: LdU64(0)
+	24: Eq
+	25: StLoc[2](loc0: bool)
+B5:
+	26: MoveLoc[2](loc0: bool)
+	27: BrFalse(29)
+B6:
+	28: Branch(33)
+B7:
+	29: MoveLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	30: Pop
+	31: LdConst[26](u64: 33)
+	32: Abort
+B8:
+	33: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	34: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	35: ReadRef
+	36: LdU64(0)
+	37: Eq
+	38: BrFalse(51)
+B9:
+	39: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	40: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	41: ReadRef
+	42: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	43: MutBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	44: WriteRef
+	45: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	46: ImmBorrowFieldGeneric[8](LiquidityPromise.coin_type: TypeName)
+	47: ReadRef
+	48: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	49: MutBorrowFieldGeneric[8](LiquidityPromise.coin_type: TypeName)
+	50: WriteRef
+B10:
+	51: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	52: ImmBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	53: ReadRef
+	54: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	55: ImmBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	56: ReadRef
+	57: Add
+	58: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	59: MutBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	60: WriteRef
+	61: CopyLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	62: ImmBorrowFieldGeneric[7](LiquidityPromise.fee: u64)
+	63: ReadRef
+	64: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	65: ImmBorrowFieldGeneric[7](LiquidityPromise.fee: u64)
+	66: ReadRef
+	67: Add
+	68: MoveLoc[0](Arg0: &mut LiquidityPromise<Ty0>)
+	69: MutBorrowFieldGeneric[7](LiquidityPromise.fee: u64)
+	70: WriteRef
+	71: MoveLoc[1](Arg1: LiquidityPromise<Ty0>)
+	72: UnpackGeneric[2](LiquidityPromise<Ty0>)
+	73: Pop
+	74: Pop
+	75: Pop
+	76: Pop
+	77: Ret
+}
+
+public(friend) fulfill_promise<Ty0>(Arg0: &mut Market, Arg1: LiquidityPromise<Ty0>, Arg2: &Clock, Arg3: &mut TxContext): Coin<Ty0> * Coin<Ty0> {
+L4:	loc0: Balance<Ty0>
+L5:	loc1: Balance<Ty0>
+L6:	loc2: &mut Treasury<Ty0>
+B0:
+	0: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	1: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	2: ReadRef
+	3: CopyLoc[0](Arg0: &mut Market)
+	4: ImmBorrowField[40](Market.market_id: u64)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(17)
+B2:
+	9: MoveLoc[0](Arg0: &mut Market)
+	10: Pop
+	11: MoveLoc[3](Arg3: &mut TxContext)
+	12: Pop
+	13: MoveLoc[2](Arg2: &Clock)
+	14: Pop
+	15: LdConst[26](u64: 33)
+	16: Abort
+B3:
+	17: CopyLoc[0](Arg0: &mut Market)
+	18: MutBorrowField[30](Market.id: UID)
+	19: LdFalse
+	20: Pack[7](TreasuryKey)
+	21: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<Ty0>>(&mut UID, TreasuryKey): &mut Treasury<Ty0>
+	22: StLoc[6](loc2: &mut Treasury<Ty0>)
+	23: CopyLoc[6](loc2: &mut Treasury<Ty0>)
+	24: MutBorrowFieldGeneric[0](Treasury.balance: Balance<Ty0>)
+	25: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	26: ImmBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	27: ReadRef
+	28: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	29: StLoc[4](loc0: Balance<Ty0>)
+	30: CopyLoc[6](loc2: &mut Treasury<Ty0>)
+	31: MutBorrowFieldGeneric[0](Treasury.balance: Balance<Ty0>)
+	32: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	33: ImmBorrowFieldGeneric[7](LiquidityPromise.fee: u64)
+	34: ReadRef
+	35: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	36: StLoc[5](loc1: Balance<Ty0>)
+	37: CopyLoc[0](Arg0: &mut Market)
+	38: ImmBorrowField[32](Market.balance_holding: u64)
+	39: ReadRef
+	40: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	41: ImmBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	42: ReadRef
+	43: Sub
+	44: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	45: ImmBorrowFieldGeneric[7](LiquidityPromise.fee: u64)
+	46: ReadRef
+	47: Sub
+	48: CopyLoc[0](Arg0: &mut Market)
+	49: MutBorrowField[32](Market.balance_holding: u64)
+	50: WriteRef
+	51: CopyLoc[0](Arg0: &mut Market)
+	52: ImmBorrowField[40](Market.market_id: u64)
+	53: ReadRef
+	54: MoveLoc[6](loc2: &mut Treasury<Ty0>)
+	55: FreezeRef
+	56: Call emit_market_treasury_update_event<Ty0>(u64, &Treasury<Ty0>)
+	57: MoveLoc[0](Arg0: &mut Market)
+	58: MoveLoc[2](Arg2: &Clock)
+	59: Call refresh(&mut Market, &Clock)
+	60: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	61: ImmBorrowFieldGeneric[6](LiquidityPromise.liquidity_promise: u64)
+	62: ReadRef
+	63: ImmBorrowLoc[4](loc0: Balance<Ty0>)
+	64: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	65: Eq
+	66: BrFalse(68)
+B4:
+	67: Branch(72)
+B5:
+	68: MoveLoc[3](Arg3: &mut TxContext)
+	69: Pop
+	70: LdConst[30](u64: 37)
+	71: Abort
+B6:
+	72: ImmBorrowLoc[1](Arg1: LiquidityPromise<Ty0>)
+	73: ImmBorrowFieldGeneric[7](LiquidityPromise.fee: u64)
+	74: ReadRef
+	75: ImmBorrowLoc[5](loc1: Balance<Ty0>)
+	76: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	77: Eq
+	78: BrFalse(80)
+B7:
+	79: Branch(84)
+B8:
+	80: MoveLoc[3](Arg3: &mut TxContext)
+	81: Pop
+	82: LdConst[31](u64: 38)
+	83: Abort
+B9:
+	84: MoveLoc[1](Arg1: LiquidityPromise<Ty0>)
+	85: UnpackGeneric[2](LiquidityPromise<Ty0>)
+	86: Pop
+	87: Pop
+	88: Pop
+	89: Pop
+	90: MoveLoc[4](loc0: Balance<Ty0>)
+	91: CopyLoc[3](Arg3: &mut TxContext)
+	92: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	93: MoveLoc[5](loc1: Balance<Ty0>)
+	94: MoveLoc[3](Arg3: &mut TxContext)
+	95: Call coin::from_balance<Ty0>(Balance<Ty0>, &mut TxContext): Coin<Ty0>
+	96: Ret
+}
+
+public(friend) fulfill_promise_sui(Arg0: &mut Market, Arg1: LiquidityPromise<SUI>, Arg2: &mut SuiSystemState, Arg3: &Clock, Arg4: &mut TxContext): Coin<SUI> * Coin<SUI> {
+L5:	loc0: Balance<SUI>
+L6:	loc1: bool
+L7:	loc2: Coin<SUI>
+L8:	loc3: Coin<SUI>
+L9:	loc4: Coin<SUI>
+L10:	loc5: u64
+L11:	loc6: Coin<SUI>
+L12:	loc7: u64
+L13:	loc8: &mut Treasury<SUI>
+L14:	loc9: &Treasury<SUI>
+B0:
+	0: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	1: ImmBorrowFieldGeneric[9](LiquidityPromise.market_id: u64)
+	2: ReadRef
+	3: CopyLoc[0](Arg0: &mut Market)
+	4: ImmBorrowField[40](Market.market_id: u64)
+	5: ReadRef
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(19)
+B2:
+	9: MoveLoc[2](Arg2: &mut SuiSystemState)
+	10: Pop
+	11: MoveLoc[0](Arg0: &mut Market)
+	12: Pop
+	13: MoveLoc[4](Arg4: &mut TxContext)
+	14: Pop
+	15: MoveLoc[3](Arg3: &Clock)
+	16: Pop
+	17: LdConst[26](u64: 33)
+	18: Abort
+B3:
+	19: CopyLoc[0](Arg0: &mut Market)
+	20: MutBorrowField[30](Market.id: UID)
+	21: LdFalse
+	22: Pack[7](TreasuryKey)
+	23: Call dynamic_field::borrow_mut<TreasuryKey, Treasury<SUI>>(&mut UID, TreasuryKey): &mut Treasury<SUI>
+	24: StLoc[13](loc8: &mut Treasury<SUI>)
+	25: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	26: ImmBorrowFieldGeneric[10](LiquidityPromise.liquidity_promise: u64)
+	27: ReadRef
+	28: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	29: ImmBorrowFieldGeneric[11](LiquidityPromise.fee: u64)
+	30: ReadRef
+	31: Add
+	32: StLoc[12](loc7: u64)
+	33: CopyLoc[12](loc7: u64)
+	34: CopyLoc[13](loc8: &mut Treasury<SUI>)
+	35: ImmBorrowFieldGeneric[4](Treasury.balance: Balance<SUI>)
+	36: Call balance::value<SUI>(&Balance<SUI>): u64
+	37: Lt
+	38: BrFalse(45)
+B4:
+	39: CopyLoc[13](loc8: &mut Treasury<SUI>)
+	40: MutBorrowFieldGeneric[4](Treasury.balance: Balance<SUI>)
+	41: CopyLoc[12](loc7: u64)
+	42: Call balance::split<SUI>(&mut Balance<SUI>, u64): Balance<SUI>
+	43: StLoc[5](loc0: Balance<SUI>)
+	44: Branch(49)
+B5:
+	45: CopyLoc[13](loc8: &mut Treasury<SUI>)
+	46: MutBorrowFieldGeneric[4](Treasury.balance: Balance<SUI>)
+	47: Call balance::withdraw_all<SUI>(&mut Balance<SUI>): Balance<SUI>
+	48: StLoc[5](loc0: Balance<SUI>)
+B6:
+	49: MoveLoc[5](loc0: Balance<SUI>)
+	50: CopyLoc[4](Arg4: &mut TxContext)
+	51: Call coin::from_balance<SUI>(Balance<SUI>, &mut TxContext): Coin<SUI>
+	52: StLoc[7](loc2: Coin<SUI>)
+	53: CopyLoc[12](loc7: u64)
+	54: ImmBorrowLoc[7](loc2: Coin<SUI>)
+	55: Call coin::value<SUI>(&Coin<SUI>): u64
+	56: Sub
+	57: StLoc[10](loc5: u64)
+	58: CopyLoc[0](Arg0: &mut Market)
+	59: ImmBorrowField[31](Market.config: MarketConfig)
+	60: ImmBorrowField[29](MarketConfig.staking_enabled: bool)
+	61: ReadRef
+	62: BrFalse(70)
+B7:
+	63: CopyLoc[13](loc8: &mut Treasury<SUI>)
+	64: ImmBorrowFieldGeneric[4](Treasury.balance: Balance<SUI>)
+	65: Call balance::value<SUI>(&Balance<SUI>): u64
+	66: LdU64(0)
+	67: Gt
+	68: StLoc[6](loc1: bool)
+	69: Branch(72)
+B8:
+	70: LdFalse
+	71: StLoc[6](loc1: bool)
+B9:
+	72: MoveLoc[6](loc1: bool)
+	73: BrFalse(90)
+B10:
+	74: MoveLoc[13](loc8: &mut Treasury<SUI>)
+	75: MutBorrowFieldGeneric[4](Treasury.balance: Balance<SUI>)
+	76: Call balance::withdraw_all<SUI>(&mut Balance<SUI>): Balance<SUI>
+	77: CopyLoc[4](Arg4: &mut TxContext)
+	78: Call coin::from_balance<SUI>(Balance<SUI>, &mut TxContext): Coin<SUI>
+	79: StLoc[9](loc4: Coin<SUI>)
+	80: CopyLoc[0](Arg0: &mut Market)
+	81: MutBorrowField[30](Market.id: UID)
+	82: LdFalse
+	83: Pack[8](SuiStakingEnabledKey)
+	84: Call dynamic_field::borrow_mut<SuiStakingEnabledKey, SuiStaker>(&mut UID, SuiStakingEnabledKey): &mut SuiStaker
+	85: MoveLoc[9](loc4: Coin<SUI>)
+	86: CopyLoc[2](Arg2: &mut SuiSystemState)
+	87: CopyLoc[4](Arg4: &mut TxContext)
+	88: Call sui_staker::add_stake(&mut SuiStaker, Coin<SUI>, &mut SuiSystemState, &mut TxContext)
+	89: Branch(92)
+B11:
+	90: MoveLoc[13](loc8: &mut Treasury<SUI>)
+	91: Pop
+B12:
+	92: CopyLoc[10](loc5: u64)
+	93: LdU64(0)
+	94: Gt
+	95: BrFalse(110)
+B13:
+	96: CopyLoc[0](Arg0: &mut Market)
+	97: MutBorrowField[30](Market.id: UID)
+	98: LdFalse
+	99: Pack[8](SuiStakingEnabledKey)
+	100: Call dynamic_field::borrow_mut<SuiStakingEnabledKey, SuiStaker>(&mut UID, SuiStakingEnabledKey): &mut SuiStaker
+	101: MoveLoc[10](loc5: u64)
+	102: MoveLoc[2](Arg2: &mut SuiSystemState)
+	103: CopyLoc[4](Arg4: &mut TxContext)
+	104: Call sui_staker::remove_stake(&mut SuiStaker, u64, &mut SuiSystemState, &mut TxContext): Coin<SUI>
+	105: StLoc[11](loc6: Coin<SUI>)
+	106: MutBorrowLoc[7](loc2: Coin<SUI>)
+	107: MoveLoc[11](loc6: Coin<SUI>)
+	108: Call coin::join<SUI>(&mut Coin<SUI>, Coin<SUI>)
+	109: Branch(112)
+B14:
+	110: MoveLoc[2](Arg2: &mut SuiSystemState)
+	111: Pop
+B15:
+	112: CopyLoc[0](Arg0: &mut Market)
+	113: ImmBorrowField[32](Market.balance_holding: u64)
+	114: ReadRef
+	115: MoveLoc[12](loc7: u64)
+	116: Sub
+	117: CopyLoc[0](Arg0: &mut Market)
+	118: MutBorrowField[32](Market.balance_holding: u64)
+	119: WriteRef
+	120: CopyLoc[0](Arg0: &mut Market)
+	121: MoveLoc[3](Arg3: &Clock)
+	122: Call refresh(&mut Market, &Clock)
+	123: CopyLoc[0](Arg0: &mut Market)
+	124: ImmBorrowField[30](Market.id: UID)
+	125: LdFalse
+	126: Pack[7](TreasuryKey)
+	127: Call dynamic_field::borrow<TreasuryKey, Treasury<SUI>>(&UID, TreasuryKey): &Treasury<SUI>
+	128: StLoc[14](loc9: &Treasury<SUI>)
+	129: MoveLoc[0](Arg0: &mut Market)
+	130: ImmBorrowField[40](Market.market_id: u64)
+	131: ReadRef
+	132: MoveLoc[14](loc9: &Treasury<SUI>)
+	133: Call emit_market_treasury_update_event<SUI>(u64, &Treasury<SUI>)
+	134: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	135: ImmBorrowFieldGeneric[10](LiquidityPromise.liquidity_promise: u64)
+	136: ReadRef
+	137: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	138: ImmBorrowFieldGeneric[11](LiquidityPromise.fee: u64)
+	139: ReadRef
+	140: Add
+	141: ImmBorrowLoc[7](loc2: Coin<SUI>)
+	142: Call coin::value<SUI>(&Coin<SUI>): u64
+	143: Eq
+	144: BrFalse(146)
+B16:
+	145: Branch(150)
+B17:
+	146: MoveLoc[4](Arg4: &mut TxContext)
+	147: Pop
+	148: LdConst[30](u64: 37)
+	149: Abort
+B18:
+	150: MutBorrowLoc[7](loc2: Coin<SUI>)
+	151: ImmBorrowLoc[1](Arg1: LiquidityPromise<SUI>)
+	152: ImmBorrowFieldGeneric[11](LiquidityPromise.fee: u64)
+	153: ReadRef
+	154: MoveLoc[4](Arg4: &mut TxContext)
+	155: Call coin::split<SUI>(&mut Coin<SUI>, u64, &mut TxContext): Coin<SUI>
+	156: StLoc[8](loc3: Coin<SUI>)
+	157: MoveLoc[1](Arg1: LiquidityPromise<SUI>)
+	158: UnpackGeneric[3](LiquidityPromise<SUI>)
+	159: Pop
+	160: Pop
+	161: Pop
+	162: Pop
+	163: MoveLoc[7](loc2: Coin<SUI>)
+	164: MoveLoc[8](loc3: Coin<SUI>)
+	165: Ret
+}
+
+public(friend) create_empty_promise<Ty0>(): LiquidityPromise<Ty0> {
+B0:
+	0: LdU64(0)
+	1: Call type_name::get<Ty0>(): TypeName
+	2: LdU64(0)
+	3: LdU64(0)
+	4: PackGeneric[2](LiquidityPromise<Ty0>)
+	5: Ret
+}
+
+public(friend) destory_zero<Ty0>(Arg0: LiquidityPromise<Ty0>) {
+B0:
+	0: ImmBorrowLoc[0](Arg0: LiquidityPromise<Ty0>)
+	1: ImmBorrowFieldGeneric[5](LiquidityPromise.market_id: u64)
+	2: ReadRef
+	3: LdU64(0)
+	4: Eq
+	5: BrFalse(7)
+B1:
+	6: Branch(9)
+B2:
+	7: LdConst[32](u64: 39)
+	8: Abort
+B3:
+	9: MoveLoc[0](Arg0: LiquidityPromise<Ty0>)
+	10: UnpackGeneric[2](LiquidityPromise<Ty0>)
+	11: Pop
+	12: Pop
+	13: Pop
+	14: Pop
+	15: Ret
+}
+
+public(friend) set_time_lock(Arg0: &mut Market, Arg1: &MarketCap, Arg2: u64, Arg3: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: FreezeRef
+	2: MoveLoc[1](Arg1: &MarketCap)
+	3: Call verify_market_cap(&Market, &MarketCap)
+	4: CopyLoc[0](Arg0: &mut Market)
+	5: FreezeRef
+	6: CopyLoc[3](Arg3: &Clock)
+	7: Call verify_time_lock(&Market, &Clock)
+	8: CopyLoc[2](Arg2: u64)
+	9: MoveLoc[3](Arg3: &Clock)
+	10: Call clock::timestamp_ms(&Clock): u64
+	11: Gt
+	12: BrFalse(14)
+B1:
+	13: Branch(18)
+B2:
+	14: MoveLoc[0](Arg0: &mut Market)
+	15: Pop
+	16: LdConst[34](u64: 41)
+	17: Abort
+B3:
+	18: MoveLoc[2](Arg2: u64)
+	19: MoveLoc[0](Arg0: &mut Market)
+	20: MutBorrowField[31](Market.config: MarketConfig)
+	21: MutBorrowField[23](MarketConfig.time_lock: u64)
+	22: WriteRef
+	23: Ret
+}
+
+public(friend) generate_new_market_cap(Arg0: &mut Market, Arg1: address, Arg2: &mut TxContext): MarketCap {
+L3:	loc0: MarketCap
+B0:
+	0: MoveLoc[2](Arg2: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: CopyLoc[0](Arg0: &mut Market)
+	3: ImmBorrowField[40](Market.market_id: u64)
+	4: ReadRef
+	5: MoveLoc[1](Arg1: address)
+	6: Pack[13](MarketCap)
+	7: StLoc[3](loc0: MarketCap)
+	8: ImmBorrowLoc[3](loc0: MarketCap)
+	9: Call object::id<MarketCap>(&MarketCap): ID
+	10: MoveLoc[0](Arg0: &mut Market)
+	11: MutBorrowField[51](Market.market_cap_id: ID)
+	12: WriteRef
+	13: MoveLoc[3](loc0: MarketCap)
+	14: Ret
+}
+
+public(friend) collect_staking_rewards(Arg0: &mut Market, Arg1: &mut SuiSystemState, Arg2: &mut TxContext): Coin<SUI> {
+L3:	loc0: Coin<SUI>
+B0:
+	0: CopyLoc[0](Arg0: &mut Market)
+	1: ImmBorrowField[30](Market.id: UID)
+	2: LdFalse
+	3: Pack[8](SuiStakingEnabledKey)
+	4: Call dynamic_field::exists_<SuiStakingEnabledKey>(&UID, SuiStakingEnabledKey): bool
+	5: BrFalse(16)
+B1:
+	6: MoveLoc[0](Arg0: &mut Market)
+	7: MutBorrowField[30](Market.id: UID)
+	8: LdFalse
+	9: Pack[8](SuiStakingEnabledKey)
+	10: Call dynamic_field::borrow_mut<SuiStakingEnabledKey, SuiStaker>(&mut UID, SuiStakingEnabledKey): &mut SuiStaker
+	11: MoveLoc[1](Arg1: &mut SuiSystemState)
+	12: MoveLoc[2](Arg2: &mut TxContext)
+	13: Call sui_staker::collect_fees(&mut SuiStaker, &mut SuiSystemState, &mut TxContext): Coin<SUI>
+	14: StLoc[3](loc0: Coin<SUI>)
+	15: Branch(23)
+B2:
+	16: MoveLoc[1](Arg1: &mut SuiSystemState)
+	17: Pop
+	18: MoveLoc[0](Arg0: &mut Market)
+	19: Pop
+	20: MoveLoc[2](Arg2: &mut TxContext)
+	21: Call coin::zero<SUI>(&mut TxContext): Coin<SUI>
+	22: StLoc[3](loc0: Coin<SUI>)
+B3:
+	23: MoveLoc[3](loc0: Coin<SUI>)
+	24: Ret
+}
+
+Constants [
+	0 => u64: 1000
+	1 => u8: 20
+	2 => u64: 1
+	3 => u64: 2
+	4 => u64: 3
+	5 => u64: 4
+	6 => u64: 5
+	7 => u64: 6
+	8 => u64: 7
+	9 => u64: 8
+	10 => u64: 11
+	11 => u64: 12
+	12 => u64: 14
+	13 => u64: 15
+	14 => u64: 16
+	15 => u64: 22
+	16 => u64: 23
+	17 => u64: 24
+	18 => u64: 25
+	19 => u64: 26
+	20 => u64: 27
+	21 => u64: 28
+	22 => u64: 29
+	23 => u64: 30
+	24 => u64: 31
+	25 => u64: 32
+	26 => u64: 33
+	27 => u64: 34
+	28 => u64: 35
+	29 => u64: 36
+	30 => u64: 37
+	31 => u64: 38
+	32 => u64: 39
+	33 => u64: 40
+	34 => u64: 41
+	35 => u64: 42
+	36 => u64: 86400000
+	37 => u64: 1000000
+	38 => u64: 10000
+	39 => u64: 100000
+	40 => u8: 2
+]
+}

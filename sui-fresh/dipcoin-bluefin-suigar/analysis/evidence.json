@@ -1,0 +1,180 @@
+{
+  "finding": "ZH4 pass-7 — DipCoin / Bluefin Pro / Suigar (Sui)",
+  "date": "2026-10-25",
+  "mode": "read-only mainnet (GraphQL https://graphql.mainnet.sui.io/graphql); no signing/sending; no secrets in file",
+  "primitive_tested": ["version/package import (old Sui package still callable)", "share/NAV pricing", "missing signer/owner"],
+  "prices_usd": {
+    "USDC_sui": 0.99958,
+    "SUI": 0.92598,
+    "source": "https://coins.llama.fi/prices/current/sui:<coinType>",
+    "ts": 1792960681
+  },
+  "dipcoin": {
+    "package_original": "0x978fed071cca22dd26bec3cf4a5d5a00ab10f39cb8c659bbfdfbec4397241001",
+    "package_latest": "0xa5b1b7a4cc8a765b422f41b8cfbc43553574f5731abdfa038df8d3cce09efec9",
+    "n_versions": 9,
+    "version_chain": {
+      "1": "0x978fed071cca22dd26bec3cf4a5d5a00ab10f39cb8c659bbfdfbec4397241001",
+      "2": "0x9645033a540eaa77aaa4b5f0695759a14e8b7c250ea318ef403ce1d96a4a738f",
+      "3": "0x3d11bc46bb4fbcdef7d17f69ac10e3a471d8f09cf104f94b5113dc2cd1c44fd2",
+      "4": "0x857c7c6e50c5e6574966cf110897b99e8a510f8346b0a60a7604fb917b155086",
+      "5": "0x92df31c1b3e14ac7e54d6e606341f36d2743a1cf45119fda4b4efb83d623276f",
+      "6": "0x6671fbc069c94343bb217ea450993c3168cd8ecb433d1c6be339dafcfb53e68c",
+      "7": "0x47f361827c432c2dc286946f73c497509e4ef986311a716af9efbe47db0e1cb4",
+      "8": "0xcd35ff7f5d2a5fa8e9ed4d0147040c54d4a7dd19d08596d860be4712cdf7cf9b",
+      "9": "0xa5b1b7a4cc8a765b422f41b8cfbc43553574f5731abdfa038df8d3cce09efec9"
+    },
+    "vault_module_added_in_v2": true,
+    "version_gate": {
+      "mechanism": "protocol::check_version(&ProtocolConfig) compares ProtocolConfig.version to a HARDCODED u64 constant; called via protocol::check_basic by value-moving entry fns",
+      "expected_constant_per_version": {"v1": 1, "v2": 2, "v3": 3, "v4": 4, "v5": 4, "v6": 4, "v7": 5, "v8": 6, "v9": 6},
+      "live_protocolconfig": "0xdeff2ed27dfe5402e38d60b090a7dcf9b4842c16ec63e472119272173603dfd8",
+      "live_protocolconfig_version": 6,
+      "live_is_paused": false,
+      "conclusion": "v1..v7 value-moving fns abort with invalid_protocol_version against live ProtocolConfig (version==6); only v8/v9 pass"
+    },
+    "deprecation_pattern": "v9 replaces every superseded entry point body with `LdU64(999); Abort`; real logic lives in _v2/_v3/_v4 variants that call protocol::check_basic",
+    "ungated_real_value_movers": [
+      "vault::new_vault_nav (GATED in v2..v9)",
+      "vault::update_share_price_v2 (public, ungated; validates NAV.bank_balance == real bank balance; requires a VaultNAV that can only be built by gated new_vault_nav)",
+      "vault::compute_perpetual_position_value[_v2] (needs VaultNAV)",
+      "price_feed::update_price_feed (public, ungated, but recovers signer and requires == feeder)",
+      "roles::set_exchange_admin (entry; takes ExchangeAdminCap BY VALUE => privileged)"
+    ],
+    "live_state": {
+      "Bank_USDC": {
+        "id": "0x3cc2bfbe6b9dc346f3f27a47b4b0c9eaaf0143c0c704726a1513a1e8c5d9a4c1",
+        "type": "0x978fed07...::bank::Bank<0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC>",
+        "coin_balance_raw": "1845334621258",
+        "coin_balance_usdc": 1845334.621258,
+        "usd": 1844559.71,
+        "accounts": 789,
+        "is_withdrawal_allowed": true
+      },
+      "VaultConfig": {
+        "id": "0x69bae0c198f83acf12656a247dfe85467819139560968669f14b4df0abe8efd7",
+        "type": "0x9645033a...::vault::VaultConfig",
+        "operator": "0x339007e08ac0d5712f739d49fd35e8c6b36b27f39a0beba50439aea9b03ad9b6",
+        "registered_vaults": 21,
+        "all_live_vaults_closed": true
+      }
+    },
+    "verdict": {
+      "E-U": 0,
+      "H-O": 0,
+      "P": 0,
+      "S": 0,
+      "confidence": "high",
+      "why": "version gate (protocol::check_version vs live ProtocolConfig.version==6) blocks every old-version value-moving entry point; the only ungated real value-movers require a VaultNAV that is only produced by the gated new_vault_nav, and update_share_price_v2 re-validates NAV.bank_balance against the live bank"
+    }
+  },
+  "suigar": {
+    "package_original": "0xcbb0929f21450013ebe5e86e7139f2409da2e3ed212c51126a7e6448b795a43f",
+    "package_latest": "0x76176d6964b43881e05f7263a9533cb1bf212c7dd6827bfa52775ed2c6b64648",
+    "n_versions": 2,
+    "version_gate": {
+      "mechanism": "sweethouse::assert_valid_version(&SweetHouse) requires SweetHouse.version_set.contains(package_version()); package_version() returns a hardcoded constant",
+      "v1_package_version": 0,
+      "v2_package_version": 1,
+      "live_SweetHouse": "0xa1549d73230118716bc08865b8d62454f360ddaf40eee2158e458e52125d4ef1",
+      "live_version_set": ["1"],
+      "conclusion": "v1's assert_valid_version aborts (0 not in {1}); v2 passes. v1 and v2 bodies are byte-identical for all pool/pipe/sweethouse value functions except the oracle module (refactor) and package_version => no version-differential exploit"
+    },
+    "v1_v2_body_diff_modules": ["oracle (added v2 pricing path)", "sweethouse::package_version (0->1)", "sweethouse::init", "mock_pond::id"],
+    "share_nav_math": {
+      "total_public_pool_balance": "pool.balance + pool.pipe_debt (get_pool_total_value)",
+      "deposit_public_pool": "bootstrap if supply==0 OR total==0 -> mint amount+total shares; else mint amount*supply/total",
+      "redeem_public_pool": "payout = shares*total/supply_before (supply_before>0), else total; split_public_pool(payout)",
+      "first_depositor_capture_condition": "supply==0 AND total>0 -> depositor of `amount` receives amount+total shares and can redeem total_new=amount+total (profit=total). NOT live: all houses with supply==0 also have total==0",
+      "deposit_capacity_check": "amount+total <= max_capacity; USDC/SUI public totals currently EXCEED max_capacity -> deposits blocked"
+    },
+    "live_state_houses": {
+      "USDC_house": {
+        "id": "0xd7d82627957f9665a6c64c5c2cc8f1867b398bf9c85155308e670169ade3f7e1",
+        "type": "0xcbb0929f...::house::House<...::usdc::USDC>",
+        "coin_decimals": 6,
+        "public_supply": "9950000000",
+        "public_pool": {"balance": "9780998698", "pipe_debt": "8618092792", "total": "18399091490", "max_capacity": "10000000000"},
+        "private_pool": {"balance": "12234554923", "pipe_debt": "10464985401", "total": "22699540324"},
+        "rakeback_pool": {"balance": "1935640096"},
+        "share_price_usdc_per_share": 1.849,
+        "total_usdc": 43034.27,
+        "total_usd": 43016.2
+      },
+      "SUI_house": {
+        "id": "0x1840b0629ddd4975701790da552d09b35025deabfa30135dff5ad4cba87f1bd6",
+        "type": "0xcbb0929f...::house::House<0x2::sui::SUI>",
+        "coin_decimals": 9,
+        "public_supply": "9010000000000",
+        "public_pool": {"balance": "11649350516532", "pipe_debt": "45582111006196", "total": "57231461522728", "max_capacity": "10000000000000"},
+        "private_pool": {"balance": "17643187086166", "pipe_debt": "67442194610390", "total": "85085381696556"},
+        "rakeback_pool": {"balance": "478165190297"},
+        "share_price_sui_per_share": 6.352,
+        "total_sui": 142795.01,
+        "total_usd": 132226.0
+      },
+      "SPRING_SUI_house": {
+        "id": "0x4a7404cfdb1979e60a1c2b44672669b40b21eba22bb4bc09a439970265b62e93",
+        "public_supply": "0",
+        "public_pool": {"balance": "0", "pipe_debt": "0", "total": "0"},
+        "private_pool": {"balance": "22506735719"},
+        "note": "supply==0 and total==0 -> no live first-depositor capture"
+      }
+    },
+    "verdict": {
+      "E-U": 0,
+      "H-O": 0,
+      "P": 0,
+      "S": 0,
+      "confidence": "high",
+      "why": "version gate blocks v1; v1/v2 value bodies identical so old-version calls are equivalent to latest; no live supply==0&total>0 state for the donation capture"
+    }
+  },
+  "bluefin_pro": {
+    "package_original": "0xe74481697f432ddee8dd6f9bd13b9d0297a5b63d55f3db25c4d3b5d34dad85b7",
+    "package_latest": "0x11d01c93c0461f8f505c993e48734b364a95fa7b32c7956e3bd58d93d27d0892",
+    "n_versions": 21,
+    "version_gate": {
+      "mechanism": "each entry fn asserts data_store::get_ids_version(ids)==constants::get_version() and get_eds_version(eds)==constants::get_version() (else version_mismatch). constants::get_version() returns hardcoded 1 in EVERY package version.",
+      "live_eds_version": 1,
+      "live_ids_version": 1,
+      "conclusion": "NO per-package version gate: every package version v1..v21 passes the check => ALL old versions remain callable on the same shared objects (the version/import primitive IS satisfied)."
+    },
+    "signature_model": "entry fns take (payload, signature, intent) and call signature::verify(payload, signature, intent); no tx_context::sender() check exists in the exchange module (1 sender call total, 0 in the value entry points)",
+    "AUTHORIZATION_BYPASS_candidate": {
+      "primitive": "missing signer/owner",
+      "mechanism": "signature::verify_signature_and_recover_signer(message, signature) reads signature[0] as the scheme byte; if scheme==0x05 it returns the ZERO ADDRESS (0x000...000) WITHOUT any cryptographic verification. Callers treat signer==0x0 as authorized.",
+      "affected_entry_fns": [
+        "exchange::withdraw_from_bank  (valid = signer==0x0 OR signer==account)",
+        "exchange::authorize_account   (valid = signer==0x0 OR signer==account)",
+        "exchange::adjust_margin       (valid = signer==0x0 OR has_permission(account, signer))",
+        "exchange::adjust_leverage     (valid = signer==0x0 OR has_permission(account, signer))",
+        "exchange::close_position      (valid = signer==0x0 OR has_permission(account, signer))"
+      ],
+      "present_in_all_versions": "v1..v21 (scheme==5 -> return 0x0 present since v1)",
+      "caller_controlled_oracle": "these entry fns also call data_store::update_oracle_prices(ids, symbols, prices) with CALLER-SUPPLIED prices; update_oracle_prices performs no bounds check and no signature check",
+      "profit_path_status": "NOT fully established within budget. withdraw_from_bank credits recipient==account (no cross-account redirect). close_position requires a DELISTED market and settles PnL in the payload-specified account => potential insurance-pool extraction but no live delisted market confirmed. adjust_margin/adjust_leverage only re-balance the account's own assets.",
+      "confidence_in_mechanism": "high (full bytecode)",
+      "confidence_in_profit": "low"
+    },
+    "v17_to_v18_hardening": "exchange::withdraw_from_bank gained an explicit account::get_max_withdrawable_amount(..) <= amount check (insufficient_funds) at v18; v17 relies on account::sub_margin_from_asset_vector (bounds by the account's own recorded quantity) + margining_engine::verify_health. Not obviously exploitable as v17 still bounds by the user's balance.",
+    "live_state": {
+      "ExternalDataStore": {"id": "0x740d972ea066fe3302ee655163373cda2e9529bfa93d2266e1355cf56899da57", "type": "0xe74481...::data_store::ExternalDataStore", "version": 1, "sequence_number": 218404, "operators_size": 0},
+      "InternalDataStore": {"id": "0xa9f033047d2fc453da063b03500a48950d2497bb0a2faec57da2833d42a12806", "version": 1, "accounts": 43269, "perpetuals": 8, "operators": 4, "liquidators": 11, "gas_fee": "30000000", "sequence_number": 8314262},
+      "bluefin_vault_Aqua_separate_pkg_0x9added62": {"id": "0x10d48e112b92c8af207c1850225284a7ca46bac1d935c4af4cf87ce29b121694", "type": "0x9added62...::bluefin_vault::Vault<0x5d4b3025...::coin::COIN (wormhole USDC)>", "name": "Aqua", "total_locked_amount": "71147420000", "coin_balance": "611340050", "total_amount_to_be_withdrawn": "12914540000", "users": 2901, "deposit_paused": true, "withdraw_paused": false}
+    },
+    "verdict": {
+      "E-U": 0,
+      "H-O": 0,
+      "P": 0,
+      "S": 0,
+      "confidence": "medium",
+      "why": "version/import: old versions ARE callable (no per-package gate) but no old-version value function with a weaker guard was proven exploitable; separately a 0x0-signer authorization bypass + caller-supplied oracle prices exist in ALL versions incl. latest, mechanism confirmed but profitable E-U path not completed"
+    }
+  },
+  "blockers": [
+    "Sui JSON-RPC deprecated; used GraphQL only. simulateTransaction JSON shape not exercised in budget => no dynamic PoC.",
+    "Bluefin asset-bank balances live in dynamic fields of a NESTED UID (AssetBank.id) and are not discoverable via GraphQL dynamicFields => exact bank USD not read; corpus value $1.5M used.",
+    "Bluefin profitability of the 0x0-signer bypass not fully traced (close_position needs a delisted market; withdraw credits the account owner)."
+  ]
+}

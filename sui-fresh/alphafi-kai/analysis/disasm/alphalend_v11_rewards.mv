@@ -1,0 +1,1349 @@
+// Move bytecode v6
+module d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4.rewards {
+use d631cd66138909636fc3f73ed75820d0c5b76332d1644608ed1c85ea2b8219b4::events;
+use 4b591bbc246c9fadd28e7ac895e0778fb0e102f1b0d9f441e78d35f0d1ea1fcc::math;
+use 0000000000000000000000000000000000000000000000000000000000000001::option;
+use 0000000000000000000000000000000000000000000000000000000000000001::type_name;
+use 0000000000000000000000000000000000000000000000000000000000000001::u64;
+use 0000000000000000000000000000000000000000000000000000000000000002::balance;
+use 0000000000000000000000000000000000000000000000000000000000000002::clock;
+use 0000000000000000000000000000000000000000000000000000000000000002::dynamic_field;
+use 0000000000000000000000000000000000000000000000000000000000000002::object;
+use 0000000000000000000000000000000000000000000000000000000000000002::tx_context;
+
+struct RewardDistributorRefreshEvent has copy, drop {
+	market_id: u64,
+	reward_distributor_id: ID,
+	last_updated: u64,
+	total_xtokens: u64
+}
+
+struct RewardUpdateEvent has copy, drop {
+	market_id: u64,
+	reward_id: ID,
+	coin_type: TypeName,
+	distributor_id: ID,
+	is_auto_compounded: bool,
+	auto_compound_market_id: u64,
+	total_rewards: u64,
+	start_time: u64,
+	end_time: u64,
+	distributed_rewards: Number,
+	cummulative_rewards_per_share: Number
+}
+
+struct UserRewardDistributorRefreshEvent has copy, drop {
+	market_id: u64,
+	position_id: ID,
+	reward_distributor_id: ID,
+	share: u64,
+	last_updated: u64,
+	is_deposit: bool
+}
+
+struct UserRewardUpdateEvent has copy, drop {
+	market_id: u64,
+	position_id: ID,
+	reward_id: ID,
+	coin_type: TypeName,
+	earned_rewards: Number,
+	cummulative_rewards_per_share: Number,
+	is_auto_compounded: bool,
+	auto_compound_market_id: u64
+}
+
+struct RewardDistributor has store, key {
+	id: UID,
+	total_xtokens: u64,
+	rewards: vector<Option<Reward>>,
+	last_updated: u64,
+	market_id: u64
+}
+
+struct Reward has store, key {
+	id: UID,
+	coin_type: TypeName,
+	distributor_id: ID,
+	is_auto_compounded: bool,
+	auto_compound_market_id: u64,
+	total_rewards: u64,
+	start_time: u64,
+	end_time: u64,
+	distributed_rewards: Number,
+	cummulative_rewards_per_share: Number
+}
+
+struct UserRewardDistributor has store {
+	reward_distributor_id: ID,
+	market_id: u64,
+	share: u64,
+	rewards: vector<Option<UserReward>>,
+	last_updated: u64,
+	is_deposit: bool
+}
+
+struct UserReward has store {
+	reward_id: ID,
+	coin_type: TypeName,
+	earned_rewards: Number,
+	cummulative_rewards_per_share: Number,
+	is_auto_compounded: bool,
+	auto_compound_market_id: u64
+}
+
+struct ClaimableReward has copy, drop {
+	market_id: u64,
+	reward_type: TypeName
+}
+
+public(friend) emit_reward_distributor_refresh_event(Arg0: u64, Arg1: &RewardDistributor) {
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: CopyLoc[1](Arg1: &RewardDistributor)
+	2: Call object::id<RewardDistributor>(&RewardDistributor): ID
+	3: CopyLoc[1](Arg1: &RewardDistributor)
+	4: ImmBorrowField[0](RewardDistributor.last_updated: u64)
+	5: ReadRef
+	6: MoveLoc[1](Arg1: &RewardDistributor)
+	7: ImmBorrowField[1](RewardDistributor.total_xtokens: u64)
+	8: ReadRef
+	9: Pack[0](RewardDistributorRefreshEvent)
+	10: Call events::emit_event<RewardDistributorRefreshEvent>(RewardDistributorRefreshEvent)
+	11: Ret
+}
+
+public(friend) emit_reward_update_event(Arg0: &Reward, Arg1: u64) {
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: CopyLoc[0](Arg0: &Reward)
+	2: Call object::id<Reward>(&Reward): ID
+	3: CopyLoc[0](Arg0: &Reward)
+	4: ImmBorrowField[2](Reward.coin_type: TypeName)
+	5: ReadRef
+	6: CopyLoc[0](Arg0: &Reward)
+	7: ImmBorrowField[3](Reward.distributor_id: ID)
+	8: ReadRef
+	9: CopyLoc[0](Arg0: &Reward)
+	10: ImmBorrowField[4](Reward.is_auto_compounded: bool)
+	11: ReadRef
+	12: CopyLoc[0](Arg0: &Reward)
+	13: ImmBorrowField[5](Reward.auto_compound_market_id: u64)
+	14: ReadRef
+	15: CopyLoc[0](Arg0: &Reward)
+	16: ImmBorrowField[6](Reward.total_rewards: u64)
+	17: ReadRef
+	18: CopyLoc[0](Arg0: &Reward)
+	19: ImmBorrowField[7](Reward.start_time: u64)
+	20: ReadRef
+	21: CopyLoc[0](Arg0: &Reward)
+	22: ImmBorrowField[8](Reward.end_time: u64)
+	23: ReadRef
+	24: CopyLoc[0](Arg0: &Reward)
+	25: ImmBorrowField[9](Reward.distributed_rewards: Number)
+	26: ReadRef
+	27: MoveLoc[0](Arg0: &Reward)
+	28: ImmBorrowField[10](Reward.cummulative_rewards_per_share: Number)
+	29: ReadRef
+	30: Pack[1](RewardUpdateEvent)
+	31: Call events::emit_event<RewardUpdateEvent>(RewardUpdateEvent)
+	32: Ret
+}
+
+public(friend) emit_user_reward_distributor_refresh_event(Arg0: &UserRewardDistributor, Arg1: u64, Arg2: ID) {
+B0:
+	0: MoveLoc[1](Arg1: u64)
+	1: MoveLoc[2](Arg2: ID)
+	2: CopyLoc[0](Arg0: &UserRewardDistributor)
+	3: ImmBorrowField[11](UserRewardDistributor.reward_distributor_id: ID)
+	4: ReadRef
+	5: CopyLoc[0](Arg0: &UserRewardDistributor)
+	6: ImmBorrowField[12](UserRewardDistributor.share: u64)
+	7: ReadRef
+	8: CopyLoc[0](Arg0: &UserRewardDistributor)
+	9: ImmBorrowField[13](UserRewardDistributor.last_updated: u64)
+	10: ReadRef
+	11: MoveLoc[0](Arg0: &UserRewardDistributor)
+	12: ImmBorrowField[14](UserRewardDistributor.is_deposit: bool)
+	13: ReadRef
+	14: Pack[2](UserRewardDistributorRefreshEvent)
+	15: Call events::emit_event<UserRewardDistributorRefreshEvent>(UserRewardDistributorRefreshEvent)
+	16: Ret
+}
+
+public(friend) emit_user_reward_update_event(Arg0: u64, Arg1: ID, Arg2: &UserReward) {
+B0:
+	0: MoveLoc[0](Arg0: u64)
+	1: MoveLoc[1](Arg1: ID)
+	2: CopyLoc[2](Arg2: &UserReward)
+	3: ImmBorrowField[15](UserReward.reward_id: ID)
+	4: ReadRef
+	5: CopyLoc[2](Arg2: &UserReward)
+	6: ImmBorrowField[16](UserReward.coin_type: TypeName)
+	7: ReadRef
+	8: CopyLoc[2](Arg2: &UserReward)
+	9: ImmBorrowField[17](UserReward.earned_rewards: Number)
+	10: ReadRef
+	11: CopyLoc[2](Arg2: &UserReward)
+	12: ImmBorrowField[18](UserReward.cummulative_rewards_per_share: Number)
+	13: ReadRef
+	14: CopyLoc[2](Arg2: &UserReward)
+	15: ImmBorrowField[19](UserReward.is_auto_compounded: bool)
+	16: ReadRef
+	17: MoveLoc[2](Arg2: &UserReward)
+	18: ImmBorrowField[20](UserReward.auto_compound_market_id: u64)
+	19: ReadRef
+	20: Pack[3](UserRewardUpdateEvent)
+	21: Call events::emit_event<UserRewardUpdateEvent>(UserRewardUpdateEvent)
+	22: Ret
+}
+
+public(friend) create_reward_distributor(Arg0: &mut TxContext, Arg1: u64): RewardDistributor {
+B0:
+	0: MoveLoc[0](Arg0: &mut TxContext)
+	1: Call object::new(&mut TxContext): UID
+	2: LdU64(0)
+	3: VecPack(42, 0)
+	4: LdU64(0)
+	5: MoveLoc[1](Arg1: u64)
+	6: Pack[4](RewardDistributor)
+	7: Ret
+}
+
+public(friend) find_reward(Arg0: &RewardDistributor, Arg1: TypeName, Arg2: bool): u64 {
+L3:	loc0: bool
+L4:	loc1: u64
+L5:	loc2: u64
+L6:	loc3: &Reward
+L7:	loc4: &Option<Reward>
+B0:
+	0: CopyLoc[0](Arg0: &RewardDistributor)
+	1: ImmBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	2: VecLen(42)
+	3: StLoc[5](loc2: u64)
+	4: LdU64(0)
+	5: StLoc[4](loc1: u64)
+B1:
+	6: CopyLoc[4](loc1: u64)
+	7: CopyLoc[5](loc2: u64)
+	8: Lt
+	9: BrFalse(51)
+B2:
+	10: Branch(11)
+B3:
+	11: CopyLoc[0](Arg0: &RewardDistributor)
+	12: ImmBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	13: CopyLoc[4](loc1: u64)
+	14: VecImmBorrow(42)
+	15: StLoc[7](loc4: &Option<Reward>)
+	16: CopyLoc[7](loc4: &Option<Reward>)
+	17: Call option::is_some<Reward>(&Option<Reward>): bool
+	18: BrFalse(44)
+B4:
+	19: MoveLoc[7](loc4: &Option<Reward>)
+	20: Call option::borrow<Reward>(&Option<Reward>): &Reward
+	21: StLoc[6](loc3: &Reward)
+	22: CopyLoc[6](loc3: &Reward)
+	23: ImmBorrowField[2](Reward.coin_type: TypeName)
+	24: ReadRef
+	25: CopyLoc[1](Arg1: TypeName)
+	26: Eq
+	27: BrFalse(35)
+B5:
+	28: MoveLoc[6](loc3: &Reward)
+	29: ImmBorrowField[4](Reward.is_auto_compounded: bool)
+	30: ReadRef
+	31: CopyLoc[2](Arg2: bool)
+	32: Eq
+	33: StLoc[3](loc0: bool)
+	34: Branch(39)
+B6:
+	35: MoveLoc[6](loc3: &Reward)
+	36: Pop
+	37: LdFalse
+	38: StLoc[3](loc0: bool)
+B7:
+	39: MoveLoc[3](loc0: bool)
+	40: BrFalse(46)
+B8:
+	41: MoveLoc[0](Arg0: &RewardDistributor)
+	42: Pop
+	43: Branch(51)
+B9:
+	44: MoveLoc[7](loc4: &Option<Reward>)
+	45: Pop
+B10:
+	46: MoveLoc[4](loc1: u64)
+	47: LdU64(1)
+	48: Add
+	49: StLoc[4](loc1: u64)
+	50: Branch(6)
+B11:
+	51: MoveLoc[4](loc1: u64)
+	52: Ret
+}
+
+public(friend) add_reward<Ty0>(Arg0: &mut RewardDistributor, Arg1: Balance<Ty0>, Arg2: TypeName, Arg3: bool, Arg4: u64, Arg5: u64, Arg6: u64, Arg7: &Clock, Arg8: &mut TxContext) {
+L9:	loc0: u64
+L10:	loc1: Option<Reward>
+L11:	loc2: Reward
+B0:
+	0: CopyLoc[0](Arg0: &mut RewardDistributor)
+	1: ImmBorrowField[0](RewardDistributor.last_updated: u64)
+	2: ReadRef
+	3: CopyLoc[7](Arg7: &Clock)
+	4: Call clock::timestamp_ms(&Clock): u64
+	5: Eq
+	6: BrFalse(8)
+B1:
+	7: Branch(16)
+B2:
+	8: MoveLoc[0](Arg0: &mut RewardDistributor)
+	9: Pop
+	10: MoveLoc[8](Arg8: &mut TxContext)
+	11: Pop
+	12: MoveLoc[7](Arg7: &Clock)
+	13: Pop
+	14: LdConst[3](u64: 3)
+	15: Abort
+B3:
+	16: CopyLoc[0](Arg0: &mut RewardDistributor)
+	17: FreezeRef
+	18: CopyLoc[2](Arg2: TypeName)
+	19: CopyLoc[3](Arg3: bool)
+	20: Call find_reward(&RewardDistributor, TypeName, bool): u64
+	21: StLoc[9](loc0: u64)
+	22: CopyLoc[9](loc0: u64)
+	23: CopyLoc[0](Arg0: &mut RewardDistributor)
+	24: ImmBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	25: VecLen(42)
+	26: Lt
+	27: BrFalse(48)
+B4:
+	28: MoveLoc[8](Arg8: &mut TxContext)
+	29: Pop
+	30: CopyLoc[0](Arg0: &mut RewardDistributor)
+	31: CopyLoc[9](loc0: u64)
+	32: MoveLoc[1](Arg1: Balance<Ty0>)
+	33: MoveLoc[5](Arg5: u64)
+	34: MoveLoc[6](Arg6: u64)
+	35: MoveLoc[7](Arg7: &Clock)
+	36: Call update_reward<Ty0>(&mut RewardDistributor, u64, Balance<Ty0>, u64, u64, &Clock)
+	37: CopyLoc[0](Arg0: &mut RewardDistributor)
+	38: MutBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	39: MoveLoc[9](loc0: u64)
+	40: VecMutBorrow(42)
+	41: Call option::borrow_mut<Reward>(&mut Option<Reward>): &mut Reward
+	42: FreezeRef
+	43: MoveLoc[0](Arg0: &mut RewardDistributor)
+	44: ImmBorrowField[22](RewardDistributor.market_id: u64)
+	45: ReadRef
+	46: Call emit_reward_update_event(&Reward, u64)
+	47: Branch(97)
+B5:
+	48: MoveLoc[7](Arg7: &Clock)
+	49: Pop
+	50: MoveLoc[8](Arg8: &mut TxContext)
+	51: Call object::new(&mut TxContext): UID
+	52: MoveLoc[2](Arg2: TypeName)
+	53: CopyLoc[0](Arg0: &mut RewardDistributor)
+	54: FreezeRef
+	55: Call object::id<RewardDistributor>(&RewardDistributor): ID
+	56: MoveLoc[3](Arg3: bool)
+	57: MoveLoc[4](Arg4: u64)
+	58: ImmBorrowLoc[1](Arg1: Balance<Ty0>)
+	59: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	60: CopyLoc[5](Arg5: u64)
+	61: CopyLoc[6](Arg6: u64)
+	62: LdU64(0)
+	63: Call math::from(u64): Number
+	64: LdU64(0)
+	65: Call math::from(u64): Number
+	66: Pack[5](Reward)
+	67: StLoc[11](loc2: Reward)
+	68: MoveLoc[6](Arg6: u64)
+	69: MoveLoc[5](Arg5: u64)
+	70: Gt
+	71: BrFalse(73)
+B6:
+	72: Branch(77)
+B7:
+	73: MoveLoc[0](Arg0: &mut RewardDistributor)
+	74: Pop
+	75: LdConst[4](u64: 4)
+	76: Abort
+B8:
+	77: Call option::none<Reward>(): Option<Reward>
+	78: StLoc[10](loc1: Option<Reward>)
+	79: CopyLoc[0](Arg0: &mut RewardDistributor)
+	80: MutBorrowField[23](RewardDistributor.id: UID)
+	81: ImmBorrowLoc[11](loc2: Reward)
+	82: Call object::id<Reward>(&Reward): ID
+	83: MoveLoc[1](Arg1: Balance<Ty0>)
+	84: Call dynamic_field::add<ID, Balance<Ty0>>(&mut UID, ID, Balance<Ty0>)
+	85: ImmBorrowLoc[11](loc2: Reward)
+	86: CopyLoc[0](Arg0: &mut RewardDistributor)
+	87: ImmBorrowField[22](RewardDistributor.market_id: u64)
+	88: ReadRef
+	89: Call emit_reward_update_event(&Reward, u64)
+	90: MutBorrowLoc[10](loc1: Option<Reward>)
+	91: MoveLoc[11](loc2: Reward)
+	92: Call option::fill<Reward>(&mut Option<Reward>, Reward)
+	93: MoveLoc[0](Arg0: &mut RewardDistributor)
+	94: MutBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	95: MoveLoc[10](loc1: Option<Reward>)
+	96: VecPushBack(42)
+B9:
+	97: Ret
+}
+
+public(friend) update_reward<Ty0>(Arg0: &mut RewardDistributor, Arg1: u64, Arg2: Balance<Ty0>, Arg3: u64, Arg4: u64, Arg5: &Clock) {
+L6:	loc0: &mut Reward
+B0:
+	0: CopyLoc[0](Arg0: &mut RewardDistributor)
+	1: MutBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	2: MoveLoc[1](Arg1: u64)
+	3: VecMutBorrow(42)
+	4: Call option::borrow_mut<Reward>(&mut Option<Reward>): &mut Reward
+	5: StLoc[6](loc0: &mut Reward)
+	6: CopyLoc[6](loc0: &mut Reward)
+	7: ImmBorrowField[8](Reward.end_time: u64)
+	8: ReadRef
+	9: MoveLoc[5](Arg5: &Clock)
+	10: Call clock::timestamp_ms(&Clock): u64
+	11: Gt
+	12: BrFalse(26)
+B1:
+	13: CopyLoc[6](loc0: &mut Reward)
+	14: ImmBorrowField[8](Reward.end_time: u64)
+	15: ReadRef
+	16: MoveLoc[3](Arg3: u64)
+	17: Eq
+	18: BrFalse(20)
+B2:
+	19: Branch(41)
+B3:
+	20: MoveLoc[0](Arg0: &mut RewardDistributor)
+	21: Pop
+	22: MoveLoc[6](loc0: &mut Reward)
+	23: Pop
+	24: LdConst[0](u64: 0)
+	25: Abort
+B4:
+	26: CopyLoc[4](Arg4: u64)
+	27: CopyLoc[3](Arg3: u64)
+	28: Gt
+	29: BrFalse(31)
+B5:
+	30: Branch(37)
+B6:
+	31: MoveLoc[0](Arg0: &mut RewardDistributor)
+	32: Pop
+	33: MoveLoc[6](loc0: &mut Reward)
+	34: Pop
+	35: LdConst[4](u64: 4)
+	36: Abort
+B7:
+	37: MoveLoc[3](Arg3: u64)
+	38: CopyLoc[6](loc0: &mut Reward)
+	39: MutBorrowField[7](Reward.start_time: u64)
+	40: WriteRef
+B8:
+	41: MoveLoc[4](Arg4: u64)
+	42: CopyLoc[6](loc0: &mut Reward)
+	43: MutBorrowField[8](Reward.end_time: u64)
+	44: WriteRef
+	45: CopyLoc[6](loc0: &mut Reward)
+	46: ImmBorrowField[6](Reward.total_rewards: u64)
+	47: ReadRef
+	48: ImmBorrowLoc[2](Arg2: Balance<Ty0>)
+	49: Call balance::value<Ty0>(&Balance<Ty0>): u64
+	50: Add
+	51: CopyLoc[6](loc0: &mut Reward)
+	52: MutBorrowField[6](Reward.total_rewards: u64)
+	53: WriteRef
+	54: MoveLoc[0](Arg0: &mut RewardDistributor)
+	55: MutBorrowField[23](RewardDistributor.id: UID)
+	56: MoveLoc[6](loc0: &mut Reward)
+	57: FreezeRef
+	58: Call object::id<Reward>(&Reward): ID
+	59: Call dynamic_field::borrow_mut<ID, Balance<Ty0>>(&mut UID, ID): &mut Balance<Ty0>
+	60: MoveLoc[2](Arg2: Balance<Ty0>)
+	61: Call balance::join<Ty0>(&mut Balance<Ty0>, Balance<Ty0>): u64
+	62: Pop
+	63: Ret
+}
+
+public(friend) refresh(Arg0: &mut RewardDistributor, Arg1: &Clock) {
+L2:	loc0: Number
+L3:	loc1: u64
+L4:	loc2: u64
+L5:	loc3: &mut Reward
+L6:	loc4: &mut Option<Reward>
+L7:	loc5: Number
+L8:	loc6: u64
+L9:	loc7: u64
+B0:
+	0: CopyLoc[1](Arg1: &Clock)
+	1: Call clock::timestamp_ms(&Clock): u64
+	2: CopyLoc[0](Arg0: &mut RewardDistributor)
+	3: ImmBorrowField[0](RewardDistributor.last_updated: u64)
+	4: ReadRef
+	5: Eq
+	6: BrFalse(12)
+B1:
+	7: MoveLoc[0](Arg0: &mut RewardDistributor)
+	8: Pop
+	9: MoveLoc[1](Arg1: &Clock)
+	10: Pop
+	11: Ret
+B2:
+	12: CopyLoc[0](Arg0: &mut RewardDistributor)
+	13: ImmBorrowField[1](RewardDistributor.total_xtokens: u64)
+	14: ReadRef
+	15: LdU64(0)
+	16: Eq
+	17: BrFalse(24)
+B3:
+	18: MoveLoc[1](Arg1: &Clock)
+	19: Call clock::timestamp_ms(&Clock): u64
+	20: MoveLoc[0](Arg0: &mut RewardDistributor)
+	21: MutBorrowField[0](RewardDistributor.last_updated: u64)
+	22: WriteRef
+	23: Ret
+B4:
+	24: CopyLoc[0](Arg0: &mut RewardDistributor)
+	25: ImmBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	26: VecLen(42)
+	27: StLoc[4](loc2: u64)
+	28: LdU64(0)
+	29: StLoc[3](loc1: u64)
+B5:
+	30: CopyLoc[3](loc1: u64)
+	31: CopyLoc[4](loc2: u64)
+	32: Lt
+	33: BrFalse(162)
+B6:
+	34: CopyLoc[0](Arg0: &mut RewardDistributor)
+	35: MutBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	36: CopyLoc[3](loc1: u64)
+	37: VecMutBorrow(42)
+	38: StLoc[6](loc4: &mut Option<Reward>)
+	39: CopyLoc[6](loc4: &mut Option<Reward>)
+	40: FreezeRef
+	41: Call option::is_some<Reward>(&Option<Reward>): bool
+	42: BrFalse(155)
+B7:
+	43: MoveLoc[6](loc4: &mut Option<Reward>)
+	44: Call option::borrow_mut<Reward>(&mut Option<Reward>): &mut Reward
+	45: StLoc[5](loc3: &mut Reward)
+	46: CopyLoc[5](loc3: &mut Reward)
+	47: ImmBorrowField[7](Reward.start_time: u64)
+	48: ReadRef
+	49: CopyLoc[1](Arg1: &Clock)
+	50: Call clock::timestamp_ms(&Clock): u64
+	51: Ge
+	52: BrFalse(61)
+B8:
+	53: Branch(54)
+B9:
+	54: MoveLoc[5](loc3: &mut Reward)
+	55: Pop
+	56: MoveLoc[3](loc1: u64)
+	57: LdU64(1)
+	58: Add
+	59: StLoc[3](loc1: u64)
+	60: Branch(30)
+B10:
+	61: CopyLoc[5](loc3: &mut Reward)
+	62: ImmBorrowField[8](Reward.end_time: u64)
+	63: ReadRef
+	64: CopyLoc[0](Arg0: &mut RewardDistributor)
+	65: ImmBorrowField[0](RewardDistributor.last_updated: u64)
+	66: ReadRef
+	67: Lt
+	68: BrFalse(76)
+B11:
+	69: MoveLoc[5](loc3: &mut Reward)
+	70: Pop
+	71: MoveLoc[3](loc1: u64)
+	72: LdU64(1)
+	73: Add
+	74: StLoc[3](loc1: u64)
+	75: Branch(30)
+B12:
+	76: CopyLoc[0](Arg0: &mut RewardDistributor)
+	77: ImmBorrowField[0](RewardDistributor.last_updated: u64)
+	78: ReadRef
+	79: CopyLoc[5](loc3: &mut Reward)
+	80: ImmBorrowField[7](Reward.start_time: u64)
+	81: ReadRef
+	82: Call u64::max(u64, u64): u64
+	83: StLoc[8](loc6: u64)
+	84: CopyLoc[1](Arg1: &Clock)
+	85: Call clock::timestamp_ms(&Clock): u64
+	86: CopyLoc[5](loc3: &mut Reward)
+	87: ImmBorrowField[8](Reward.end_time: u64)
+	88: ReadRef
+	89: Call u64::min(u64, u64): u64
+	90: CopyLoc[8](loc6: u64)
+	91: Sub
+	92: StLoc[9](loc7: u64)
+	93: CopyLoc[5](loc3: &mut Reward)
+	94: ImmBorrowField[6](Reward.total_rewards: u64)
+	95: ReadRef
+	96: Call math::from(u64): Number
+	97: CopyLoc[5](loc3: &mut Reward)
+	98: ImmBorrowField[9](Reward.distributed_rewards: Number)
+	99: ReadRef
+	100: Call math::gt(Number, Number): bool
+	101: BrFalse(122)
+B13:
+	102: CopyLoc[5](loc3: &mut Reward)
+	103: ImmBorrowField[6](Reward.total_rewards: u64)
+	104: ReadRef
+	105: Call math::from(u64): Number
+	106: CopyLoc[5](loc3: &mut Reward)
+	107: ImmBorrowField[9](Reward.distributed_rewards: Number)
+	108: ReadRef
+	109: Call math::sub(Number, Number): Number
+	110: MoveLoc[9](loc7: u64)
+	111: Call math::from(u64): Number
+	112: Call math::mul(Number, Number): Number
+	113: CopyLoc[5](loc3: &mut Reward)
+	114: ImmBorrowField[8](Reward.end_time: u64)
+	115: ReadRef
+	116: MoveLoc[8](loc6: u64)
+	117: Sub
+	118: Call math::from(u64): Number
+	119: Call math::div(Number, Number): Number
+	120: StLoc[2](loc0: Number)
+	121: Branch(125)
+B14:
+	122: LdU64(0)
+	123: Call math::from(u64): Number
+	124: StLoc[2](loc0: Number)
+B15:
+	125: MoveLoc[2](loc0: Number)
+	126: StLoc[7](loc5: Number)
+	127: CopyLoc[5](loc3: &mut Reward)
+	128: ImmBorrowField[9](Reward.distributed_rewards: Number)
+	129: ReadRef
+	130: CopyLoc[7](loc5: Number)
+	131: Call math::add(Number, Number): Number
+	132: CopyLoc[5](loc3: &mut Reward)
+	133: MutBorrowField[9](Reward.distributed_rewards: Number)
+	134: WriteRef
+	135: CopyLoc[5](loc3: &mut Reward)
+	136: ImmBorrowField[10](Reward.cummulative_rewards_per_share: Number)
+	137: ReadRef
+	138: MoveLoc[7](loc5: Number)
+	139: CopyLoc[0](Arg0: &mut RewardDistributor)
+	140: ImmBorrowField[1](RewardDistributor.total_xtokens: u64)
+	141: ReadRef
+	142: Call math::from(u64): Number
+	143: Call math::div(Number, Number): Number
+	144: Call math::add(Number, Number): Number
+	145: CopyLoc[5](loc3: &mut Reward)
+	146: MutBorrowField[10](Reward.cummulative_rewards_per_share: Number)
+	147: WriteRef
+	148: MoveLoc[5](loc3: &mut Reward)
+	149: FreezeRef
+	150: CopyLoc[0](Arg0: &mut RewardDistributor)
+	151: ImmBorrowField[22](RewardDistributor.market_id: u64)
+	152: ReadRef
+	153: Call emit_reward_update_event(&Reward, u64)
+	154: Branch(157)
+B16:
+	155: MoveLoc[6](loc4: &mut Option<Reward>)
+	156: Pop
+B17:
+	157: MoveLoc[3](loc1: u64)
+	158: LdU64(1)
+	159: Add
+	160: StLoc[3](loc1: u64)
+	161: Branch(30)
+B18:
+	162: MoveLoc[1](Arg1: &Clock)
+	163: Call clock::timestamp_ms(&Clock): u64
+	164: CopyLoc[0](Arg0: &mut RewardDistributor)
+	165: MutBorrowField[0](RewardDistributor.last_updated: u64)
+	166: WriteRef
+	167: CopyLoc[0](Arg0: &mut RewardDistributor)
+	168: ImmBorrowField[22](RewardDistributor.market_id: u64)
+	169: ReadRef
+	170: MoveLoc[0](Arg0: &mut RewardDistributor)
+	171: FreezeRef
+	172: Call emit_reward_distributor_refresh_event(u64, &RewardDistributor)
+	173: Ret
+}
+
+public(friend) change_user_share(Arg0: &mut UserRewardDistributor, Arg1: &mut RewardDistributor, Arg2: ID, Arg3: u64, Arg4: &Clock) {
+B0:
+	0: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	1: CopyLoc[1](Arg1: &mut RewardDistributor)
+	2: LdFalse
+	3: CopyLoc[2](Arg2: ID)
+	4: MoveLoc[4](Arg4: &Clock)
+	5: Call refresh_user_reward_distributor(&mut UserRewardDistributor, &mut RewardDistributor, bool, ID, &Clock)
+	6: CopyLoc[1](Arg1: &mut RewardDistributor)
+	7: ImmBorrowField[1](RewardDistributor.total_xtokens: u64)
+	8: ReadRef
+	9: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	10: ImmBorrowField[12](UserRewardDistributor.share: u64)
+	11: ReadRef
+	12: Sub
+	13: CopyLoc[3](Arg3: u64)
+	14: Add
+	15: MoveLoc[1](Arg1: &mut RewardDistributor)
+	16: MutBorrowField[1](RewardDistributor.total_xtokens: u64)
+	17: WriteRef
+	18: MoveLoc[3](Arg3: u64)
+	19: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	20: MutBorrowField[12](UserRewardDistributor.share: u64)
+	21: WriteRef
+	22: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	23: FreezeRef
+	24: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	25: ImmBorrowField[24](UserRewardDistributor.market_id: u64)
+	26: ReadRef
+	27: MoveLoc[2](Arg2: ID)
+	28: Call emit_user_reward_distributor_refresh_event(&UserRewardDistributor, u64, ID)
+	29: Ret
+}
+
+public(friend) refresh_user_reward_distributor(Arg0: &mut UserRewardDistributor, Arg1: &mut RewardDistributor, Arg2: bool, Arg3: ID, Arg4: &Clock) {
+L5:	loc0: bool
+L6:	loc1: Number
+L7:	loc2: Number
+L8:	loc3: Number
+L9:	loc4: u64
+L10:	loc5: u64
+L11:	loc6: &mut Option<Reward>
+L12:	loc7: Option<UserReward>
+L13:	loc8: &mut Reward
+L14:	loc9: UserReward
+L15:	loc10: &mut UserReward
+B0:
+	0: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	1: ImmBorrowField[11](UserRewardDistributor.reward_distributor_id: ID)
+	2: ReadRef
+	3: CopyLoc[1](Arg1: &mut RewardDistributor)
+	4: FreezeRef
+	5: Call object::id<RewardDistributor>(&RewardDistributor): ID
+	6: Eq
+	7: BrFalse(9)
+B1:
+	8: Branch(17)
+B2:
+	9: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	10: Pop
+	11: MoveLoc[1](Arg1: &mut RewardDistributor)
+	12: Pop
+	13: MoveLoc[4](Arg4: &Clock)
+	14: Pop
+	15: LdConst[1](u64: 1)
+	16: Abort
+B3:
+	17: MoveLoc[2](Arg2: bool)
+	18: Not
+	19: BrFalse(28)
+B4:
+	20: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	21: ImmBorrowField[13](UserRewardDistributor.last_updated: u64)
+	22: ReadRef
+	23: CopyLoc[4](Arg4: &Clock)
+	24: Call clock::timestamp_ms(&Clock): u64
+	25: Eq
+	26: StLoc[5](loc0: bool)
+	27: Branch(30)
+B5:
+	28: LdFalse
+	29: StLoc[5](loc0: bool)
+B6:
+	30: MoveLoc[5](loc0: bool)
+	31: BrFalse(39)
+B7:
+	32: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	33: Pop
+	34: MoveLoc[1](Arg1: &mut RewardDistributor)
+	35: Pop
+	36: MoveLoc[4](Arg4: &Clock)
+	37: Pop
+	38: Ret
+B8:
+	39: CopyLoc[1](Arg1: &mut RewardDistributor)
+	40: CopyLoc[4](Arg4: &Clock)
+	41: Call refresh(&mut RewardDistributor, &Clock)
+	42: CopyLoc[1](Arg1: &mut RewardDistributor)
+	43: ImmBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	44: VecLen(42)
+	45: StLoc[10](loc5: u64)
+	46: LdU64(0)
+	47: StLoc[9](loc4: u64)
+B9:
+	48: CopyLoc[9](loc4: u64)
+	49: CopyLoc[10](loc5: u64)
+	50: Lt
+	51: BrFalse(189)
+B10:
+	52: CopyLoc[1](Arg1: &mut RewardDistributor)
+	53: MutBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	54: CopyLoc[9](loc4: u64)
+	55: VecMutBorrow(42)
+	56: StLoc[11](loc6: &mut Option<Reward>)
+	57: CopyLoc[11](loc6: &mut Option<Reward>)
+	58: FreezeRef
+	59: Call option::is_none<Reward>(&Option<Reward>): bool
+	60: BrFalse(72)
+B11:
+	61: MoveLoc[11](loc6: &mut Option<Reward>)
+	62: Pop
+	63: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	64: MutBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	65: Call option::none<UserReward>(): Option<UserReward>
+	66: VecPushBack(64)
+	67: MoveLoc[9](loc4: u64)
+	68: LdU64(1)
+	69: Add
+	70: StLoc[9](loc4: u64)
+	71: Branch(48)
+B12:
+	72: MoveLoc[11](loc6: &mut Option<Reward>)
+	73: Call option::borrow_mut<Reward>(&mut Option<Reward>): &mut Reward
+	74: StLoc[13](loc8: &mut Reward)
+	75: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	76: ImmBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	77: VecLen(64)
+	78: CopyLoc[9](loc4: u64)
+	79: Le
+	80: BrFalse(151)
+B13:
+	81: Call option::none<UserReward>(): Option<UserReward>
+	82: StLoc[12](loc7: Option<UserReward>)
+	83: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	84: ImmBorrowField[13](UserRewardDistributor.last_updated: u64)
+	85: ReadRef
+	86: CopyLoc[13](loc8: &mut Reward)
+	87: ImmBorrowField[7](Reward.start_time: u64)
+	88: ReadRef
+	89: Le
+	90: BrFalse(92)
+B14:
+	91: Branch(102)
+B15:
+	92: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	93: Pop
+	94: MoveLoc[13](loc8: &mut Reward)
+	95: Pop
+	96: MoveLoc[1](Arg1: &mut RewardDistributor)
+	97: Pop
+	98: MoveLoc[4](Arg4: &Clock)
+	99: Pop
+	100: LdConst[0](u64: 0)
+	101: Abort
+B16:
+	102: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	103: ImmBorrowField[13](UserRewardDistributor.last_updated: u64)
+	104: ReadRef
+	105: CopyLoc[13](loc8: &mut Reward)
+	106: ImmBorrowField[7](Reward.start_time: u64)
+	107: ReadRef
+	108: Le
+	109: BrFalse(120)
+B17:
+	110: CopyLoc[13](loc8: &mut Reward)
+	111: ImmBorrowField[10](Reward.cummulative_rewards_per_share: Number)
+	112: ReadRef
+	113: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	114: ImmBorrowField[12](UserRewardDistributor.share: u64)
+	115: ReadRef
+	116: Call math::from(u64): Number
+	117: Call math::mul(Number, Number): Number
+	118: StLoc[6](loc1: Number)
+	119: Branch(123)
+B18:
+	120: LdU64(0)
+	121: Call math::from(u64): Number
+	122: StLoc[6](loc1: Number)
+B19:
+	123: MoveLoc[6](loc1: Number)
+	124: StLoc[8](loc3: Number)
+	125: CopyLoc[13](loc8: &mut Reward)
+	126: FreezeRef
+	127: Call object::id<Reward>(&Reward): ID
+	128: CopyLoc[13](loc8: &mut Reward)
+	129: ImmBorrowField[2](Reward.coin_type: TypeName)
+	130: ReadRef
+	131: MoveLoc[8](loc3: Number)
+	132: CopyLoc[13](loc8: &mut Reward)
+	133: ImmBorrowField[10](Reward.cummulative_rewards_per_share: Number)
+	134: ReadRef
+	135: CopyLoc[13](loc8: &mut Reward)
+	136: ImmBorrowField[4](Reward.is_auto_compounded: bool)
+	137: ReadRef
+	138: MoveLoc[13](loc8: &mut Reward)
+	139: ImmBorrowField[5](Reward.auto_compound_market_id: u64)
+	140: ReadRef
+	141: Pack[7](UserReward)
+	142: StLoc[14](loc9: UserReward)
+	143: MutBorrowLoc[12](loc7: Option<UserReward>)
+	144: MoveLoc[14](loc9: UserReward)
+	145: Call option::fill<UserReward>(&mut Option<UserReward>, UserReward)
+	146: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	147: MutBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	148: MoveLoc[12](loc7: Option<UserReward>)
+	149: VecPushBack(64)
+	150: Branch(184)
+B20:
+	151: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	152: MutBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	153: CopyLoc[9](loc4: u64)
+	154: VecMutBorrow(64)
+	155: Call option::borrow_mut<UserReward>(&mut Option<UserReward>): &mut UserReward
+	156: StLoc[15](loc10: &mut UserReward)
+	157: CopyLoc[13](loc8: &mut Reward)
+	158: ImmBorrowField[10](Reward.cummulative_rewards_per_share: Number)
+	159: ReadRef
+	160: CopyLoc[15](loc10: &mut UserReward)
+	161: ImmBorrowField[18](UserReward.cummulative_rewards_per_share: Number)
+	162: ReadRef
+	163: Call math::sub(Number, Number): Number
+	164: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	165: ImmBorrowField[12](UserRewardDistributor.share: u64)
+	166: ReadRef
+	167: Call math::from(u64): Number
+	168: Call math::mul(Number, Number): Number
+	169: StLoc[7](loc2: Number)
+	170: CopyLoc[15](loc10: &mut UserReward)
+	171: ImmBorrowField[17](UserReward.earned_rewards: Number)
+	172: ReadRef
+	173: MoveLoc[7](loc2: Number)
+	174: Call math::add(Number, Number): Number
+	175: CopyLoc[15](loc10: &mut UserReward)
+	176: MutBorrowField[17](UserReward.earned_rewards: Number)
+	177: WriteRef
+	178: MoveLoc[13](loc8: &mut Reward)
+	179: ImmBorrowField[10](Reward.cummulative_rewards_per_share: Number)
+	180: ReadRef
+	181: MoveLoc[15](loc10: &mut UserReward)
+	182: MutBorrowField[18](UserReward.cummulative_rewards_per_share: Number)
+	183: WriteRef
+B21:
+	184: MoveLoc[9](loc4: u64)
+	185: LdU64(1)
+	186: Add
+	187: StLoc[9](loc4: u64)
+	188: Branch(48)
+B22:
+	189: MoveLoc[4](Arg4: &Clock)
+	190: Call clock::timestamp_ms(&Clock): u64
+	191: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	192: MutBorrowField[13](UserRewardDistributor.last_updated: u64)
+	193: WriteRef
+	194: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	195: ImmBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	196: VecLen(64)
+	197: MoveLoc[1](Arg1: &mut RewardDistributor)
+	198: ImmBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	199: VecLen(42)
+	200: Eq
+	201: BrFalse(203)
+B23:
+	202: Branch(207)
+B24:
+	203: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	204: Pop
+	205: LdConst[5](u64: 5)
+	206: Abort
+B25:
+	207: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	208: FreezeRef
+	209: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	210: ImmBorrowField[24](UserRewardDistributor.market_id: u64)
+	211: ReadRef
+	212: MoveLoc[3](Arg3: ID)
+	213: Call emit_user_reward_distributor_refresh_event(&UserRewardDistributor, u64, ID)
+	214: Ret
+}
+
+public(friend) get_reward_distributor_id(Arg0: &UserRewardDistributor): ID {
+B0:
+	0: MoveLoc[0](Arg0: &UserRewardDistributor)
+	1: ImmBorrowField[11](UserRewardDistributor.reward_distributor_id: ID)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_market_id(Arg0: &RewardDistributor): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &RewardDistributor)
+	1: ImmBorrowField[22](RewardDistributor.market_id: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) create_user_reward_distributor(Arg0: &RewardDistributor, Arg1: bool, Arg2: &Clock): UserRewardDistributor {
+B0:
+	0: CopyLoc[0](Arg0: &RewardDistributor)
+	1: Call object::id<RewardDistributor>(&RewardDistributor): ID
+	2: MoveLoc[0](Arg0: &RewardDistributor)
+	3: ImmBorrowField[22](RewardDistributor.market_id: u64)
+	4: ReadRef
+	5: LdU64(0)
+	6: VecPack(64, 0)
+	7: LdU64(0)
+	8: MoveLoc[1](Arg1: bool)
+	9: Pack[6](UserRewardDistributor)
+	10: Ret
+}
+
+public(friend) claim_rewards<Ty0>(Arg0: &mut UserRewardDistributor, Arg1: &RewardDistributor, Arg2: &Clock): u64 * u64 * u64 * u64 {
+L3:	loc0: u64
+L4:	loc1: u64
+L5:	loc2: u64
+L6:	loc3: &mut UserReward
+L7:	loc4: &mut Option<UserReward>
+L8:	loc5: TypeName
+L9:	loc6: u64
+L10:	loc7: u64
+L11:	loc8: u64
+B0:
+	0: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	1: ImmBorrowField[11](UserRewardDistributor.reward_distributor_id: ID)
+	2: ReadRef
+	3: CopyLoc[1](Arg1: &RewardDistributor)
+	4: Call object::id<RewardDistributor>(&RewardDistributor): ID
+	5: Eq
+	6: BrFalse(8)
+B1:
+	7: Branch(16)
+B2:
+	8: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	9: Pop
+	10: MoveLoc[1](Arg1: &RewardDistributor)
+	11: Pop
+	12: MoveLoc[2](Arg2: &Clock)
+	13: Pop
+	14: LdConst[1](u64: 1)
+	15: Abort
+B3:
+	16: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	17: ImmBorrowField[13](UserRewardDistributor.last_updated: u64)
+	18: ReadRef
+	19: MoveLoc[2](Arg2: &Clock)
+	20: Call clock::timestamp_ms(&Clock): u64
+	21: Eq
+	22: BrFalse(24)
+B4:
+	23: Branch(30)
+B5:
+	24: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	25: Pop
+	26: MoveLoc[1](Arg1: &RewardDistributor)
+	27: Pop
+	28: LdConst[2](u64: 2)
+	29: Abort
+B6:
+	30: LdU64(0)
+	31: StLoc[5](loc2: u64)
+	32: Call type_name::get<Ty0>(): TypeName
+	33: StLoc[8](loc5: TypeName)
+	34: LdU64(0)
+	35: StLoc[3](loc0: u64)
+	36: LdU64(0)
+	37: StLoc[11](loc8: u64)
+	38: LdU64(0)
+	39: StLoc[9](loc6: u64)
+	40: LdU64(0)
+	41: StLoc[10](loc7: u64)
+B7:
+	42: CopyLoc[5](loc2: u64)
+	43: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	44: ImmBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	45: VecLen(64)
+	46: Lt
+	47: BrFalse(107)
+B8:
+	48: CopyLoc[0](Arg0: &mut UserRewardDistributor)
+	49: MutBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	50: CopyLoc[5](loc2: u64)
+	51: VecMutBorrow(64)
+	52: StLoc[7](loc4: &mut Option<UserReward>)
+	53: CopyLoc[7](loc4: &mut Option<UserReward>)
+	54: FreezeRef
+	55: Call option::is_some<UserReward>(&Option<UserReward>): bool
+	56: BrFalse(100)
+B9:
+	57: MoveLoc[7](loc4: &mut Option<UserReward>)
+	58: Call option::borrow_mut<UserReward>(&mut Option<UserReward>): &mut UserReward
+	59: StLoc[6](loc3: &mut UserReward)
+	60: CopyLoc[6](loc3: &mut UserReward)
+	61: ImmBorrowField[16](UserReward.coin_type: TypeName)
+	62: ReadRef
+	63: CopyLoc[8](loc5: TypeName)
+	64: Eq
+	65: BrFalse(97)
+B10:
+	66: Branch(67)
+B11:
+	67: CopyLoc[6](loc3: &mut UserReward)
+	68: ImmBorrowField[17](UserReward.earned_rewards: Number)
+	69: ReadRef
+	70: Call math::to_u64(Number): u64
+	71: StLoc[4](loc1: u64)
+	72: CopyLoc[6](loc3: &mut UserReward)
+	73: ImmBorrowField[19](UserReward.is_auto_compounded: bool)
+	74: ReadRef
+	75: BrFalse(84)
+B12:
+	76: MoveLoc[4](loc1: u64)
+	77: StLoc[10](loc7: u64)
+	78: CopyLoc[1](Arg1: &RewardDistributor)
+	79: CopyLoc[8](loc5: TypeName)
+	80: LdTrue
+	81: Call find_reward(&RewardDistributor, TypeName, bool): u64
+	82: StLoc[11](loc8: u64)
+	83: Branch(91)
+B13:
+	84: MoveLoc[4](loc1: u64)
+	85: StLoc[9](loc6: u64)
+	86: CopyLoc[1](Arg1: &RewardDistributor)
+	87: CopyLoc[8](loc5: TypeName)
+	88: LdFalse
+	89: Call find_reward(&RewardDistributor, TypeName, bool): u64
+	90: StLoc[3](loc0: u64)
+B14:
+	91: LdU64(0)
+	92: Call math::from(u64): Number
+	93: MoveLoc[6](loc3: &mut UserReward)
+	94: MutBorrowField[17](UserReward.earned_rewards: Number)
+	95: WriteRef
+	96: Branch(102)
+B15:
+	97: MoveLoc[6](loc3: &mut UserReward)
+	98: Pop
+	99: Branch(102)
+B16:
+	100: MoveLoc[7](loc4: &mut Option<UserReward>)
+	101: Pop
+B17:
+	102: MoveLoc[5](loc2: u64)
+	103: LdU64(1)
+	104: Add
+	105: StLoc[5](loc2: u64)
+	106: Branch(42)
+B18:
+	107: MoveLoc[0](Arg0: &mut UserRewardDistributor)
+	108: Pop
+	109: MoveLoc[1](Arg1: &RewardDistributor)
+	110: Pop
+	111: MoveLoc[3](loc0: u64)
+	112: MoveLoc[9](loc6: u64)
+	113: MoveLoc[11](loc8: u64)
+	114: MoveLoc[10](loc7: u64)
+	115: Ret
+}
+
+public(friend) get_earned_rewards(Arg0: &UserReward): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &UserReward)
+	1: ImmBorrowField[17](UserReward.earned_rewards: Number)
+	2: ReadRef
+	3: Call math::to_u64(Number): u64
+	4: Ret
+}
+
+public(friend) borrow_mut_distributor_id(Arg0: &mut RewardDistributor): &mut UID {
+B0:
+	0: MoveLoc[0](Arg0: &mut RewardDistributor)
+	1: MutBorrowField[23](RewardDistributor.id: UID)
+	2: Ret
+}
+
+public(friend) borrow_reward_id(Arg0: &mut RewardDistributor, Arg1: u64): ID {
+B0:
+	0: MoveLoc[0](Arg0: &mut RewardDistributor)
+	1: MutBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	2: MoveLoc[1](Arg1: u64)
+	3: VecMutBorrow(42)
+	4: FreezeRef
+	5: Call option::borrow<Reward>(&Option<Reward>): &Reward
+	6: Call object::id<Reward>(&Reward): ID
+	7: Ret
+}
+
+public(friend) remove_reward_balance<Ty0>(Arg0: &mut RewardDistributor, Arg1: u64, Arg2: u64): Balance<Ty0> {
+L3:	loc0: &Reward
+B0:
+	0: CopyLoc[0](Arg0: &mut RewardDistributor)
+	1: MutBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	2: MoveLoc[1](Arg1: u64)
+	3: VecMutBorrow(42)
+	4: FreezeRef
+	5: Call option::borrow<Reward>(&Option<Reward>): &Reward
+	6: StLoc[3](loc0: &Reward)
+	7: MoveLoc[0](Arg0: &mut RewardDistributor)
+	8: MutBorrowField[23](RewardDistributor.id: UID)
+	9: MoveLoc[3](loc0: &Reward)
+	10: Call object::id<Reward>(&Reward): ID
+	11: Call dynamic_field::borrow_mut<ID, Balance<Ty0>>(&mut UID, ID): &mut Balance<Ty0>
+	12: MoveLoc[2](Arg2: u64)
+	13: Call balance::split<Ty0>(&mut Balance<Ty0>, u64): Balance<Ty0>
+	14: Ret
+}
+
+public(friend) get_claimable_rewards(Arg0: &UserRewardDistributor, Arg1: &RewardDistributor, Arg2: &Clock): vector<ClaimableReward> {
+L3:	loc0: u64
+L4:	loc1: &Option<UserReward>
+L5:	loc2: vector<ClaimableReward>
+L6:	loc3: &UserReward
+B0:
+	0: CopyLoc[0](Arg0: &UserRewardDistributor)
+	1: ImmBorrowField[11](UserRewardDistributor.reward_distributor_id: ID)
+	2: ReadRef
+	3: MoveLoc[1](Arg1: &RewardDistributor)
+	4: Call object::id<RewardDistributor>(&RewardDistributor): ID
+	5: Eq
+	6: BrFalse(8)
+B1:
+	7: Branch(14)
+B2:
+	8: MoveLoc[0](Arg0: &UserRewardDistributor)
+	9: Pop
+	10: MoveLoc[2](Arg2: &Clock)
+	11: Pop
+	12: LdConst[1](u64: 1)
+	13: Abort
+B3:
+	14: CopyLoc[0](Arg0: &UserRewardDistributor)
+	15: ImmBorrowField[13](UserRewardDistributor.last_updated: u64)
+	16: ReadRef
+	17: MoveLoc[2](Arg2: &Clock)
+	18: Call clock::timestamp_ms(&Clock): u64
+	19: Eq
+	20: BrFalse(22)
+B4:
+	21: Branch(26)
+B5:
+	22: MoveLoc[0](Arg0: &UserRewardDistributor)
+	23: Pop
+	24: LdConst[2](u64: 2)
+	25: Abort
+B6:
+	26: VecPack(69, 0)
+	27: StLoc[5](loc2: vector<ClaimableReward>)
+	28: LdU64(0)
+	29: StLoc[3](loc0: u64)
+B7:
+	30: CopyLoc[3](loc0: u64)
+	31: CopyLoc[0](Arg0: &UserRewardDistributor)
+	32: ImmBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	33: VecLen(64)
+	34: Lt
+	35: BrFalse(75)
+B8:
+	36: CopyLoc[0](Arg0: &UserRewardDistributor)
+	37: ImmBorrowField[25](UserRewardDistributor.rewards: vector<Option<UserReward>>)
+	38: CopyLoc[3](loc0: u64)
+	39: VecImmBorrow(64)
+	40: StLoc[4](loc1: &Option<UserReward>)
+	41: CopyLoc[4](loc1: &Option<UserReward>)
+	42: Call option::is_some<UserReward>(&Option<UserReward>): bool
+	43: BrFalse(68)
+B9:
+	44: MoveLoc[4](loc1: &Option<UserReward>)
+	45: Call option::borrow<UserReward>(&Option<UserReward>): &UserReward
+	46: StLoc[6](loc3: &UserReward)
+	47: CopyLoc[6](loc3: &UserReward)
+	48: ImmBorrowField[17](UserReward.earned_rewards: Number)
+	49: ReadRef
+	50: Call math::to_u64(Number): u64
+	51: LdU64(0)
+	52: Gt
+	53: BrFalse(65)
+B10:
+	54: Branch(55)
+B11:
+	55: MutBorrowLoc[5](loc2: vector<ClaimableReward>)
+	56: CopyLoc[0](Arg0: &UserRewardDistributor)
+	57: ImmBorrowField[24](UserRewardDistributor.market_id: u64)
+	58: ReadRef
+	59: MoveLoc[6](loc3: &UserReward)
+	60: ImmBorrowField[16](UserReward.coin_type: TypeName)
+	61: ReadRef
+	62: Pack[8](ClaimableReward)
+	63: VecPushBack(69)
+	64: Branch(70)
+B12:
+	65: MoveLoc[6](loc3: &UserReward)
+	66: Pop
+	67: Branch(70)
+B13:
+	68: MoveLoc[4](loc1: &Option<UserReward>)
+	69: Pop
+B14:
+	70: MoveLoc[3](loc0: u64)
+	71: LdU64(1)
+	72: Add
+	73: StLoc[3](loc0: u64)
+	74: Branch(30)
+B15:
+	75: MoveLoc[0](Arg0: &UserRewardDistributor)
+	76: Pop
+	77: MoveLoc[5](loc2: vector<ClaimableReward>)
+	78: Ret
+}
+
+public(friend) get_user_distributor_market_id(Arg0: &UserRewardDistributor): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &UserRewardDistributor)
+	1: ImmBorrowField[24](UserRewardDistributor.market_id: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) is_deposit_distributor(Arg0: &UserRewardDistributor): bool {
+B0:
+	0: MoveLoc[0](Arg0: &UserRewardDistributor)
+	1: ImmBorrowField[14](UserRewardDistributor.is_deposit: bool)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_market_id_for_reward(Arg0: &ClaimableReward): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &ClaimableReward)
+	1: ImmBorrowField[26](ClaimableReward.market_id: u64)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_reward_type_for_reward(Arg0: &ClaimableReward): TypeName {
+B0:
+	0: MoveLoc[0](Arg0: &ClaimableReward)
+	1: ImmBorrowField[27](ClaimableReward.reward_type: TypeName)
+	2: ReadRef
+	3: Ret
+}
+
+public(friend) get_auto_compound_market_id(Arg0: &RewardDistributor, Arg1: u64): u64 {
+B0:
+	0: MoveLoc[0](Arg0: &RewardDistributor)
+	1: ImmBorrowField[21](RewardDistributor.rewards: vector<Option<Reward>>)
+	2: MoveLoc[1](Arg1: u64)
+	3: VecImmBorrow(42)
+	4: Call option::borrow<Reward>(&Option<Reward>): &Reward
+	5: ImmBorrowField[5](Reward.auto_compound_market_id: u64)
+	6: ReadRef
+	7: Ret
+}
+
+Constants [
+	0 => u64: 0
+	1 => u64: 1
+	2 => u64: 2
+	3 => u64: 3
+	4 => u64: 4
+	5 => u64: 5
+]
+}
