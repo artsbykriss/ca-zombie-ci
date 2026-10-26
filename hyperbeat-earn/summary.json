@@ -1,0 +1,46 @@
+{
+  "finding": "ZH4-P7-hyperbeat-earn",
+  "title": "Hyperbeat Earn (HyperEVM 999) — external-unprivileged extractable surface of the 26-vault aggregate",
+  "chains": ["hyperevm"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 4950000, "P": 13830000, "S": 0},
+  "latest_block": 49508160,
+  "block_numbers": {"hyperevm": 49508160},
+  "targets_checked": 26,
+  "live_targets": 26,
+  "closed_reasons": [
+    "14 MetaMorphoV1_1 vaults: audited upstream code; totalAssets() is Morpho-market-derived (not balanceOf) so donation cannot inflate NAV; skim() is permissionless but recipient-fixed (skimRecipient) and vaults hold 0 idle asset; deposit/redeem is the standard ERC-4626 flow",
+    "10 Midas-lineage permissioned tokens (liquidHYPE/lstHYPE/hbUSDT/hbUSDC/wVLP/dnHYPE/dnPUMP/hbXAUt via mTBILL, nLP/masterUSD via VaultToken): mint/burn/pause are role-gated (MidasAccessControl / MultiRolesAuthority) with no public role; the tokens have no deposit/redeem/asset entry point at all",
+    "2 Mellow TokenizedAccount ERC-4626 vaults: withdraw/redeem revert; exit is requestRedeem + date-timelocked claim; collectFees/chargeManagementFee are permissionless but pay a fixed feesCollector; donation only returns f*D to an attacker holding fraction f (needs ~all supply)",
+    "8 live Depositor deposit entry points: deposit() is permissionless but each whitelists ONLY its own base asset, minting floor(amount*1e8/rate) shares and forwarding the asset to the DepositReceiver -> fair (floor) pricing; round trip loses the instant-withdrawal fee",
+    "9 Pricer rate oracles: updateExchangeRate is requiresAuth (MultiRolesAuthority.canCall == false for a random caller); bounds +/-2% per update, >=1h apart",
+    "Midas oracle feed: setRoundData / setRoundDataSafe are onlyAggregatorAdmin; lastAnswer() immutable for an arbitrary caller"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 20, "ci_run_urls": []},
+  "key_facts": [
+    "Aggregate Earn TVL measured at block 49508160 = ~$18.78M across 26 vaults (matches DefiLlama ~$18.55M)",
+    "~$13.83M (74%) of TVL is in permissioned Midas-lineage receipt tokens with NO ERC-4626 deposit/redeem; only mint/burn by operators",
+    "Correction: the two 'unverified' impls ARE verified on Etherscan V2 chain 999 — 0x6d684992.. = liquidHYPE (Midas mTBILL fork), 0x20a9bb2e.. = LiquidHypeCustomAggregatorFeed (manual Chainlink-compatible feed)",
+    "Correction: liquidHypeStrategist 0x83a80e5b64086197c01cbb123df2aea79a149c1d is an EOA (eth_getCode == 0x)",
+    "Correction: HyperEVM (chain 999) IS supported by Etherscan V2 — that is how the verified sources were obtained",
+    "Correction: there is a permissionless deposit entry point the brief missed — Depositor.deposit(token,receiver,amount,builderCode); 8 live instances, each whitelisting only its base asset",
+    "LATENT BUG (not live): Pricer.getVaultTokenAmount's non-base branch divides a USD price by the base-asset exchange rate -> on the WHYPE-base (lstHYPE) and XAUt0-base (hbXAUt) Pricers it mints ~77x / ~4000x too many shares; assetConfigs[USDC] is already populated, so one Depositor.toggleDepositToken(USDC,true) would open a permissionless instant drain. Unreachable today only because isDepositToken[USDC]==false (fork-verified)",
+    "Every Midas-lineage vault + oracle + Depositor + WithdrawalQueue + Pricer is a TransparentUpgradeableProxy behind a single ProxyAdmin 0xbf25b58cb8dfad688f7bcb2b87d71c23a6600aac",
+    "WithdrawalQueue.instantWithdraw is permissionless but burns msg.sender's own vault tokens then pays a caller-chosen _user; createWithdrawalRequest locks msg.sender's tokens and the request id binds initiator (no forgery)",
+    "No sensitive selector is public in any of the 8 MultiRolesAuthority instances; no public address holds any Midas mint/burn/pause role (verified 36 selectors x 8 authorities, 8 roles x 5 accounts)",
+    "Pricer bounds (lstHYPE): allowedExchangeRateChangeUpper=10200 (+2%/update), lower=9800, minimumUpdateDelayInSeconds=3600, managementFee=0, performanceFee=2000",
+    "ExchangeRateUpdated history (86 events): all real updates are 0.32-11.5 bps (median 1.67 bps) vs the 30 bps instant-withdrawal fee -> JIT deposit->withdraw is a loss on fee-bearing queues; three queues (dnHYPE/dnPUMP/hbXAUt) have fee 0",
+    "Mellow Ultra: UltraHYPE depositsPaused=true; UltrauBTC deposits open (maxDeposit 1000 uBTC, lagDuration 172800); collectFees pays a fixed feesCollector",
+    "DepositReceiver buffers: lstHYPE 90.01 WHYPE (~$6.94k), hbUSDT 10.00 USDT0, hbUSDC 5.63 USDC, dnHYPE 57,032.8 USDC (~$57k), dnPUMP 8,706.7 USDC (~$8.7k), hbXAUt 13.23 XAUt0 (~$52.7k); total ~$125.4k"
+  ],
+  "caveats": [
+    "The headline E-U $0 is 'live now, without a concurrent privileged action'. Two conditional/latent vectors exist: (a) the cross-asset over-mint, gated only by a Depositor whitelist toggle; (b) JIT yield-sniping around an operator updateExchangeRate tx (profit = X*delta, capped by the DepositReceiver buffer; delta ~1-3 bps on the fee-free queues)",
+    "USR asset priced at DefiLlama $0.0709; if it is a $1 stablecoin the aggregate TVL rises ~$330k to ~$19.11M (E-U verdict unchanged)",
+    "rUSDC has no DefiLlama quote and is treated as $1.00 (vault TVL ~$435)",
+    "TVL is a point-in-time snapshot at block 49508160 with 2026-10-25 prices; HYPE moved vs pass-3 ($80.24)",
+    "Vaults are upgradeable by the ProxyAdmin (0xbf25b58c..) and the Ultra vaults by their own admins — admin compromise is out of the external-unprivileged scope but is the dominant tail risk",
+    "HyperEVM public RPC supports historical state reads at the pinned fork block; heavy Foundry work was run on GitHub Actions"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from Hyperbeat Earn: 74% of the $18.78M is permissioned Midas-lineage receipt tokens with no ERC-4626 entry point, the 14 MetaMorpho vaults use market-derived totalAssets (no donation inflation) with recipient-fixed skim, the 2 Mellow ERC-4626 vaults gate exits behind a timelocked requestRedeem, the 7 Depositor deposit paths whitelist only their base asset (fair floor pricing), and every privileged path reverts for an arbitrary caller — but a latent 77x-4000x cross-asset over-mint sits one Depositor whitelist toggle away"
+}
