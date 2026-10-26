@@ -1,0 +1,21 @@
+{
+ "method": "eth_call with stateDiff override of UniV2 pair slot 8 (reserve0|reserve1|blockTimestampLast) on https://robinhood.drpc.org",
+ "block": 97790883,
+ "target_oracle": "0xCDE9599059f8Ae6D6B9F33A0aF7877827ec75F16",
+ "pair": "0x59F95461E68e0c77605299791E1449f175165B54",
+ "selector_price": "0xa035b1fe",
+ "base_price_1e24": 722803968210344818476000000,
+ "notes": "r0 is the USDG reserve; the oracle reads r0/r1. A same-block swap resets tsLast so d=0 contributes 0 to the TWAP. Results confirm: the Diverged guard fires ONLY downward.",
+ "cases": [
+  {"r0_mult": 0.5, "d_seconds": 0,    "result": "REVERT 0xefac79d8 (Diverged)"},
+  {"r0_mult": 0.5, "d_seconds": 1800, "result": "REVERT 0xefac79d8 (Diverged)"},
+  {"r0_mult": 1.0, "d_seconds": 0,    "result": 722803968210344818476000000, "ratio": 1.0},
+  {"r0_mult": 2.0, "d_seconds": 1800, "result": 1407023482974841478108000000, "ratio": 1.947},
+  {"r0_mult": 5.0, "d_seconds": 1800, "result": 2578761925380604072323000000, "ratio": 3.568},
+  {"r0_mult": 6.0, "d_seconds": 1800, "result": 2969341406182524937065000000, "ratio": 4.108},
+  {"r0_mult": 10.0, "d_seconds": 600,  "result": 1927796124044069297760000000, "ratio": 2.667},
+  {"r0_mult": 10.0, "d_seconds": 1800, "result": 3621922094291387917708000000, "ratio": 5.011},
+  {"r0_mult": 20.0, "d_seconds": 1800, "result": 3626709098358675165262000000, "ratio": 5.018}
+ ],
+ "conclusion": "No upward deviation guard exists. The upward ceiling is PREMIUM_CAP = 5x treasury floor (= 5.011x the current price). Downside dumps are refused (Diverged), which is a *pause*, not a cap."
+}

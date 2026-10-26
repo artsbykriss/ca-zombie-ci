@@ -1,0 +1,56 @@
+{
+  "finding": "P7-CRIT",
+  "title": "wsNET/USDG Morpho Blue (Robinhood Chain 4663) \u2014 one-sided oracle guard + thin UniV2 TWAP: full free-liquidity drain",
+  "chains": [
+    "robinhood-4663"
+  ],
+  "headline_extractable_usd": 301772.92,
+  "headline_confidence": "medium",
+  "categories": {
+    "E-U": 301772.92,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 97879993,
+  "block_numbers": {
+    "robinhood-4663": 97879993
+  },
+  "targets_checked": 514,
+  "live_targets": 1,
+  "closed_reasons": [
+    "The gross ceiling is the market's free liquidity, which is dynamic: $305,991 (2026-10-24), $188,924 (2026-10-25 morning), $460,865.63 (2026-10-25 late) \u2014 the figure moves with supplier deposits/withdrawals.",
+    "The attack is NOT single-transaction: a swap resets blockTimestampLast, so a same-block skew contributes 0 to the TWAP (fork-measured ratio 1.0000) \u2014 no flash-loan path.",
+    "The attack requires holding the skew >= 30 min (TWAP_MIN_WINDOW); an arbitrageur restoring the pair makes the oracle fail closed (Diverged) and the borrow reverts.",
+    "wsNET is the only FUNDED chain-4663 market with a thin-pool oracle; the other 513 markets use Chainlink/meta-oracles or are unfunded."
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40233146080"
+    ]
+  },
+  "key_facts": [
+    "LoopbackOracle 0xCDE9599059f8Ae6D6B9F33A0aF7877827ec75F16 (1550 B, not a proxy, Sourcify exact_match, src/lending/LoopbackOracle.sol) computes price = clamp(0.90*TWAP, floor, 5*floor) * sNet.index()/1e9 * 1e6.",
+    "The Diverged guard is ONE-SIDED: it reverts only when spot < 0.85*TWAP (a downside dump). There is no upward deviation guard; the upward ceiling is PREMIUM_CAP = 5 * treasury floor (= 5.011x the current price, live-confirmed).",
+    "The only tradable leg is the TWAP of the thin canonical UniV2 pair 0x59F95461e68e0c77605299791e1449f175165B54 (r0 ~167,329 USDG / r1 ~1,062.7 NET; ~$167.3k per side). PairOracle/Treasury are not pools; the treasury POL term is k-invariant.",
+    "wsNET/USDG market id 0xaa586d26a6fe62d9c0f0948fede6e2130500ac7a655587447e2d4a37e6330589, LLTV 0.625e18, oracle = LoopbackOracle. Gross extractable = free liquidity = totalSupplyAssets - totalBorrowAssets = $460,865.63 at block 97,857,656 (fork-proven full drain).",
+    "Fork-proven net (CI, pinned block 97,879,993, free liquidity $460,865.63): all-in (NET bought from the pool by the skew) = +$58,365.47 at the 5x cap (m=6); pre-held NET (attacker already holds ~910 NET = 0.59% of supply) = +$312,651.59 (borrow - collateral), or +$301,772.92 including the -$10,878.67 skew round-trip.",
+    "Downside if the skew is arbitraged back before the borrow: all-in loses the sunk swap = -$146,478.75; pre-held loses only the skew round-trip = -$10,878.67 (risk/reward ~29:1).",
+    "Baseline control: at the true price, borrowing the market's free liquidity reverts (insufficient collateral); capacity for 200 wsNET collateral is only $90,351.",
+    "Break-even oracle inflation = 1/LLTV = 1.6x; the 5x cap is reached at a skew of ~5.7x. Price is currently pinned to the floor (0.9*TWAP 141.8 < floor 162.76), so the full 5x headroom is live.",
+    "wsNET is permissionless: NET -> Staking.stake -> sNET -> wsNET.wrap() (warmupEpochs = 0, no lockup). USDG is a plain transferable ERC-20; the collateral can simply be abandoned.",
+    "Of 514 chain-4663 Morpho markets / 500 distinct oracles, exactly ONE oracle embeds UniV2 getReserves() (0x0902f1ac) \u2014 the LoopbackOracle. 74 embed UniV3 slot0() but every market using them is unfunded (sum supply ~$80); 299 use Chainlink latestRoundData().",
+    "The canonical pair's NET leg carries a 500 bps fee-on-transfer (taxEnabled true, canonicalPair mapped); the fork PoC uses real swaps including this tax."
+  ],
+  "caveats": [
+    "The gross ceiling (free liquidity) is point-in-time and changed from $188,924 to $460,866 within hours on 2026-10-25; re-read before acting.",
+    "The pre-held net assumes an attacker who already holds ~910 NET (or can buy it off-pool at ~backing) AND an unarbed >=30-minute hold \u2014 NOT proven live. ~154k NET sits outside the pool and any holder can sell into a 5x pool (~$500/NET), which would pause the oracle.",
+    "The all-in net is capacity-bound (borrowed $302k < free $461k) and therefore scales with the pool's NET reserve (1,062 NET), not with the free liquidity.",
+    "The fork's EVM block.number returns the L1 block number on this OP-style chain; all citations use the L2 block from eth_blockNumber.",
+    "Robinhood Blockscout is Cloudflare-blocked from the research host; verification used Sourcify v2 + bytecode + live eth_call.",
+    "No mainnet transaction was signed or sent; all manipulation ran on local/CI forks with real swaps and real protocol calls."
+  ],
+  "one_liner": "An unprivileged attacker can drain the wsNET/USDG Morpho-Blue market's entire free liquidity ($460,865.63 at CI-pinned block 97,879,993) by holding a ~30-minute skew of the $167k USDG/NET UniV2 pair - the LoopbackOracle's Diverged guard is one-sided (downside only) and its upward ceiling is 5x the treasury floor; net is +$58.4k all-in to +$301.8k if the attacker pre-holds NET (downside -$146.5k / -$10.9k respectively), and no flash-loan path exists."
+}
