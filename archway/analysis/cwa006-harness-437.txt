@@ -1,0 +1,64 @@
+--- singlepass target0 ---
+==== engine: singlepass-4.3.7 target=load-at-4gib ====
+calling load-at-4gib at target 0x100000000 ...
+load-at-4gib: TRAP: RuntimeError: out of bounds memory access
+    at <unnamed> (<module>[0]:0xa3)
+exit=0
+--- singlepass target1 ---
+==== engine: singlepass-4.3.7 target=load-at-5gib ====
+calling load-at-5gib at target 0x140000000 ...
+load-at-5gib: TRAP: RuntimeError: out of bounds memory access
+    at <unnamed> (<module>[1]:0xb9)
+exit=0
+--- singlepass target2 ---
+==== engine: singlepass-4.3.7 target=load-at-6gib ====
+mmap 0x7f5594000000 ret=0xffffffffffffffff
+calling load-at-6gib at target 0x180000000 ...
+load-at-6gib: TRAP: RuntimeError: out of bounds memory access
+    at <unnamed> (<module>[2]:0xcf)
+exit=0
+--- singlepass target3 ---
+==== engine: singlepass-4.3.7 target=load-at-7gib ====
+mmap 0x7f7668000000 ret=0x7f7668000000
+calling load-at-7gib at target 0x1c0000000 ...
+load-at-7gib: TRAP: RuntimeError: out of bounds memory access
+    at <unnamed> (<module>[3]:0xe5)
+exit=0
+--- singlepass target4 ---
+==== engine: singlepass-4.3.7 target=load-at-8gib ====
+mmap 0x7fcd5bfff000 ret=0x7fcd5bfff000
+calling load-at-8gib at target 0x1fffffffe ...
+load-at-8gib: TRAP: RuntimeError: out of bounds memory access
+    at <unnamed> (<module>[4]:0xf7)
+exit=0
+--- cranelift target0 ---
+==== engine: cranelift-4.3.7 target=load-at-4gib ====
+calling load-at-4gib at target 0x100000000 ...
+load-at-4gib: TRAP: RuntimeError: out of bounds memory access
+    at <unnamed> (<module>[0]:0x9c)
+exit=0
+--- cranelift target1 ---
+==== engine: cranelift-4.3.7 target=load-at-5gib ====
+calling load-at-5gib at target 0x140000000 ...
+load-at-5gib: TRAP: RuntimeError: out of bounds memory access
+    at <unnamed> (<module>[1]:0xb2)
+exit=0
+--- cranelift target2 ---
+==== engine: cranelift-4.3.7 target=load-at-6gib ====
+mmap 0x7f88bc000000 ret=0xffffffffffffffff
+calling load-at-6gib at target 0x180000000 ...
+load-at-6gib: OK value=0x7f88bc000030
+exit=0
+--- cranelift target3 ---
+==== engine: cranelift-4.3.7 target=load-at-7gib ====
+mmap 0x7fe7a4000000 ret=0x7fe7a4000000
+calling load-at-7gib at target 0x1c0000000 ...
+load-at-7gib: OK value=0x0
+exit=0
+--- cranelift target4 ---
+==== engine: cranelift-4.3.7 target=load-at-8gib ====
+mmap 0x7f97ebfff000 ret=0x7f97ebfff000
+calling load-at-8gib at target 0x1fffffffe ...
+load-at-8gib: TRAP: RuntimeError: out of bounds memory access
+    at <unnamed> (<module>[4]:0xf0)
+exit=0
