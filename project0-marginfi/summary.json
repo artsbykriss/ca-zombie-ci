@@ -1,0 +1,42 @@
+{
+  "finding": "ZH4-PASS7-solana-row4",
+  "title": "Project 0 (marginfi-v2) — deployed-build verification + unprivileged-path audit",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 59000000, "S": 0},
+  "latest_block": 461383969,
+  "block_numbers": {"solana": 461383969},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Deployed ELF is byte-identical (solana-verify/OtterSec verified, plus an independent reproducible CI build) to open-source commit c5d440f6 = marginfi-v2 0.1.12 consolidated update",
+    "on-chain program hash eb7618369bec08691a7a4003e04f8fb34d95e7301e2b3b0c5439528e2b38cdab reproduced independently from live programdata; equals registry executable_hash and the CI reproducible-build hash",
+    "git diff c5d440f6..HEAD is doc-only (SECURITY.md, DEPLOY_GUIDE.md) - no code divergence",
+    "permissionless lending_pool_pulse_bank_price_cache is strictly oracle-bound: substituted oracle rejected with Custom 6052 WrongOracleAccountKeys",
+    "all value-moving/config instructions require signer (governance_admin / authority / has_one=liquidity_vault); admins are off-curve governance PDAs"
+  ],
+  "poc": {
+    "tests_passed": 3,
+    "tests_total": 3,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40228377966"]
+  },
+  "key_facts": [
+    "program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA; programdata 4Q8u2ny8YYgytJEncwZQfVWbd5axZtfgDxYKHehvPQR7; ELF 3,860,792 bytes",
+    "upgrade authority J3oBkTkDXU3TcAggJEa3YeBZE5om5yNAdTtLVNXFD47 (off-curve PDA); last deploy slot 456,093,551 = 2026-10-12T15:18:53Z",
+    "verified commit c5d440f62365de503c89cf6ec39fb6673494cc7c (0.1.12 consolidated update, 2026-10-12)",
+    "CI independent reproducible build (solana-verify build, Docker pinned toolchain) hash == live on-chain hash == eb7618369bec08691a7a4003e04f8fb34d95e7301e2b3b0c5439528e2b38cdab; raw sha256 of built .so 6f8184ac.. == raw sha256 of deployed ELF",
+    "163 groups / 401 banks program-wide; main Project 0 group 4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8 has 165 banks",
+    "main group admin + global_fee_wallet CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw (off-curve, system-owned vault)",
+    "idle liquidity sum $35,023,382.57 (105/165 banks priced); insurance ~$102,242.91; DefiLlama project-0 TVL $59.0M / borrowed $23.5M",
+    "T1 substituted-oracle sim -> Custom 6052 WrongOracleAccountKeys (Left So111..112 vs Right 7AviUf9n..)",
+    "T2/T2b real-oracle sim -> success 59,077/59,095 CU (neutral non-admin payer) - path permissionless but oracle-bound"
+  ],
+  "caveats": [
+    "Prior-partial: Project 0 IS marginfi-v2 (open source, mrgnlabs/0dotxyz); marginfi lineage was excluded from the campaign",
+    "USD point-in-time 2026-10-25; 60 unpriced/zero banks excluded from the USD sum",
+    "OtterSec verification is a third-party assertion, corroborated here by direct on-chain hash reproduction, a reproducible CI build and runtime behaviour",
+    "No novel unprivileged bug found; 0.1.12 features are covered by multiple 2026 audits"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Project 0: the deployed program is byte-identical (OtterSec/solana-verify verified and independently reproduced by a CI reproducible build, on-chain hash eb7618..) to the open-source marginfi-v2 0.1.12 release, all authority is off-curve governance, and the only permissionless path (price-cache refresh) is strictly oracle-bound (substitution rejected by simulation)."
+}

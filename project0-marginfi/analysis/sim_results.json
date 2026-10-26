@@ -1,0 +1,52 @@
+{
+ "slot": 461378740,
+ "bank": "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8",
+ "instruction": "lending_pool_pulse_bank_price_cache",
+ "results": [
+  {
+   "test": "T1_substituted_oracle",
+   "err": {
+    "InstructionError": [
+     0,
+     {
+      "Custom": 6052
+     }
+    ]
+   },
+   "logs": [
+    "Program log: Left:",
+    "Program log: So11111111111111111111111111111111111111112",
+    "Program log: Right:",
+    "Program log: 7AviUf9nL62mcxNbQGKm4nKDQnPjswo6c5MX4D57HmyE",
+    "Program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA consumed 36391 of 200000 compute units",
+    "Program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA failed: custom program error: 0x17a4"
+   ],
+   "units": 36391
+  },
+  {
+   "test": "T2_real_oracle_control",
+   "err": null,
+   "logs": [
+    "Program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA invoke [1]",
+    "Program log: Instruction: LendingPoolPulseBankPriceCache",
+    "Program data: aHW7nG+aaroAORQvaC/YOISW7L1RBvFceUwkd0M4KPpmQtvr9yADSmGgi7kg6QwksIMyBctMIHOOhHMVhM5xXDloPf3nOKItG/zRQemDLK8QrZF0lcoPJxtbKTzUcCfqc3AH7UDrOaC9xCwAAAAAAACfkpcTgLR7QQAAAAAAAAAA",
+    "Program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA consumed 59077 of 200000 compute units",
+    "Program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA success"
+   ],
+   "units": 59077
+  },
+  {
+   "test": "T2b_real_oracle_neutral_payer",
+   "err": null,
+   "logs": [
+    "Program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA invoke [1]",
+    "Program log: Instruction: LendingPoolPulseBankPriceCache",
+    "Program data: aHW7nG+aaroAORQvaC/YOISW7L1RBvFceUwkd0M4KPpmQtvr9yADSmGgi7kg6QwksIMyBctMIHOOhHMVhM5xXDloPf3nOKItG/zRQemDLK8QrZF0lcoPJxtbKTzUcCfqc3AH7UDrOaC9gS0AAAAAAAAd49yJeCl8QQAAAAAAAAAA",
+    "Program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA consumed 59095 of 200000 compute units",
+    "Program MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA success"
+   ],
+   "units": 59095
+  }
+ ],
+ "note_t2b": "fee-payer placeholder is a neutral public system-owned account, NOT the group admin; instruction accounts contain no signer"
+}
