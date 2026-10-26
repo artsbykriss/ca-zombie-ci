@@ -1,0 +1,52 @@
+Compiling 20 files with Solc 0.8.24
+Solc 0.8.24 finished in 685.43ms
+Compiler run successful with warnings:
+Warning (2018): Function state mutability can be restricted to view
+   --> test/SudoGovernor.t.sol:120:5:
+    |
+120 |     function test_B_maxAcquirable_farBelowQuorum() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/SudoGovernor.t.sol:148:5:
+    |
+148 |     function test_C_prize_isIlliquid() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+
+Ran 4 tests for test/SudoGovernor.t.sol:SudoGovernorTest
+[PASS] test_A_mechanism_noTimelock_instantDrain() (gas: 801005)
+Logs:
+  fork block            : 26271900
+  governor SUDO balance : 14892500000000000000000000
+  TEST A: instant drain of SUDO succeeded (mechanism CONFIRMED)
+
+[PASS] test_B_maxAcquirable_farBelowQuorum() (gas: 71932)
+Logs:
+  fork block                     : 26271900
+  UniV2 SUDO reserve             : 214675018020951567834977
+  UniV3 1% SUDO balance          : 470521123225421736178485
+  UniV3 0.3% SUDO balance        : 308313667026328930
+  UniV3 SUDO/USDC SUDO balance   : 59403663156068912606
+  UniV3 SUDO/XMON SUDO balance   : 1028493962463403681
+  MAX acquirable SUDO (upper bnd): 685256881717158862658679
+  quorum                         : 2400000000000000000000000
+
+[PASS] test_C_prize_isIlliquid() (gas: 48537)
+Logs:
+  V2 SUDO reserve : 214675018020951567834977
+  V2 WETH reserve : 3337651881732152275
+  gov SUDO to dump: 14892500000000000000000000
+  WETH out (V2)   : 3290223393149488328
+  USD out (V2)    : 7744132995988087687847
+  ALL WETH in both pools USD (hard ceiling): 10628318076185127710730
+
+[PASS] test_D_attackerWithAllLiquidity_isDefeated() (gas: 671336)
+Logs:
+  TEST D: attacker with ALL on-chain SUDO liquidity is DEFEATED
+  maxAcq : 685256881717158862658679
+  quorum : 2400000000000000000000000
+
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 2.60s (4.36s CPU time)
+
+Ran 1 test suite in 2.60s (2.60s CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)

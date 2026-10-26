@@ -1,0 +1,52 @@
+{
+  "finding": "P7-LOW-7 SudoGovernor",
+  "title": "SudoGovernor: no timelock / no guardian instant-execute, but quorum is unreachable from live DEX liquidity",
+  "chains": [
+    "ethereum"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 26271639,
+  "block_numbers": {
+    "ethereum": 26271639
+  },
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "Attacker cannot acquire the 2,400,000 SUDO quorum: total SUDO across every live DEX pool is 685,256.88 SUDO (28.55% of quorum).",
+    "No CEX listing (CoinGecko: only Uniswap V2/V3, 24h volume ~$180) and no lending market to borrow SUDO.",
+    "Votes are checkpointed at the proposal snapshot (block.number + votingDelay = 14,400 blocks ~2d); a flash loan cannot be held across the ~5-day propose+vote window.",
+    "The prize itself is illiquid: dumping the governor's 14,892,500 SUDO into the UniV2 pool yields ~3.29 WETH (~$7.7k) and the WETH in both main pools totals ~$10.6k.",
+    "The governor's own 14,892,500 SUDO has never been delegated, so it contributes 0 votes to its own quorum."
+  ],
+  "poc": {
+    "tests_passed": 4,
+    "tests_total": 4,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40228023680",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40227226605"
+    ]
+  },
+  "key_facts": [
+    "SudoGovernor 0x6853f8865BA8e9FBd9C8CCE3155ce5023fB7EEB0: name()=SudoGovernor, votingDelay=14400, votingPeriod=21600, proposalThreshold=300000e18, quorum=2400000e18 (hardcoded), COUNTING_MODE=support=bravo&quorum=for,abstain (block 26271639).",
+    "timelock() and guardian() both REVERT -> the OZ Governor executes a succeeded proposal directly with no delay and no veto (TEST A: a funded attacker sweeps the governor's SUDO in one vote).",
+    "Governor holds 14,892,500 SUDO + 0.016735 ETH (~$39); SUDO totalSupply 58,056,418.77; SUDO.transferEnabled()=true; SUDO owner()=0x0 (mint permanently disabled).",
+    "UniV2 SUDO/WETH 0x1533F61FAcb7cc3A632B12ea9f55D3FBb57309E0 reserves = 214,675.018 SUDO + 3.33765 WETH; UniV3 1% pool 0x68d01EfdFbe5C0eeBE3b19B571B18Ae6D6EE16FC holds 470,521.12 SUDO + 1.17797 WETH.",
+    "MAX SUDO an unprivileged attacker can acquire from ALL live pools = 685,256.88 SUDO = 28.55% of the 2,400,000 quorum.",
+    "TEST D: an attacker seeded with 100% of all on-chain SUDO liquidity proposes (clears the 300k threshold) but is DEFEATED - quorum never reached, execute() reverts.",
+    "Economics: capture is unreachable, and even the prize is tiny - UniV2 dump of 14.89M SUDO = 3.29 WETH (~$7.7k); all WETH in both pools ~$10.6k; governor ETH ~$39."
+  ],
+  "caveats": [
+    "If a large SUDO holder (team/treasury) were willing to lend or delegate 2.4M SUDO, or if SUDO were listed on a CEX with real depth, the mechanism becomes exploitable - the governor code has no delay, no guardian and no cancel-by-privileged-actor beyond the proposer.",
+    "Quorum and threshold are absolute constants, so a falling SUDO supply/price does not change the 2.4M requirement.",
+    "Numbers verified at block 26271639 (local) and reproduced on the CI fork at block 26271850; pool reserves drift slowly but are ~3.5x below quorum.",
+    "PoC is fork-only; no mainnet transaction was sent. Attacker capital in TEST A is granted with vm.deal to isolate the mechanism."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: SudoGovernor has no timelock and no guardian (a quorum holder could instantly drain 14.89M SUDO + 0.0167 ETH), but the 2,400,000 SUDO quorum is unreachable - every SUDO pool on-chain totals only 685,256.88 SUDO (28.55%), there is no CEX or lending market, and the prize is illiquid (~$10.6k of WETH)."
+}

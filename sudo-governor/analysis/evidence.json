@@ -1,0 +1,97 @@
+{
+  "target": "SudoGovernor",
+  "address": "0x6853f8865BA8e9FBd9C8CCE3155ce5023fB7EEB0",
+  "chain": "ethereum",
+  "chain_id": 1,
+  "rpc": "https://ethereum-rpc.publicnode.com",
+  "verified_block": 26271639,
+  "ci_fork_block": 26271850,
+  "source": {
+    "verified": true,
+    "compiler": "v0.8.17+commit.8df45f5f",
+    "contract": "SudoGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotesComp (OpenZeppelin v4.8)",
+    "notes": "No TimelockController, no GovernorGuardian/GovernorTimelockControl."
+  },
+  "governor_reads_at_26271639": {
+    "name()": "SudoGovernor",
+    "token()": "0x3446Dd70B2D52A6Bf4a5a192D9b0A161295aB7F9",
+    "votingDelay()": 14400,
+    "votingPeriod()": 21600,
+    "proposalThreshold()": "300000000000000000000000",
+    "quorum(uint256)": "2400000000000000000000000",
+    "COUNTING_MODE()": "support=bravo&quorum=for,abstain",
+    "timelock()": "REVERT (no timelock)",
+    "guardian()": "REVERT (no guardian)",
+    "clock()": "REVERT (block-number clock)",
+    "balanceOf(SUDO)": "14892500000000000000000000",
+    "eth_balance_wei": "16735161959695215"
+  },
+  "sudo_token_reads_at_26271639": {
+    "address": "0x3446Dd70B2D52A6Bf4a5a192D9b0A161295aB7F9",
+    "name": "SudoToken",
+    "compiler": "v0.8.14+commit.80d49f37",
+    "symbol": "SUDO",
+    "decimals": 18,
+    "totalSupply": "58056418773617226618580000",
+    "owner()": "0x0000000000000000000000000000000000000000",
+    "transferEnabled()": true,
+    "mint(address,uint256)": "external onlyOwner -> permanently uncallable (owner == 0x0)",
+    "delegates(governor)": "0x0000000000000000000000000000000000000000",
+    "getPriorVotes(governor, 26271638)": 0,
+    "note": "governor holds 14,892,500 SUDO but has never delegated it, so it contributes ZERO votes to its own quorum."
+  },
+  "liquidity_venues_at_26271639": {
+    "uniswap_v2_SUDO_WETH": {
+      "address": "0x1533F61FAcb7cc3A632B12ea9f55D3FBb57309E0",
+      "token0": "SUDO",
+      "token1": "WETH",
+      "reserve_SUDO": "214675018020951567834977",
+      "reserve_WETH": "3337651881732152275"
+    },
+    "uniswap_v3_1pct_SUDO_WETH": {
+      "address": "0x68d01EfdFbe5C0eeBE3b19B571B18Ae6D6EE16FC",
+      "fee": 10000,
+      "balance_SUDO": "470521123225421736178485",
+      "balance_WETH": "1177965396821061293",
+      "liquidity": "70476943503255961220"
+    },
+    "uniswap_v3_03pct_SUDO_WETH": {
+      "address": "0x1aB172cb7eC893Eb990BfeE8f83B49d69Aa6A6CC",
+      "fee": 3000,
+      "balance_SUDO": "308313667026328930"
+    },
+    "uniswap_v3_1pct_SUDO_USDC": {
+      "address": "0xDF709525C5880322422A10E045C1E0fA82cDa1B2",
+      "balance_SUDO": "59403663156068912606"
+    },
+    "uniswap_v3_1pct_SUDO_XMON": {
+      "address": "0x9E4908114C5e8b23F828C8De965932EC10f2E9D3",
+      "balance_SUDO": "1028493962463403681"
+    },
+    "sushi_v2_getPair(SUDO,WETH)": "0x0000000000000000000000000000000000000000 (no pair)",
+    "max_acquirable_SUDO_upper_bound": "685256881717158862658679",
+    "max_acquirable_vs_quorum_pct": 28.55
+  },
+  "cex_listings": {
+    "coingecko_tickers": [
+      "Uniswap V2 (Ethereum) SUDO/WETH 24h vol ~$150",
+      "Uniswap V3 (Ethereum) SUDO/WETH 24h vol ~$30"
+    ],
+    "cex": "none"
+  },
+  "prices_2026_10_25": {
+    "SUDO_usd": 0.03629264900730607,
+    "WETH_usd": 2349.990909153055,
+    "source": "DefiLlama coins.llama.fi",
+    "note": "brief quoted ETH $2353.68 / SUDO $0.03629; numbers used in TEST C use ETH_PRICE_USD=2353.68"
+  },
+  "economics": {
+    "governor_SUDO": "14892500000000000000000000",
+    "governor_ETH_wei": "16735161959695215",
+    "governor_ETH_usd": 39.35,
+    "dump_14_89M_SUDO_into_V2_weth_out": "3290223393149488328",
+    "dump_14_89M_SUDO_into_V2_usd": 7744.13,
+    "all_WETH_in_both_main_pools_usd": 10628.32,
+    "note": "Even if captured, the total realizable value is bounded by the WETH sitting in the pools (~$10.6k); the SUDO itself is illiquid."
+  }
+}
