@@ -1,0 +1,40 @@
+{
+  "target": "O1-row21",
+  "chain": "polygon",
+  "proxy": "0xB07FfFf3c7DE073c9dA55dcD899fcd4AD8C3050D",
+  "impl": "0x15F069F9d0b546b328dd4314634Ad3291cC85AF6",
+  "identity": "fee-collecting deposit/withdraw vault (bridge/fiat-ramp class); UUPS + Ownable",
+  "owner": "0x58c5927b3c603c5a59fd1ed7d22dff5655e43e79 (EOA)",
+  "feeRecipient": "0x32ccdd8ebe759c32c2d289097ddbf366c113e570",
+  "resolved_selectors": {
+    "0x8340f549": "deposit(address,address,uint256)",
+    "0x2a3dd6db": "refundToken(address,uint256,address)",
+    "0xad3b1b47": "withdrawFees(address,uint256)",
+    "0x942dc573": "setFeeRate(address,uint256)",
+    "0xdfe15bac": "setMinDepositAmount(address,uint256)",
+    "0xe74b981b": "setFeeRecipient(address)",
+    "0xf533836b": "addWhitelistedToken(address,uint256,uint256)",
+    "0x1c88705d": "removeWhitelistedToken(address)",
+    "0x1cead9a7": "collectedFees(address)",
+    "0xc761da5c": "isWithdrawProcessed(bytes32)",
+    "0x40a13bb2": "feeRates(address)",
+    "0xdaf9c210": "whitelistedTokens(address)",
+    "0xad840873": "minDepositAmounts(address)",
+    "0x4f1ef286": "upgradeToAndCall(address,bytes)",
+    "0xf2fde38b": "transferOwnership(address)",
+    "0xc4d66de8": "initialize(address)"
+  },
+  "eth_call_from_fresh_EOA_0xdead": [
+    {"call": "withdrawFees(USDC,449874.84)", "revert": "0x118cdaa7 OwnableUnauthorizedAccount(0xdead)"},
+    {"call": "refundToken(USDC,bal,att)", "revert": "0x118cdaa7 OwnableUnauthorizedAccount(0xdead)"},
+    {"call": "refundToken(USDT,bal,att)", "revert": "0x118cdaa7 OwnableUnauthorizedAccount(0xdead)"},
+    {"call": "deposit(USDC,att,1e6)", "revert": "Token not whitelisted (deposit only ADDS funds)"},
+    {"call": "addWhitelistedToken(att,1000,0)", "revert": "0x118cdaa7 OwnableUnauthorizedAccount"},
+    {"call": "setFeeRate(USDC,1000)", "revert": "0x118cdaa7 OwnableUnauthorizedAccount"},
+    {"call": "setFeeRecipient(att)", "revert": "0x118cdaa7 OwnableUnauthorizedAccount"},
+    {"call": "removeWhitelistedToken(USDC)", "revert": "0x118cdaa7 OwnableUnauthorizedAccount"},
+    {"call": "renounceOwnership()", "revert": "0x118cdaa7 OwnableUnauthorizedAccount"}
+  ],
+  "reads": {"owner()": "0x58c5927b...", "feeRecipient()": "0x32ccdd8e...", "collectedFees(USDC)": 0},
+  "verdict": "CLOSED - E-U $0. Every value-moving and configuration function is onlyOwner; the largest single target (WETH 26.76 + USDC 449,875 + USDT 184,024 = ~$696k) is owner-gated (P)."
+}

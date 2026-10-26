@@ -1,0 +1,56 @@
+{
+  "finding": "ZH4-PASS7-OPEN-O1-O2",
+  "title": "Unverified-impl proxy tail (pass7-recon OPEN O1 rows 13-22 + O2 Scroll) - deep-dive",
+  "chains": ["optimism", "polygon", "zksync", "bsc", "scroll", "ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 787075, "P": 2187856, "S": 0},
+  "value_held_total_usd": 2974931,
+  "latest_block": 158687843,
+  "block_numbers": {
+    "optimism": 158687843,
+    "polygon": 96179395,
+    "zksync": 72638374,
+    "bsc": 129801534,
+    "scroll": 35498208,
+    "ethereum": 26272075
+  },
+  "targets_checked": 14,
+  "live_targets": 14,
+  "closed_reasons": [
+    "row22 exaWETH (Exactly Protocol ERC-4626, $651k): redeem/withdraw/transfer revert Panic(0x11) for a share-less caller - share-gated (H-O)",
+    "row18 Upshift subaccount ($329k): owner()=Upshift vault; withdrawFromSubaccount is operator-only; transfer is a silent no-op (fork delta=0) - P",
+    "row14/row13 WOOFi CrosswapRouter v5 ($238k/$415k): withdraw(address,uint256) reverts 0x7bfa4b9f; owner = 6-owner Gnosis Safe - P",
+    "row16 CL strategy vault ($274k): every entrypoint (withdraw/transfer/deposit/withdrawToken/sweepToken) reverts 'Auth' - P",
+    "row17 Wanchain CrossDelegate bridge ($223k): transfer/transferOwnership revert - P (bridge signer)",
+    "row19 Compound-fork lending market ($60k): redeem/mint/transfer revert; withdraw reverts !W - H-O (cToken-gated)",
+    "row21 Polygon fee/withdraw vault ($696k): upgradeToAndCall/transferOwnership revert OwnableUnauthorizedAccount; initialize reverts InvalidInitialization; owner=EOA - P",
+    "row20 Fulcrom Vault zkSync ($50k): direct eth_call transfer/transferOwnership/withdrawFees revert; initialize already-initialized - H-O (LP vault)",
+    "row15 BSC DCA Vault ($25k): withdraw/transfer revert; upgradeToAndCall reverts 0x068ca9d8; initialize InvalidInitialization - H-O",
+    "scr1 Meson bridge ($2.9k): upgradeTo/upgradeToAndCall/transferOwnership revert 'Caller is not the owner' - P",
+    "scr2 Scroll UUPS pool ($2.3k): withdraw/transfer/upgradeToAndCall revert Unauthorized access - P",
+    "scr3 Aster Scroll ($7.4k): upgradeToAndCall reverts 'only timelock'; initialize InvalidInitialization - P",
+    "scr4 Scroll compounder ($1.2k): transfer/deposit revert; transferOwnership reverts Ownable; owner=2-owner Safe - H-O"
+  ],
+  "poc": {
+    "tests_passed": 5,
+    "tests_total": 5,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40249453551"]
+  },
+  "key_facts": [
+    "All 14 funded unverified-impl proxies probed from a fresh EOA on a live fork AND by direct eth_call; no money-path selector moved any value",
+    "row22 identified as Exactly Protocol exaWETH (name()='exactly WETH', symbol()='exaWETH', asset()=OP-WETH, 31,882 holders)",
+    "row14/row13 identified as WOOFi CrosswapRouter v5 (same address on OP+Polygon; owner = 6-owner Gnosis Safe 0x682f6763)",
+    "row18 identified as an Upshift Finance 'Sylva CL USDC' vault subaccount (owner = Upshift vault 0xc428439f, $2.98M AUM on Ethereum)",
+    "row17 identified as Wanchain CrossDelegate bridge; row20 as Fulcrom Finance Vault (zkSync); scr1 as Meson bridge; scr3 as Aster (Scroll); row15 as a BSC DCA Vault",
+    "Only non-reverting call: row18 transfer(att,bal) returns success with empty data and zero balance delta (silent no-op)",
+    "Foundry zkSync-Era fork loads code but not storage (balanceOf=0, calls falsely succeed); row20 re-probed via direct eth_call"
+  ],
+  "caveats": [
+    "Impls are unverified on Etherscan V2 + Sourcify + Blockscout (that is why they were OPEN); protocol names come from decompilation + on-chain string constants + explorer/token metadata (MEDIUM confidence), but the gating behaviour is proven by live revert/no-op probes (HIGH confidence)",
+    "heimdall 0.9.2 emits only an ABI; identification used raw selector extraction + panoramix + openchain/4byte + string constants",
+    "Point-in-time 2026-10-26 (ETH ~$2329, POL ~$0.0895); re-read live state before acting; nothing here is an instruction to transact",
+    "Residual latent risk is upgrade-authority compromise (P) for the UUPS/EOA-owned proxies, not an unprivileged path"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from the ~$2.97M unverified-impl proxy tail; every money path (transfer/withdraw/redeem/upgrade/initialize/transferOwnership) reverts from a fresh EOA, or is a verified no-op - the value is share/position-gated (H-O ~$787k) or owner/multisig/signer/timelock-gated (P ~$2.19M)."
+}
