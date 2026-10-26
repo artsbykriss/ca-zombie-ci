@@ -1,0 +1,39 @@
+{
+  "finding": "P7-solana-b-perena",
+  "title": "Perena (Numeraire) hinted stable-swap — hint-bypass closed; privileged setters owner-gated",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 557709.12, "P": 557709.12, "S": 0},
+  "latest_block": 461376799,
+  "block_numbers": {"solana": 461376799},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "swap_exact_in_hinted rejects any non-zero hint with UnsupportedFeature (6008) at swap_in.rs:252 before any swap math; the hinted path is disabled in the deployed program (v0.1.3)",
+    "swap_exact_out_hinted mirrors the guard: non-zero hints -> UnsupportedFeature (6008) at swap_out.rs:111",
+    "all privileged setters (set_owner/set_fee/set_status/set_inv_t_max/set_rate/set_whitelisted_adder/set_numeraire_*) are OnlyOwner (6000) or account-validated (6005)",
+    "LP instructions require payer_lp_account owned by the caller (ConstraintTokenOwner 2015); add_liquidity is whitelist/owner-only"
+  ],
+  "poc": {
+    "tests_passed": 25,
+    "tests_total": 25,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40232700278"]
+  },
+  "key_facts": [
+    "Program NUMERUNsFCP3kuNmWZuXtm1AaQCPj9uw6Guv2Ekoi5P; upgrade auth CPJo7euWKrEETLmGJsctRnrXxbikFsb6KLN59moNN88K (off-curve PDA); last deploy slot 329553166; ELF 1,100,691 bytes",
+    "10 live StablePool accounts (4024 bytes) holding ~$557,709 of stable swap liquidity (all stables @ $1)",
+    "swap_exact_in_hinted with hints=[1..u64::MAX] -> Custom 6008 UnsupportedFeature at swap_in.rs:252 (~18.7k CU, pre-math); hints=[0;10] -> hintless path",
+    "swap_exact_out_hinted mirrors the guard: non-zero hints -> Custom 6008 UnsupportedFeature at swap_out.rs:111; hints=0 -> normal path (InputTooBig 6017 at swap_out.rs:87)",
+    "path_hints is ignored (non-zero path_hints with hints=0 behaves like hintless)",
+    "all real swaps observed are hintless swap_exact_in (discriminator 68688356a1bdb4d8) routed via Jupiter on pool 2w4A1eGy",
+    "set_owner/set_fee/set_status/set_inv_t_max/set_whitelisted_adder/set_numeraire_* -> OnlyOwner (6000); set_rate -> IncorrectAccounts (6005)",
+    "skim/compound/remove_liquidity/remove_all_liquidity -> ConstraintTokenOwner (2015) unless payer owns payer_lp_account"
+  ],
+  "caveats": [
+    "BPF not decompiled; 'hinted disabled' rests on the live program's deterministic UnsupportedFeature revert + SDK IDL",
+    "swap_exact_in_quote returned a quote then reverted Unreachable (6032) under the test account set; not needed for the verdict",
+    "balances/prices point-in-time 2026-10-25/26; re-read before acting"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Perena Numeraire: the hinted-swap lead is disabled in the deployed program (any non-zero hint reverts UnsupportedFeature 6008), and every privileged setter is owner-gated; ~$557.7k of swap liquidity is only reachable through normal priced trades / own-LP redemption."
+}
