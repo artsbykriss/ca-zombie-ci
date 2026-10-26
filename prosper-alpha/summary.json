@@ -1,0 +1,40 @@
+{
+  "finding": "ZH4-PASS7-prosper-alpha",
+  "title": "Prosper Alpha (Pharos) bonding-curve launchpad — market impl decompiled; no external-unprivileged value path",
+  "chains": ["pharos"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 520421.00, "P": 520421.00, "S": 0.00},
+  "latest_block": 21240221,
+  "block_numbers": {"pharos": 21240221},
+  "targets_checked": 39,
+  "live_targets": 39,
+  "closed_reasons": [
+    "market buy/sell = permissionless but symmetric constant-product curve + 1% fee; buy->sell round-trip always loses (quote + fork verified)",
+    "market reserve release / externalPair set are msg.sender==migrationEscrow gated",
+    "MigrationEscrow.migrateToExternal gated by MIGRATOR_ROLE; finalizeFailure is permissionless but burns only (no value out)",
+    "Buyback fund/withdrawUsdc/0x7b1a3baf gated by FEE_OPERATOR_ROLE",
+    "LpTimeLock.claim gated by owner == AccessController proxy; register gated by migrationEscrow",
+    "UUPS upgrades (factory/accessController/globalConfig/...) gated by owner; market beacon upgrade via role-gated AccessController.upgradeMarketImplementation",
+    "PTokenClaim Merkle leaf binds chainid, contract, pToken, r25Vault, market, account AND totalAllocation -> no allocation inflation"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 0, "ci_run_urls": []},
+  "key_facts": [
+    "Pharos chainId 1672; keyless RPC https://rpc.pharos.xyz works (eth_call/eth_getLogs<=1000 blocks/debug_traceTransaction callTracer)",
+    "Factory UUPS proxy 0xefdbb0ea7647b0e21aef7a3b7a5d6a632c3116c8 -> impl 0x797a9e5feffb4e2f165783b873345edace8e1e2e",
+    "market impl 0xb05749a8Cc5Dd1205Bc36326Cf94A2cA83f7D672 DOES decompile with heimdall v0.9.2 (pass-7 said it would not)",
+    "curve: constant product x*y=k with x0=7547.1698e18 WPROS, y0=1005.4716e24 tokens, curveK=7588465646137415450338065843360626557493770024920; fee 100bps",
+    "AccessController.defaultAdmin = 0x760caE380fDfbce6D810E6874F666234dFA0558A is an EOA (single-key control = P-class)",
+    "LpTimeLock.owner() == AccessController proxy 0x3C22060C99EE18097029151113478b4264041Bdb",
+    "live TVL: 828856.51 WPROS ~ $520,421 (16567.19 curve-active + 5063.29 failed-inner + 807226.03 graduated-pool WPROS side in LpTimeLock) at block 21240221",
+    "39 campaigns enumerated from ProsperVaultLinked logs (topic 0x6d679d9dcb91cccb2f253f24f8f9b53871eac50c475cb8335cfdd93a32212865) and cross-checked vs api.pros-per.xyz/api/v1/vaults",
+    "deployment manifest at https://api.pros-per.xyz/api/v1/deployment (tradeRouter 0x63FfADf944583D8e4Fdc30144EFdfe3bdC2122f5, migrationEscrow 0xc8F6D453..., lpTimeLock 0x152Ecca1..., pTokenClaim 0x158432Ee...)"
+  ],
+  "caveats": [
+    "Pharos has no verified-source explorer; analysis triangulates heimdall decompilation + BlockSec audit PDF + protocol API + on-chain reads",
+    "heimdall symbolic execution stops after the dynamic staticcall to AccessController.modulePaused(bytes32), so curve arithmetic bodies are partially rendered; curve verified empirically instead",
+    "USD uses protocol nativeUsdPrice $0.6279 at the read block; DefiLlama reports $517,577 for the same period",
+    "point-in-time 2026-10-25; AccessController owner is a single EOA so a key compromise is a P-class (not E-U) takeover"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Prosper Alpha (Pharos, $520k TVL); the market impl now decompiles and every value mover is role/owner-gated while the permissionless bonding-curve buy/sell is a symmetric constant-product curve whose round-trip always loses the 1% fee each way."
+}
