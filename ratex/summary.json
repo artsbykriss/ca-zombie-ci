@@ -1,0 +1,33 @@
+{
+  "finding": "p7-solana-c/ratex",
+  "title": "RateX PT/YT leveraged-yield pricing path — unprivileged extraction closed",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0.00, "P": 0.00, "S": 0.00},
+  "latest_block": 461381210,
+  "block_numbers": {"solana": 461381210},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "oracle account in earn_redeem/earn_invest is Anchor ConstraintAddress-bound to yield_market.oracle (Custom 2012)",
+    "yield_market substituted -> ConstraintRaw (Custom 2003); earn_vault -> ConstraintHasOne (Custom 2001)",
+    "authority substitution -> ConstraintTokenOwner (Custom 2015)",
+    "update_oracle / update_yield_market_status / epoch_update_begin / rollback_oracle -> ConstraintHasOne on state.admin (Custom 2001) for any non-admin signer",
+    "no state-mutating instruction exists without a signer; only calculate_* / observe / load_observation_state / get_amm_twap are permissionless and take no attacker-controlled price"
+  ],
+  "poc": {"tests_passed": 12, "tests_total": 12, "ci_run_urls": []},
+  "key_facts": [
+    "Program RAtEwzA1rerjeWip6uMuheQtzykxYCrEQRaSFCCrf2D, upgrade authority AbkPd7MssyeQmEfF4fDusoJTn2um4LArZHvk4wms4pig (off-curve PDA), deployed slot 358637540",
+    "State D332M7rsrdvF3VRcwMw3jvC4J5VPrwa2PoKEJQoCSbDV, admin 93KT94uivk9egZVPReW27pmUpiBsHhSV11AmUuSExUVU",
+    "8 YieldMarkets, 8 EarnVaults, 8 Oracles, 17 MarginMarkets, 39 Lp, 38 User live",
+    "RateX ALT eP8LuPmLaF1wavSbaB4gbDAZ8vENqfWCL5KaJ2BRVyV holds 232 addresses (219 SPL token accts); ALT-vault TVL ~ $1,995,982 (DefiLlama prices 2026-10-25); DL headline $2.37M",
+    "earn_redeem on-chain discriminator [93,162,58,1,75,18,212,66] matches recovered IDL"
+  ],
+  "caveats": [
+    "IDL is a slightly newer build than the deployed program (struct size differs ~28B); instruction discriminators and Anchor constraint errors were verified against the deployed program's own logs",
+    "Balances point-in-time 2026-10-25; re-read before acting",
+    "P-class: single admin key controls all oracle rates and market status"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 from RateX live; the PT/YT pricing path is fully Anchor-bound (oracle/market/vault/token-owner constraints) and oracle+status mutations are state.admin-gated."
+}
