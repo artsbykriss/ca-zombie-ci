@@ -1,0 +1,610 @@
+[
+ {
+  "inputs": [],
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "target",
+    "type": "address"
+   }
+  ],
+  "name": "AddressEmptyCode",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "AggregatorZeroAddress",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "implementation",
+    "type": "address"
+   }
+  ],
+  "name": "ERC1967InvalidImplementation",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ERC1967NonPayable",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "FailedCall",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidInitialization",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NegativePrice",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotGuardian",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotInitializing",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnableInvalidOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "account",
+    "type": "address"
+   }
+  ],
+  "name": "OwnableUnauthorizedAccount",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "PriceFeedDisabled",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "StalePrice",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "UUPSUnauthorizedCallContext",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes32",
+    "name": "slot",
+    "type": "bytes32"
+   }
+  ],
+  "name": "UUPSUnsupportedProxiableUUID",
+  "type": "error"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "g",
+    "type": "address"
+   }
+  ],
+  "name": "GuardianSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint64",
+    "name": "version",
+    "type": "uint64"
+   }
+  ],
+  "name": "Initialized",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "o",
+    "type": "address"
+   }
+  ],
+  "name": "OwnerSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferStarted",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferred",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "lastGoodPriceWad",
+    "type": "uint256"
+   }
+  ],
+  "name": "PriceAnchorSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint16",
+    "name": "deviationBps",
+    "type": "uint16"
+   }
+  ],
+  "name": "PriceDeviationSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "agg",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint32",
+    "name": "heartbeat",
+    "type": "uint32"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "PriceFeedSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "StaleFallbackSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "implementation",
+    "type": "address"
+   }
+  ],
+  "name": "Upgraded",
+  "type": "event"
+ },
+ {
+  "inputs": [],
+  "name": "UPGRADE_INTERFACE_VERSION",
+  "outputs": [
+   {
+    "internalType": "string",
+    "name": "",
+    "type": "string"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "acceptOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   }
+  ],
+  "name": "disablePrice",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "guardian",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_owner",
+    "type": "address"
+   }
+  ],
+  "name": "initialize",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "owner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "pendingOwner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "priceFeed",
+  "outputs": [
+   {
+    "internalType": "contract AggregatorV3Interface",
+    "name": "agg",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "lastGoodPriceWad",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint32",
+    "name": "heartbeat",
+    "type": "uint32"
+   },
+   {
+    "internalType": "uint16",
+    "name": "deviationBps",
+    "type": "uint16"
+   },
+   {
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   },
+   {
+    "internalType": "bool",
+    "name": "fallbackOnStale",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   }
+  ],
+  "name": "priceUSD",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "pxWad",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   }
+  ],
+  "name": "primeLastGoodPrice",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "proxiableUUID",
+  "outputs": [
+   {
+    "internalType": "bytes32",
+    "name": "",
+    "type": "bytes32"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "renounceOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "g",
+    "type": "address"
+   }
+  ],
+  "name": "setGuardian",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "priceWad",
+    "type": "uint256"
+   }
+  ],
+  "name": "setLastGoodPrice",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "o",
+    "type": "address"
+   }
+  ],
+  "name": "setOwner",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint16",
+    "name": "deviationBps",
+    "type": "uint16"
+   }
+  ],
+  "name": "setPriceDeviation",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "agg",
+    "type": "address"
+   },
+   {
+    "internalType": "uint32",
+    "name": "heartbeat",
+    "type": "uint32"
+   },
+   {
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "setPriceFeed",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "setStaleFallback",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "transferOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newImplementation",
+    "type": "address"
+   },
+   {
+    "internalType": "bytes",
+    "name": "data",
+    "type": "bytes"
+   }
+  ],
+  "name": "upgradeToAndCall",
+  "outputs": [],
+  "stateMutability": "payable",
+  "type": "function"
+ }
+]

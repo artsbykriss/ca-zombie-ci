@@ -1,0 +1,2551 @@
+[
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "systemTokenFT_",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "target",
+    "type": "address"
+   }
+  ],
+  "name": "AddressEmptyCode",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "implementation",
+    "type": "address"
+   }
+  ],
+  "name": "ERC1967InvalidImplementation",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ERC1967NonPayable",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "FailedCall",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "InvalidInitialization",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "NotInitializing",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ReentrancyGuardReentrantCall",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   }
+  ],
+  "name": "SafeERC20FailedOperation",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "UUPSUnauthorizedCallContext",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes32",
+    "name": "slot",
+    "type": "bytes32"
+   }
+  ],
+  "name": "UUPSUnsupportedProxiableUUID",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerAlreadyInitialized",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerAmountZero",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerAssetDisabled",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerAssetNotBorrowable",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerAssetNotConfigured",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerBorrowCap",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerBorrowPaused",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerBorrowRequiresMM",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerDebtShareInvariant",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerDepositPaused",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerDepositTooLow",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerEngineReentrancyLockNotOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerHealthFactor",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerHealthFactorBelowTarget",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerHealthFactorNotBelowTarget",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerInsufficientBorrowAllowance",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerInsufficientCash",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerInsufficientEngineDebitAllowance",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerInsufficientEngineHeld",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerInsufficientLiquidity",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerInsufficientReserves",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerInvalidNonce",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerLensZero",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerMinEquity",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerNoDebt",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerNoSupplierInterest",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerNotInitialized",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerOnlyEngine",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerOnlyOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerRepayTooLow",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerSelfTransfer",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerSupplyCap",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerThirdPartyNewCollateralAsset",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerWithdrawPaused",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerZeroAddress",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ftPositionManagerZeroAdmin",
+  "type": "error"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "a",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "newIndex",
+    "type": "uint256"
+   }
+  ],
+  "name": "Accrue",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "prev",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "next",
+    "type": "address"
+   }
+  ],
+  "name": "AdminTransferred",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "u",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "a",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   }
+  ],
+  "name": "Borrow",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "delegate",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "borrowAllowance",
+    "type": "uint256"
+   }
+  ],
+  "name": "BorrowDelegateApprovalSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "paused",
+    "type": "bool"
+   }
+  ],
+  "name": "BorrowPauseSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "supplyCap",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "borrowCap",
+    "type": "uint256"
+   }
+  ],
+  "name": "CapsSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "u",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "a",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   }
+  ],
+  "name": "Deposit",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "DepositFor",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "paused",
+    "type": "bool"
+   }
+  ],
+  "name": "DepositPauseSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "integrator",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "DepositReferred",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "engine",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "debitAllowance",
+    "type": "uint256"
+   }
+  ],
+  "name": "EngineApprovalSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint8",
+    "name": "kind",
+    "type": "uint8"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   }
+  ],
+  "name": "EngineBatchAction",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "m",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "ok",
+    "type": "bool"
+   }
+  ],
+  "name": "EngineSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "engine",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint128",
+    "name": "amt",
+    "type": "uint128"
+   }
+  ],
+  "name": "EngineTransferAvail",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "engine",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint128",
+    "name": "amt",
+    "type": "uint128"
+   }
+  ],
+  "name": "EngineTransferHoldToAvail",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "uint32",
+    "name": "epochId",
+    "type": "uint32"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "rewardAmount",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "stakeTime",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "rateRay",
+    "type": "uint256"
+   }
+  ],
+  "name": "EpochSettled",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint128",
+    "name": "amt",
+    "type": "uint128"
+   }
+  ],
+  "name": "HoldReleasedToAvail",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint128",
+    "name": "amt",
+    "type": "uint128"
+   }
+  ],
+  "name": "HoldReserved",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint64",
+    "name": "version",
+    "type": "uint64"
+   }
+  ],
+  "name": "Initialized",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "module",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "ok",
+    "type": "bool"
+   }
+  ],
+  "name": "LiquidationModuleSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "module",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "ok",
+    "type": "bool"
+   }
+  ],
+  "name": "MetaModuleSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "u",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "a",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "full",
+    "type": "bool"
+   }
+  ],
+  "name": "Repay",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "borrower",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "full",
+    "type": "bool"
+   }
+  ],
+  "name": "RepayFor",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "delta",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "newCash",
+    "type": "uint256"
+   }
+  ],
+  "name": "Skimmed",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "prev",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "next",
+    "type": "address"
+   }
+  ],
+  "name": "TokenizerSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "bytes32",
+    "name": "typehash",
+    "type": "bytes32"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "oldNonce",
+    "type": "uint256"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "newNonce",
+    "type": "uint256"
+   }
+  ],
+  "name": "TypedNonceInvalidated",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "implementation",
+    "type": "address"
+   }
+  ],
+  "name": "Upgraded",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "lens",
+    "type": "address"
+   }
+  ],
+  "name": "ValuesLensSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "u",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "a",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   }
+  ],
+  "name": "Withdraw",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "paused",
+    "type": "bool"
+   }
+  ],
+  "name": "WithdrawPauseSet",
+  "type": "event"
+ },
+ {
+  "inputs": [],
+  "name": "DOMAIN_CHAIN_ID",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "DOMAIN_SEPARATOR",
+  "outputs": [
+   {
+    "internalType": "bytes32",
+    "name": "",
+    "type": "bytes32"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "FT",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "UPGRADE_INTERFACE_VERSION",
+  "outputs": [
+   {
+    "internalType": "string",
+    "name": "",
+    "type": "string"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "admin",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "delegate",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "borrowAllowance_",
+    "type": "uint256"
+   }
+  ],
+  "name": "approveBorrow",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "delegate",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "borrowAllowance_",
+    "type": "uint256"
+   }
+  ],
+  "name": "approveBorrow",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "engine",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "debitAllowance",
+    "type": "uint256"
+   }
+  ],
+  "name": "approveEngine",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "engine",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "debitAllowance",
+    "type": "uint256"
+   }
+  ],
+  "name": "approveEngine",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "astate",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "borrowIndexWad",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "cash",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "borrows",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "totalSupplied",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "reserves",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "totalSuppliedTime",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint40",
+    "name": "lastAccrual",
+    "type": "uint40"
+   },
+   {
+    "internalType": "uint32",
+    "name": "epoch",
+    "type": "uint32"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   }
+  ],
+  "name": "borrow",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   }
+  ],
+  "name": "borrow",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "borrowAllowance",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "borrowCap",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "borrowAsset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "borrowAmount",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "collateralAsset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "minCollateralAmount",
+    "type": "uint256"
+   },
+   {
+    "internalType": "bytes",
+    "name": "callbackData",
+    "type": "bytes"
+   }
+  ],
+  "name": "borrowFlashAndDepositFor",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "borrowPaused",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   }
+  ],
+  "name": "checkpointSupply",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   }
+  ],
+  "name": "checkpointSupplyAll",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "collateral",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "avail",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "hold",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint40",
+    "name": "lastT",
+    "type": "uint40"
+   },
+   {
+    "internalType": "uint32",
+    "name": "lastSettledEpoch",
+    "type": "uint32"
+   },
+   {
+    "internalType": "uint256",
+    "name": "openSupplyTime",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "config",
+  "outputs": [
+   {
+    "internalType": "contract IConfigRegistry",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "debtShares",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   }
+  ],
+  "name": "deposit",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "integrator",
+    "type": "address"
+   }
+  ],
+  "name": "deposit",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "integrator",
+    "type": "address"
+   }
+  ],
+  "name": "depositFor",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "beneficiary",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "depositFor",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "depositPaused",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "components": [
+     {
+      "internalType": "enum PositionsManager.EngineActionKind",
+      "name": "kind",
+      "type": "uint8"
+     },
+     {
+      "internalType": "address",
+      "name": "from",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "to",
+      "type": "address"
+     },
+     {
+      "internalType": "address",
+      "name": "asset",
+      "type": "address"
+     },
+     {
+      "internalType": "uint128",
+      "name": "amount",
+      "type": "uint128"
+     }
+    ],
+    "internalType": "struct PositionsManager.EngineAction[]",
+    "name": "actions",
+    "type": "tuple[]"
+   }
+  ],
+  "name": "engineBatch",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "engine",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   }
+  ],
+  "name": "engineDebitAllowanceOf",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "engineHeld",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "from",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint128",
+    "name": "amt",
+    "type": "uint128"
+   }
+  ],
+  "name": "engineTransferAvail",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "engines",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "uint32",
+    "name": "",
+    "type": "uint32"
+   }
+  ],
+  "name": "epochs",
+  "outputs": [
+   {
+    "internalType": "uint40",
+    "name": "t_end",
+    "type": "uint40"
+   },
+   {
+    "internalType": "uint256",
+    "name": "S_end",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "rateRay",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "X_end",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "interest",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "supplyTime",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "token",
+    "type": "address"
+   }
+  ],
+  "name": "getBalance",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "avail",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "holdBal",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_cfg",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "_admin",
+    "type": "address"
+   }
+  ],
+  "name": "initialize",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   }
+  ],
+  "name": "initializeAsset",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bytes32",
+    "name": "typehash",
+    "type": "bytes32"
+   },
+   {
+    "internalType": "uint256",
+    "name": "newNonce",
+    "type": "uint256"
+   }
+  ],
+  "name": "invalidateTypedNonce",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "seizeTo",
+    "type": "address"
+   },
+   {
+    "internalType": "address[]",
+    "name": "seizeAssets",
+    "type": "address[]"
+   },
+   {
+    "internalType": "uint256[]",
+    "name": "seizeAmounts",
+    "type": "uint256[]"
+   },
+   {
+    "internalType": "address[]",
+    "name": "repayAssets",
+    "type": "address[]"
+   },
+   {
+    "internalType": "uint256[]",
+    "name": "repayAmounts",
+    "type": "uint256[]"
+   },
+   {
+    "internalType": "bytes",
+    "name": "callbackData",
+    "type": "bytes"
+   }
+  ],
+  "name": "liquidateFlash",
+  "outputs": [
+   {
+    "internalType": "uint256[]",
+    "name": "repayUsed",
+    "type": "uint256[]"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "metaModules",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   },
+   {
+    "internalType": "bytes32",
+    "name": "",
+    "type": "bytes32"
+   }
+  ],
+  "name": "noncesTyped",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "proxiableUUID",
+  "outputs": [
+   {
+    "internalType": "bytes32",
+    "name": "",
+    "type": "bytes32"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   }
+  ],
+  "name": "repay",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "borrower",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "repayFor",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_admin",
+    "type": "address"
+   }
+  ],
+  "name": "setAdmin",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "paused",
+    "type": "bool"
+   }
+  ],
+  "name": "setBorrowPaused",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "supplyCap_",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "borrowCap_",
+    "type": "uint256"
+   }
+  ],
+  "name": "setCaps",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "paused",
+    "type": "bool"
+   }
+  ],
+  "name": "setDepositPaused",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "m",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "ok",
+    "type": "bool"
+   }
+  ],
+  "name": "setEngine",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bool",
+    "name": "locked",
+    "type": "bool"
+   }
+  ],
+  "name": "setEngineReentrancyLock",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "module",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "ok",
+    "type": "bool"
+   }
+  ],
+  "name": "setLiquidationModule",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "module",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "ok",
+    "type": "bool"
+   }
+  ],
+  "name": "setMetaModule",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "tokenizer_",
+    "type": "address"
+   }
+  ],
+  "name": "setTokenizer",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "lens",
+    "type": "address"
+   }
+  ],
+  "name": "setValuesLens",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "bool",
+    "name": "paused",
+    "type": "bool"
+   }
+  ],
+  "name": "setWithdrawPaused",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "interest",
+    "type": "uint256"
+   }
+  ],
+  "name": "settleEpoch",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   }
+  ],
+  "name": "skim",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "supplyCap",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "tokenizerForAsset",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "totalDebtShares",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newImplementation",
+    "type": "address"
+   },
+   {
+    "internalType": "bytes",
+    "name": "data",
+    "type": "bytes"
+   }
+  ],
+  "name": "upgradeToAndCall",
+  "outputs": [],
+  "stateMutability": "payable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "bytes32",
+    "name": "typehash",
+    "type": "bytes32"
+   }
+  ],
+  "name": "useTypedNonce",
+  "outputs": [
+   {
+    "internalType": "uint256",
+    "name": "n",
+    "type": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   }
+  ],
+  "name": "userCollateralAssets",
+  "outputs": [
+   {
+    "internalType": "address[]",
+    "name": "",
+    "type": "address[]"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   }
+  ],
+  "name": "userDebtAssets",
+  "outputs": [
+   {
+    "internalType": "address[]",
+    "name": "",
+    "type": "address[]"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "valuesLens",
+  "outputs": [
+   {
+    "internalType": "contract IAccountValuesLens",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   }
+  ],
+  "name": "withdraw",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amt",
+    "type": "uint256"
+   }
+  ],
+  "name": "withdraw",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "collateralAsset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "collateralAmount",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "depositAsset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "minDepositAmount",
+    "type": "uint256"
+   },
+   {
+    "internalType": "bytes",
+    "name": "callbackData",
+    "type": "bytes"
+   }
+  ],
+  "name": "withdrawFlashAndDepositFor",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "user",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "collateralAsset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "collateralAmount",
+    "type": "uint256"
+   },
+   {
+    "internalType": "address",
+    "name": "repayAsset",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "minRepayAmount",
+    "type": "uint256"
+   },
+   {
+    "internalType": "bytes",
+    "name": "callbackData",
+    "type": "bytes"
+   }
+  ],
+  "name": "withdrawFlashAndRepayFor",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "name": "withdrawPaused",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "asset",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "to",
+    "type": "address"
+   },
+   {
+    "internalType": "uint256",
+    "name": "amount",
+    "type": "uint256"
+   }
+  ],
+  "name": "withdrawReserves",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ }
+]

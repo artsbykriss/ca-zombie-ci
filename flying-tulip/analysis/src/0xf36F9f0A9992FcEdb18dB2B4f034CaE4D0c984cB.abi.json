@@ -1,0 +1,564 @@
+[
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "_baseFeed",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "_adapter",
+    "type": "address"
+   },
+   {
+    "internalType": "address",
+    "name": "initialOwner",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "constructor"
+ },
+ {
+  "inputs": [],
+  "name": "AdapterDecimalsUnavailable",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "int256",
+    "name": "answer",
+    "type": "int256"
+   },
+   {
+    "internalType": "int256",
+    "name": "minAnswer",
+    "type": "int256"
+   },
+   {
+    "internalType": "int256",
+    "name": "maxAnswer",
+    "type": "int256"
+   }
+  ],
+  "name": "AnswerOutOfBounds",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint80",
+    "name": "roundId",
+    "type": "uint80"
+   },
+   {
+    "internalType": "uint80",
+    "name": "answeredInRound",
+    "type": "uint80"
+   },
+   {
+    "internalType": "uint256",
+    "name": "updatedAt",
+    "type": "uint256"
+   }
+  ],
+  "name": "BaseRoundIncomplete",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint256",
+    "name": "updatedAt",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint32",
+    "name": "maxStaleness",
+    "type": "uint32"
+   }
+  ],
+  "name": "BaseRoundStale",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "int256",
+    "name": "minAnswer",
+    "type": "int256"
+   },
+   {
+    "internalType": "int256",
+    "name": "maxAnswer",
+    "type": "int256"
+   }
+  ],
+  "name": "InvalidAnswerBounds",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "int256",
+    "name": "answer",
+    "type": "int256"
+   }
+  ],
+  "name": "NonPositiveAnswer",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "a",
+    "type": "address"
+   }
+  ],
+  "name": "NotAContract",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "owner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnableInvalidOwner",
+  "type": "error"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "account",
+    "type": "address"
+   }
+  ],
+  "name": "OwnableUnauthorizedAccount",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "Paused",
+  "type": "error"
+ },
+ {
+  "inputs": [],
+  "name": "ZeroAddress",
+  "type": "error"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   },
+   {
+    "indexed": false,
+    "internalType": "int256",
+    "name": "minAnswer",
+    "type": "int256"
+   },
+   {
+    "indexed": false,
+    "internalType": "int256",
+    "name": "maxAnswer",
+    "type": "int256"
+   }
+  ],
+  "name": "AnswerBoundsSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "uint32",
+    "name": "maxStaleness",
+    "type": "uint32"
+   }
+  ],
+  "name": "MaxStalenessSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferStarted",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "previousOwner",
+    "type": "address"
+   },
+   {
+    "indexed": true,
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "OwnershipTransferred",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "paused",
+    "type": "bool"
+   }
+  ],
+  "name": "PausedSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "RequirePositiveAnswerSet",
+  "type": "event"
+ },
+ {
+  "anonymous": false,
+  "inputs": [
+   {
+    "indexed": false,
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "StrictDecimalsSet",
+  "type": "event"
+ },
+ {
+  "inputs": [],
+  "name": "acceptOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "adapter",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "baseFeed",
+  "outputs": [
+   {
+    "internalType": "contract AggregatorV3Interface",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "boundsEnabled",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "decimals",
+  "outputs": [
+   {
+    "internalType": "uint8",
+    "name": "",
+    "type": "uint8"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "disableAnswerBounds",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "latestRoundData",
+  "outputs": [
+   {
+    "internalType": "uint80",
+    "name": "roundId",
+    "type": "uint80"
+   },
+   {
+    "internalType": "int256",
+    "name": "answer",
+    "type": "int256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "startedAt",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint256",
+    "name": "updatedAt",
+    "type": "uint256"
+   },
+   {
+    "internalType": "uint80",
+    "name": "answeredInRound",
+    "type": "uint80"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "maxAnswer",
+  "outputs": [
+   {
+    "internalType": "int256",
+    "name": "",
+    "type": "int256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "maxStaleness",
+  "outputs": [
+   {
+    "internalType": "uint32",
+    "name": "",
+    "type": "uint32"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "minAnswer",
+  "outputs": [
+   {
+    "internalType": "int256",
+    "name": "",
+    "type": "int256"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "owner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "paused",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "pendingOwner",
+  "outputs": [
+   {
+    "internalType": "address",
+    "name": "",
+    "type": "address"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "renounceOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "requirePositiveAnswer",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "int256",
+    "name": "minAnswer_",
+    "type": "int256"
+   },
+   {
+    "internalType": "int256",
+    "name": "maxAnswer_",
+    "type": "int256"
+   }
+  ],
+  "name": "setAnswerBounds",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "uint32",
+    "name": "maxStaleness_",
+    "type": "uint32"
+   }
+  ],
+  "name": "setMaxStaleness",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bool",
+    "name": "paused_",
+    "type": "bool"
+   }
+  ],
+  "name": "setPaused",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "setRequirePositiveAnswer",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "bool",
+    "name": "enabled",
+    "type": "bool"
+   }
+  ],
+  "name": "setStrictDecimals",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ },
+ {
+  "inputs": [],
+  "name": "strictDecimals",
+  "outputs": [
+   {
+    "internalType": "bool",
+    "name": "",
+    "type": "bool"
+   }
+  ],
+  "stateMutability": "view",
+  "type": "function"
+ },
+ {
+  "inputs": [
+   {
+    "internalType": "address",
+    "name": "newOwner",
+    "type": "address"
+   }
+  ],
+  "name": "transferOwnership",
+  "outputs": [],
+  "stateMutability": "nonpayable",
+  "type": "function"
+ }
+]
