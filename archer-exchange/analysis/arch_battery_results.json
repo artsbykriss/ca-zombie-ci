@@ -1,0 +1,118 @@
+[
+ {
+  "label": "A1_withdraw_attackerMaker_victimBook",
+  "result": "Custom 502 (UnauthorizedMaker)",
+  "note": "substitute maker",
+  "logs": [
+   "Program log: CreateIdempotent",
+   "Program log: Initialize the associated token account",
+   "Program log: CreateIdempotent",
+   "Program log: Initialize the associated token account"
+  ]
+ },
+ {
+  "label": "A2_withdraw_victimMaker_attackerAuthority",
+  "result": "Custom 303 (InvalidTokenAccount)",
+  "note": "authority substitute",
+  "logs": [
+   "Program log: Initialize the associated token account",
+   "Program log: CreateIdempotent",
+   "Program log: Initialize the associated token account",
+   "Program log: Incorrect token account. \nprogram/src/utils/spl.rs:448:9"
+  ]
+ },
+ {
+  "label": "A3_CONTROL_victimMaker_victimBook",
+  "result": "SUCCESS",
+  "note": "control",
+  "logs": [
+   "Program log: CreateIdempotent",
+   "Program log: CreateIdempotent"
+  ]
+ },
+ {
+  "label": "A4_withdraw_attackerMaker_victimBook_otherMarket",
+  "result": "Custom 502 (UnauthorizedMaker)",
+  "note": "market substitute",
+  "logs": [
+   "Program log: CreateIdempotent",
+   "Program log: Initialize the associated token account",
+   "Program log: CreateIdempotent",
+   "Program log: Initialize the associated token account"
+  ]
+ },
+ {
+  "label": "A5_withdraw_attackerMaker_victimBook_vaultSwap",
+  "result": "Custom 502 (UnauthorizedMaker)",
+  "note": "vault substitute",
+  "logs": [
+   "Program log: CreateIdempotent",
+   "Program log: Initialize the associated token account",
+   "Program log: CreateIdempotent",
+   "Program log: Initialize the associated token account"
+  ]
+ },
+ {
+  "label": "B1_updateBook_attacker_victimBook",
+  "result": "InvalidInstructionData",
+  "note": "book write substitute",
+  "logs": []
+ },
+ {
+  "label": "B2_clearBook_attacker_victimBook",
+  "result": "Custom 502 (UnauthorizedMaker)",
+  "note": "book clear substitute",
+  "logs": []
+ },
+ {
+  "label": "B3_rescale_attacker",
+  "result": "Custom 502 (UnauthorizedMaker)",
+  "note": "vault-only instruction",
+  "logs": []
+ },
+ {
+  "label": "C1_collectProtocolFee_attackerAdmin",
+  "result": "Custom 206 (Unauthorized)",
+  "note": "admin gate",
+  "logs": [
+   "Program log: CreateIdempotent",
+   "Program log: Initialize the associated token account"
+  ]
+ },
+ {
+  "label": "C2_changeMarketStatus_attackerAdmin",
+  "result": "Custom 206 (Unauthorized)",
+  "note": "global auth gate",
+  "logs": []
+ },
+ {
+  "label": "C3_updateRegistry_attackerAdmin",
+  "result": "Custom 206 (Unauthorized)",
+  "note": "global auth gate",
+  "logs": []
+ },
+ {
+  "label": "C4_toggleSuspension_attackerAdmin",
+  "result": "Custom 206 (Unauthorized)",
+  "note": "market admin gate",
+  "logs": []
+ },
+ {
+  "label": "D1_archerAccountWithdraw_sourceSub",
+  "result": "Custom 200 (InvalidAccount)",
+  "note": "source substitution",
+  "logs": []
+ },
+ {
+  "label": "D2_swapFromArcherAccount_sub",
+  "result": "Custom 1000 (InvalidArcherAccount)",
+  "note": "archer acct swap",
+  "logs": []
+ },
+ {
+  "label": "E1_swap_taker_zeroish",
+  "result": "Custom 702 (ZeroSwapAmount)",
+  "note": "swap path",
+  "logs": []
+ }
+]

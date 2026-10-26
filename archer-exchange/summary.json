@@ -1,0 +1,48 @@
+{
+ "finding": "ZH4-PASS7-T3-11",
+ "title": "Archer Exchange \u2014 caller-supplied-account substitution in a fresh maker-book matching engine",
+ "chains": [
+  "solana"
+ ],
+ "headline_extractable_usd": 0.0,
+ "headline_confidence": "high",
+ "categories": {
+  "E-U": 0.0,
+  "H-O": 0.0,
+  "P": 0.0,
+  "S": 0.0
+ },
+ "latest_block": 461454122,
+ "block_numbers": {
+  "solana": 461454122
+ },
+ "targets_checked": 1,
+ "live_targets": 1,
+ "closed_reasons": [
+  "maker-book ops require the book's maker: 502 UnauthorizedMaker (MakerWithdraw/Deposit/Close/Clear/UpdateBookLimit/Rescale)",
+  "book<->market binding enforced: 500 InvalidMakerBook",
+  "swap input token account bound to the signer: 303 InvalidTokenAccount",
+  "admin ops require the global authority / market admin: 206 Unauthorized (CollectProtocolFee, ChangeMarketStatus, UpdateRegistry, ToggleBookSuspension)",
+  "ArcherAccount ops require a real ArcherAccount: 200 InvalidAccount / 1000 InvalidArcherAccount"
+ ],
+ "poc": {
+  "tests_passed": 2,
+  "tests_total": 17,
+  "ci_run_urls": []
+ },
+ "key_facts": [
+  "102 live markets, 292 live maker books, 0 ArcherAccount-owned books (maker_is_archer_account=1 count=0)",
+  "total live market-vault value $646,128.25; sum of maker free balances (stealable-if-open ceiling) $451,381.08",
+  "positive control MakerWithdrawFunds (victim signs own book) => SUCCESS; 16 substitutions rejected",
+  "custom non-Anchor 1-byte instruction dispatch; discriminator ACHRMKT1/ACHRMKR1; ELF 379304 B sha256 5c5ff975a6f24bdffa5d54a82242e937e9710680219bc4e0f6dd9a0694b0a1d5; deployed slot 460513991; upgrade authority ELGWUVJD6NBNLyJ5Xv98PzoSg9Wh2Y8Bwep9JZgm9nuo (off-curve)"
+ ],
+ "caveats": [
+  "program source not public; constraints inferred from the public SDK (ballista-tech/archer-sdk) + observed error codes; conclusion rests on simulations",
+  "Swap matching-engine math (900-906 invariants) not fuzzed; only its account-authorisation surface was tested",
+  "fresh (~3 days) + unaudited; the ArcherAccount maker path (maker_is_archer_account=1) has no live instance to test",
+  "point-in-time 2026-10-25"
+ ],
+ "one_liner": "external unprivileged attacker can extract ~$0 live from Archer Exchange; every value path is bound to the book's maker, the market, the signer's token accounts or the global authority",
+ "vault_value_usd": 646128.25,
+ "free_balance_ceiling_usd": 451381.08
+}

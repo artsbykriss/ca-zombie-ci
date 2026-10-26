@@ -1,0 +1,141 @@
+{
+ "program": "Archer8kgiavM61GyusMzaaS2ft5sALtNsD1HxkUPMhy",
+ "slot": 461454122,
+ "markets": 102,
+ "maker_books": 292,
+ "vault_value_usd": 646128.25,
+ "free_balance_ceiling_usd": 451381.08,
+ "archer_account_books": 0,
+ "target": {
+  "market": "2Tk1fXG1RuEAqqttVWj2DLXSHabb6QvsTJDFqFZa1uT2",
+  "book": "DyZqY6Fw5ozFmin41h6AUSYoVzXsfVKrqypqmwzfsC3y",
+  "maker": "GLKCuotKSjPtQhxHmf6q8GUkw6tUZnzs8W5vEbxdaBdK",
+  "quote_free": 38433271902
+ },
+ "substitutions": [
+  {
+   "label": "A1_withdraw_attackerMaker_victimBook",
+   "result": "Custom 502 (UnauthorizedMaker)",
+   "note": "maker substitution",
+   "logs": [
+    "Program log: Initialize the associated token account",
+    "Program log: CreateIdempotent",
+    "Program log: Initialize the associated token account"
+   ]
+  },
+  {
+   "label": "A2_withdraw_victimMaker_attackerAuthority",
+   "result": "Custom 303 (InvalidTokenAccount)",
+   "note": "authority/destination substitution",
+   "logs": [
+    "Program log: CreateIdempotent",
+    "Program log: Initialize the associated token account",
+    "Program log: Incorrect token account. \nprogram/src/utils/spl.rs:448:9"
+   ]
+  },
+  {
+   "label": "A3_CONTROL_withdraw_victimMaker_victimBook",
+   "result": "SUCCESS",
+   "note": "positive control",
+   "logs": [
+    "Program log: CreateIdempotent"
+   ]
+  },
+  {
+   "label": "G1_deposit_attackerMaker_victimBook",
+   "result": "Custom 502 (UnauthorizedMaker)",
+   "note": "deposit into victim book",
+   "logs": [
+    "Program log: Initialize the associated token account",
+    "Program log: CreateIdempotent",
+    "Program log: Initialize the associated token account"
+   ]
+  },
+  {
+   "label": "H1_closeMakerBook_attacker_victimBook",
+   "result": "Custom 502 (UnauthorizedMaker)",
+   "note": "close victim book",
+   "logs": []
+  },
+  {
+   "label": "B2_clearBook_attacker_victimBook",
+   "result": "Custom 502 (UnauthorizedMaker)",
+   "note": "clear victim book",
+   "logs": []
+  },
+  {
+   "label": "B3_rescale_attacker",
+   "result": "Custom 502 (UnauthorizedMaker)",
+   "note": "vault-only rescale",
+   "logs": []
+  },
+  {
+   "label": "F1_updateBookLimit_attacker_victimLOBook",
+   "result": "Custom 502 (UnauthorizedMaker)",
+   "note": "LO book write substitution",
+   "logs": []
+  },
+  {
+   "label": "I1_withdraw_bookOfOtherMarket",
+   "result": "Custom 500 (InvalidMakerBook)",
+   "note": "book/market mismatch",
+   "logs": []
+  },
+  {
+   "label": "E2_swap_takerQuoteAcct_isVictim",
+   "result": "Custom 303 (InvalidTokenAccount)",
+   "note": "swap input-account substitution",
+   "logs": [
+    "Program log: CreateIdempotent",
+    "Program log: Initialize the associated token account",
+    "Program log: Incorrect token account. \nprogram/src/utils/spl.rs:448:9"
+   ]
+  },
+  {
+   "label": "E3_CONTROL_swap_victimTaker",
+   "result": "Custom 507 (NoMatchingLiquidity)",
+   "note": "positive control swap",
+   "logs": []
+  },
+  {
+   "label": "C1_collectProtocolFee_attackerAdmin",
+   "result": "Custom 206 (Unauthorized)",
+   "note": "market admin gate",
+   "logs": [
+    "Program log: CreateIdempotent",
+    "Program log: Initialize the associated token account"
+   ]
+  },
+  {
+   "label": "C2_changeMarketStatus_attackerAdmin",
+   "result": "Custom 206 (Unauthorized)",
+   "note": "global authority gate",
+   "logs": []
+  },
+  {
+   "label": "C3_updateRegistry_attackerAdmin",
+   "result": "Custom 206 (Unauthorized)",
+   "note": "global authority gate",
+   "logs": []
+  },
+  {
+   "label": "C4_toggleSuspension_attackerAdmin",
+   "result": "Custom 206 (Unauthorized)",
+   "note": "market admin gate",
+   "logs": []
+  },
+  {
+   "label": "D1_archerAccountWithdraw_sourceSub",
+   "result": "Custom 200 (InvalidAccount)",
+   "note": "source-account substitution",
+   "logs": []
+  },
+  {
+   "label": "D2_swapFromArcherAccount_sub",
+   "result": "Custom 1000 (InvalidArcherAccount)",
+   "note": "ArcherAccount substitution",
+   "logs": []
+  }
+ ],
+ "verdict": "All caller-supplied-account substitutions rejected; positive controls reach the handler."
+}
