@@ -1,0 +1,137 @@
+{
+  "finding": "P7-LOW-8 InternetToken",
+  "title": "Internet Token ProtocolGovernor / GovTimelockController — unfrozen 3% quorum governance capture",
+  "chain": "base",
+  "chain_id": 8453,
+  "block": 53082738,
+  "block_timestamp": 1792954823,
+  "block_timestamp_utc": "2026-10-25T~",
+  "read_method": "eth_call (cast call) against keyless public RPC; no transactions sent",
+  "contracts": {
+    "governor": "0xc5C3a1882Eff9539527D88E2453cAB10d9bc1581",
+    "timelock": "0xE05dD5B785f578337B2B8F695Fbc521669c69403",
+    "token_INT": "0x968D6A288d7B024D5012c0B25d67A889E4E3eC19",
+    "roleStore": "0xd5D1A16084a116f8a6c2C706C110dBAD2E99Be83",
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "weth": "0x4200000000000000000000000000000000000006",
+    "pool_INT_WETH_v3_1pct": "0xDEc6EadbD8eD3F655CBA4Bb4eeFF6fB43B16969d"
+  },
+  "governor_params": {
+    "name": "ProtocolGovernor",
+    "version": "v1",
+    "votingDelay_s": 86400,
+    "votingPeriod_s": 259200,
+    "proposalThreshold_INT": "1000000000000000000000000",
+    "quorumNumerator": 3,
+    "quorumDenominator": 100,
+    "quorum_INT_wei": "25258494790736072374991870",
+    "quorum_INT": "25258494.790736072374991870",
+    "COUNTING_MODE": "support=bravo&quorum=bravo",
+    "clock": "timestamp",
+    "guardian": "REVERTS (none)",
+    "token": "0x968D6A288d7B024D5012c0B25d67A889E4E3eC19",
+    "timelock": "0xE05dD5B785f578337B2B8F695Fbc521669c69403"
+  },
+  "timelock_params": {
+    "name": "GovTimelockController",
+    "getMinDelay_s": 86400,
+    "PROPOSER_ROLE_governor": true,
+    "CANCELLER_ROLE_governor": true,
+    "EXECUTOR_ROLE_governor": true,
+    "EXECUTOR_ROLE_zero": false,
+    "TIMELOCK_ADMIN_ROLE_self": true,
+    "TIMELOCK_ADMIN_ROLE_governor": false
+  },
+  "timelock_holdings_at_block": {
+    "INT_wei": "292506402849807641531871347",
+    "INT": "292506402.849807641531871347",
+    "USDC_wei": "6213520827",
+    "USDC": "6213.520827",
+    "WETH_wei": "2275605462835971471",
+    "WETH": "2.275605462835971471",
+    "ETH_wei": "0"
+  },
+  "token": {
+    "name": "Internet Token",
+    "symbol": "INT",
+    "decimals": 18,
+    "totalSupply_wei": "841949826357869079166395686",
+    "totalSupply": "841949826.357869079166395686",
+    "clock": "timestamp",
+    "areTransfersEnabled": true,
+    "transferCallbacks": [
+      "0xfd5BBCA6942AC19c6Ce7a65b11F3521237172079",
+      "0x71C51C4aE1D76f262339593F01B9085d44fb2d98"
+    ]
+  },
+  "role_store": {
+    "ROLE_ADMIN": ["0xE05dD5B785f578337B2B8F695Fbc521669c69403", "0x0C02d2D320C62d4088840a459fE8862C802fbA78", "0x58B680C580fD68cD896D8466768c4e85011A7F5c"],
+    "CONFIG_ADMIN": ["0xE05dD5B785f578337B2B8F695Fbc521669c69403", "0xbc1d8C79ECD129c4850F39e7ee523C4A6a81e96f", "0x0C02d2D320C62d4088840a459fE8862C802fbA78", "0x342585EDfbc856f47673C1E407dD5661a4B32BCF", "0x58B680C580fD68cD896D8466768c4e85011A7F5c"],
+    "INFO_ADMIN": ["0x36f40D309dB2f02C5Ad676A957eA04859c3d78BC", "0xE05dD5B785f578337B2B8F695Fbc521669c69403"],
+    "PROPOSAL_ADMIN": ["0x36f40D309dB2f02C5Ad676A957eA04859c3d78BC"],
+    "TOKEN_MINTER": [],
+    "TOKEN_BURNER": ["0x0B401740dfc3580CA3f1CeC563fc264CCb2CEc1b", "0x8df3ea2cBF97A37fDd2417445261D80922E045C0", "0x58B680C580fD68cD896D8466768c4e85011A7F5c"],
+    "CALLBACK_ADMIN": ["0xEeeFe02e2028780Adb63d63a7Bad0ad0896A1713", "0x8df3ea2cBF97A37fDd2417445261D80922E045C0", "0xDA7d3635651cD22E52E9c44c25B2520775D56996"],
+    "POOL_STATE_ADMIN": ["0x8df3ea2cBF97A37fDd2417445261D80922E045C0", "0xE05dD5B785f578337B2B8F695Fbc521669c69403"],
+    "NFT_MINTER": ["0x8df3ea2cBF97A37fDd2417445261D80922E045C0", "0xDA7d3635651cD22E52E9c44c25B2520775D56996"]
+  },
+  "admin_actors": {
+    "0x36f40D309dB2f02C5Ad676A957eA04859c3d78BC": {"type": "EOA", "nonce": 3, "roles": ["PROPOSAL_ADMIN", "INFO_ADMIN"], "note": "PROPOSAL_ADMIN can cancelWithReason() any pending/active proposal within the 4-day window — the single strongest off-chain mitigation"},
+    "0x58B680C580fD68cD896D8466768c4e85011A7F5c": {"type": "EOA", "nonce": 490, "roles": ["ROLE_ADMIN", "CONFIG_ADMIN", "TOKEN_BURNER"], "note": "live admin EOA; CONFIG_ADMIN can disableTransfers() on INT (would brick the INT leg) or blacklist via AllowListCallback"},
+    "0x0C02d2D320C62d4088840a459fE8862C802fbA78": {"type": "contract(~171 bytes)", "roles": ["ROLE_ADMIN", "CONFIG_ADMIN"]}
+  },
+  "int_liquidity_verified_onchain": {
+    "0xDEc6EadbD8eD3F655CBA4Bb4eeFF6fB43B16969d": {
+      "dex_family": "UniV3-fork (factory 0x0Fd83557b2be93617c9C1C1B6fd549401C74558C)",
+      "fee": 10000,
+      "token0": "WETH",
+      "token1": "INT",
+      "INT": "102008837.504673532737573949",
+      "WETH": "2.893194473190432595",
+      "in_range_liquidity": "23631358599249759294064",
+      "slot0_sqrtPriceX96": "349647238074344846693032695809068",
+      "tick": 167855,
+      "implied_price_usd_per_INT": 0.0001208,
+      "note": "ONLY verifiably funded + tradeable INT pool"
+    },
+    "0xE2DdA0911e227e73d9fD94745B851C8bC6504610": {"INT": "109911137916896799411946", "WETH": "1.033946412150225845", "in_range_liquidity": 0, "note": "canonical UniV3 1% pool; 0 in-range liquidity => untradeable at spot; out-of-range positions only"},
+    "0x2528cb397b16706482d832151a386d4bc57db58f": {"INT": "980076671331119677669", "USDC": "135683", "note": "dead (980 INT + $0.136); GeckoTerminal reports reserve_in_usd $51,561 => GECKO STALE/WRONG"},
+    "0x878f88451aa6489f7d78b26806ec32200a5a6e47": {"dex": "Maverick V2", "INT": "841261744840973221865", "USDC": "115", "note": "empty; GeckoTerminal reports $6,662 => GECKO STALE/WRONG"}
+  },
+  "prices_2026_10_25": {"WETH_USD": 2353.68, "ETH_USD": 2353.68, "INT": "illiquid (pools vol24=0; pool-implied price disagree ~10x)"},
+  "headline": {
+    "liquid_legs_usd": 11569.54,
+    "breakdown": {"timelock_USDC_usd": 6213.52, "timelock_WETH_usd": 5356.02}
+  },
+  "fork_poc": {
+    "ci_run_url": "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40232520195",
+    "tests_passed": 3,
+    "tests_total": 3,
+    "test_A_mechanism": {
+      "result": "PASS",
+      "gas": 1653853,
+      "quorum_INT_wei": "25258494790736072374991870",
+      "drained": {"INT_wei": "292506402849807641531871347", "USDC_wei": "6213520827", "WETH_wei": "2275605462835971471"}
+    },
+    "test_B_acquisition_cost": {
+      "result": "PASS",
+      "pool": "0xDEc6EadbD8eD3F655CBA4Bb4eeFF6fB43B16969d",
+      "quorum_INT_wei": "25258494790736072374991870",
+      "weth_spent_wei": "1728680585997154623",
+      "weth_spent": "1.728680585997154623",
+      "usd": 4068.76
+    },
+    "test_C_realisable_prize": {
+      "result": "PASS",
+      "int_dumped_wei": "317764897640543713906863217",
+      "chunks": 62,
+      "weth_out_wei": "2893194473190431240",
+      "weth_out": "2.893194473190431240",
+      "dump_usd": 6809.65,
+      "liquid_usdc_usd": 6213.52,
+      "liquid_weth_usd": 5356.02,
+      "gross_realisable_usd": 18379.22
+    },
+    "net_usd": 14310.46
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "purpose": "Internet Token governance — the binding opponent. Added by the parent agent (ZH4-PASS7 tier-3 cluster) as independent verification of the child's PoC: the 25.26M quorum alone LOSES to an existing delegate.",
+  "method": "eth_getLogs on ProtocolGovernor 0xc5C3a1882Eff9539527D88E2453cAB10d9bc1581 for VoteCast (topic0 0xb8e13888…) over the last ~600k Base blocks (~14 days), decoded `weight` from the non-indexed data; live `getVotes` at block 53,084,185.",
+  "quorum_wei": "25258494790736072374991870",
+  "recent_proposals": [
+    {
+      "proposalId_prefix": "4464437251408702…",
+      "voters": 1,
+      "for_wei": "0",
+      "against_wei": "30547342000000000000000000",
+      "result": "defeated (no For votes)",
+      "votes": [{"voter": "0x0000de0028b400E5EA4F988859852C003600eADE", "support": "AGAINST", "INT": "30,547,342"}]
+    },
+    {
+      "proposalId_prefix": "1067477960331922…",
+      "voters": 3,
+      "for_wei": "25845231000000000000000000",
+      "against_wei": "30554304000000000000000000",
+      "result": "defeated (Against 30.55M > For 25.85M, both >= quorum)",
+      "votes": [
+        {"voter": "0x0000de0028b400E5EA4F988859852C003600eADE", "support": "AGAINST", "INT": "30,554,304"},
+        {"voter": "0xc609d6eaa48d225bd4e328571404460867c2b228", "support": "FOR", "INT": "15,840,695"},
+        {"voter": "0xe4cb4c7b50d28bc8e9aa9730ae223251ffdd28c4", "support": "FOR", "INT": "10,004,536"}
+      ]
+    }
+  ],
+  "dominant_delegate": {
+    "address": "0x0000de0028b400E5EA4F988859852C003600eADE",
+    "type": "EOA (code size 3), own INT balance 14,291.13 INT",
+    "votes_now_wei": "28239311381400871989298785",
+    "votes_now_INT": "28,239,311.38",
+    "vs_quorum": "1.118x the 25,258,494.79 quorum",
+    "behaviour": "voted AGAINST on both of the last two proposals (30.55M / 30.55M)"
+  },
+  "implication": [
+    "The bare quorum (25,258,494.79 INT) is NOT sufficient: the attacker's For votes must EXCEED this delegate's Against votes (OZ: forVotes > againstVotes, quorum=bravo counted on For only).",
+    "Required stake > 28,239,311.38 INT (30,239,311.38 used in TEST D for margin).",
+    "FORK TEST D (CI run 40248236760): buying 30,239,311.38 INT from the single tradeable pool 0xDEc6Eadb… costs 2.208770759 WETH = $5,198.74 (vs $4,068.76 for the bare quorum).",
+    "Corrected net = gross realisable $18,379.22 (unchanged, conservative: pristine-pool dump) - $5,198.74 = $13,180.48.",
+    "Residual uncertainty: the delegate could attract MORE delegation; PROPOSAL_ADMIN 0x36f40D30… can cancelWithReason() in the 4-day window; ROLE_ADMIN 0x58B680C5… can disableTransfers()/blacklist. All off-chain => confidence LOW."
+  ]
+}

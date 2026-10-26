@@ -1,0 +1,48 @@
+{
+  "finding": "P7-LOW-8 InternetToken",
+  "title": "Internet Token ProtocolGovernor / GovTimelockController — unfrozen 3% quorum governance capture",
+  "chains": ["base"],
+  "headline_extractable_usd": 13180.48,
+  "headline_confidence": "low",
+  "categories": {"E-U": 13180.48, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 53084185,
+  "block_numbers": {"base": 53084185},
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "no on-chain guardian, but PROPOSAL_ADMIN EOA 0x36f40D309dB2f02C5Ad676A957eA04859c3d78BC can cancelWithReason() during the 4-day window",
+    "ROLE_ADMIN/CONFIG_ADMIN EOA 0x58B680C580fD68cD896D8466768c4e85011A7F5c can disableTransfers()/blacklist",
+    "the bare 25.26M quorum LOSES: live delegate 0x0000de0028b400E5EA4F988859852C003600eADE holds 28,239,311.38 INT and voted Against on both recent proposals",
+    "INT is effectively illiquid (all pools vol24=0); the $339k nominal treasury is 95%+ unsellable INT"
+  ],
+  "poc": {
+    "tests_passed": 4,
+    "tests_total": 4,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40248236760", "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40232520195"]
+  },
+  "key_facts": [
+    "quorum(now) = 25,258,494.790736072374991870 INT (3.0% of 841,949,826.36 INT supply); COUNTING_MODE support=bravo&quorum=bravo (vs For votes only)",
+    "votingDelay=86400s, votingPeriod=259200s, proposalThreshold=1e24 INT, clock=timestamp, guardian() REVERTS",
+    "GovTimelockController 0xE05dD5B785f578337B2B8F695Fbc521669c69403: getMinDelay=86400; PROPOSER/CANCELLER/EXECUTOR(governor)=true; EXECUTOR(0x0)=false; TIMELOCK_ADMIN=self",
+    "timelock holds 292,506,402.8498 INT + 6,213.520827 USDC + 2.275605462835971471 WETH at block 53082738",
+    "timelock is the token's ROLE_ADMIN + CONFIG_ADMIN + INFO_ADMIN + POOL_STATE_ADMIN in RoleStore 0xd5D1A16084a116f8a6c2C706C110dBAD2E99Be83 (TOKEN_MINTER is currently empty)",
+    "FORK TEST B: buying 25,258,494.79 INT from pool 0xDEc6EadbD8eD3F655CBA4Bb4eeFF6fB43B16969d costs 1.728680585997154623 WETH = $4,068.76",
+    "FORK TEST C: dumping 317,764,897.64 INT into the only verifiably tradeable INT pool yields 2.893194473190431240 WETH = $6,809.65 (pool drained)",
+    "liquid legs: 6,213.520827 USDC ($6,213.52) + 2.275605462835971471 WETH ($5,356.02) = $11,569.54",
+    "BARE QUORUM IS INSUFFICIENT (parent-agent eth_getLogs over last ~600k blocks): live delegate 0x0000de0028b400E5EA4F988859852C003600eADE (EOA) holds 28,239,311.38 INT votes (1.118x quorum) and voted AGAINST on both recent proposals; OZ requires forVotes > againstVotes",
+    "FORK TEST D (CI run 40248236760): buying the winning stake 30,239,311.38 INT costs 2.208770759 WETH = $5,198.74",
+    "GROSS realisable $18,379.22 − winning-stake acquisition $5,198.74 = NET $13,180.48",
+    "FORK TEST A: a single proposal drained the entire timelock to the attacker (mechanism proven)",
+    "only pool 0xDEc6Eadb... is verifiably funded+tradeable; GeckoTerminal reserve figures are stale (reports $51,561 for a $0.25 pool)",
+    "Sep-21-2026 mint exploit was patched only by revoking the LiquidityUnifier TOKEN_MINTER role; the timelock can re-grant it"
+  ],
+  "caveats": [
+    "headline is conditional on the PROPOSAL_ADMIN EOA not cancelling, the ROLE_ADMIN EOA not blacklisting, and the 28.24M delegate not attracting further delegation — all unobservable off-chain",
+    "not flash-loanable: ERC20Votes timestamp checkpoints + 1-day votingDelay require holding INT across the snapshot (~5-day capital lock)",
+    "INT price is not reliable (pools vol24=0, pool-implied prices disagree ~10x); USD uses WETH $2353.68",
+    "Uniswap v4 hooked pool 0xf38a84b4... could not be verified on-chain and is excluded from the net",
+    "out-of-range liquidity in 0xE2DdA0911e227e73d9fD94745B851C8bC6504610 (1.0339 WETH) may be extractable with add-liquidity manipulation; not counted",
+    "the gross realisable is measured as a pristine-pool dump (conservative); a real run pays more WETH in first, which the pool then holds, so the true dump proceeds are somewhat higher"
+  ],
+  "one_liner": "External unprivileged attacker can net ~$13,180 live (fork-verified) by buying a 30.24M INT stake for $5,199 (the bare 25.26M quorum LOSES to a live 28.24M-vote delegate) and passing one proposal that drains the timelock's $11.6k liquid legs + $6.8k of pool WETH; confidence LOW because a PROPOSAL_ADMIN EOA can cancel, a ROLE_ADMIN EOA can blacklist, and opposition may grow."
+}
