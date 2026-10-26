@@ -1,0 +1,50 @@
+CGOFarm 0x5795BE23A2C330209849e0D1D19cc05755E23Ca2 (Cronos 25) — PUSH4 selector table
+extracted from runtime bytecode (eth_getCode @ 102,072,464)
+
+ENTRYPOINTS (match explorer ABI exactly, 24 fns):
+01a7ab2b pendingCGO(uint256,address)
+081e3eda poolLength()
+1526fe27 poolInfo(uint256) -> (address,uint256,uint256,uint256,address)
+17caf6f1 totalAllocPoint()
+441a3e70 withdraw(uint256,uint256)
+48cd4cb1 startBlock()
+51eb05a6 updatePool(uint256)
+5312ea8e emergencyWithdraw(uint256)
+5f70edcf add(uint256,address,bool,address)
+630b5ba1 massUpdatePools()
+64482f79 set(uint256,uint256,bool)
+715018a6 renounceOwnership()
+766a6c7d CGOPerBlock()
+7b84daec stakedWantTokens(uint256,address)
+8da5cb5b owner()
+8dbb1e3a getMultiplier(uint256,uint256)
+93f1a40b userInfo(uint256,address) -> (uint256,uint256)
+958e2d31 withdrawAll(uint256)
+aa67c4de CGOToken()
+c6d758cb inCaseTokensGetStuck(address,uint256)
+e2bbb158 deposit(uint256,uint256)
+f2fde38b transferOwnership(address)
+fac2b9ba updateStartBlock(uint256)
+fafc8d7e ownerCGOReward()
+
+EXTERNAL-CALL SELECTORS (not entrypoints; the farm calls these on want/strategies):
+095ea7b3 approve(address,uint256)
+23b872dd transferFrom(address,address,uint256)
+40c10f19 mint(address,uint256)          <- CGO.mint() inside updatePool()
+42da4eb3 wantLockedTotal()              <- IStrategy
+44a3955e sharesTotal()                  <- IStrategy
+47e7ef24 deposit(address,uint256)       <- IStrategy.deposit(to,amt)
+70a08231 balanceOf(address)
+a9059cbb transfer(address,uint256)
+dd62ed3e allowance(address,address)
+f3fef3a3 withdraw(address,uint256)      <- IStrategy.withdraw(to,amt)
+
+require() strings found in the farm bytecode (identifies the twin source):
+  "user.shares is 0" / "sharesTotal is 0" / "Farm already started"
+  "ReentrancyGuard: reentrant call" / "Ownable: caller is not the owner"
+  (twin: tintinweb/smart-contract-sanctuary-fantom CGSVFarm.sol)
+
+Strategy (pool 0) 0x76B361C0b18d00CA869912c170A9B040eCf7F856 — strings:
+  "!isCGOComp" / "!isTestVComp" / "_wantAmt <= 0" / "Pausable: paused"
+  "callFee cannot be more than MAX_CALL_FEE" / "_entranceFeeFactor too low/high" ...
+  (twin family: tintinweb ... Strategy_CGSV.sol; Cougar-branded variant)

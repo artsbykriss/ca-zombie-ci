@@ -1,0 +1,42 @@
+{
+  "finding": "CGO-FINANCE (ZH4 pass-7 residual lead, Cougar MasterChef fork)",
+  "title": "CGO Finance (Cronos) — Cougar MasterChef fork: permissionless mint but no unprivileged extraction; reward token CGO has ~$1.8k exit liquidity",
+  "chains": ["cronos"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 3372.50, "P": 0, "S": 0},
+  "cgo_exit_liquidity_usd": 1826.14,
+  "nominal_backdated_mint_usd": 4651.55,
+  "latest_block": 102089673,
+  "block_numbers": {"cronos": 102089673},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "CGOFarm holds only CGO (41,825,492.34); its balance of every non-CGO pool want/LP is exactly 0",
+    "every privileged function (add/set/inCaseTokensGetStuck/updateStartBlock/transferOwnership/renounceOwnership) and CGO.mint() revert 'Ownable: caller is not the owner' for a non-owner",
+    "deposit() calls updatePool() before crediting the caller's shares and snapshots rewardDebt after the accrual, so the stale-pool backdated mint (~35.3M CGO) is not capturable by a fresh depositor (pendingCGO == 0 right after deposit)",
+    "updatePool/massUpdatePools are permissionless but are MINT functions: the minted CGO goes to address(this)/owner(), the caller's balance is unchanged",
+    "all 43 Cougar strategies are owner()==the farm, paused()==false; farm<->strategy share maths (shares*wantLockedTotal/sharesTotal vs wantAmt*sharesTotal/wantLockedTotal) both round down, so no round-trip profit",
+    "CGO's entire realistic exit liquidity is 1826.14 USD across 5 pairs (3 on Cougar's own DEX), so even unlimited CGO is worth < $1.9k"
+  ],
+  "poc": {"tests_passed": 0, "tests_total": 10, "ci_run_urls": []},
+  "key_facts": [
+    "CGOFarm 0x5795BE23A2C330209849e0D1D19cc05755E23Ca2 (Cronos 25), solc 0.6.12, name=CGOFarm, creator 0x743c0d5e9a280e64870c3e72acf26fe0d2bb53ca, deployed block 2,953,861; source NOT published (explorer exposes ABI only, Sourcify no match) — logic reconstructed from the Fantom CGSVFarm twin",
+    "poolLength()=43, totalAllocPoint()=44,700, owner()=0x2e4C48D9a4abde9cCCCF110Bf5F58636d49ef5ee, CGOPerBlock()=1e18, startBlock()=3,033,444, ownerCGOReward()=100",
+    "CGO 0x869c3e35ef9e5f50003d9a2a80f1d61d670d4cb6: totalSupply=71,787,297.06, balanceOf(farm)=41,825,492.34, owner()==the farm (so the farm can mint CGO), 1,489 holders, no DefiLlama price",
+    "pools 2..42 have lastRewardBlock=43,036,337 (~59.0M blocks stale); getMultiplier(43036337,102072500)=59,036,163 => minting active; one massUpdatePools() mints ~35.3M CGO into the farm + ~3.5M to the owner EOA (~110% of R)",
+    "admin calls from a non-owner all revert 'Ownable: caller is not the owner' (add/set/inCaseTokensGetStuck/updateStartBlock/transferOwnership/CGO.mint)",
+    "CGO pairs: Cougar CGO/USDC 0x0803a468.. = 7,156,086.93 CGO + 941.797 USDC ($941.80); Cougar CGO/WCRO 0xC794a7d9.. = 16,229.59 WCRO ($884.32 @ $0.0544889); Cougar CGO/USDT dust; VVS + CronaSwap CGO/USDC dust ($0.0022) => ceiling $1,826.14",
+    "43 strategies (9 distinct code hashes) all owner()==the farm, all paused()==false; pool 0 strat 0x76B361C0.. has sharesTotal==wantLockedTotal==8.801e24 and 112 historical depositors",
+    "DexScreener CGO price $0.0001316; DefiLlama $0.95M TVL is users' staked want inside the strategies, not CGO",
+    "H-O: 26 dormant stakers in stale pools 2/3/27/28 hold 25,626,908.10 CGO of unharvested pendingCGO (pool 2 alone 25,296,740.66 across 6 holders owning 90.3% of that strategy's sharesTotal); one permissionless updatePool(pid) or the holder's own withdraw(pid,0) harvests it - nominal $3,372.50, realisable <= $1,826.14 liquidity ceiling",
+    "no E-U path found: no unprivileged call grants a caller CGO or want beyond a proportional deposit; all 43 strategies owner()==the farm and paused()==false"
+  ],
+  "caveats": [
+    "Strategy source is a Cougar-branded variant ('Cougar: OVERFLOW', isCGOComp/isTestVComp flags) that could not be retrieved; strategy-internal claims are behavioural (eth_call) not source-verified",
+    "maxSupply used by getMultiplier has no getter; inferred > totalSupply from getMultiplier returning to-from",
+    "Cronos public RPC limits eth_getLogs to 2,000 blocks and batches to 10, so full deposit/withdraw history was not enumerated; the dormant-staker scan uses the strategy's own users[] array",
+    "H-O/P/S are reported as nominal value where it exists: H-O = $3,372.50 (dormant stakers' 25.6M CGO pending, realisable only up to the $1,826.14 liquidity ceiling); P/S = 0 realisable"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from CGO Finance: the farm holds only 41.8M CGO whose entire exit liquidity is $1,826.14, all 43 pools are empty of LP, every admin path is onlyOwner, and the standard correctly-ordered MasterChef reward maths blocks reward-debt/backdated-mint capture — the only latent issue is a permissionless ~35.3M CGO supply inflation (110% mint) that the caller cannot keep."
+}
