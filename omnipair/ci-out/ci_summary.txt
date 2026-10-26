@@ -1,0 +1,30 @@
+liquidate probes: 102 not_undercollateralized: 100 succeeded: 1
+liquidatable: [{"pos": "BorZUZjrzkiKMEJKKnTW1ZkXoMuQRdwt59KsHgN4mghA", "pair": "7USpQsGyRh9awZXyCFft18Do7di8mraRrfqBcYXLok7C", "owner": "8tF4uYMBXqGhCUGRZL3AmPqRzbX8JJ1TpYnY3uJKN4kt", "collateral_mint": "BANKJmvhT8tiJRsBSS1n2HryMBPvT5Ze4HU95DUAmeta", "err": null, "err_name": null, "rpc_error": null}]
+t1 error distribution: {'NotUndercollateralized': 100, 'SUCCESS': 2}
+t7 caller deltas: [{"owner": "5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1", "mint": "BANKJmvhT8tiJRsBSS1n2HryMBPvT5Ze4HU95DUAmeta", "pre": 0, "post": 5104, "delta": 5104, "decimals": 6}, {"owner": "7USpQsGyRh9awZXyCFft18Do7di8mraRrfqBcYXLok7C", "mint": "BANKJmvhT8tiJRsBSS1n2HryMBPvT5Ze4HU95DUAmeta", "pre": 16026158850, "post": 16025107352, "delta": -1051498, "decimals": 6}, {"owner": "7USpQsGyRh9awZXyCFft18Do7di8mraRrfqBcYXLok7C", "mint": "BANKJmvhT8tiJRsBSS1n2HryMBPvT5Ze4HU95DUAmeta", "pre": 10747747081, "post": 10748793475, "delta": 1046394, "decimals": 6}]
+-- t2_substitution
+    control_real -> NotUndercollateralized
+    wrong_collateral_mint -> ConstraintSeeds
+    wrong_user_position -> ConstraintSeeds
+    wrong_collateral_vault -> ConstraintSeeds
+    wrong_position_owner -> ConstraintSeeds
+-- t3_flashloan
+    receiver_keeps_funds -> InsufficientAmount0
+    receiver_system -> {'InstructionError': [2, 'InvalidInstructionData']}
+-- t4_claim_fees
+    legit -> SUCCESS
+    attacker_recipient -> ConstraintTokenOwner
+    attacker_ata -> {'InstructionError': [0, 'MissingAccount']}
+-- t5_borrow
+    v105_borrow_u64max -> SUCCESS
+    v099_borrow_u64max -> AccountNotEnoughKeys
+    v105_borrow_1 -> SUCCESS
+    v105_borrow_with_add_liquidity -> LiquidityDeltaCircuitBreaker
+-- t6_remove_collateral
+    remove_all -> BorrowingPowerExceeded
+    remove_1_unit -> SUCCESS
+-- t8_price_manipulation
+   baseline: {'name': 'NotUndercollateralized', 'number': 6030}
+   swap+liquidate: {'name': 'NotUndercollateralized', 'number': 6030}
+   ema_proof: {"pre_spot_price0_nad": 101197699, "post_spot_price0_nad": 46590050, "pre_sym_ema0": 101044937, "post_sym_ema0": 101195351, "pre_dir_ema0": 101044934, "post_dir_ema0": 101197699, "pre_reserve0": 4215377649, "post_reserve0": 6214877840, "pre_reserve1": 426586521, "post_reserve1": 289551474, "pre_last_update": 461462069, "post_last_update": 461468394}
+TVL adapter: 822900.28 onchain: 824886.35
