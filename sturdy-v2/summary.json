@@ -1,0 +1,45 @@
+{
+  "finding": "p7-oracle-residual/sturdy-v2",
+  "title": "Sturdy V2 (Ethereum) — per-strategy oracle / collateral-accounting residual",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 29673.08, "H-O": 0, "P": 0, "S": 2353.79},
+  "latest_block": 26272177,
+  "block_numbers": {"ethereum": 26272177},
+  "targets_checked": 23,
+  "live_targets": 19,
+  "closed_reasons": [
+    "no V2 oracle reads a spot DEX price: zero getReserves()/slot0() selectors in all 23 oracle bytecodes",
+    "the only LP-derived leg is Curve get_virtual_price() (D/totalSupply, swap-invariant); crvUSD leg uses the LLAMMA price_oracle() EMA",
+    "Chainlink/RedStone legs are freshness-checked (MAX_ORACLE_DELAY = 86400 s); Pendle PT legs use a 1800 s TWAP; ERC-4626 legs use convertToShares / Yearn pricePerShare",
+    "maxOracleDeviation = 0 on all 23 pairs AND every live oracle returns priceLow == priceHigh, so the V2 deviation guard is satisfied trivially (vacuous)",
+    "collateral-mark inflation is structurally net-negative: maxBorrow = maxLTV * collValue with maxLTV in {85000,86000,90000,94000} < 100000",
+    "no free-mint collateral: ERC-4626 deposits mint at the same mark the oracle reads"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40247491928"]
+  },
+  "key_facts": [
+    "AggregatorDataProvider 0x69764E3e0671747A7768A1C1AfB7C0C39868CC9e.getStrategies() = 23 strategies, getVaults() = 12 Yearn V3 aggregators (block 26,271,877)",
+    "every pair.exchangeRateInfo().maxOracleDeviation = 0 (verified directly on-chain, all 23)",
+    "19/23 oracles return priceLow == priceHigh; 4/23 revert (strategies 3, 4, 11, 12)",
+    "total free (unborrowed) asset liquidity across all 23 pairs = $29,673.08 (hard cap for any borrow-based extraction)",
+    "largest free liquidity: strategy 8 pxETH/yvCurve-pxETH-stETH $16,515.34; strategy 19 tBTC/eBTC $6,656.73; strategy 10 WETH/PT-rswETH $2,477.56",
+    "SturdyPair is permissionless: addCollateral()/borrowAsset() have no role or whitelist check; borrowLimit = 2^256-1 and isLiquidatePaused = false",
+    "oracle price == true collateral value (strategy 8: oracle 0.65167 pxETH/yv-share == 1/(pricePerShare 1.48362 x Curve get_virtual_price 1.0343))",
+    "V1 (2023-06-12, block 17,460,610) lost ~442 ETH (~$800k) to a Balancer Vault read-only reentrancy on the B-wstETH LP price oracle; V2 has no Balancer oracle",
+    "frozen markets (S): strategies 3,4,11,12 have reverting oracles -> borrowAsset() AND liquidate() revert; ~$2,353.79 of debt cannot be liquidated (strategy 12 rsETH = $2,327.92)",
+    "strategy 12's RedStone rsETH/ETH feed 0xa736eae8805ddeffba40cab8c99bcb309deabd9b reverts on latestRoundData(); strategy 4 fails with Sommelier Cellar__OracleFailure (0x229e78bb)"
+  ],
+  "caveats": [
+    "PoC forks at latest block (robust across RPCs); the reported figures are the pinned snapshot at block 26,271,877 - free liquidity moves",
+    "two oracles (GhoYvGhoFxUSDPairOracle, PxEthApxEthPairOracle) are unverified; classified by bytecode selectors only",
+    "Curve get_virtual_price() read-only reentrancy is flagged as a low-confidence residual, not proven",
+    "the 86400 s staleness window is real but staleness != divergence; feeds are fresh and accurate today",
+    "pxETH is not listed by DefiLlama; a stated pxETH ~= ETH fallback of $2,348.05 was used"
+  ],
+  "one_liner": "external unprivileged attacker can extract ~$0 live from Sturdy V2: the permissionless borrow path is open but no oracle reads a spot/stale price, every oracle returns low==high so the maxOracleDeviation=0 guard is vacuous, and collateral-mark inflation is net-negative because maxLTV < 100%; the conditional cap if an oracle were ever replaced by a spot source is $29,673.08"
+}
