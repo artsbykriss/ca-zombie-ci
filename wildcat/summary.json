@@ -1,0 +1,44 @@
+{
+  "finding": "P7-nonevm-wildcat",
+  "title": "Wildcat Protocol V2 (Ethereum + Plasma) — borrower-controlled undercollateralised credit; no unprivileged path",
+  "chains": ["ethereum", "plasma"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 14414471.47, "P": 17354.41, "S": 0},
+  "latest_block": 26272008,
+  "block_numbers": {"ethereum": 26272008, "plasma": 36011221},
+  "targets_checked": 93,
+  "live_targets": 55,
+  "closed_reasons": [
+    "Wildcat V2 markets are immutable; borrow/close/rescue/setTerms are onlyBorrower, setProtocolFeeBips is factory-only",
+    "The only permissionless calls that move the market asset are collectFees (pays the immutable feeRecipient) and executeWithdrawal (pays the named account / its sanctions escrow) — no redirect, fork-proven",
+    "The 'borrower-controlled terms' are the intended design (project Known Issues: a malicious borrower can hurt lenders; markets are only deployable by arch-controller-registered borrowers)",
+    "Accounting is internal (scaleFactor advanced only by interest/delinquency, conversions floor) so donation / share-inflation attacks do not exist",
+    "Shared infra is role-gated: HooksFactory.deployMarket requires isRegisteredBorrower; ArchController is Ownable; FeeRecipient.releaseERC20Fees is recipient/owner-only; sanctions escrow releaseEscrow only pays the account",
+    "Plasma markets: Rhinofi (0x9A0B) holds $17,361.47 with depositRequiresAccess + minimumDeposit 1000 USDT0; seve1 (0x74C7) holds $0; Wintermute (0xFf60) and USDT0USDT0 (0xa460) are closed"
+  ],
+  "poc": {
+    "tests_passed": 15,
+    "tests_total": 15,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Plasma archController 0xdb2e0DE97d6d96aa56754635704a4273E0F348ae (owner 0xC15bE5214978d1fc509ECdd4f9D5BC067C94D9Ae); HooksFactory 0xB46bae25AC6D23148531ed1853a8881FD842E517; Sentinel 0x37064895ba2C1e269EAF7FF32564818d08903f5B; FeeRecipient 0x437e0551892C2C9b06d3fFd248fe60572e08CD1A",
+    "Ethereum archController 0xfEB516d9D946dD487A9346F6fee11f40C6945eE4 — 89 registered markets (V2 + legacy V1), ~$14.40M held",
+    "Plasma markets: Rhinofi USDT0 0x9A0BA9278284659194157C476010bCFEbeB21794 (held 17,361,466,198 = $17,361.47; borrower Safe 0x5Af8dEcb972c01540B252c6a870De5B276026276; hooks OpenTermHooks 0xf6Af2ae9D5DE06662981855a9b47688F3Abc06Bb; minDeposit 1000e6; depositRequiresAccess=true); seve1 USDT0 0x74c7861C3E706e7299654F89A3C0091184Aa10f0 (held 0; supply 50,434,877,046)",
+    "Market source read from the explorer-verified deployed bundle: WildcatMarket + Base/Config/Token/Withdrawals + Sentinel + Escrow + FeeMath + MarketState (analysis/src/plasma_market_bundle)",
+    "scaleFactor for Rhinofi at fork block = 1.0445e27; totalAssets 17,361,466,198; borrowableAssets 17,354,405,898; accruedProtocolFees 7,060,901",
+    "PoC: 15/15 fork tests pass — attacker borrow/close/setTerms/rescue/nuke/queue all revert; executeWithdrawal(lender, expiry) on a fabricated real batch pays the lender (500e6) not the caller; collectFees pays feeRecipient not the caller; borrower CAN borrow ~$17,354 (P)",
+    "Ethereum borrowers: 34 distinct, 13 are contracts (12 Gnosis Safe proxies, 1 EIP-7702 delegated EOA 0x40a42340… → EIP7702StatelessDeleGator) — all privileged signers, none permissionlessly driveable",
+    "DefiLlama protocol TVL $14,511,526 at 2026-10-25 (+382%/7d); Ethereum held $14,397,110, Plasma held $17,361.47",
+    "Hooks config: bits {95 Deposit, 94 QueueWithdrawal, 92 Transfer, 86 SetAnnualInterestAndReserveRatioBips} = OpenTermHooks (version() verified on-chain)"
+  ],
+  "caveats": [
+    "Point-in-time at Plasma block 36,011,221 / Ethereum ~26,272,008; new markets can be deployed by registered borrowers",
+    "The v2-protocol repo bytecode comparison may differ from the deployed commit; the authoritative source is the explorer-verified deployed bundle (read directly)",
+    "H-O figure is the sum of assets currently held by markets (redeemable by lenders subject to borrower repayment), not extractable by an attacker",
+    "P figure is the Plasma market asset the borrower is entitled to borrow (borrowableAssets), not attacker-extractable",
+    "All work read-only; PoC executed only on an in-memory fork in GitHub Actions"
+  ],
+  "one_liner": "Wildcat V2 exposes $0 to an external unprivileged attacker on Ethereum and Plasma: every value path is onlyBorrower, pays the named account, or pays the fee recipient; the 'borrower-controlled terms' are the intended (H-O/P) design, fork-proven with 15 tests."
+}
