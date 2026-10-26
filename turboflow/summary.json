@@ -1,0 +1,45 @@
+{
+  "finding": "P7-solana-b-turboflow",
+  "title": "TurboFlow Perps svm-bridge (Solana) — no external-unprivileged drain; single on-curve upgrade key is the real (P-class) risk",
+  "chains": ["solana", "bsc"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0.00, "P": 348228.01, "S": 0.00},
+  "latest_block": 461461199,
+  "block_numbers": {"solana": 461461199},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "ReviewToken requires REVIEW_ROLE: attacker signer (PROPOSE_ROLE holder) -> AnchorError RoleAdminMismatch 6001 at 13037 CU, while the real reviewer reaches the handler (HasReviewed 6007)",
+    "ProposeDeposit requires PROPOSE_ROLE: valid derived review_account PDA + REVIEW_ROLE signer -> RoleAdminMismatch 6001",
+    "DepositToken destination is program-derived: substituting custody_token_account -> ConstraintSeeds 2006 (Left FYmWdMq9.. Right 6hVp2UaWW..)",
+    "SetContractStatus / GrantRole / ApplyRiskConfig all rejected with RoleAdminMismatch 6001",
+    "ReviewTokenSolV1 (hidden legacy path) derives custody_token_account 5nxKEQUF.. which does not exist -> AccountNotInitialized 3012; risk_window_stat GMziBUjx.. and address_freq_stat 7GWMbRpd../ciswHh5E.. are NULL (0 accounts of those types exist)",
+    "ReviewNative enforces its signer constraint and NativeVault holds only rent (1690880 lamports) -> no native SOL custody",
+    "Last 1000 program transactions (slots 458877241-461463512) contain exactly one bridge instruction each: deposit_token(677), review_token(162), propose_deposit(161) — no admin, deposit_native, review_native or review_token_sol_v1 instruction appears in any of them"
+  ],
+  "poc": {
+    "tests_passed": 9,
+    "tests_total": 9,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40250592489"]
+  },
+  "key_facts": [
+    "Program HwWQZdX116omFGrygkpng7fTzMbrg6JGpLaoM77cM7vg (BPFLoaderUpgradeable); ProgramData 7jn8SF6uUubRsLQP1FHbzzRnQhFAUMFSiw9B6TQN34iC; ELF 704388 bytes; last deploy slot 433197055",
+    "Upgrade authority HJbtKYPEum9bMVorEs8DEJUXLXv5XCi3mYuzJ45bYCxK is ON-CURVE (not a PDA), has no on-chain account and 0 signatures ever -> single plain-keypair upgrade authority (P-class, not E-U)",
+    "Solana program-controlled custody at slot 461461199: 9ayXbTyhkJ49WtG6DA2PCN6EAKtM8DCneMzhJPTMRWcj 55882.011659 USDC + 6hVp2UaWWQwGo2c6yHj39WJWDNenR48GsLGKPzSa7EU2 282344.970921 USDT + Cjhbg8g13QpfVLPvavQjz8RsDMNifyHkLZ8L4b2TCTEw 10001.0261 USDT = $348228.01; all three ATAs have authority = bridge PDA 8iquHJQyXUq8ykTEKZjtS4wSHKnxiw4ghGWUNzPnA9Q4",
+    "BSC bridge contract 0x145CD0d5C3dD0eF1405dCf1b4D2BCE7c611625dB holds 28231.42 USDC + 289440.03 USDT = $317671.45 (on-chain, bridge-controlled)",
+    "Fireblocks MPC vaults hold ~$6.1M (Solana 506099.55 USDT; BSC 5593862 USDT) — off-chain custody, EOA-owned, NOT program-controlled; DefiLlama turboflow-perps $6,756,251 is mostly this",
+    "RoleData 8BXB7nkesJEu8JwjrAkP7zMYaSzJ6pe8HLf9mbXLSG47: REVIEW_ROLE = {GUAujt5S2yvnY4HVj5ysiiHfskmLXPkcbVfxcgLVd1is, BL7Gdt3NdawD4P3oJFy5ombLWo7knh2hSxLy7z1RXwte}; PROPOSE_ROLE = {9jfktqKRQASH8gYyiaLoFnG6u5RG8NsK99qPWVYfmPZ4, 8HBZe73rjo1euQ1cUu5u3Atnby2wcQqCQ4mLb3BAXmY}; DEFAULT_ADMIN_ROLE(2); TOKEN_ADMIN_ROLE(1)=AC9KdHpLGPV4tNVBLW9a2xhmXP36zHEbpueKVHaGrvL7",
+    "WhitelistEntry=0, WhitelistPendingEntry=0, RiskWindowStat=0, AddressFreqStat=0, AccessControl=0 accounts on chain; RiskConfig and RiskConfigPending exist (1 each)",
+    "No on-chain Anchor IDL published (createWithSeed(pid,'anchor:idl',pid)=6QTWnASpRandRLpgfejxqAH3BRKhychCrGUotz2neZjW does not exist)"
+  ],
+  "caveats": [
+    "Solana BPF not decompiled; instruction semantics established by simulateTransaction against live state plus ELF string/source-path recovery",
+    "simulateTransaction(sigVerify:false) proves program-level authorization, not signature existence — the correct test for unprivileged callers",
+    "Balances are point-in-time (slot 461461199); USDT custody grew ~74 USDT during the session",
+    "RoleData is a Borsh blob with inferred record grammar; first member per role is unambiguous, second DEFAULT_ADMIN member has a small alignment uncertainty",
+    "BSC leg not simulated (out of lane); its balances are read-only context for the P-risk",
+    "The P-class upper bound (~$6.66M) assumes forged program events are settled by the relayer/BSC validator and that MPC policy releases Fireblocks funds — low confidence"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live from TurboFlow's Solana svm-bridge ($348k custody): review/propose/admin paths are role-gated (RoleAdminMismatch 6001) and the deposit destination is a program-derived PDA (ConstraintSeeds 2006); the only real residual is the on-curve single-key upgrade authority (P-class, $348k direct / up to ~$6.66M latent)."
+}
