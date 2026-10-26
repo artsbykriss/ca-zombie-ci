@@ -1,0 +1,46 @@
+{
+  "finding": "P7-LOW-5 ApeChainGov",
+  "title": "ApeChain instant-governance / drain-name / public-init cluster (target #5) — false positives",
+  "chains": ["apechain"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 1902.57,
+    "P": 6080.66,
+    "S": 0
+  },
+  "latest_block": 53009900,
+  "block_numbers": {"apechain": 53009900},
+  "targets_checked": 4,
+  "live_targets": 4,
+  "closed_reasons": [
+    "APEPredicts: OZ Ownable — withdraw/resolveGame/cancelGame/updateFeePercentage/pause are onlyOwner (EOA 0xd5d0…c565); deposit() only adds to pools; claim()/refund() pay the caller's own deposit only (deposit mapping zeroed before transfer)",
+    "CashOrCrash: initialize() is public initializer but unreachable — already initialized (reverts InvalidInitialization) and the immutable _initOwner guard would revert NotInitOwner for any non-deployer; withdrawFunds/addAdmin/setMessagePrefix onlyOwner (EOA 0x1fFc…16f8); cashOut/markGameAsLost need an admin or the game player + a valid server ECDSA signature",
+    "GovernanceManager: no voting machinery; every setter is onlyOwner (require 'Only Owner'); owner is a 2-of-4 Gnosis Safe 1.3.0 0xb5C3…0c52 — not instant, not attacker-reachable",
+    "House(old): migrator != 0 so deposit()/withdraw() revert 'Migration In Progress'; migrate() burns only the caller's own userInfo[msg.sender].balance and forwards via the migrator; zero-balance attacker reverts 'Zero Balance'; transfer() is a no-op"
+  ],
+  "poc": {
+    "tests_passed": 17,
+    "tests_total": 17,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40232585629"
+    ]
+  },
+  "key_facts": [
+    "APE price used: $0.12596879 (DefiLlama coingecko:apecoin, confidence 0.99)",
+    "APEPredicts 0xF609…9f75 holds 30,921.24082056135 APE ($3,895.11); owner() = 0xd5d013cef20373839635Fbce206A1cf0054EC565 (EOA, code 0 bytes); paused() = false; gameCount() = 292",
+    "House(old) 0x2054…8469 holds 15,103.490884967885 APE ($1,902.57); migrator() = 0xaB9b…69DC; totalShares() = 7631536905356400273617; calculatePrice() = 1979089018670288082",
+    "CashOrCrash 0x8c63…8517 holds 17,349.90011869433 APE ($2,185.55); owner() = 0x1fFc20b99E1f4D0319c08d3bbb6B1ca92Db316f8 (EOA); gameCounter() = 1090674",
+    "GovernanceManager 0x8632…6b8a holds 0 APE; owner() = 0xb5C3a66741E21CD80eBdDa25479B10A98Ea80c52 (Safe 1.3.0, threshold 2 of 4); house() = 0xB7EcD1F3fA462d2c6c65F55357E8c16c614CC2f1",
+    "Migrator 0xaB9b…69DC: v1House() = old House, houseV2() = new House; migrate(address,bytes) requires msg.sender == v1House and forwards value to houseV2.deposit(user)",
+    "New House 0xB7Ec…C2f1 holds 10,120,640.39 APE (~$1.27M) — holder-owned bankroll, not a target, not attacker-extractable"
+  ],
+  "caveats": [
+    "State is block-pinned at 53,009,900 (CI re-read at 53,012,629 with identical results)",
+    "APEPredicts users can self-claim winnings for already-resolved games, so part of the 'P' bucket is effectively H-O; an exact split is not derivable on-chain because game.totalPoolA/B are not decremented on claim",
+    "CashOrCrash cash-out is gated by an operator server signature, so player recovery is classified P (operator-gated) rather than pure H-O",
+    "APE price is a point-in-time DefiLlama quote"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from the ApeChain instant-governance cluster: every value path is onlyOwner (EOA/Safe), a self-service claim of the caller's own deposit, or server-signature-gated — the pass7 instant-governance, drain-name and public-init flags are false positives (17/17 fork tests pass)."
+}
