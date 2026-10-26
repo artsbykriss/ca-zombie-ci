@@ -1,0 +1,960 @@
+[
+  {
+    "name": "initialize",
+    "access_control": [],
+    "line": 289,
+    "gate": "NONE"
+  },
+  {
+    "name": "update_last_restarted_slot",
+    "access_control": [
+      "internal::Authenticate::only_admin(&ctx)"
+    ],
+    "line": 304,
+    "gate": "ADMIN"
+  },
+  {
+    "name": "transfer_store_authority",
+    "access_control": [
+      "internal::Authenticate::only_admin(&ctx)"
+    ],
+    "line": 324,
+    "gate": "ADMIN"
+  },
+  {
+    "name": "accept_store_authority",
+    "access_control": [],
+    "line": 338,
+    "gate": "NONE"
+  },
+  {
+    "name": "transfer_receiver",
+    "access_control": [],
+    "line": 357,
+    "gate": "NONE"
+  },
+  {
+    "name": "accept_receiver",
+    "access_control": [],
+    "line": 371,
+    "gate": "NONE"
+  },
+  {
+    "name": "set_token_map",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 395,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "check_admin",
+    "access_control": [],
+    "line": 418,
+    "gate": "NONE"
+  },
+  {
+    "name": "check_role",
+    "access_control": [],
+    "line": 441,
+    "gate": "NONE"
+  },
+  {
+    "name": "has_admin",
+    "access_control": [],
+    "line": 462,
+    "gate": "NONE"
+  },
+  {
+    "name": "has_role",
+    "access_control": [],
+    "line": 485,
+    "gate": "NONE"
+  },
+  {
+    "name": "enable_role",
+    "access_control": [
+      "internal::Authenticate::only_admin(&ctx)"
+    ],
+    "line": 506,
+    "gate": "ADMIN"
+  },
+  {
+    "name": "disable_role",
+    "access_control": [
+      "internal::Authenticate::only_admin(&ctx)"
+    ],
+    "line": 525,
+    "gate": "ADMIN"
+  },
+  {
+    "name": "grant_role",
+    "access_control": [
+      "internal::Authenticate::only_admin(&ctx)"
+    ],
+    "line": 546,
+    "gate": "ADMIN"
+  },
+  {
+    "name": "revoke_role",
+    "access_control": [
+      "internal::Authenticate::only_admin(&ctx)"
+    ],
+    "line": 568,
+    "gate": "ADMIN"
+  },
+  {
+    "name": "insert_amount",
+    "access_control": [
+      "internal::Authenticate::only_config_keeper(&ctx)"
+    ],
+    "line": 595,
+    "gate": "CONFIG_KEEPER"
+  },
+  {
+    "name": "insert_factor",
+    "access_control": [
+      "internal::Authenticate::only_config_keeper(&ctx)"
+    ],
+    "line": 617,
+    "gate": "CONFIG_KEEPER"
+  },
+  {
+    "name": "insert_address",
+    "access_control": [
+      "internal::Authenticate::only_config_keeper(&ctx)"
+    ],
+    "line": 640,
+    "gate": "CONFIG_KEEPER"
+  },
+  {
+    "name": "insert_order_fee_discount_for_referred_user",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 666,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "toggle_feature",
+    "access_control": [
+      "internal::Authenticate::only_feature_keeper(&ctx)"
+    ],
+    "line": 713,
+    "gate": "FEATURE_KEEPER"
+  },
+  {
+    "name": "initialize_token_map",
+    "access_control": [],
+    "line": 745,
+    "gate": "NONE"
+  },
+  {
+    "name": "push_to_token_map",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 772,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "push_to_token_map_synthetic",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 808,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "toggle_token_config",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 846,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "toggle_token_price_adjustment",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 872,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "set_feed_config_market_status_flag",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 907,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "set_expected_provider",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 963,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "set_feed_config_v2",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 998,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "is_token_config_enabled",
+    "access_control": [],
+    "line": 1032,
+    "gate": "NONE"
+  },
+  {
+    "name": "token_expected_provider",
+    "access_control": [],
+    "line": 1051,
+    "gate": "NONE"
+  },
+  {
+    "name": "token_feed",
+    "access_control": [],
+    "line": 1074,
+    "gate": "NONE"
+  },
+  {
+    "name": "token_timestamp_adjustment",
+    "access_control": [],
+    "line": 1102,
+    "gate": "NONE"
+  },
+  {
+    "name": "token_name",
+    "access_control": [],
+    "line": 1130,
+    "gate": "NONE"
+  },
+  {
+    "name": "token_decimals",
+    "access_control": [],
+    "line": 1149,
+    "gate": "NONE"
+  },
+  {
+    "name": "token_precision",
+    "access_control": [],
+    "line": 1168,
+    "gate": "NONE"
+  },
+  {
+    "name": "initialize_oracle",
+    "access_control": [],
+    "line": 1188,
+    "gate": "NONE"
+  },
+  {
+    "name": "clear_all_prices",
+    "access_control": [
+      "internal::Authenticate::only_oracle_controller(&ctx)"
+    ],
+    "line": 1209,
+    "gate": "ORACLE_CONTROLLER"
+  },
+  {
+    "name": "set_prices_from_price_feed",
+    "access_control": [
+      "internal::Authenticate::only_oracle_controller(&ctx)"
+    ],
+    "line": 1239,
+    "gate": "ORACLE_CONTROLLER"
+  },
+  {
+    "name": "initialize_price_feed",
+    "access_control": [
+      "internal::Authenticate::only_price_keeper(&ctx)"
+    ],
+    "line": 1271,
+    "gate": "PRICE_KEEPER"
+  },
+  {
+    "name": "update_price_feed_with_chainlink",
+    "access_control": [
+      "internal::Authenticate::only_price_keeper(&ctx)"
+    ],
+    "line": 1313,
+    "gate": "PRICE_KEEPER"
+  },
+  {
+    "name": "update_price_feed_with_chainlink_idempotent",
+    "access_control": [
+      "internal::Authenticate::only_price_keeper(&ctx)"
+    ],
+    "line": 1353,
+    "gate": "PRICE_KEEPER"
+  },
+  {
+    "name": "initialize_market",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 1389,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "toggle_market",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 1414,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "market_transfer_in",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 1444,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "update_market_config",
+    "access_control": [
+      "internal::Authenticate::ensure_can_update_market_config(&ctx)"
+    ],
+    "line": 1468,
+    "gate": "OTHER:internal::Authenticate::ensure_can_update_market_config(&ctx)"
+  },
+  {
+    "name": "update_market_config_flag",
+    "access_control": [
+      "internal::Authenticate::ensure_can_update_market_config(&ctx)"
+    ],
+    "line": 1496,
+    "gate": "OTHER:internal::Authenticate::ensure_can_update_market_config(&ctx)"
+  },
+  {
+    "name": "update_market_config_with_buffer",
+    "access_control": [
+      "internal::Authenticate::ensure_can_update_market_config(&ctx)"
+    ],
+    "line": 1528,
+    "gate": "OTHER:internal::Authenticate::ensure_can_update_market_config(&ctx)"
+  },
+  {
+    "name": "get_market_status",
+    "access_control": [],
+    "line": 1554,
+    "gate": "NONE"
+  },
+  {
+    "name": "get_market_token_price",
+    "access_control": [],
+    "line": 1584,
+    "gate": "NONE"
+  },
+  {
+    "name": "get_market_token_value",
+    "access_control": [],
+    "line": 1626,
+    "gate": "NONE"
+  },
+  {
+    "name": "initialize_market_config_buffer",
+    "access_control": [],
+    "line": 1667,
+    "gate": "NONE"
+  },
+  {
+    "name": "set_market_config_buffer_authority",
+    "access_control": [],
+    "line": 1692,
+    "gate": "NONE"
+  },
+  {
+    "name": "close_market_config_buffer",
+    "access_control": [],
+    "line": 1712,
+    "gate": "NONE"
+  },
+  {
+    "name": "push_to_market_config_buffer",
+    "access_control": [],
+    "line": 1736,
+    "gate": "NONE"
+  },
+  {
+    "name": "set_market_config_updatable",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 1761,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "toggle_gt_minting",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 1788,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "claim_fees_from_market",
+    "access_control": [],
+    "line": 1810,
+    "gate": "NONE"
+  },
+  {
+    "name": "initialize_market_vault",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 1830,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "use_claimable_account",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 1855,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "close_empty_claimable_account",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 1880,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "prepare_associated_token_account",
+    "access_control": [],
+    "line": 1901,
+    "gate": "NONE"
+  },
+  {
+    "name": "create_token_metadata",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 1912,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "update_token_metadata",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 1926,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "create_deposit",
+    "access_control": [],
+    "line": 1962,
+    "gate": "NONE"
+  },
+  {
+    "name": "close_deposit",
+    "access_control": [],
+    "line": 1990,
+    "gate": "NONE"
+  },
+  {
+    "name": "execute_deposit",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2029,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "create_withdrawal",
+    "access_control": [],
+    "line": 2066,
+    "gate": "NONE"
+  },
+  {
+    "name": "close_withdrawal",
+    "access_control": [],
+    "line": 2094,
+    "gate": "NONE"
+  },
+  {
+    "name": "execute_withdrawal",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2133,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "prepare_position",
+    "access_control": [],
+    "line": 2164,
+    "gate": "NONE"
+  },
+  {
+    "name": "create_order_v2",
+    "access_control": [],
+    "line": 2216,
+    "gate": "NONE"
+  },
+  {
+    "name": "close_order_v2",
+    "access_control": [],
+    "line": 2250,
+    "gate": "NONE"
+  },
+  {
+    "name": "settle_builder_fee",
+    "access_control": [],
+    "line": 2281,
+    "gate": "NONE"
+  },
+  {
+    "name": "cancel_order_if_no_position",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2299,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "close_empty_position",
+    "access_control": [],
+    "line": 2313,
+    "gate": "NONE"
+  },
+  {
+    "name": "prepare_trade_event_buffer",
+    "access_control": [],
+    "line": 2334,
+    "gate": "NONE"
+  },
+  {
+    "name": "update_order_v2",
+    "access_control": [],
+    "line": 2360,
+    "gate": "NONE"
+  },
+  {
+    "name": "set_should_keep_position_account",
+    "access_control": [],
+    "line": 2377,
+    "gate": "NONE"
+  },
+  {
+    "name": "execute_increase_or_swap_order_v2",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2436,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "execute_decrease_order_v2",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2493,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "liquidate",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2561,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "update_adl_state",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2596,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "auto_deleverage",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2649,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "update_closed_state",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2681,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "update_fees_state",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2704,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "create_shift",
+    "access_control": [],
+    "line": 2751,
+    "gate": "NONE"
+  },
+  {
+    "name": "execute_shift",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 2798,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "close_shift",
+    "access_control": [],
+    "line": 2833,
+    "gate": "NONE"
+  },
+  {
+    "name": "initialize_gt",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 2862,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "gt_set_order_fee_discount_factors",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 2895,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "gt_set_referral_reward_factors",
+    "access_control": [
+      "internal::Authenticate::only_gt_controller(&ctx)"
+    ],
+    "line": 2918,
+    "gate": "GT_CONTROLLER"
+  },
+  {
+    "name": "gt_set_exchange_time_window",
+    "access_control": [
+      "internal::Authenticate::only_gt_controller(&ctx)"
+    ],
+    "line": 2939,
+    "gate": "GT_CONTROLLER"
+  },
+  {
+    "name": "prepare_gt_exchange_vault",
+    "access_control": [],
+    "line": 2968,
+    "gate": "NONE"
+  },
+  {
+    "name": "confirm_gt_exchange_vault_v2",
+    "access_control": [
+      "internal::Authenticate::only_gt_controller(&ctx)"
+    ],
+    "line": 2988,
+    "gate": "GT_CONTROLLER"
+  },
+  {
+    "name": "request_gt_exchange",
+    "access_control": [],
+    "line": 3016,
+    "gate": "NONE"
+  },
+  {
+    "name": "close_gt_exchange",
+    "access_control": [
+      "internal::Authenticate::only_gt_controller(&ctx)"
+    ],
+    "line": 3033,
+    "gate": "GT_CONTROLLER"
+  },
+  {
+    "name": "update_gt_cumulative_inv_cost_factor",
+    "access_control": [
+      "internal::Authenticate::only_gt_controller(&ctx)"
+    ],
+    "line": 3046,
+    "gate": "GT_CONTROLLER"
+  },
+  {
+    "name": "mint_gt_reward",
+    "access_control": [
+      "internal::Authenticate::only_gt_controller(&ctx)"
+    ],
+    "line": 3062,
+    "gate": "GT_CONTROLLER"
+  },
+  {
+    "name": "prepare_user",
+    "access_control": [],
+    "line": 3081,
+    "gate": "NONE"
+  },
+  {
+    "name": "initialize_referral_code",
+    "access_control": [],
+    "line": 3102,
+    "gate": "NONE"
+  },
+  {
+    "name": "set_referrer",
+    "access_control": [],
+    "line": 3133,
+    "gate": "NONE"
+  },
+  {
+    "name": "set_builder_fee_factor",
+    "access_control": [],
+    "line": 3162,
+    "gate": "NONE"
+  },
+  {
+    "name": "set_builder_fee",
+    "access_control": [],
+    "line": 3243,
+    "gate": "NONE"
+  },
+  {
+    "name": "transfer_referral_code",
+    "access_control": [],
+    "line": 3266,
+    "gate": "NONE"
+  },
+  {
+    "name": "cancel_referral_code_transfer",
+    "access_control": [],
+    "line": 3286,
+    "gate": "NONE"
+  },
+  {
+    "name": "accept_referral_code",
+    "access_control": [],
+    "line": 3310,
+    "gate": "NONE"
+  },
+  {
+    "name": "claim_builder_fees",
+    "access_control": [],
+    "line": 3347,
+    "gate": "NONE"
+  },
+  {
+    "name": "initialize_glv",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 3381,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "update_glv_market_config",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 3412,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "toggle_glv_market_flag",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 3443,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "update_glv_config",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 3469,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "insert_glv_market",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 3499,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "remove_glv_market",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 3525,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "create_glv_deposit",
+    "access_control": [],
+    "line": 3573,
+    "gate": "NONE"
+  },
+  {
+    "name": "close_glv_deposit",
+    "access_control": [],
+    "line": 3608,
+    "gate": "NONE"
+  },
+  {
+    "name": "execute_glv_deposit",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 3668,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "create_glv_withdrawal",
+    "access_control": [],
+    "line": 3726,
+    "gate": "NONE"
+  },
+  {
+    "name": "close_glv_withdrawal",
+    "access_control": [],
+    "line": 3763,
+    "gate": "NONE"
+  },
+  {
+    "name": "execute_glv_withdrawal",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 3820,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "create_glv_shift",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 3877,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "close_glv_shift",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 3912,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "execute_glv_shift",
+    "access_control": [
+      "internal::Authenticate::only_order_keeper(&ctx)"
+    ],
+    "line": 3975,
+    "gate": "ORDER_KEEPER"
+  },
+  {
+    "name": "get_glv_token_value",
+    "access_control": [],
+    "line": 4006,
+    "gate": "NONE"
+  },
+  {
+    "name": "migrate_referral_code",
+    "access_control": [
+      "internal::Authenticate::only_migration_keeper(&ctx)"
+    ],
+    "line": 4021,
+    "gate": "OTHER:internal::Authenticate::only_migration_keeper(&ctx)"
+  },
+  {
+    "name": "initialize_callback_authority",
+    "access_control": [],
+    "line": 4034,
+    "gate": "NONE"
+  },
+  {
+    "name": "close_virtual_inventory",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4040,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "disable_virtual_inventory",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4046,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "leave_disabled_virtual_inventory",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4052,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "create_virtual_inventory_for_swaps",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4060,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "join_virtual_inventory_for_swaps",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4076,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "leave_virtual_inventory_for_swaps",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4084,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "create_virtual_inventory_for_positions",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4092,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "join_virtual_inventory_for_positions",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4100,
+    "gate": "MARKET_KEEPER"
+  },
+  {
+    "name": "leave_virtual_inventory_for_positions",
+    "access_control": [
+      "internal::Authenticate::only_market_keeper(&ctx)"
+    ],
+    "line": 4108,
+    "gate": "MARKET_KEEPER"
+  }
+]

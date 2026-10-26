@@ -1,0 +1,52 @@
+{
+  "finding": "ZH4-P7-SOLANA-ROWS-4-5-7",
+  "title": "GMX Solana (GMTrade) — residual unprivileged extraction",
+  "chains": ["solana"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 26545788, "P": 0, "S": 0},
+  "latest_block": 461365574,
+  "block_numbers": {"solana": 461365574},
+  "targets_checked": 7,
+  "live_targets": 5,
+  "closed_reasons": [
+    "Deployed store program is the audited revision: instruction surface exactly equals audit commit 8af1e70 (134/134 present in ELF discriminator scan; 134/134 recognized by on-chain simulate probe); all 5 post-audit instructions return InstructionFallbackNotFound (101).",
+    "Oracle price-setting (set_prices_from_price_feed) requires the signer to be the oracle authority AND hold ORACLE_CONTROLLER role; a self-created store-bound oracle still reverts with PermissionDenied (6004).",
+    "All value-moving protocol paths are role-gated via #[access_control]: execute_*/liquidate = ORDER_KEEPER, market/GT/treasury/feature/config = their keepers/admin.",
+    "Ungated instructions are either read-only getters, owner-scoped (owner: Signer + UserHeader PDA has_one = owner), or inert account creation.",
+    "Treasury fee claiming requires treasury.is_receiver(authority); transfer_receiver is restricted to the current receiver; accept_receiver requires the designated next_receiver to sign.",
+    "Action closers constrain receiver/rent_receiver to the recorded values (owner) — no rent/output redirection.",
+    "Store/treasury/timelock/competition/liquidity-provider share an off-curve PDA upgrade authority; callback and gt-incentive programs are not deployed on mainnet."
+  ],
+  "poc": {
+    "tests_passed": 10,
+    "tests_total": 10,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40247998750",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40248335413",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40249313075",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40250312674",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40252004167",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40252446851",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/40254000000"
+    ]
+  },
+  "key_facts": [
+    "Store program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo, programdata CSp2sB68THdrJP6N7Au4Y5u89VJ1E1ebaqZ2soHhQvav, last deploy slot 459556802 (2026-10-21 08:08 UTC), ELF 4360824 bytes, sha256=8fbdc5cf1a446b467460764990a2002360ebde330513fa45d8e57e7ce2b00e15.",
+    "Upgrade authority 6qp7veALWas5rxXJRQXUEbffRtDyhB8koxenBpS51SrA is an off-curve PDA (system-owned, 5.742 SOL).",
+    "Store account CTDLvGGXnoxvqLyTpGzdGLg9pD6JexKxKXSV8tqqo8bN; admin authority ebpa6Yp5ubMEAopN9GqRUrgqsLNwU8Mp6pTaNF6XMr6 (off-curve PDA); token_map 7cEiyyEB2VGMtnKLb7Ro7SsJKYZVBZjpS8ihBD8jR938; 19 RBAC members.",
+    "ORACLE_CONTROLLER and GT_CONTROLLER roles are held by PDAs (55tVJJu5..., 4pnQyp..., 5sg9Sj...); several ORDER_KEEPER/PRICE_KEEPER members are on-curve EOAs (hot keeper keys) — privileged key risk, not E-U.",
+    "simulateTransaction battery (neutral signer 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9): has_admin=false; has_role(attacker,ORACLE_CONTROLLER)=PermissionDenied 6004; set_prices on real oracle=ConstraintHasOne 2001; self-created oracle + set_prices=PermissionDenied 6004; update_last_restarted_slot=NotAnAdmin 6003.",
+    "Live program accounts: Market 103, Oracle 9, UserHeader 39486, Position 61826, Order 205, GtExchangeVault 581, GtExchange 494, GLV 7, MarketConfigBuffer 122, CallbackAuthority 1, VirtualInventory 2, TradeData 7.",
+    "callback 9JtQ9fBS91b2YxmHXNeGE8ipQYhLd2DRGGZSV8SPTJGw and gt-incentive 6iMXVSjiBf75ce9QaUVRnpsUikW8SZm8EaPVGDPfsCso are not deployed on mainnet (no account).",
+    "DefiLlama TVL for gmx-solana = $26,545,788 (2026-10-26); SOL=$100.82."
+  ],
+  "caveats": [
+    "Exact deployed commit not pinned among 8 candidates sharing the identical instruction+string surface (8af1e70..6cc72716); those differ only in backward-compatible data-layout fields, not in any access gate.",
+    "A full reproducible SBF build is environment-sensitive (embedded /home/runner sysroot paths), so an exact ELF-hash match is impractical; the discriminator/string/on-chain diff is the load-bearing evidence.",
+    "claim_fees/liquidate probes revert at account validation before their named gate; those gates are established from source plus analogous clean NotAnAdmin/PermissionDenied probes.",
+    "TVL is DefiLlama's figure, not an independent per-vault recount.",
+    "P (privileged) bucket is the protocol TVL exposed to keeper/admin/upgrade keys; it is not attacker-extractable."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from GMX Solana: the deployed store program is the audited revision (instruction surface = commit 8af1e70) and every value-moving path is role-gated (ORACLE_CONTROLLER for prices, ORDER_KEEPER for execution, admin for authority); on-chain simulateTransaction probes confirm the attacker holds no role and all candidate paths revert."
+}

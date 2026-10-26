@@ -1,0 +1,193 @@
+[
+  {
+    "name": "sanity:create_order_v2([store])",
+    "note": "expect NOT 101",
+    "err": {
+      "InstructionError": [
+        0,
+        {
+          "Custom": 102
+        }
+      ]
+    },
+    "code": 102,
+    "units": 2588,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: CreateOrderV2",
+      "Program log: AnchorError occurred. Error Code: InstructionDidNotDeserialize. Error Number: 102. Error Message: The program could not deserialize the given instruction.",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 2588 of 200000 compute units",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo failed: custom program error: 0x66"
+    ]
+  },
+  {
+    "name": "has_admin(attacker)",
+    "note": "expect NotAnAdmin (6000+) or false",
+    "err": null,
+    "code": null,
+    "units": 1024,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: HasAdmin",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 1024 of 200000 compute units",
+      "Program return: Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo AA==",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo success"
+    ]
+  },
+  {
+    "name": "has_role(attacker,ORACLE_CONTROLLER)",
+    "note": "expect PermissionDenied",
+    "err": {
+      "InstructionError": [
+        0,
+        {
+          "Custom": 6004
+        }
+      ]
+    },
+    "code": 6004,
+    "units": 3203,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: HasRole",
+      "Program log: AnchorError thrown in programs/store/src/states/roles.rs:179. Error Code: PermissionDenied. Error Number: 6004. Error Message: permission denied.",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 3203 of 200000 compute units",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo failed: custom program error: 0x1774"
+    ]
+  },
+  {
+    "name": "has_role(55tVJJ,ORACLE_CONTROLLER)",
+    "note": "expect true",
+    "err": null,
+    "code": null,
+    "units": 2066,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: HasRole",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 2066 of 200000 compute units",
+      "Program return: Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo AQ==",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo success"
+    ]
+  },
+  {
+    "name": "has_role(4z1snZ,ORACLE_CONTROLLER)",
+    "note": "keeper probe",
+    "err": null,
+    "code": null,
+    "units": 2065,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: HasRole",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 2065 of 200000 compute units",
+      "Program return: Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo AA==",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo success"
+    ]
+  },
+  {
+    "name": "set_prices(attacker,real_oracle)",
+    "note": "expect ConstraintHasOne (attacker != oracle.authority)",
+    "err": {
+      "InstructionError": [
+        0,
+        {
+          "Custom": 2001
+        }
+      ]
+    },
+    "code": 2001,
+    "units": 4762,
+    "logs_tail": [
+      "Program log: Left:",
+      "Program log: 4z1snZPe4fjqNGgyuykowuKrhwaVG8nFyzU3MXurPHfS",
+      "Program log: Right:",
+      "Program log: 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 4762 of 200000 compute units",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo failed: custom program error: 0x7d1"
+    ]
+  },
+  {
+    "name": "self_oracle+set_prices(attacker)",
+    "note": "expect PermissionDenied at role check on self-created oracle",
+    "err": {
+      "InstructionError": [
+        2,
+        {
+          "Custom": 6004
+        }
+      ]
+    },
+    "code": 6004,
+    "units": 7486,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo success",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: SetPricesFromPriceFeed",
+      "Program log: AnchorError thrown in programs/store/src/states/roles.rs:179. Error Code: PermissionDenied. Error Number: 6004. Error Message: permission denied.",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 4701 of 400215 compute units",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo failed: custom program error: 0x1774"
+    ]
+  },
+  {
+    "name": "update_last_restarted_slot(attacker)",
+    "note": "expect PermissionDenied/NotAnAdmin at ADMIN gate",
+    "err": {
+      "InstructionError": [
+        0,
+        {
+          "Custom": 6003
+        }
+      ]
+    },
+    "code": 6003,
+    "units": 3098,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: UpdateLastRestartedSlot",
+      "Program log: AnchorError thrown in programs/store/src/utils/internal/authentication.rs:18. Error Code: NotAnAdmin. Error Number: 6003. Error Message: not an admin.",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 3098 of 200000 compute units",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo failed: custom program error: 0x1773"
+    ]
+  },
+  {
+    "name": "claim_fees(attacker)",
+    "note": "expect failure before/at claim-fees-address gate",
+    "err": {
+      "InstructionError": [
+        0,
+        {
+          "Custom": 3007
+        }
+      ]
+    },
+    "code": 3007,
+    "units": 15677,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: ClaimFeesFromMarket",
+      "Program log: AnchorError caused by account: token_mint. Error Code: AccountOwnedByWrongProgram. Error Number: 3007. Error Message: The given account is owned by a different program than expected.",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 15677 of 200000 compute units",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo failed: custom program error: 0xbbf"
+    ]
+  },
+  {
+    "name": "liquidate(attacker)",
+    "note": "expect failure (role gate / account validation)",
+    "err": {
+      "InstructionError": [
+        0,
+        {
+          "Custom": 102
+        }
+      ]
+    },
+    "code": 102,
+    "units": 3650,
+    "logs_tail": [
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo invoke [1]",
+      "Program log: Instruction: Liquidate",
+      "Program log: AnchorError occurred. Error Code: InstructionDidNotDeserialize. Error Number: 102. Error Message: The program could not deserialize the given instruction.",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo consumed 3650 of 200000 compute units",
+      "Program Gmso1uvJnLbawvw7yezdfCDcPydwW2s2iqG3w6MDucLo failed: custom program error: 0x66"
+    ]
+  }
+]
