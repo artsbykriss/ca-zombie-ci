@@ -1,0 +1,47 @@
+{
+ "finding": "CA2-OPEN-SunSwap-V4",
+ "title": "SunSwap V4 PoolManager (Tron) — unverified v4 singleton, hook support, canonical lock/delta accounting intact",
+ "chains": ["tron"],
+ "headline_extractable_usd": 0,
+ "headline_confidence": "high",
+ "categories": {
+  "E-U": 0,
+  "E-U-conditional": 0,
+  "H-O": 133084238.64,
+  "P": 0,
+  "S": 0
+ },
+ "latest_block": 87680565,
+ "block_numbers": {"tron": 87680565},
+ "targets_checked": 1,
+ "live_targets": 1,
+ "closed_reasons": [
+  "All value-moving entry points (take, settle, settleFor, mint, burn, clear, swap, modifyLiquidity, donate) require an active transient locker and revert NoLocker() (0x05185ab0) for a fresh EOA; live constant calls confirm at block 87,680,565.",
+  "lock(bytes) sets locker=msg.sender, calls lockAcquired(bytes) (0xab6291fe), then requires the unsettled-delta count == 0 or reverts CurrencyNotSettled() (0x5212cba1); nested locks revert LockerAlreadySet(address).",
+  "take/mint debit msg.sender; burn/transferFrom require from==msg.sender or allowance; settle credits only actual balance delta since sync(); clear only clears an exact positive delta.",
+  "Hook registration is permissionless but validated against getHooksRegistrationBitmap() (0xf961d1f4); hooks are called by the PoolManager (msg.sender==PM) and cannot reach the locker or other pools' deltas.",
+  "collectProtocolFees and setProtocolFee are controller-only (0x48f5c3ed InvalidCaller for others); protocolFeesAccrued is 0; owner functions revert for a fresh caller.",
+  "Foundry harness against the real creation bytecode: 18/18 tests pass, including take/mint without settlement, nested lock, burn/transferFrom without allowance, clear negative, and swap outside lock."
+ ],
+ "poc": {
+  "tests_passed": 18,
+  "tests_total": 18,
+  "ci_run_urls": []
+ },
+ "key_facts": [
+  "Runtime 28,686 bytes, 12,214 instructions, 47 selectors; 0 DELEGATECALL, 0 SELFDESTRUCT, 22 TLOAD, 11 TSTORE.",
+  "PoolManager holds 270,855,916.052629 TRX ($87,204,667.50 at $0.32196) and 43,637,657.236943 USDT ($43,566,527.86 at $0.99837) at block 87,680,565; DefiLlama SunSwap V4 TVL $133,084,238.64.",
+  "270 pools, 154 unique currencies, 40 pools with hooks, 15 unique hooks; official CLDynamicFeeHook covers 25 pools, ThirdPartyHook 2, FlashHook 3, one codeless hook address.",
+  "owner = TLntW9Z59LYY5KEi9cmwk3PKjQga828ird (EOA); protocolFeeController = TEays9UfJn2EqKjkN7hWUWewBGpGxTzWEv (ProtocolFeeController contract, same owner); paused=false; poolCount=270; getLocker=0; protocolFeesAccrued=0.",
+  "Fresh-caller live probes: take(USDT/TRX) 0x05185ab0; mint/burn/clear/settle/settleFor 0x05185ab0; collectProtocolFees 0x48f5c3ed; owner/controller setters empty revert."
+ ],
+ "caveats": [
+  "Source is unpublished; ABI is on-chain and bytecode is from TronGrid; heimdall decompilation is approximate.",
+  "The custom AMM/tick/fee math was not formally verified; confidence in $0 on the math sub-surface is medium.",
+  "Third-party hooks (2 pools) can harm users of their own pool up to the swap amount; they cannot touch PM principal.",
+  "No local TVM fork; the harness runs the real bytecode on Cancun EVM and is corroborated by live Tron constant calls.",
+  "Owner/controller can pause and set protocol fees; protocol fees accrued are 0 today.",
+  "H-O is an upper bound: the whole PM TVL is treated as LP/holder-owned; protocol-owned liquidity is not separated."
+ ],
+ "one_liner": "External unprivileged attacker can extract ~$0.00 live: the Tron SunSwap V4 singleton implements the full v4 lock/transient-delta invariant (take/mint debit the caller, lock-end unsettled-delta check, nested-lock rejection), and live probes from a fresh EOA revert NoLocker on every value path; the $133.08M is LP principal (H-O)."
+}
