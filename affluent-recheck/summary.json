@@ -1,0 +1,57 @@
+{
+  "finding": "C-1",
+  "title": "Affluent (TON) permissionless unbacked share mint — redeem leg empty; CA2's $1.34M is pool TVL, not extractable",
+  "chains": ["ton"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 1013300.01,
+    "H-O": 0,
+    "P": 0,
+    "S": 1013300.01
+  },
+  "latest_block": 103121429,
+  "block_numbers": {"ton": 103121429},
+  "targets_checked": 10,
+  "live_targets": 10,
+  "closed_reasons": [
+    "Every burn emulation (1 raw .. 1e16, both vaults) refunds the burned shares via 0x178d4519 (from=\"\") and emits NO 0x0f8a7ea5 / 0xb2a4c51b / 0xcb03bfaf payout.",
+    "affUSDTl vault idle balance = 1 raw; affTONl = 0; the burn path is capped at the idle balance, not at the $1.013M pool-supply NAV.",
+    "The $1.34M CA2 figure is DefiLlama pool TVL (sum supplied-borrowed over 8 pools = $1,282,377.28 today), not the vaults' redeemable NAV.",
+    "The vaults' own claims are $19,810.62 (affUSDTl) + $993,489.39 (affTONl) = $1,013,300.01, held as whitelisted-pool supplyAmount; the burn path cannot reach them.",
+    "Vault shares are listed as collateral only in LendingVaultPool 0:5030..., where all 5 assets have isBorrowable=0; the pools with borrowable USDT/TON (AdvancedPool, Storm, Ethena, Tradoor) do not list the shares. No simultaneous collateral+borrowable-asset pool -> borrow path $0.",
+    "No DEX market for the shares; share prices are ~4.34e-7 USD/token (affUSDTl) and 0.011483 TON/token (affTONl).",
+    "Owner 0:acb28b15... and manager 0:0e648438... are `nonexist` (undeployed, balance 0, never acted); no privileged recovery demonstrated."
+  ],
+  "poc": {
+    "tests_passed": 14,
+    "tests_total": 14,
+    "ci_run_urls": ["https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41646684718"]
+  },
+  "key_facts": [
+    "Mint primitive real and unpatched: any wallet -> pool 0x7362d09c -> 0xa1b21e8b -> vault mints 0x178d4519 with from=\"\" to arbitrary beneficiary/amount (CA2 root cause re-confirmed).",
+    "Mint re-run today (2026-11-03): both the historical sender 0:3446... and a fresh 0:1111... cause the AdvancedPool to relay to the USDT vault, which mints 1e16 affUSDTl to beneficiary wallet 0:9c2f... with from=\"\"; the mint is live and permissionless today.",
+    "12/12 fresh burn emulations (amounts 1, 1e6, 1e9, 1e15, 1e16 plus full balances 3e16 affUSDTl / 2e16 affTONl) are REFUND-ONLY.",
+    "The exact 2026-10-16 attacker wallet 0:c5d3... still holds 5,697,376,531,863,130 affUSDTl; burning it today refunds, pays 0.",
+    "Large-holder burn of 9,999,999,999,999,999 affUSDTl on 2026-10-18 (event 66e93afd125d4120...) paid 0 USD; only 0.0683 TON gas change.",
+    "Historical 2026-10-16 trace: burn 1e16 affUSDTl -> 5 pool withdrawals -> 13,824,934,818 raw USD = $13,824.93 gross to attacker, plus 5,697,376,531,863,130 shares refunded as change. CA2's realized $13,504.32 was this one-time event.",
+    "affUSDTl get_vault_data: totalSupply 45,718,338,743,354,597; balance=1 raw; cash=1e18+1; sum supplyAmount=19,840,470,254 raw ($19,810.62); sum poolCash=2,887,152,706 raw.",
+    "affTONl get_vault_data: totalSupply 74,871,505,591,692,837; balance=0; cash=1e9; sum supplyAmount=859,782,865,580,261 raw (859,782.87 TON, $993,489.39); sum poolCash=1,013,553,943,523,014 raw.",
+    "Vault NAV/share: affUSDTl 4.3397e-7 USD per token; affTONl 0.011483 TON ($0.01327) per token; both supply supplies massively diluted.",
+    "DefiLlama TVL (2026-11-03) = $1,282,377.28; methodology = sum over 8 pools of supplied-borrowed, not vault NAV.",
+    "8 pools: 7 share code hash bdd88c0f8ef5e16935d205b99670c0793a40aa64c5726ce8ce748ff334b8b031 (incl. AdvancedPool 0:425d...); BasicPool 0:ab1071c6... has distinct hash 09ae23d1f65248e0b958186f2e4d6f4be9e2c81abce48eb3b2d680e1f596aaf0.",
+    "Vaults share code hash eb9d9891a32ec94425c09735f6ade73f4c171da0091f874d6e9d25247d583990; owner/manager are nonexist.",
+    "AdvancedPool assets are TON, USDT, tsTON, AffluentTON, stTON; vault shares are not collateral, and there is no DEX pair."
+  ],
+  "caveats": [
+    "Live emulation uses tonapi's hosted TVM (/v2/traces/emulate): execution, not replay/broadcast; a host-side emulator difference cannot be fully excluded. The saved 2026-10-16 trace and the independent 2026-10-18 large-holder burn corroborate.",
+    "The exact failing gate (idle `balance` vs aggregator state) is inferred from the vault storage layout and traces; the economic result (0 payout, 12/12) is measured.",
+    "P and S are mutually exclusive on the same $1,013,300.01: P is possible only if the owner/manager key is live and a withdrawal path exists; those accounts are currently `nonexist` and have never acted, so S is the observed state. Do not add P and S.",
+    "E-U-conditional ($1,013,300.01) requires (a) the vault idle balance to be re-funded or the burn->aggregator path restored, and (b) the attacker to mint enough shares to dilute existing holders (beneficiary holds 65.6% affUSDTl / 26.7% affTONl). Neither holds today.",
+    "TON priced at $1.155512 (DefiLlama, 2026-11-03 1793712089); USDT at $0.998495. Different prices change the USD NAV modestly.",
+    "The $1.34M CA2 figure was the 2026-11-02 DefiLlama snapshot; today's TVL is $1,282,377.28. The difference is price/other lenders, not vault NAV.",
+    "Report snapshot prices: TON $1.155512 / USDT $0.998495 (ts 1793712089), NAV $1,013,300.01. A repeat minutes later at TON $1.158156 gives $19,808.73 + $995,762.34 = $1,015,571.07 (ci-out/measurement.json); the ~0.2% difference is price, not position."
+  ],
+  "one_liner": "External unprivileged attacker can mint unlimited Affluent vault shares (re-confirmed live today from a fresh wallet) but cannot redeem them — 12/12 burns (incl. the exact 2026-10-16 attacker wallet) refund with no payout; $0.00 extractable today; CA2's $1.34M is DefiLlama pool TVL, not vault NAV; the $1.013M vault NAV is frozen (S/P)."
+}
