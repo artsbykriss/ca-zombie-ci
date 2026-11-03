@@ -1,0 +1,40 @@
+{
+  "subagent": "ca2-low-a",
+  "mission": "independently confirm or refute three CA2 LOW/$0 findings",
+  "date": "2026-11-03",
+  "chains": ["core", "ethereum"],
+  "snapshot_blocks": {"core": 40132817, "ethereum": 26334420},
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.0, "H-O": 0.0, "P": 334.43, "S": 0.0},
+  "e_u_conditional_usd": 343.06,
+  "targets": [
+    {
+      "id": "b14g",
+      "rating": "LOW confirmed",
+      "e_u_now": 0.0,
+      "e_u_conditional": 331.01,
+      "gate": "Marketplace/CoreVault/FairShare paused()=1; unpause owner-only (2-of-4 Safe)",
+      "confidence": "high"
+    },
+    {
+      "id": "vara-bridge",
+      "rating": "LOW confirmed",
+      "e_u_now": 0.0,
+      "e_u_conditional": 12.05,
+      "ceiling": 164.0,
+      "gate": "isChallengingRoot()=true until 2026-11-05 09:42:23Z; ERC20Manager holds $12.05",
+      "confidence": "high"
+    },
+    {
+      "id": "hifi",
+      "rating": "LOW confirmed",
+      "e_u_now": 0.0,
+      "e_u_conditional": 0.0,
+      "gate": "harvestIdle pays only attacker Safe; BalanceSheet empty; proposal 22 token-gated",
+      "confidence": "high"
+    }
+  ],
+  "ci": {"folder": "ca2-low-a", "workflow": "poc.yml", "run_urls": []},
+  "one_liner": "All three CA2 LOW findings confirmed: $0 externally extractable now; $343.06 conditional on temporary gates (b14g pause, Vara 2-day challenge), still far below $10k."
+}
