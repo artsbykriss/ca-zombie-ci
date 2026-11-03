@@ -1,0 +1,51 @@
+{
+  "finding": "CA2-Zodiac-Roles-Delay",
+  "title": "Zodiac Roles v2.1.0 / Delay v1.1.0 ERC-1271 revert-data bypass: authentication break is live, role scope blocks every drain",
+  "chains": ["ethereum", "polygon"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 2490292.75,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 26334854,
+  "block_numbers": {
+    "ethereum": 26334854,
+    "ethereum_fork_tests": 26334700
+  },
+  "targets_checked": 10048,
+  "live_targets": 2,
+  "closed_reasons": [
+    "After the forged signature passes moduleOnly, _authorize checks role.members[signer] and the role permission scope",
+    "Every value-moving probe on the two largest reachable instances reverts with ConditionViolation (transfer status 3/5, native status 2, approve status 5)",
+    "The largest nominal avatar ($2.97M USDC) has no enabled modules, so moduleOnly has no valid signer",
+    "The next-largest ($580k USDT) and $166k avatars have EOA modules; extcodesize(signer)==0 fails _isValidContractSignature",
+    "The Delay 1 ETH instance queues the forged tx, but the live queue is stuck at txNonce=9 behind a pre-existing MultiSend tx that reverts Safe GS104; setTxNonce is owner-only and can skip the attacker tx"
+  ],
+  "poc": {
+    "tests_passed": 8,
+    "tests_total": 8,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Roles v2.1.0 mastercopy 0x9646fDAD06d3e24444381f44362a3B0eB343D337: live verified source still discards staticcall success in _isValidContractSignature",
+    "Delay v1.1.0 mastercopy 0x01F8cabB808D7dE0dF4202D4B60C8310d2f1339b same defect",
+    "Independent enumeration: 9,912 Roles v2.1.0 and 136 Delay v1.1.0 proxies on Ethereum (factory logs 19M-28.2M)",
+    "Largest reachable instance: Roles 0x2b818761ebCf1CcA5e609cC71D8feCB658ADBa20, avatar 0x4971DD016127F390a3EF6b956Ff944d0E2e1e462, module Safe 0xf423f27FAe9dDd0ee0d50cbC11B94c99DcB347A9 (threshold 2), role MANAGER",
+    "Blocked value on that instance: $2,488,010.81 (631.86 wstETH + 2,974.25 GNO + 155.38 WETH + 20,592.67 USDC)",
+    "Forged 2-of-2 Safe signature passes authentication; wstETH/GNO/WETH/USDC transfer -> ConditionViolation(3,selector), native -> (2,0), approve -> (5,0)",
+    "Second instance 0xef66973E7590C49475DC3013fA6841D14659BA66, avatar 0x12BEEF35025841EFccb77D6EE40df86400Fdb4bB, role gg_payroll, 60,978.76 USDC: transfer -> ConditionViolation(5,0), approve -> (3,0x095ea7b3)",
+    "No-module counterexample: 0x1A8c53147E7b61C015159723408762fc60A34D17 holds 2,970,088.14 USDC but its Roles instance has getModulesPaginated == []",
+    "Delay 1 ETH: 0x0F1D8A73C02F2E44b17aF3e1ac389E7ce0a2E15B, avatar 0x36B42d0EE96d66928674E02B005dF2d8D75E68C5, cooldown 21,600 s; forged execTransactionFromModule queues but cannot execute (queue stuck behind GS104)"
+  ],
+  "caveats": [
+    "The permission sweep is a bounded sample (2 Roles instances x 6 shapes + 1 Delay), not the full 227/46 reachable set; CA2's 1,071-test sweep found 0 permissive.",
+    "Role scopes were tested by simulation, not decoded from packed scopeConfig; an allowlisted-recipient or delegatecall scope was not exhaustively searched.",
+    "Polygon proxies (CA2: 291 Roles + 23 Delay) were not re-enumerated or probed here.",
+    "Enumeration starts at block 19M; the 0-19M range was not re-scanned with the topic filter.",
+    "The Delay 1 ETH outcome is owner-dependent: setTxNonce can skip either the stuck txs or the attacker's tx."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: the ERC-1271 bypass is real and reproducible, but the role permission scope (and, for Delay, a stuck owner-controlled queue) blocks every drain; ~$2.49M is holder/role-gated, not E-U."
+}

@@ -1,0 +1,116 @@
+{
+ "enumeration": {
+  "factory": "0x000000000000aDdB49795b0f9bA5BC298cDda236",
+  "event": "ModuleProxyCreation(address,address)",
+  "window": "19000000-28200000",
+  "roles_v210": 9912,
+  "delay_v110": 136,
+  "roles_with_avatar": 6683,
+  "delay_with_avatar": 130
+ },
+ "reachable_sample": [
+  {
+   "name": "top_reachable",
+   "roles": "0x2b818761ebCf1CcA5e609cC71D8feCB658ADBa20",
+   "avatar": "0x4971DD016127F390a3EF6b956Ff944d0E2e1e462",
+   "module": "0xf423f27FAe9dDd0ee0d50cbC11B94c99DcB347A9",
+   "module_threshold": 2,
+   "module_handler": "0xf48f2b2d2a534e402487b3ee7c18c33aec0fe5e4",
+   "role": "MANAGER",
+   "assign_block": 20935124,
+   "balances": {
+    "wstETH": 631.862475538579,
+    "GNO": 2974.2454619612095,
+    "WETH": 155.37750641344292,
+    "USDC": 20592.673362
+   },
+   "usd": 2488010.81,
+   "probes": {
+    "wstETH_transfer": "ConditionViolation(3,0xa9059cbb)",
+    "GNO_transfer": "ConditionViolation(3,0xa9059cbb)",
+    "WETH_transfer": "ConditionViolation(3,0xa9059cbb)",
+    "USDC_transfer": "ConditionViolation(3,0xa9059cbb)",
+    "native": "ConditionViolation(2,0)",
+    "approve": "ConditionViolation(5,0)"
+   },
+   "auth_bypass": true,
+   "permissive": false
+  },
+  {
+   "name": "second_reachable",
+   "roles": "0xef66973E7590C49475DC3013fA6841D14659BA66",
+   "avatar": "0x12BEEF35025841EFccb77D6EE40df86400Fdb4bB",
+   "module": "0xce3FDCB7497928b82c3B5095B8714afE577070D6",
+   "module_threshold": 1,
+   "module_handler": "0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99",
+   "role": "gg_payroll",
+   "balances": {
+    "USDC": 60978.76
+   },
+   "probes": {
+    "USDC_transfer": "ConditionViolation(5,0)",
+    "approve": "ConditionViolation(3,0x095ea7b3)"
+   },
+   "auth_bypass": true,
+   "permissive": false
+  }
+ ],
+ "unreachable_counterexamples": [
+  {
+   "avatar": "0x1A8c53147E7b61C015159723408762fc60A34D17",
+   "roles": "0x3e6f23ad3a3c128e77e4826ee147d2ac09bd132c",
+   "value_usd": 2970088.14,
+   "why": "getModulesPaginated == []"
+  },
+  {
+   "avatar": "0x9325cC410A1E53bfC8AC85C3fb6E1E4226a4b3E0",
+   "roles": "0xd6f7430c6753823cc1dfdbe86d7dca94876fe628",
+   "value_usd": 580093.0,
+   "why": "module 0xbB91c81d is an EOA (no code)"
+  },
+  {
+   "avatar": "0xac75FC4A3F4539eBC8e68f36B13060d948f4fC99",
+   "roles": "0x1d05199db98ab70fcb5367fe6ce8f832534839a2",
+   "value_usd": 166546.85,
+   "why": "module 0xC99dBbc6 is an EOA"
+  }
+ ],
+ "delay": [
+  {
+   "delay": "0x0F1D8A73C02F2E44b17aF3e1ac389E7ce0a2E15B",
+   "avatar": "0x36B42d0EE96d66928674E02B005dF2d8D75E68C5",
+   "balance_eth": 1.0,
+   "cooldown": 21600,
+   "modules": [
+    "0x36B42d0EE96d66928674E02B005dF2d8D75E68C5"
+   ],
+   "auth_bypass": true,
+   "execute": "blocked: queue txNonce=9 behind pending MultiSend reverting GS104; owner setTxNonce can skip"
+  },
+  {
+   "delay": "0x6e51ab9147811f80e8b78cfcddf7cfa4ffb2702a",
+   "avatar": "0xb7A9B5f301eF3bAD36C2b4964E82931Dd7fb989C",
+   "balance_eth": 2.521398473848567,
+   "cooldown": 180,
+   "modules": [],
+   "exploitable": false
+  },
+  {
+   "delay": "0x6e92cd35c153439d3208c5a4caf96a5eb5fd04fc",
+   "avatar": "0x22568aA9E9afb689559883F38072b7753C75f3Df",
+   "balance_eth": 0.1,
+   "cooldown": 86400,
+   "modules": [
+    "0xFa398d672936Dcf428116F687244034961545D91",
+    "0x22568aA9E9afb689559883F38072b7753C75f3Df"
+   ],
+   "exploitable": false,
+   "why": "avatar handler=0; module 0xFa398d is a 23-byte non-Safe"
+  }
+ ],
+ "totals": {
+  "permissive_hits": 0,
+  "probes": 14,
+  "reachable_blocked_usd": 2490292.75
+ }
+}
