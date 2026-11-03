@@ -1,0 +1,57 @@
+{
+  "finding": "CA2-OPEN-R25",
+  "title": "R25 WrappedVault family (Pharos): $169.4M is manager-reported NAV, zero on-chain USDC",
+  "chains": ["pharos"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "E-U-conditional": 0, "H-O": 0, "P": 0, "S": 0},
+  "reported_nav_usd": 169413236.72,
+  "r25_only_nav_usd": 169314372.54,
+  "latest_block": 22019671,
+  "block_numbers": {"pharos": 22019671},
+  "targets_checked": 5,
+  "live_targets": 5,
+  "prior_closure": {
+    "source": "pass2-recon/README.md row R25",
+    "claim": "Manager-set NAV; 0 USDC held; role-gated updates",
+    "verdict": "correct on all three counts"
+  },
+  "contradiction_resolution": "ca2-recon summed totalAssets() (share supply x manager NAV / 1e13) and labelled it USDC held. balanceOf(vault) is 0 for all five vaults at blocks 19M, 20M, 21M, 22M and 22,019,671. The token is genuine Pharos USDC; nothing is held.",
+  "closed_reasons": [
+    "All five vaults hold 0 of asset 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 at every block checked (19,000,000 / 20,000,000 / 21,000,000 / 22,000,000 / 22,019,671).",
+    "totalAssets() = totalSupply() * latestNav() / 1e13; latestNav is written only by handleOracleReport(), gated to ORACLE_REPORTER_ROLE (single EOA 0xa33b05f6..., 1 report/day, +/-10% cap).",
+    "Claimed AUM $169,413,236.72 is 14.38x the entire Pharos USDC supply ($11,779,172.72 at the pinned block), so it cannot be on-chain USDC.",
+    "whitelistEnabled()=1 and isWhitelisted(attacker)=0; deposit/mint/requestRedeem/redeem/withdraw/handleOracleReport all revert from an unprivileged EOA.",
+    "requestRedeem enforces msg.sender == owner and cancelRedeemRequest enforces owner; attacker cannot claim the escrow's 86.35% of VRPCQ.",
+    "Swaper, withdraw queue, custodians, escrow and implementations hold 0 USDC; the shared escrow holds 1 wei of dust.",
+    "Swap.withdrawByAgent is role-gated: attacker revert selector 0xe2517d3f (OZ AccessControlUnauthorizedAccount); the vRPCQ vault address passes auth and fails later.",
+    "No funded external holder grants the swaper or queue an allowance; the only allowance to a vault is a shareholder's own 698,360.32 USDC deposit approval, not consumable by a third party."
+  ],
+  "poc": {
+    "tests_passed": 44,
+    "tests_total": 44,
+    "type": "read-only eth_call suite (Foundry blocked by Pharos eth_getProof)",
+    "path": "poc/r25_poc.py",
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Asset 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 is canonical Pharos USDC (6 dp, 25,004 holders, $0.999623, explorer centre.io/usdc).",
+    "vRPCQuarterlyVault 0x94f7...1a86: totalAssets 84,364,217.744009; USDC balance 0; totalSupply 78,978,788.304361; latestNav 10,681,883,016,348 (1.0681883016348); impl 0xE5D7...eD42 (unverified); admin 0xd83C...1b40.",
+    "vRPCWeeklyVault 0x1c2b...9268: totalAssets 2,085,032.211958; balance 0; totalSupply 2,033,015.901870; latestNav 10,255,857,861,422; impl 0x6360...3835.",
+    "vRPCSemiYearlyVault 0xee26...190b: totalAssets 10,019,986.322897; balance 0; totalSupply 9,448,908.252108; latestNav 10,604,385,242,773; vault self-holds 38.15% of shares.",
+    "apcVault 0xd042...908a (AxilPrimeCredit-3M / APC3M): totalAssets 72,845,136.263409; balance 0; share token 0xec47...44d0, 18 dp, supply 70,278,480.334; vault self-holds 66.49%.",
+    "hybVault 0x6ce4...075d (pNYLIM-HYB) is a Centrifuge-style wrapper for NYLIM US High Yield Bond Fund, NOT R25: totalAssets 98,864.18; balance 0; pricePerShare 0.992219; backingShares 99,580.105 but HYB.balanceOf(vault)=0.",
+    "vRPCQ holder set: escrow 0xf3503da2...411f 86.35%, EOA 0xffdea4...9521 8.06%, proxy 0x8ecdf4...ab9f 3.09%, EOA 0x40836f...9819 2.50%, dust 0.015; 5 holders / 88 transfers.",
+    "Oracle/controller EOA 0xa33b05f6...5860 submitted reportId 201 at 2026-11-03 07:00:00Z (previous 2026-11-02 07:00:00Z), NAV 1.0681883016348, maxFluctuationBps 1000.",
+    "vRPCQ custodian EOA 0xb4b6d9f8...826c has approved the swaper for 68,791,831.27 USDC but holds 0 (latent, not extractable today).",
+    "BlockSec audited R25 AsyncVault (2026-04-28): 6 low findings, 0 high/critical; deployed impl includes share()/getProxyImplementation and is a later build than the audited v1."
+  ],
+  "caveats": [
+    "The $169.4M is a manager-attested NAV on off-chain consumer-credit receivables; its existence is not verifiable from Pharos (issuer publishes periodic attestations in a public Drive folder).",
+    "hybVault ($98,864.18) is not R25; R25-only reported NAV is $169,314,372.54.",
+    "Pharos USDC supply moves materially between blocks (11.66M / 13.33M / 11.78M observed); the conclusion holds at every observed value.",
+    "Heimdall decompilation of the largest functions is partial; auth claims were confirmed by live eth_call error selectors rather than pseudo-Solidity alone.",
+    "E-U is $0 for today's state; a future funding of custodian 0xb4b6d9f8...826c or an upgrade is the watch condition."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live: the $169.4M is R25's manager-reported NAV (share supply x latestNav), all five vaults hold 0 USDC (entire Pharos USDC supply is $11.8M), and every value-moving entrypoint is whitelist/role-gated."
+}

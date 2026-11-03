@@ -1,0 +1,454 @@
+{
+ "generated_utc": "2026-11-03T14:26:14Z",
+ "read_only": true,
+ "rpc": "https://<pharos-public-rpc>",
+ "assertions": [
+  {
+   "name": "chain id is Pharos 1672",
+   "pass": true,
+   "detail": 1672
+  },
+  {
+   "name": "asset is 6-decimal USDC",
+   "pass": true,
+   "detail": {
+    "address": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+    "name": "USDC",
+    "symbol": "USDC",
+    "decimals": 6,
+    "totalSupply": 11779172720263,
+    "code_size": 1798,
+    "totalSupply_usd": 11779172.720263
+   }
+  },
+  {
+   "name": "vRPCQuarterlyVault: asset() == 0xC879..1815",
+   "pass": true,
+   "detail": "0xc879c018db60520f4355c26ed1a6d572cdac1815"
+  },
+  {
+   "name": "vRPCQuarterlyVault: USDC balanceOf(vault) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "vRPCQuarterlyVault: totalAssets() > 0 (manager NAV)",
+   "pass": true,
+   "detail": 84364217744009
+  },
+  {
+   "name": "vRPCQuarterlyVault: maxRedeem(attacker) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "vRPCWeeklyVault: asset() == 0xC879..1815",
+   "pass": true,
+   "detail": "0xc879c018db60520f4355c26ed1a6d572cdac1815"
+  },
+  {
+   "name": "vRPCWeeklyVault: USDC balanceOf(vault) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "vRPCWeeklyVault: totalAssets() > 0 (manager NAV)",
+   "pass": true,
+   "detail": 2085032211958
+  },
+  {
+   "name": "vRPCWeeklyVault: maxRedeem(attacker) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "vRPCSemiYearlyVault: asset() == 0xC879..1815",
+   "pass": true,
+   "detail": "0xc879c018db60520f4355c26ed1a6d572cdac1815"
+  },
+  {
+   "name": "vRPCSemiYearlyVault: USDC balanceOf(vault) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "vRPCSemiYearlyVault: totalAssets() > 0 (manager NAV)",
+   "pass": true,
+   "detail": 10019986322897
+  },
+  {
+   "name": "vRPCSemiYearlyVault: maxRedeem(attacker) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "apcVault: asset() == 0xC879..1815",
+   "pass": true,
+   "detail": "0xc879c018db60520f4355c26ed1a6d572cdac1815"
+  },
+  {
+   "name": "apcVault: USDC balanceOf(vault) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "apcVault: totalAssets() > 0 (manager NAV)",
+   "pass": true,
+   "detail": 72845136263409
+  },
+  {
+   "name": "apcVault: maxRedeem(attacker) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "hybVault: asset() == 0xC879..1815",
+   "pass": true,
+   "detail": "0xc879c018db60520f4355c26ed1a6d572cdac1815"
+  },
+  {
+   "name": "hybVault: USDC balanceOf(vault) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "hybVault: totalAssets() > 0 (manager NAV)",
+   "pass": true,
+   "detail": 98864180453
+  },
+  {
+   "name": "hybVault: maxRedeem(attacker) == 0",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "vRPCQ: totalAssets == totalSupply*latestNav/1e13",
+   "pass": true,
+   "detail": 84364217744009
+  },
+  {
+   "name": "claimed AUM > total Pharos USDC supply",
+   "pass": true,
+   "detail": {
+    "claimed_totalAssets_usd": 169413236.722726,
+    "usdc_totalSupply_usd": 11779172.720263,
+    "ratio": 14.3824
+   }
+  },
+  {
+   "name": "whitelist is enabled",
+   "pass": true,
+   "detail": 1
+  },
+  {
+   "name": "attacker not whitelisted",
+   "pass": true,
+   "detail": {
+    "attacker": 0,
+    "holder_0x40836f": 1,
+    "escrow": 1
+   }
+  },
+  {
+   "name": "unprivileged deposit(1e6,attacker) reverts",
+   "pass": true,
+   "detail": {
+    "reverted": true,
+    "result": null
+   }
+  },
+  {
+   "name": "unprivileged requestRedeem(1e6,att,att) reverts",
+   "pass": true,
+   "detail": {
+    "reverted": true,
+    "result": null
+   }
+  },
+  {
+   "name": "unprivileged redeem(1e6,att,att) reverts",
+   "pass": true,
+   "detail": {
+    "reverted": true,
+    "result": null
+   }
+  },
+  {
+   "name": "unprivileged withdraw(1e6,att,att) reverts",
+   "pass": true,
+   "detail": {
+    "reverted": true,
+    "result": null
+   }
+  },
+  {
+   "name": "unprivileged requestRedeem(1e6,att,holder) [owner != sender] reverts",
+   "pass": true,
+   "detail": {
+    "reverted": true,
+    "result": null
+   }
+  },
+  {
+   "name": "unprivileged cancelRedeemRequest(7) [not owner] reverts",
+   "pass": true,
+   "detail": {
+    "reverted": true,
+    "result": null
+   }
+  },
+  {
+   "name": "unprivileged handleOracleReport(from attacker) reverts",
+   "pass": true,
+   "detail": {
+    "reverted": true,
+    "result": null
+   }
+  },
+  {
+   "name": "attacker has 0 redeem requests",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "system address swaper holds 0 USDC",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "system address queue holds 0 USDC",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "escrow USDC is dust (<=1 wei)",
+   "pass": true,
+   "detail": 1
+  },
+  {
+   "name": "system address vRPCQ holds 0 USDC",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "system address vRPCW holds 0 USDC",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "system address vRPCS holds 0 USDC",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "liq_proxy_0x8ecdf4 grants no allowance to swaper",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "liq_proxy_0x8ecdf4 grants no allowance to queue",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "issuer_0x475a grants no allowance to swaper",
+   "pass": true,
+   "detail": 0
+  },
+  {
+   "name": "issuer_0x475a grants no allowance to queue",
+   "pass": true,
+   "detail": 0
+  }
+ ],
+ "checks": {
+  "asset_token": {
+   "address": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+   "name": "USDC",
+   "symbol": "USDC",
+   "decimals": 6,
+   "totalSupply": 11779172720263,
+   "code_size": 1798,
+   "totalSupply_usd": 11779172.720263
+  },
+  "vaults": {
+   "vRPCQuarterlyVault": {
+    "address": "0x94f7ebc6ae0819a4b4e231ae6ddaaf9bfd2a1a86",
+    "code_size": 1115,
+    "asset": "0xc879c018db60520f4355c26ed1a6d572cdac1815",
+    "totalAssets": 84364217744009,
+    "asset_balanceOf_vault": 0,
+    "totalSupply": 78978788304361,
+    "decimals": 6,
+    "latestNav": 10681883016348,
+    "paused": 0,
+    "maxRedeem_attacker": 0
+   },
+   "vRPCWeeklyVault": {
+    "address": "0x1c2bc8b553d9a7e61f7531a3a4bf2162f4569268",
+    "code_size": 1115,
+    "asset": "0xc879c018db60520f4355c26ed1a6d572cdac1815",
+    "totalAssets": 2085032211958,
+    "asset_balanceOf_vault": 0,
+    "totalSupply": 2033015901870,
+    "decimals": 6,
+    "latestNav": 10255857861422,
+    "paused": 0,
+    "maxRedeem_attacker": 0
+   },
+   "vRPCSemiYearlyVault": {
+    "address": "0xee26bb0989691735c997dfdc49a4a607f75e190b",
+    "code_size": 1115,
+    "asset": "0xc879c018db60520f4355c26ed1a6d572cdac1815",
+    "totalAssets": 10019986322897,
+    "asset_balanceOf_vault": 0,
+    "totalSupply": 9448908252108,
+    "decimals": 6,
+    "latestNav": 10604385242773,
+    "paused": 0,
+    "maxRedeem_attacker": 0
+   },
+   "apcVault": {
+    "address": "0xd0428799fbc35557834d33121ba4472692c8908a",
+    "code_size": 163,
+    "asset": "0xc879c018db60520f4355c26ed1a6d572cdac1815",
+    "totalAssets": 72845136263409,
+    "asset_balanceOf_vault": 0,
+    "totalSupply": null,
+    "decimals": null,
+    "latestNav": null,
+    "paused": 0,
+    "maxRedeem_attacker": 0
+   },
+   "hybVault": {
+    "address": "0x6Ce4bc043398Ac40392d1E063328048072b2075d",
+    "code_size": 109,
+    "asset": "0xc879c018db60520f4355c26ed1a6d572cdac1815",
+    "totalAssets": 98864180453,
+    "asset_balanceOf_vault": 0,
+    "totalSupply": 99639393178468357796718,
+    "decimals": 18,
+    "latestNav": null,
+    "paused": 0,
+    "maxRedeem_attacker": 0
+   }
+  },
+  "vRPCQ_nav_identity": {
+   "totalSupply": 78978788304361,
+   "latestNav": 10681883016348,
+   "totalSupply_x_nav_div_1e13": 84364217744009,
+   "totalAssets": 84364217744009,
+   "matches": true
+  },
+  "claimed_vs_token_supply": {
+   "claimed_totalAssets_usd": 169413236.722726,
+   "usdc_totalSupply_usd": 11779172.720263,
+   "ratio": 14.3824
+  },
+  "vRPCQ_whitelist": "0x1f971696876f12710e99a4c91349b4c6e8d8d57d",
+  "whitelistEnabled": 1,
+  "isWhitelisted": {
+   "attacker": 0,
+   "holder_0x40836f": 1,
+   "escrow": 1
+  },
+  "unprivileged_probes": {
+   "deposit(1e6,attacker)": {
+    "reverted": true,
+    "result": null
+   },
+   "requestRedeem(1e6,att,att)": {
+    "reverted": true,
+    "result": null
+   },
+   "redeem(1e6,att,att)": {
+    "reverted": true,
+    "result": null
+   },
+   "withdraw(1e6,att,att)": {
+    "reverted": true,
+    "result": null
+   },
+   "requestRedeem(1e6,att,holder) [owner != sender]": {
+    "reverted": true,
+    "result": null
+   },
+   "cancelRedeemRequest(7) [not owner]": {
+    "reverted": true,
+    "result": null
+   },
+   "handleOracleReport(from attacker)": {
+    "reverted": true,
+    "result": null
+   }
+  },
+  "getRedeemRequestCount_attacker": 0,
+  "custodians": {
+   "vRPCQ_custodian": {
+    "code_size": 0,
+    "usdc": 0,
+    "allowance_to_swaper": 68791831271286
+   },
+   "vRPCW_custodian": {
+    "code_size": 0,
+    "usdc": 0,
+    "allowance_to_swaper": 0
+   },
+   "vRPCS_custodian": {
+    "code_size": 0,
+    "usdc": 0,
+    "allowance_to_swaper": 0
+   }
+  },
+  "system_balances": {
+   "swaper": {
+    "usdc": 0
+   },
+   "queue": {
+    "usdc": 0
+   },
+   "escrow": {
+    "usdc": 1
+   },
+   "vRPCQ": {
+    "usdc": 0
+   },
+   "vRPCW": {
+    "usdc": 0
+   },
+   "vRPCS": {
+    "usdc": 0
+   }
+  },
+  "external_holder_allowances": {
+   "liq_proxy_0x8ecdf4": {
+    "usdc": 1016065346766,
+    "allow_swaper": 0,
+    "allow_queue": 0
+   },
+   "eoa_0x40836f": {
+    "usdc": 296756625009,
+    "allow_swaper": 0,
+    "allow_queue": 0,
+    "allow_vRPCQ": 698360320000
+   },
+   "issuer_0x475a": {
+    "usdc": 230947781929,
+    "allow_swaper": 0,
+    "allow_queue": 0
+   }
+  },
+  "oracle_reporter_eoa": "0xa33b05f68a51c67ec24c08c42f2cbeef05df5860",
+  "oracle_report_cadence_seconds": 86400,
+  "oracle_max_fluctuation_bps": 1000
+ },
+ "chain_id": 1672,
+ "block": 22019671,
+ "measured_totalAssets_usd": 169413236.722726,
+ "passed": true,
+ "assertions_summary": {
+  "total": 44,
+  "passed": 44,
+  "failed": []
+ }
+}
