@@ -1,0 +1,52 @@
+{
+  "finding": "CA2-SecuredFinance-recheck",
+  "title": "Secured Finance in-block price-ratio collateral inflation is net-negative (min-debt floor x 125% threshold)",
+  "chains": [
+    "ethereum"
+  ],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 26334697,
+  "block_numbers": {
+    "ethereum": 26334697
+  },
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "Required collateral is 1.25 x max(orderPrice, currentMinDebtUnitPrice) per unit of future value; a claim is worth at most par, so breakeven needs the effective price < 8000.",
+    "Best TRADEABLE book today is USDC maturity 1853798400: minBorrow 8075, M(now) 8267 -> required 1.0334 x FV -> -3.337%.",
+    "Fork test: a resting borrow of FV 19,000 USDC requires 19,634.125 USDC of collateral; 1 wei less reverts NotEnoughCollateral(); edge = -635.1 USDC.",
+    "The prior '2.4% short' figure belongs to USDC maturity 1861660800, which is not tradeable (isReady=false, MarketNotOpened).",
+    "Live floors: USDC 8900, WBTC 9300, ETH 9100, JPYC 9100; USDT/DAI/FIL/USDFC/iFIL/wFIL have no lending market."
+  ],
+  "poc": {
+    "tests_passed": 2,
+    "tests_total": 2,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "Controller proxy 0x35e9D8e0223A75E51a67aa731127C91Ea0779Fe2 impl 0x558084fFf061196EC4b2a9100c0f6e3fc47B202f (unchanged since block 26,251,756); TokenVault 0xB74749b2213916b1dA3b869E41c7c57f1db69393 impl 0x9a1dc892f4ff89ad7332f62b500fc9ad17d792a3",
+    "TokenVault: 0.82183653 WBTC + 19,063.87754 USDC + 4.9035631596646905 WETH = $112,417.30 at block 26,334,697 (WBTC $99,921.967, ETH $2,290.97, Chainlink)",
+    "Balances identical to the pass6 read of 2026-10-23 (no deposits/withdrawals since)",
+    "USDC book 1853798400: minBorrow 8075, M(now) 8267, mup 9075 -> effective price 8267 -> -3.337%",
+    "USDC book 1861660800: M 8092, minBorrow 8191 -> -2.39% but isReady()=false (not tradeable)",
+    "WBTC best tradeable -12.9% (M 9029), ETH -8.1% (M 8648), JPYC -19.1% (M 9530)",
+    "getMinDebtUnitPriceAt = 9600 - (9600-configured)*(maturity-now)/1yr; breakeven M<8000 requires T>2.286y (maturity after ~2029-02-13) or configured USDC floor <8840",
+    "Max theoretical loss on the whole USDC leg = $636.26 (attacker needs ~$35k of capital)",
+    "pass6's FV-mint engine (cleanUpOrders) remains fixed; this re-check covers the separate collateral-inflation vector",
+    "CurrencyController.getHaircut(USDC) = 0, so an unallocated claim is not counted as collateral in the solvency path; the benefit is strictly below FV, making the loss >= 3.34%"
+  ],
+  "caveats": [
+    "The -3.34% figure is the most generous bound (claim valued 1:1); with getHaircut(USDC)=0 the unallocated claim contributes no collateral, so the true edge is more negative.",
+    "The up-ratchet cost from mup 9075 to 10000 is taken from prior fork work (~9 blocks, ~$100 notional/step), not re-measured here.",
+    "getCurrentMinDebtUnitPrice depends on block.timestamp and drifts ~+0.0002%/day toward safety as maturities approach.",
+    "minDebtUnitPrice is owner-settable (owner 0xccAC3163E54847ae04f192a20DCf2E902C660312), so the re-arm condition is partly privileged."
+  ],
+  "one_liner": "Secured Finance's in-block price-ratio collateral inflation is still live in code but loses 3.34% on the best tradeable book (max loss $636 on the USDC leg); external unprivileged extraction is $0 today and needs a book maturing after ~2029-02 or a lower owner-set floor to re-arm."
+}
