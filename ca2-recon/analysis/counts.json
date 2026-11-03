@@ -1,0 +1,102 @@
+{
+ "enumerated": 198,
+ "by_source": {
+  "README": 39,
+  "AGENT": 159
+ },
+ "by_ca2_rating": {
+  "CRITICAL": 3,
+  "HIGH": 6,
+  "LATENT HIGH": 5,
+  "LOW": 92,
+  "REJECTED": 89,
+  "HIGH -> LOW": 1,
+  "HIGH STATE": 1,
+  "UNASSESSED": 1
+ },
+ "by_disposition": {
+  "PRIOR-COVERED": 60,
+  "PRIOR-PARTIAL": 10,
+  "README-HIGH": 2,
+  "README-LOW": 5,
+  "NOT-A-PROTOCOL": 11,
+  "AGENT-ONLY-LEAD": 101,
+  "OPEN": 9
+ },
+ "prior_covered_rows": 70,
+ "open_count": 9,
+ "open": [
+  {
+   "id": 58,
+   "name": "Wanchain Cardano<->BNB bridge non-injective message encoding",
+   "chain": "Cardano",
+   "funds": "218,156 ADA treasury + tokens; script 8c027908260ebc29410ce4fffe788da510e4d7fd67f4b39d3c77db5e; treasury 1cfb41dc...5234; replacement logic unverified",
+   "confidence": "low",
+   "basis": "Only unresolved Cardano lead; see OPEN"
+  },
+  {
+   "id": 75,
+   "name": "Stellar DeFi Hub vaults incl. Evergreen share vault",
+   "chain": "Stellar",
+   "funds": "$113.84M protocol TVL; Evergreen CALFCZ4TY2CLHDHNJWCZX6JKYGUPV7P3GNQ3UVABXNE5JCV2E774APUM unverified",
+   "confidence": "low",
+   "basis": "Verified XLM/USDC vaults clean; Evergreen (created 2026-10-02) unassessed; see OPEN"
+  },
+  {
+   "id": 76,
+   "name": "SunSwap V4 PoolManager singleton",
+   "chain": "Tron",
+   "funds": "$134.70M TVL; PoolManager TVjuTE3V5bMVdpfNhid8kD2v35T2k1u1Br (57,582 B, unverified)",
+   "confidence": "low",
+   "basis": "Source unpublished; hooks supported; no identified vector; see OPEN"
+  },
+  {
+   "id": 80,
+   "name": "Gambit Vault USDG redemption accounting",
+   "chain": "BSC",
+   "funds": "Vault 0xc73A8DcA...Ff67B ~$228k; $99k liquid; $75.4k at-face capacity",
+   "confidence": "medium",
+   "basis": "Real unprivileged defect; only blocker is acquiring USDG (no DEX pair); see OPEN"
+  },
+  {
+   "id": 82,
+   "name": "ApolloX EIP-2535 diamond",
+   "chain": "BSC",
+   "funds": "Diamond 0x1b6F2d38...FEb0: 123,423 USDT + 0.53 BNB; $70.5M protocol-reported",
+   "confidence": "low",
+   "basis": "29 facets unreviewed; see OPEN"
+  },
+  {
+   "id": 114,
+   "name": "CherryPool withdrawTronAll()",
+   "chain": "Tron",
+   "funds": "TQxzSmRaCf1qrWdP6sfCihmrdXLNs8r4RR: 916,374.11 TRX (~$292k)",
+   "confidence": "low",
+   "basis": "Unverified; arbitrary-caller call executes but pays 0; see OPEN"
+  },
+  {
+   "id": 115,
+   "name": "PokerGame withdraw()",
+   "chain": "Tron",
+   "funds": "TAcszQSbMybSkhfy4nQrAptmACRTDcYUgn: 1,040,716.80 TRX (~$332k)",
+   "confidence": "low",
+   "basis": "604-energy early return for non-user; see OPEN"
+  },
+  {
+   "id": 116,
+   "name": "FireFullContract withdraw()/activateSuperPlayer()",
+   "chain": "Tron",
+   "funds": "TFxznGmEVdp5XxnQnyGp2FhFfBkMAprveW: 1,421,724.92 TRX (~$453k)",
+   "confidence": "low",
+   "basis": "7,345-energy call executes; no value for caller; see OPEN"
+  },
+  {
+   "id": 139,
+   "name": "R25 WrappedVault family",
+   "chain": "Pharos",
+   "funds": "$169.4M measured across 5 vaults: 0x94f7.../0x1c2b.../0xee26.../0xd042.../0x6Ce4... (2026-11-03)",
+   "confidence": "low",
+   "basis": "Prior LANE-CLOSED said 0 USDC - contradicted; unverified async vault; see OPEN"
+  }
+ ]
+}
