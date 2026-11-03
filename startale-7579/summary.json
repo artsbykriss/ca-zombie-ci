@@ -1,0 +1,37 @@
+{
+  "finding": "CA2-Startale-7579",
+  "title": "Startale ERC-7579 smart accounts: re-callable initializeAccount via EIP-1153 transient flag",
+  "chains": ["ethereum"],
+  "headline_extractable_usd": 0.00,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0.00, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 26334697,
+  "block_numbers": {"ethereum": 26334697},
+  "targets_checked": 2,
+  "live_targets": 2,
+  "closed_reasons": [
+    "Bug is live and unpatched (impl 0x000000b8f5...E05A byte-identical to the 2026-09-16 exploited build; fork PoC 3/3 sweeps a pre-funded account in the deployment tx).",
+    "The only value reachable is the pre-funding of a not-yet-deployed counterfactual account; measured across all 434 deployments in the last 200,000 blocks: 0.06250548 ETH total (50 accounts, max 0.002 ETH) + 11.951842 USDC (1 account) = $155.15 gross over 27.8 days.",
+    "Per-event maximum is $4.58, versus ~$0.15 gas, so steady-state net E-U is ~$0; the September $2,876 was a one-off distribution to ~330 pre-funded accounts.",
+    "A previously-deployed account cannot be re-initialized (transient flag is tx-scoped): live account reverts NotInitializable()."
+  ],
+  "poc": {"tests_passed": 3, "tests_total": 3, "ci_run_urls": []},
+  "key_facts": [
+    "impl 0x000000b8f5f723A680d3D7EE624Fe0bC84a6E05A runtime keccak 0x90713de607e95b2df2bdff40300cceb99b996db7a9b96675429a7bb15750ca67, identical at block 25,986,306 (2026-09-16) and at head",
+    "factory 0x0000003B3E7b530b4f981aE80d9350392Defef90 keccak 0x380e804ea7bd2dddac7e063329cab4ddaafd7ccc73441e369dbc8218f85b4797; ACCOUNT_IMPLEMENTATION() == impl",
+    "initializeAccount(bytes) selector 0x4b6a1419; TSTORE/TLOAD present; no isInitialized/owner guard",
+    "434 AccountCreated events in blocks 26,134,433-26,334,433; 11 in the last 14,400 blocks (~5.7/day)",
+    "pre-funding at creationBlock-1: 50/434 accounts, 0.06250548 ETH total, 0.002 ETH max ($4.58)",
+    "USDC/USDT pre-funding at block-1: 0/434; any-token pre-funding: 1/434 = 11.951842 USDC held pre-deployment for ~10 months",
+    "13 accounts still hold 0.01495295 ETH ($34.26); all isInitialized() == true",
+    "ETH/USD $2,290.97 (Chainlink 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419 at head)",
+    "startale-earn/ is Startale Earn, a different contract, and was not touched"
+  ],
+  "caveats": [
+    "The public mempool cannot be enumerated from a standard RPC, so 'pending' value is bounded by the measured 200k-block flow rather than observed directly.",
+    "The historical $2,876 (330 accounts, USDC+USDT) is corroborated by DefiLlama and ExVul but the victim set was not independently enumerated on-chain.",
+    "The recent cohort is dominated by what appears to be protocol load-testing (0.01 USDC round-trips), so the real-user deployment rate may be lower than 5.7/day.",
+    "The attack requires winning the deployment race or acting as the bundler; capture rate is unmeasurable."
+  ],
+  "one_liner": "Live unpatched ERC-7579 re-initialization (fork-proven) but the only reachable value is pre-funding of pending counterfactual accounts: $155.15 gross over 27.8 days, $4.58 max per event, so external unprivileged net extraction is ~$0 today."
+}
