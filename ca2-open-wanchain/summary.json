@@ -1,0 +1,87 @@
+{
+  "finding": "CA2-OPEN-7",
+  "title": "Wanchain Cardano<->BNB bridge TreasuryCheck non-injective signed-message encoding",
+  "chains": [
+    "cardano"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 545762.96,
+    "S": 0
+  },
+  "latest_block": 14152985,
+  "block_numbers": {
+    "cardano": 14152985
+  },
+  "targets_checked": 8,
+  "live_targets": 8,
+  "closed_reasons": [
+    "Replacement Plutus V3 check script 8c027908... builds the signed digest as sha3_256(serialiseData(ConstrData ...)) and contains zero AppendByteString builtins; canonical CBOR is injective",
+    "Storeman GPK rotated in the reference GroupInfo (0335664e... at exploit -> 022af717... now); the real exploit signature verifies only under the old key",
+    "GroupInfo reference input is authenticated by the GroupInfoTokenCoin NFT (policy 1ddf09a9..., a script parameter), so a forged GroupInfo cannot substitute an attacker key",
+    "Every TCheckCoin (supply 63) sits at a check-script address; the treasury value validator requires exactly one TCheckCoin across inputs",
+    "No legacy-format (raw-concat) signature under the current GPK exists; the old V2 path has been dormant since block 13,703,937 (2026-07-21)"
+  ],
+  "poc": {
+    "tests_passed": 7,
+    "tests_total": 7,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41659282008"
+    ]
+  },
+  "key_facts": [
+    "Treasury addr1xyw0ksw... holds 218,156.077399 ADA + 11,837,345.212388 NIGHT + 30 CNTs in 306 UTxOs (block 14,152,985)",
+    "USD at 2026-11-03: ADA $0.190144, NIGHT $0.04238435 -> ADA $41,415.84 + NIGHT $500,234.96 = $541,650.80",
+    "Treasury last moved block 14,048,512 / 2026-10-10 02:41:36 UTC; 14 withdrawals that day all used the new V3 script",
+    "The real exploit redeemer signature 322c4b49... verifies against sha3_256(170-byte raw concatenation) under GPK 0335664e... and fails under the rotated GPK 022af717...",
+    "Collision reproduced: amount/adaAmount (203001692164714,16) and (3097560000,1206800) both encode to the boundary bytes b8a103c0126a10; the V3 serialiseData digests differ",
+    "Exploited V2 script 485aa10343...: 15,989 B, AppendByteString=1, SerialiseData=1, Sha3_256=1; it does NOT self-bind to GroupInfo[TreasuryCheckVH]",
+    "Replacement V3 script 8c027908...: 6,501 B, AppendByteString=0, SerialiseData>=1, Sha3_256=1; parameterised with GroupInfo NFT 1ddf09a9..., Admin NFT 53cc8f42..., TCheckCoin 526d2460..., treasury 1cfb41dc...",
+    "Treasury value validator 1cfb41dc... source check is only: exactly one TCheckCoin across all inputs (traceIfFalse \"hat\")",
+    "TCheckCoin supply 63 across 6 script addresses: 14 at the exploited script 485aa1, 14 at the replacement 8c02, 35 at four older versions",
+    "Exploit tx 0a4861be... (block 13,702,781) moved 203,001,692.164714 NIGHT; four abnormal withdrawals totalled 515,206,545.426856 NIGHT"
+  ],
+  "caveats": [
+    "No Cardano node / Plutus CEK evaluator was available; no transaction was simulated on-chain",
+    "The V3 digest of the 2026-10-10 withdrawals was not reproduced byte-for-byte; the verdict rests on the builtin inventory (no AppendByteString) and the parameter/NFT construction",
+    "The V2 Haskell source is a recovered candidate from the DarkNavy artifact; it matches the deployed bytecode inventory and its reconstructed digest verifies the real on-chain signature",
+    "LATENT: the superseded V2 scripts are not self-disabling (they read the current GroupInfo and do not check their own hash). A single legacy-format signature under the current GPK would drain the treasury via the 14 stale TCheckCoin UTxOs at 485aa1. The public SDK (last commit 2026-05-28) still computes the legacy digest.",
+    "USD uses CoinGecko 2026-11-03; CNTs other than NIGHT are unpriced",
+    "P = $541,650.80 reflects storeman-threshold control of the treasury, not unprivileged extraction",
+    "Trigger resolved (TRIGGER-ANALYSIS.md): 24/24 storeman-signed Cardano txs since the GPK rotation are V3 serialiseData, 0 legacy, and 0 spends on the exploited V2 script; the legacy-signature trigger is not user-inducible (verdict b)."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 today: the replacement V3 check script uses sha3(serialiseData), the key was rotated, and 24/24 post-rotation signatures are V3 with zero legacy-format signatures \u2014 the $542k legacy-signature trigger requires a signer-side regression (verdict b), not a user action.",
+  "trigger_analysis": {
+    "rotation_block": 14044468,
+    "rotation_time_utc": "2026-10-09T04:00:38Z",
+    "post_rotation_signatures": {
+      "treasury_check": 22,
+      "mint_check": 2,
+      "legacy_encoding": 0
+    },
+    "validators": {
+      "8c027908": "V3 serialiseData",
+      "4730b708": "V3 serialiseData",
+      "485aa1": "0 spends"
+    },
+    "signer_format": "V3 serialiseData (52/52 since the V3 migration)",
+    "user_inducible": false,
+    "verdict": "b",
+    "verdict_text": "only reachable via storeman/signing-flow mistake (legacy-format signature); not attacker-inducible",
+    "conditional_usd": 501725.0,
+    "ttl_window_seconds": 540,
+    "doc": "TRIGGER-ANALYSIS.md",
+    "conditional_note": "one leaked legacy signature drains the signed asset's entire treasury balance (NIGHT ~$502k); full ~$545.8k needs signatures for other assets",
+    "v3_migration_block": 13997675,
+    "v3_migration_time_utc": "2026-09-28T04:27:24Z",
+    "since_v3_migration_signatures": {
+      "treasury_check": 49,
+      "mint_check": 3,
+      "legacy_encoding": 0
+    },
+    "interim_gpk": "03486efc...aca8 (blocks 13,997,675 - 14,044,468)"
+  }
+}
