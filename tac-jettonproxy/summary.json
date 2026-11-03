@@ -1,0 +1,55 @@
+{
+  "finding": "CA2-TAC-JettonProxy",
+  "title": "TAC JettonProxy unauthenticated transfer_notification relay is inert; release is CCL/operator-gated and the EVM mint is a 1-of-1 sequencer root",
+  "chains": [
+    "ton",
+    "tac"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 624189.97,
+    "S": 0
+  },
+  "latest_block": 28090507,
+  "block_numbers": {
+    "tac": 28090507,
+    "ton_masterchain_seqno": 103094155
+  },
+  "targets_checked": 4,
+  "live_targets": 1,
+  "closed_reasons": [
+    "TON release requires msg.sender == CCL (SDEQ/THROWIFNOT 70 in both 0xae7df95b and 0x7817b330 handlers)",
+    "CCL TON release batch is signed by an operator pubkey (CHKSIGNU against GETGLOB 4) and checked against a signed-message dictionary (THROWIFNOT 201)",
+    "EVM receiveMessage mints only after Consensus.checkMerkleRoot(root); forged call reverts InvalidMerkleProof (0xb05e92fa)",
+    "Consensus is 1-of-1 (single EOA voter 0x8f1B53B1Bf9b24BAa2054Bd2d8C0b7923ABff9df), not an externally satisfiable quorum",
+    "The only unverified control is the off-chain sequencer jetton-wallet filter, which the TAC post-mortem says was fixed"
+  ],
+  "poc": {
+    "tests_passed": 9,
+    "tests_total": 9,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41653084535"
+    ]
+  },
+  "key_facts": [
+    "JettonProxy code hash A808C9F031379C60BF9604376EC5C52609B08536B1F3A366EFAC86BE25594EDB (unchanged)",
+    "JettonProxy holds 553,035.155657 USDT (wallet 0:ab2d4b7c1c11305197fff4ccbfdd855f737c1cd5d58f1f4cf28b0f37d957e372), 74,263,651.686793 BLUM, 2,780.212482 tsTON; liquid USD 624,189.97",
+    "0x7362d09c relay branch has no SDEQ; it only queues a deposit to the CCL",
+    "Both proxy release branches (0xae7df95b, 0x7817b330) require sender == CCL; last 200 txs show 82 inbound 0x7817b330 all from CCL",
+    "CCL TON code hash B83804BBE2408DF8136DA74DD40BFCC5F5A85814D753A9814563108E4134E988; external op 0x4b19e42a is CHKSIGNU-gated by pubkey b76b6f56...",
+    "CCL EVM proxy 0x9fee01e948353E0897968A3ea955815aaA49f58d -> impl 0x01BC6bbf156436F09E07ab0392332f6d2636026d; receiveMessage reverts InvalidMerkleProof for a forged message",
+    "Consensus proxy 0xae635de674cfe4afd179cde441abbe6504a20a98: totalVoters=1, totalGroups=1, inGroupVotersNum(TacGroup)=1",
+    "Current root 0x75708b8f99b1e360101691d53e9d103bc91fa14f100a694f464fa41246d5d24f valid at 1,793,715,832 (measurement 1,793,715,249)",
+    "Single voter is an EOA (code 0x, nonce 44,571), not an on-chain quorum"
+  ],
+  "caveats": [
+    "The deployed sequencer binary is not public; the post-fix jetton-wallet check (code hash + minter) was not inspected. A code-hash+minter-only check would leave a theoretical non-canonical-address bypass.",
+    "The single voter EOA is a key-compromise risk (P), not an external unprivileged path.",
+    "No TVM emulation was run; conclusions rest on live code disassembly, real traces, and the verified EVM source/state.",
+    "TON balances/activity move; the quoted amounts are a snapshot at lt 114240958000060."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: the TON relay is real but the release is CCL/operator-signed and the EVM mint needs a Merkle root from a 1-of-1 sequencer EOA; ~$624k is P/conditional, not E-U."
+}
