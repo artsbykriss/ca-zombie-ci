@@ -1,0 +1,68 @@
+[
+ {
+  "case": "transfer victim shares",
+  "fn": "transfer",
+  "args": "<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=10, i128=<Int128Parts [hi=<",
+  "record_error": null,
+  "required_auth": [
+   "err:'str' object has no attribute 'credentials'"
+  ],
+  "enforce_error": "HostError: Error(Auth, InvalidAction)"
+ },
+ {
+  "case": "approve victim shares",
+  "fn": "approve",
+  "args": "<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=10, i128=<Int128Parts [hi=<;<SCVal [type=3, u32=<Uint32 [uint32=1000",
+  "record_error": "HostError: Error(Contract, #102)",
+  "required_auth": [],
+  "enforce_error": "HostError: Error(Auth, InvalidAction)"
+ },
+ {
+  "case": "withdraw victim shares",
+  "fn": "withdraw",
+  "args": "<SCVal [type=10, i128=<Int128Parts [hi=<;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ",
+  "record_error": "HostError: Error(Contract, #101)",
+  "required_auth": [],
+  "enforce_error": "HostError: Error(Auth, InvalidAction)"
+ },
+ {
+  "case": "redeem victim shares",
+  "fn": "redeem",
+  "args": "<SCVal [type=10, i128=<Int128Parts [hi=<;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ",
+  "record_error": "HostError: Error(Contract, #101)",
+  "required_auth": [],
+  "enforce_error": "HostError: Error(Auth, InvalidAction)"
+ },
+ {
+  "case": "deposit self",
+  "fn": "deposit",
+  "args": "<SCVal [type=10, i128=<Int128Parts [hi=<;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ",
+  "record_error": "HostError: Error(Contract, #10)",
+  "required_auth": [],
+  "enforce_error": "HostError: Error(Auth, InvalidAction)"
+ },
+ {
+  "case": "deposit pulling victim",
+  "fn": "deposit",
+  "args": "<SCVal [type=10, i128=<Int128Parts [hi=<;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ",
+  "record_error": "HostError: Error(Contract, #9)",
+  "required_auth": [],
+  "enforce_error": "HostError: Error(Auth, InvalidAction)"
+ },
+ {
+  "case": "mint self",
+  "fn": "mint",
+  "args": "<SCVal [type=10, i128=<Int128Parts [hi=<;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ;<SCVal [type=18, address=<SCAddress [typ",
+  "record_error": "HostError: Error(Contract, #10)",
+  "required_auth": [],
+  "enforce_error": "HostError: Error(Auth, InvalidAction)"
+ },
+ {
+  "case": "upgrade attacker",
+  "fn": "upgrade",
+  "args": "<SCVal [type=13, bytes=<SCBytes [sc_byte;<SCVal [type=18, address=<SCAddress [typ",
+  "record_error": "HostError: Error(Contract, #1)",
+  "required_auth": [],
+  "enforce_error": "HostError: Error(Auth, InvalidAction)"
+ }
+]

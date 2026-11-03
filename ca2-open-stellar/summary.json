@@ -1,0 +1,63 @@
+{
+  "finding": "CA2-OPEN-4",
+  "title": "Stellar DeFi Hub \"Evergreen\" share vault \u2014 upstream build verified, E-U $0, operator-only NAV drain (P)",
+  "chains": [
+    "stellar"
+  ],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "E-U-conditional": 0.0,
+    "H-O": 0.0,
+    "P": 33752730.95,
+    "S": 0.0
+  },
+  "latest_block": 65285946,
+  "block_numbers": {
+    "stellar": 65285946
+  },
+  "latest_ledger": 65285946,
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "On-chain WASM 3bd05dfa2bf65299d359e86a4672a45900e8c5768d9f056ad8da5ccd779bcd12 (92,025 B) rebuilt in CI from upshift-protocol/stellar-upshift-vault-contracts@v0.1.0 with Rust 1.95.0 / wasm32v1-none / Stellar CLI 25.1.0: byte-identical (sha256 match, cmp identical).",
+    "The contract is not a fork of Into-The-Block-Corp/StellarVaults@c29a8bf; that repo is a different 6-function deposit-record vault (wasm ca6b85a1...) used by the sibling XLM/USDC vaults.",
+    "All value-moving E-U paths are gated: deposit/mint pull only the caller's own USDC; withdraw/redeem need a share allowance when operator != owner (InsufficientAllowance #101); transfer/approve require the holder's signature; admin/operator functions return Unauthorized #1; __constructor cannot be re-invoked.",
+    "No stuck value: the holder of 99.93984% of shares can redeem its entire balance (max_redeem = its full share balance; preview_redeem = 33,732,426.52 USDC)."
+  ],
+  "poc": {
+    "tests_passed": 24,
+    "tests_total": 24,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41653556303",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41651776449"
+    ],
+    "build_reproduced_byte_identical": true,
+    "simulations_executed": 24,
+    "operator_path_simulations": 3,
+    "ci_conclusion": "success",
+    "ci_artifact_id": "13237857162"
+  },
+  "key_facts": [
+    "Isolated TVL = 337,527,309,523,545 raw USDC = 33,752,730.9523545 USDC = $33,752,730.95 at $1.00 face; total_assets() == USDC SAC balance exactly; deployed_assets = 0; 0 strategy balances.",
+    "Share token: Sentora USDC / sentUSDC, 13 decimals, virtual offset 6; total supply 32,858,890.61645402 shares; share price 1.027202389 USDC.",
+    "Instance storage (last modified ledger 65,267,505): Admin GCE5LGZ6ADXMKHD6FRYLBRNOBUY4LAZFXJACFSBBN6AOSFFTRJPJZWFH (single EOA, thresholds 1/0/0/0), Operator GABFK2HTLWNOZDR7EHA2EB4AGYHRC6SWMAORUE64DWUNIVZVCMYEYFH2 (single EOA), Asset CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75 (USDC SAC).",
+    "Subaccounts: one Wallet GDLVR5MPWXWQNN5TSHIYZ3EVI47YVJ7JOEGODGU54USF24VNBNJ32XJQ holding 328,391,238,819,789,961,958 raw shares (99.93984% of supply); its allowance to attacker/operator/vault is 0.",
+    "24 record-mode simulateTransaction probes: attacker withdraw/redeem of the wallet's shares -> Contract #101 InsufficientAllowance; deposit pulling the wallet's USDC -> USDC SAC #9 not enough allowance; transfer/approve of wallet shares -> recorded auth is the wallet address; upgrade/pause/set_operator/propose_admin/update_deployed_assets/deposit_to_subaccount/withdraw_from_subaccount/add_subaccount/remove_subaccount/set_aum_limits/seed_wallet_net_deployed/remove_wallet_and_reconcile -> Contract #1 Unauthorized; accept_admin -> #14 NoPendingAdmin; __constructor -> reserved function.",
+    "P path: update_deployed_assets is operator-only and the AUM rate limit is skipped when the previous deployed_assets is 0 (live value 0). Simulations as operator accepted N=1, N=1e17 and the exact fake NAV 11,392,468,804,947,658,614,539. Exact-integer model: deposit $1, set that NAV, redeem all shares -> payout 33,752,731.95 USDC, profit 33,752,730.95 USDC (entire vault).",
+    "Self-referential deposit near-miss: deposit(1 USDC, receiver=attacker, from=VAULT, operator=VAULT) returns OK in record mode (required auth C:CALFCZ4T..., would mint 973,517,984,747 shares), but the vault exports no __check_auth and a forged contract auth entry fails enforce-mode simulation with Error(Auth, InvalidAction)/MissingValue; from=VAULT&operator=attacker fails at SAC allowance #9. Not exploitable.",
+    "Admin upgrade: upgrade(new_wasm_hash, admin) succeeds in record mode with the admin source account; admin is a single EOA and there is no timelock.",
+    "Liveness: WASM code entry liveUntilLedgerSeq 65,383,903 = 97,957 ledgers (~5.67 days after latest 65,285,946) -> ~2026-11-09; contract extend_ttl() bumps only the instance (liveUntil 66,790,758). Temporary freeze risk, recoverable by permissionless RestoreFootprint/ExtendFootprintTTL.",
+    "Protocol decomposition: sibling XLM vault CA54LVHMAY7HGLMVPN4W72XJB4OGKVZBZX26FWN6JD4P3HJFWQUQEHJO holds 78,689,334.0961488 XLM; sibling USDC vault CAHEWHOPPDBQYFMAOLDOXXGUX2BCR7EXP4CWYCRY3NEAJB35YPZMMJFF holds 24,568,803.2111476 USDC (both wasm ca6b85a1..., admin GCOB2OVZ...); Evergreen is $33.75M of the $113.84M protocol figure."
+  ],
+  "caveats": [
+    "Soroban has no public fork; the operator drain is modelled with the deployed contract's exact integer formulas (validated against live preview_deposit(1 USDC)=9,735,179,847,473 and preview_redeem(wallet shares)=337,324,265,154,722), not executed on a fork.",
+    "Version is point-in-time: the vault is upgradeable by a single-EOA admin; the WASM hash must be re-checked after any upgrade.",
+    "GitHub artifact download failed at fetch time (blob host unreachable); the build result is from the CI log and ci-out/stellar-checks.json is a local re-run of the same script (CI exit 0).",
+    "The $113.84M protocol TVL was not independently re-derived; only the target's own USDC balance is measured and used. USDC is valued at $1.00 face.",
+    "USDC on Stellar has issuer freeze/clawback authority; external blocker not controlled by the vault.",
+    "All figures are at Stellar ledger 65,285,946 (2026-11-03); cumulative AUM limits and TTLs move over time."
+  ],
+  "one_liner": "External unprivileged attacker can extract $0.00 live: the Evergreen share vault is a byte-identical upstream Upshift v0.1.0 build with every value mover auth/allowance-gated; the only live drain is operator-key-only (P, $33,752,730.95) via unbounded deployed_assets inflation from zero."
+}
