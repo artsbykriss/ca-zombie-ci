@@ -1,0 +1,245 @@
+{
+  "finding": "Z3-C3",
+  "title": "Papertrade (HyperEVM/HyperCore) \u2014 BBO-oracle manipulation primitive live but economically closed at current caps; conditional re-open via keeper-trailing OI caps",
+  "chains": [
+    "hyperevm",
+    "hyperliquid"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "conditional_extractable": {
+    "per_cycle_usd": "0-50000",
+    "realistic_total_before_response_usd": "0-500000",
+    "hard_ceiling_usd": 4947295.09,
+    "conditions": [
+      "keeper keeps trailing caps at ~$1M per event (observed $0.3-0.9M steps; live headroom ~$1.0-1.6M/side)",
+      "attacker accumulates >=$28-35M/side (ETH) or >=$72-87M (BTC) through the refills, over 0.5-1h undetected",
+      "a 10-30bp book move costs less than the impact-curve payout at that N",
+      "official relayer forwards the signed intents; no per-account off-chain screen",
+      "guardian does not pause/retire the market"
+    ],
+    "confidence": "medium-low",
+    "revision_note": "lowered from $0.1-2M in the 2026-10 monitor because live headroom is $1.0-1.6M/side vs $4.3-9.0M then"
+  },
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 50278754,
+  "block_numbers": {
+    "hyperevm": 50278754,
+    "hyperliquid": 50278754,
+    "ci_latest": 50278754,
+    "ca2_blocks_checked": [
+      50208900,
+      50221178
+    ]
+  },
+  "targets_checked": 8,
+  "live_targets": 4,
+  "closed_reasons": [
+    "instantaneous per-side OI headroom (median ~$7-9M/side; BTC $4.3-11.3M, ETH $7.0-7.3M at measurement) is 3-18x below the break-even deployable notional ($20-94M depending on market/move/fee tier)",
+    "manipulation round-trip cost from live HL book depth (ETH 15bp $37-45k; BTC 15bp $64-90k) exceeds the payout at current headroom ($7.7-10.4k) under every realistic cost variant",
+    "even a zero-slippage fees-only floor is negative for BTC and ~break-even for ETH",
+    "opens/closes require the team's two allowlisted relayer EOAs (owner-only registration) - a fresh EOA cannot trade directly"
+  ],
+  "poc": {
+    "tests_passed": 13,
+    "tests_total": 13,
+    "suites": {
+      "OraclePrimitive": "7/7 (prior)",
+      "Escalation": "6/6 (local; CI re-run pending)"
+    },
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/38828139619"
+    ]
+  },
+  "key_facts": [
+    "Oracle impl unchanged: 0x3997ffc8cbd281d4fc8d0548e505ae2fbbbd985a, 2475 bytes, keccak256 0x75f094dab1fb771fc5ed5953a02be453a5d35dc4878b53a9e6a11c7d9e4e679c (byte-identical to the Oct-15 pre-incident snapshot)",
+    "tradingPaused=false; pauseGuardian 0x696292762fd5ac3677a45edbe54eaece4194d1f6 (2-of-3); marketKeeper 0x3721476de31190dc1af8908026abe20efe25cf99 (hot EOA)",
+    "Oracle = raw Hyperliquid BBO mid ((bid+ask)/2, precompile 0x080e); only guards: nonzero and ask>=bid (crossed); PoC proves a +1018bp displaced uncrossed book is accepted (no deviation/TWAP/lookback)",
+    "Live headroom at block 48648947: BTC long $4.32M / short $9.01M; ETH long $7.00M / short $8.57M (packed storage mapping base 0x24, cross-checked against keeper setOiCaps calldata exactly at block 48648990: a=2833.9055 longCap, b=1993.0627 shortCap)",
+    "OI caps trail OI: keeper restores ~$7-9M headroom in steps every ~15-30s (74 cap changes in 110 samples over 40 min); 143-sample series: BTC long HR median $8.9M max $32.8M; ETH long median $6.8M max $17.9M",
+    "Live lpBankrollAvailable $4,947,295.09; totalQueued 0; tradingPaused false; fees 2%/2%/2%; queue indexer count 0",
+    "Round-trip manipulation cost (live HL books, mech B cross-and-rest, 2.25bp incident-implied fees): ETH 15bp $37k (30bp $98k); BTC 15bp $90k (30bp $164k); at 4.5bp base fees +10-20%",
+    "Break-even deployable N: ETH up 15bp $33.5M (2.25bp) / $40.7M (4.5bp) / $22.4M (slow unwind); BTC up 15bp $77.4M / $94.2M / $51.5M",
+    "Conditional accumulation economics (ETH up, live costs): N=$50M -> +$18-30k/cycle (15bp) or +$23-62k (30bp); N=$100M -> +$73-86k (15bp) or +$143-183k (30bp); a 3-9bp delta hedge reduces these by $15-90k",
+    "LP bankroll lpBankrollAvailable()=$4,958,944.58 (totalQueued=$0); Exchange HyperCore spot account holds ~$65.7M USDC; totalBalances $52.08M",
+    "Relayer set = exactly 0xc916e55b1909be6582bf1b2f017aaf82ad8eb0b4 and 0xe726b15cfa8808b2b033dd324a61e754dc6c1686; setAuthorizedRelayer (0x9011e5f9) is owner-only; fresh EOA batch call reverts NotAuthorizedRelayer (0x17fb2066)",
+    "Open=0xec6783f0 / close=0x2792e706, both require msg.sender==BatchExecutor (0x233Ff29b239abc1D7748605dA9b205C3e008626E); liquidations are permissionless and priced at the same BBO mid",
+    "Incident: Oct-10/11 $1.28M extracted via ~$20M HL order flow moving ETH BBO 10-20bp; consistent with ~$1B/side launch headroom x 15-20bp x impact curve; post-incident mitigation was caps only (headroom target cut ~100x), docs unchanged",
+    "Fixed ~4.8bp liquidation offset (instruments w5 = 0.000476 BTC / 0.000481 ETH) applies regardless of leverage, forcing hedged accumulation",
+    "Payout model validated against real closes: pid 874527 logged adjustedPnl 22.948697 vs model 22.9484 (raw 38.157039, fee 0.458974=2% of adjusted); pid 873990 adjusted 0.655196 vs model 0.655448; loss pid 873510 = full raw -1.638169 (no deadband/scaling on losses)",
+    "2026-11-03: Exchange impl upgraded to contract set 2 0x0a44049d... (23,959 B, keccak 0x1fcb8043...) on 2026-10-21; oracle impl 0x3997ffc8... byte-identical to Oct-15",
+    "Byte scan of the new impl: c0182669 x1; a066fae9/2af78bd1/610806/610807/61080e x0 => still no independent reference price, no deviation breaker possible",
+    "Live mid at block 50,278,754: BTC (773730+773820)/2=773775; ETH (228160+228170)/2=228165; asset 2 (14390+14393)/2=14391 -> exact half-sum",
+    "Live lpBankrollAvailable $4,947,295.09; totalQueued 0; tradingPaused false; fees 2%/2%/2%; queue indexer count 0",
+    "CA2's $4,669,398.5 / $4,912,307.74 are not reproducible: both cited blocks return $4,946,326.83 on public RPC and Etherscan archive; live $4,947,295.09",
+    "Live OI caps: BTC long $49.71M / short $14.91M; ETH long $33.94M / short $15.65M; headroom $0.98-1.39M/side; total long caps $83.64M",
+    "instruments(uint32) has no OI-cap field (8 words: rateMultiplier 15000, positionMultiplier 814.598/483.979, assetIndex, maxLeverage 1000, maxPositionNotional $10M, bustBuffer 4.76/4.81bp, baseRate 10%, referenceNotional $100k); caps are packed storage mapping 0x24 slot+1, keeper setOiCaps 0x628a9fd6",
+    "Payout per $1M: BTC 10bp $724 / 15bp $1,157 / 30bp $2,471; ETH $676 / $1,102 / $2,408; 60bp ~$5,112; 100bp ~$8,660",
+    "Live book-move cost: ETH 10bp $18.7k / 15bp $35.1k / 30bp $84.3k; BTC 10bp $51.9k / 15bp $83.5k / 30bp $214.1k; 60bp $311k/$692k; 100bp $635k/$1,226k",
+    "Full-cap sweep: best ETH long 10bp +$4,248; ETH long 15bp +$2,276; BTC long 15bp -$25,954; BTC short -$82,151; ETH short -$29,289; both markets 15bp -$23,683",
+    "Draining $4,947,295 needs $4.28-4.49B notional at 15bp, $0.97-0.98B at 60bp, $0.57-0.58B at 100bp",
+    "Session keys: 12,000 registrations / 5,406 owners over 1.2M blocks; newest stores agent=address(0); relayer 0xc916e55b... 1,000 batches in 3,116 blocks with 906 opens; 183 distinct embedded owners in 3.5h",
+    "Public relayer https://exchange.papertrade.xyz POST /intents, only an Origin-header check; /state/trading intakeControls paused=[]; accountOiCap $10M; offHours=true (holdback 0.3-10bp, zero above 10bp)"
+  ],
+  "caveats": [
+    "Book-depth costs from a single 23:10 UTC falling-tape snapshot; costs (and break-even N) scale linearly with depth - calm markets are deeper/higher cost",
+    "Accumulation path modeled, not executed (read-only mandate); keeper refill persistence under an adversarial burst is inferred from 40 min of observation + the documented hysteresis rule",
+    "Relayer forwarding/screening policy is off-chain and unverifiable from chain - the main non-economic gate",
+    "Hedge cost/slippage modeled at 3-9bp of N; actual depends on fee tier and execution",
+    "Historical storage reads on the public RPC are load-balancer-inconsistent (off-by-one block); all decisive figures are atomic latest-block reads with keeper-calldata cross-checks",
+    "CA2's two historical lpBankrollAvailable figures could not be reproduced; the public RPC's historical eth_call is load-balancer-inconsistent (nextPositionId read backwards across blocks), so only latest-block reads are decisive",
+    "The relayer's off-chain policy is not fully observable: the public intake state shows no allowlist and only an Origin check, but we did not POST a signed intent (read-only mandate), so a server-side screen cannot be excluded",
+    "Book-move costs come from one live L2 snapshot (\u00b110-30%); the full-cap net figures scale with depth, and the best case (+$4,248) is inside that error band",
+    "A stateful EVM fork cannot reproduce the attack because the price input is the HyperCore BBO precompile (off-EVM order book); the limiting step is the HyperCore manipulation, measured from live L2 books"
+  ],
+  "watch_triggers": [
+    "per-side headroom cap-OI sustained above ~$35M/side (ETH) or ~$70M/side (BTC)",
+    "OI-cap policy changes by keeper 0x3721476de31190dc1af8908026abe20efe25cf99",
+    "pauseMarket / setTradingPaused by pauseGuardian 0x696292762fd5ac3677a45edbe54eaece4194d1f6",
+    "oracle impl slot/hash change (0x75f094da...) or any new deviation/TWAP logic",
+    "authorizedRelayers set changes (BatchExecutor 0x233Ff29b...)",
+    "lpBankrollAvailable drop / totalQueued > 0"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live (high confidence): the $4.947M LP bankroll is gross, the total OI caps are only $83.6M long/$30.6M short, and the best full-cap sweep nets +$4,248 (ETH long 10bp) while both markets at 15bp net -$23,683; the $1.28M Oct-10 recipe is dead at today's ~$1M/side headroom. Conditional $0-0.5M only if the keeper keeps trailing caps and the attacker accumulates $30-100M undetected.",
+  "prior_record": {
+    "report": "README.md (ZH3-C3, 2026-10-16)",
+    "realized_incident_usd": 1280000,
+    "monitor_status": "kept as monitor; tradingPaused=false; primitive unchanged",
+    "prior_conditional_estimate_usd": "100000-2000000"
+  },
+  "escalation_2026_11": {
+    "date": "2026-11-03",
+    "contract_set": 2,
+    "exchange_impl": "0x0a44049dbbb6b4762a6ba37aa0f7548c0b4a3723",
+    "exchange_impl_bytes": 23959,
+    "exchange_impl_keccak": "0x1fcb80437ee76e0a495223b0aef8aecf74a4742b9fb7df18752354cd7e2877e0",
+    "exchange_upgrade_tx": "0x4410b81e3eb76f83f5ddc4e3faee794fb67208d2f129bc013094b9d06055acb6",
+    "oracle_impl_unchanged": "0x3997ffc8cbd281d4fc8d0548e505ae2fbbbd985a",
+    "lp_bankroll_available_usd": 4947295.09,
+    "lp_bankroll_indexer_usd": 4946690.87,
+    "ca2_figures_reproduced": false,
+    "ca2_figure_note": "$4,669,398.5 @ 50,208,900 and $4,912,307.74 @ 50,221,178 are neither reproducible nor mutually consistent: public RPC + Etherscan archive both return $4,946,326.83 at both blocks; live $4,947,295.09. Order of magnitude correct, exact figures not.",
+    "total_queued_usd": 0,
+    "queue_head": 4,
+    "total_locked_margin_usd": 3563111.33,
+    "total_balances_usd": 17781506.63,
+    "trading_paused": false,
+    "win_fee": 0.02,
+    "loss_fee": 0.02,
+    "liquidation_fee": 0.02,
+    "next_position_id": 2086723,
+    "account_oi_cap_usd": 10000000,
+    "max_position_notional_usd": 10000000,
+    "caps": {
+      "BTC": {
+        "long_cap_usd": 49705629,
+        "short_cap_usd": 14911801,
+        "long_headroom_usd": 1389679,
+        "short_headroom_usd": 1310998,
+        "mid": 77316.5
+      },
+      "ETH": {
+        "long_cap_usd": 33939081,
+        "short_cap_usd": 15650559,
+        "long_headroom_usd": 980450,
+        "short_headroom_usd": 1006960,
+        "mid": 2280.45
+      }
+    },
+    "total_long_caps_usd": 83644710,
+    "total_short_caps_usd": 30562360,
+    "best_full_cap_sweep_net_usd": 4248,
+    "best_full_cap_sweep": "ETH long 10bp: $22,939 payout vs $18,691 cost",
+    "both_markets_15bp_net_usd": -23683,
+    "notional_to_drain_bankroll_usd": {
+      "10bp": 6830000000,
+      "15bp": 4275000000,
+      "30bp": 2000000000,
+      "60bp": 970000000,
+      "100bp": 573000000
+    },
+    "selector_scan": {
+      "c0182669": 1,
+      "a066fae9": 0,
+      "2af78bd1": 0,
+      "610806": 0,
+      "610807": 0,
+      "61080e": 0,
+      "fb466481": 1,
+      "ec6783f0": 1,
+      "2792e706": 1
+    },
+    "session_key_registrations": {
+      "events": 12000,
+      "distinct_owners": 5406,
+      "last_100k_blocks": {
+        "events": 1000,
+        "distinct_owners": 957
+      }
+    },
+    "relayer_batches": {
+      "txs": 2000,
+      "blocks": 6409,
+      "opens": 906,
+      "closes": 856,
+      "distinct_embedded_owners": 183,
+      "all_from": "0xc916e55b1909be6582bf1b2f017aaf82ad8eb0b4"
+    },
+    "builder_agent": "0x0000000000000000000000000000000000000000",
+    "intake_controls": {
+      "paper_stake_minimum": "1000e18",
+      "paused": [],
+      "origin_check": "foreign Origin header -> HTTP 400 (CORS-style, not auth)"
+    },
+    "off_hours_curve_active": true,
+    "off_hours_holdback_band_bp": [
+      0.3,
+      10.0
+    ],
+    "categories": {
+      "E-U": 0,
+      "E-U-conditional": "0-500000",
+      "H-O": 0,
+      "P": 0,
+      "S": 0
+    },
+    "hard_ceiling_usd": 4947295.09,
+    "confidence": {
+      "E-U_now": "high",
+      "conditional": "medium-low",
+      "state_and_primitive": "high"
+    },
+    "treasury_at_block": "0x15c215f722f79a34cb5c00",
+    "headroom_series_27min": {
+      "blocks": "50,277,698-50,279,364",
+      "samples": 33,
+      "BTC_long_usd": {
+        "min": 1300000,
+        "median": 1500000,
+        "max": 1890000
+      },
+      "BTC_short_usd": {
+        "min": 1250000,
+        "median": 1510000,
+        "max": 1700000
+      },
+      "ETH_long_usd": {
+        "min": 670000,
+        "median": 1000000,
+        "max": 2210000
+      },
+      "ETH_short_usd": {
+        "min": 980000,
+        "median": 1000000,
+        "max": 1290000
+      },
+      "keeper_cap_changes": 31,
+      "keeper_step_usd": "0.17M-2.14M (median ~0.25M)"
+    }
+  }
+}

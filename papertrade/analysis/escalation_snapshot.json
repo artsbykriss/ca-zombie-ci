@@ -1,0 +1,114 @@
+{
+ "block": 50280082,
+ "rpc": "public https://rpc.hyperliquid.xyz/evm",
+ "impls": {
+  "exchange": "0x0a44049dbbb6b4762a6ba37aa0f7548c0b4a3723",
+  "oracle": "0x3997ffc8cbd281d4fc8d0548e505ae2fbbbd985a",
+  "batchExecutor": "0xe0bc9cc7b067060aafccbaa3e250700c9cdd7262",
+  "sessionKeyManager": "0x0a2db5c7614b714fd9ec12b29bff3b4f4c545d82"
+ },
+ "views": {
+  "tradingPaused": false,
+  "lpBankrollAvailable_usd": 4948006.454231422,
+  "totalLockedMargin_usd": 4134293.4986269176,
+  "totalQueued_usd": 0.0,
+  "totalBalances_usd": 17211586.064089846,
+  "winFeeRate": 0.02,
+  "lossFeeRate": 0.02,
+  "liquidationFeeRate": 0.02,
+  "nextPositionId": 2086945,
+  "queueHead": 4,
+  "collateralScale": 1000000000000,
+  "instrumentCount": 2,
+  "treasury": "0x00000000000000000015c28fd2ad1f1c61a92c00",
+  "oracle": "0xa9b4c7b7ca5835652d81e25739c870d49f39cc2e",
+  "authorizedExecutor": "0x233ff29b239abc1d7748605da9b205c3e008626e",
+  "owner": "0xb915fa41e824d6aa31bb833ee81220c0f2c8ea0f",
+  "pauseGuardian": "0x696292762fd5ac3677a45edbe54eaece4194d1f6",
+  "marketKeeper": "0x3721476de31190dc1af8908026abe20efe25cf99",
+  "authorizedKeeper": "0x0924736b5ef2f50d3dbb82b4b9e85b4c5a4b9d56"
+ },
+ "bbo": {
+  "0": {
+   "bid_raw": 776390,
+   "ask_raw": 776400,
+   "mid_raw": 776395,
+   "mid_equals_floor_half_sum": true,
+   "no_deviation_delta_bp": 0.0,
+   "mid_calc": 776395.0
+  },
+  "1": {
+   "bid_raw": 229350,
+   "ask_raw": 229360,
+   "mid_raw": 229355,
+   "mid_equals_floor_half_sum": true,
+   "no_deviation_delta_bp": 0.0,
+   "mid_calc": 229355.0
+  }
+ },
+ "markets": {
+  "BTC": {
+   "priceScale": 10,
+   "longOI": 615.7810789690617,
+   "shortOI": 174.78698854759438,
+   "longCap": 635.0734875627909,
+   "shortCap": 194.32189258278643,
+   "mid": 77639.5,
+   "longHeadroom": 19.292408593729192,
+   "shortHeadroom": 19.534904035192056,
+   "longHeadroom_usd": 1497852.9570128375,
+   "shortHeadroom_usd": 1516680.1818402936
+  },
+  "ETH": {
+   "priceScale": 100,
+   "longOI": 13982.484143432417,
+   "shortOI": 6496.596189787358,
+   "longCap": 14425.059959488684,
+   "shortCap": 6932.867812499659,
+   "mid": 2293.55,
+   "longHeadroom": 442.5758160562673,
+   "shortHeadroom": 436.271622712301,
+   "longHeadroom_usd": 1015069.7629158519,
+   "shortHeadroom_usd": 1000610.780271798
+  }
+ },
+ "instruments": {
+  "BTC": {
+   "rateMultiplier": 15000.0,
+   "positionMultiplier": 814.5980000000001,
+   "assetIndex": 0,
+   "maxLeverage": 1000,
+   "maxPositionNotional_usd": 10000000.0,
+   "bustBuffer": 0.000476041580087574,
+   "baseRate": 0.1,
+   "referenceNotional_usd": 99999.99999999999
+  },
+  "ETH": {
+   "rateMultiplier": 15000.0,
+   "positionMultiplier": 483.97900000000004,
+   "assetIndex": 1,
+   "maxLeverage": 1000,
+   "maxPositionNotional_usd": 10000000.0,
+   "bustBuffer": 0.00048130405018013,
+   "baseRate": 0.1,
+   "referenceNotional_usd": 99999.99999999999
+  }
+ },
+ "instruments_note": "instruments(uint32) has no OI-cap field (8 words: rateMultiplier, positionMultiplier, assetIndex, maxLeverage, maxPositionNotional, bustBuffer, baseRate, referenceNotional). Caps live in packed storage mapping base 0x24 (slot+1) and are set by keeper setOiCaps(0x628a9fd6); the relayer's public GET /state/trading mirrors them.",
+ "exchange_code": {
+  "bytes": 23959,
+  "keccak256": "0x1fcb80437ee76e0a495223b0aef8aecf74a4742b9fb7df18752354cd7e2877e0"
+ },
+ "selector_scan": {
+  "c0182669": 1,
+  "a066fae9": 0,
+  "2af78bd1": 0,
+  "610806": 0,
+  "610807": 0,
+  "61080e": 0,
+  "fb466481": 1,
+  "ec6783f0": 1,
+  "2792e706": 1
+ },
+ "selector_scan_note": "610806/610807/61080e are PUSH2 operands for the mark/oracle/BBO precompile addresses; absent means the Exchange never calls them directly"
+}

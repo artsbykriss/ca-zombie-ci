@@ -1,0 +1,2662 @@
+{
+ "generated_utc": "2026-10-15T23:15:17Z",
+ "snapshot_round": {
+  "start": "2026-10-15T23:10:19.077389Z",
+  "end": "2026-10-15T23:10:24.457371Z"
+ },
+ "data_sources": {
+  "books": "POST https://api.hyperliquid.xyz/info {'type':'l2Book',...} fine + nSigFigs 4/3/2",
+  "candles": "candleSnapshot 1m last 24h",
+  "fees_doc": "hyperliquid.gitbook.io fees page (fetched 2026-10-15)"
+ },
+ "tick_and_mechanism_notes": {
+  "tick_rule": "BTC tick $1, ETH tick $0.1 (5-significant-figure price rule at current magnitudes)",
+  "spreads": "both quoted at 1-tick spread; any mid move requires crossing; no free quote improvement"
+ },
+ "fee_assumptions": {
+  "perp_base_taker_bp": 4.5,
+  "perp_base_maker_bp": 1.5,
+  "perp_diamond_staking_taker_bp": 2.7,
+  "perp_top_maker_rebate_bp": -0.3,
+  "incident_implied_effective_bp": 2.25,
+  "source": "HL fees docs 2026-10-15; incident-implied = 52k/231M"
+ },
+ "books": {
+  "BTC": {
+   "fetched_at_utc": "2026-10-15T23:10:19.750419Z",
+   "api_time_ms": 1792105819717,
+   "best_bid": 82257.0,
+   "best_ask": 82258.0,
+   "mid": 82257.5,
+   "spread": 1.0,
+   "spread_bp": 0.12156946175120809,
+   "tick": 1.0,
+   "top_bid_sz": 12.18868,
+   "top_ask_sz": 2.46724,
+   "fine_reach_ask_bp": 2.3706045041493873,
+   "fine_reach_bid_bp": 2.4921739659000686
+  },
+  "ETH": {
+   "fetched_at_utc": "2026-10-15T23:10:22.433437Z",
+   "api_time_ms": 1792105822396,
+   "best_bid": 2447.2,
+   "best_ask": 2447.3,
+   "mid": 2447.25,
+   "spread": 0.1000000000003638,
+   "spread_bp": 0.40862192256763225,
+   "tick": 0.1,
+   "top_bid_sz": 25.792,
+   "top_ask_sz": 243.3834,
+   "fine_reach_ask_bp": 7.968127490038945,
+   "fine_reach_bid_bp": 7.968127490038945
+  }
+ },
+ "ladder_stats": {
+  "BTC": {
+   "ask": {
+    "rungs": 74,
+    "total_notional_usd": 295659199.9472955,
+    "reach_bp": 2400.085098623226
+   },
+   "bid": {
+    "rungs": 74,
+    "total_notional_usd": 564010719.7679875,
+    "reach_bp": 2341.12390967389
+   }
+  },
+  "ETH": {
+   "ask": {
+    "rungs": 74,
+    "total_notional_usd": 305854469.20301867,
+    "reach_bp": 7979.36459291041
+   },
+   "bid": {
+    "rungs": 74,
+    "total_notional_usd": 216242608.74110273,
+    "reach_bp": 7956.890387169272
+   }
+  }
+ },
+ "book_consistency_checks": {
+  "BTC": {
+   "ratio_ns4_over_fine_ask": 1.1458391248013253,
+   "ratio_ns4_over_fine_bid": 0.780045100858157,
+   "ratio_ns3_over_ns4_ask": 1.0448037704329056,
+   "ratio_ns3_over_ns4_bid": 1.0269625985734834
+  },
+  "ETH": {
+   "ratio_ns4_over_fine_ask": 0.9940946728985636,
+   "ratio_ns4_over_fine_bid": 0.9959789044232804,
+   "ratio_ns3_over_ns4_ask": 1.0526781986900549,
+   "ratio_ns3_over_ns4_bid": 1.0176792222126765
+  }
+ },
+ "depth_context": {
+  "BTC": {
+   "within_0.5bp": {
+    "ask_usd": 301522.49715999997,
+    "bid_usd": 1169047.36445
+   },
+   "within_1bp": {
+    "ask_usd": 1076169.85419,
+    "bid_usd": 1372781.4805
+   },
+   "within_2.4bp": {
+    "ask_usd": 6047481.164291219,
+    "bid_usd": 3401589.9313900005
+   },
+   "within_5bp": {
+    "ask_usd": 15624064.089028498,
+    "bid_usd": 11300984.393412907
+   },
+   "within_10bp": {
+    "ask_usd": 30373725.92842174,
+    "bid_usd": 26101198.548988715
+   },
+   "within_20bp": {
+    "ask_usd": 48779453.43321763,
+    "bid_usd": 43980178.01341331
+   },
+   "within_30bp": {
+    "ask_usd": 57176120.16262712,
+    "bid_usd": 53790130.64618594
+   },
+   "within_60bp": {
+    "ask_usd": 83770898.61522318,
+    "bid_usd": 94289829.11518961
+   }
+  },
+  "ETH": {
+   "within_0.5bp": {
+    "ask_usd": 595632.19482,
+    "bid_usd": 63118.1824
+   },
+   "within_1bp": {
+    "ask_usd": 760494.93258,
+    "bid_usd": 106072.86283
+   },
+   "within_2.4bp": {
+    "ask_usd": 1744895.68445,
+    "bid_usd": 1289157.0993000001
+   },
+   "within_5bp": {
+    "ask_usd": 5221403.222230001,
+    "bid_usd": 4660023.81
+   },
+   "within_10bp": {
+    "ask_usd": 12398955.382561546,
+    "bid_usd": 10148468.627118165
+   },
+   "within_20bp": {
+    "ask_usd": 21889761.493705507,
+    "bid_usd": 20427914.014052704
+   },
+   "within_30bp": {
+    "ask_usd": 29528584.334578842,
+    "bid_usd": 25642126.598380964
+   },
+   "within_60bp": {
+    "ask_usd": 48631286.66167235,
+    "bid_usd": 49039210.274567746
+   }
+  }
+ },
+ "first_step_floor": {
+  "BTC": {
+   "cost_usd": 202950.22791999998,
+   "size": 2.46724,
+   "new_mid_pure_sweep": 82258.0,
+   "new_mid_rest_at_ask": 82258.5,
+   "move_bp_pure_sweep": 0.06078473087534064,
+   "move_bp_rest_at_ask": 0.12156946175068128
+  },
+  "ETH": {
+   "cost_usd": 595632.19482,
+   "size": 243.3834,
+   "new_mid_pure_sweep": 2447.3,
+   "new_mid_rest_at_ask": 2447.3500000000004,
+   "move_bp_pure_sweep": 0.20431096128481485,
+   "move_bp_rest_at_ask": 0.40862192256740926
+  }
+ },
+ "cost_model": {
+  "BTC": {
+   "mid_at_snapshot": 82257.5,
+   "moves": {
+    "5": {
+     "move_bp": 5,
+     "up": {
+      "target_mid": 82298.62874999999,
+      "mechA": {
+       "P_est": 82339.25749999998,
+       "size": 367.2946301724217,
+       "notional": 30227988.170213535,
+       "vwap": 82299.0201518149,
+       "new_best_ask_est": 82340.25749999998,
+       "new_mid_est": 82298.62874999999,
+       "new_mid_label_variant": 82298.5,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 367.2946301724217,
+       "sweep_notional_usd": 30227988.170213535,
+       "sweep_vwap": 82299.0201518149,
+       "sweep_slippage_bp": 5.04758250796547,
+       "unwind_notional_usd": 30194112.627273645,
+       "unwind_vwap": 82206.79026289987,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 6.164755444807967,
+       "slippage_roundtrip_usd": 33875.542939888044,
+       "slippage_roundtrip_pct_of_sweep": 0.11206681287929306,
+       "fees_usd": {
+        "base_4.5bp": 27189.945358869234,
+        "diamond_2.7bp": 16313.96721532154,
+        "incident_implied_2.25bp": 13594.972679434617,
+        "maker_unwind_1.5bp": 18131.711570687137
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 61065.48829875728,
+        "diamond_2.7bp": 50189.51015520959,
+        "incident_implied_2.25bp": 47470.51561932266,
+        "maker_unwind_1.5bp": 52007.25451057518
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.2020163828134974,
+        "diamond_2.7bp": 0.16603655483981566,
+        "incident_implied_2.25bp": 0.1570415978463952,
+        "maker_unwind_1.5bp": 0.17205000285736113
+       },
+       "rule_2x_slippage_usd": 30500.257611110766,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 57690.202969980004,
+        "diamond_2.7bp": 46814.224826432306,
+        "incident_implied_2.25bp": 44095.23029054538,
+        "maker_unwind_1.5bp": 48631.969181797904
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 12213.097659751456,
+        "diamond_2.7bp": 10037.902031041918,
+        "incident_implied_2.25bp": 9494.103123864532,
+        "maker_unwind_1.5bp": 10401.450902115035
+       }
+      },
+      "mechB": {
+       "limit_px": 82298.12874999999,
+       "size": 188.06926039370975,
+       "notional": 15474371.362174176,
+       "vwap": 82280.17343068011,
+       "new_mid_est": 82298.62874999999,
+       "new_best_ask_est": 82299.12874999999
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 188.06926039370975,
+       "sweep_notional_usd": 15474371.362174176,
+       "sweep_vwap": 82280.17343068011,
+       "sweep_slippage_bp": 2.7563967638340743,
+       "unwind_notional_usd": 15464345.762987722,
+       "unwind_vwap": 82226.86541444468,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 3.724230076931915,
+       "slippage_roundtrip_usd": 10025.59918645335,
+       "slippage_roundtrip_pct_of_sweep": 0.06478841015125242,
+       "fees_usd": {
+        "base_4.5bp": 13922.422706322854,
+        "diamond_2.7bp": 8353.453623793712,
+        "incident_implied_2.25bp": 6961.211353161427,
+        "maker_unwind_1.5bp": 9283.118977426537
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 23948.021892776203,
+        "diamond_2.7bp": 18379.052810247063,
+        "incident_implied_2.25bp": 16986.810539614777,
+        "maker_unwind_1.5bp": 19308.718163879887
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.15475925536668433,
+        "diamond_2.7bp": 0.11877091728051158,
+        "incident_implied_2.25bp": 0.10977383275896838,
+        "maker_unwind_1.5bp": 0.12477869188972973
+       },
+       "rule_2x_slippage_usd": 8528.350677191971,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 22450.773383514825,
+        "diamond_2.7bp": 16881.804300985685,
+        "incident_implied_2.25bp": 15489.562030353398,
+        "maker_unwind_1.5bp": 17811.469654618508
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 4789.604378555241,
+        "diamond_2.7bp": 3675.8105620494125,
+        "incident_implied_2.25bp": 3397.362107922955,
+        "maker_unwind_1.5bp": 3861.7436327759774
+       }
+      }
+     },
+     "down": {
+      "target_mid": 82216.37125000001,
+      "mechA": {
+       "P_est": 82175.74250000002,
+       "size": 316.00079568993453,
+       "notional": 25979525.734713476,
+       "vwap": 82213.48201985237,
+       "new_best_bid_est": 82174.74250000002,
+       "new_mid_est": 82216.37125000001,
+       "new_mid_label_variant": 82214.0,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 316.00079568993453,
+       "sweep_notional_usd": 25979525.734713476,
+       "sweep_vwap": 82213.48201985237,
+       "sweep_slippage_bp": 5.35124215392315,
+       "unwind_notional_usd": 26004855.266480587,
+       "unwind_vwap": 82293.63856411616,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 4.393345788063269,
+       "slippage_roundtrip_usd": 25329.53176711461,
+       "slippage_roundtrip_pct_of_sweep": 0.0974980529889722,
+       "fees_usd": {
+        "base_4.5bp": 23392.971450537327,
+        "diamond_2.7bp": 14035.782870322397,
+        "incident_implied_2.25bp": 11696.485725268663,
+        "maker_unwind_1.5bp": 15591.514870593153
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 48722.50321765194,
+        "diamond_2.7bp": 39365.31463743701,
+        "incident_implied_2.25bp": 37026.017492383275,
+        "maker_unwind_1.5bp": 40921.04663770777
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.18754192711281722,
+        "diamond_2.7bp": 0.15152437746327924,
+        "incident_implied_2.25bp": 0.1425199900508947,
+        "maker_unwind_1.5bp": 0.15751267769692057
+       },
+       "rule_2x_slippage_usd": 27819.433502631764,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 51212.40495316909,
+        "diamond_2.7bp": 41855.216372954164,
+        "incident_implied_2.25bp": 39515.91922790043,
+        "maker_unwind_1.5bp": 43410.94837322492
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 9744.500643530388,
+        "diamond_2.7bp": 7873.062927487403,
+        "incident_implied_2.25bp": 7405.203498476655,
+        "maker_unwind_1.5bp": 8184.209327541554
+       }
+      },
+      "mechB": {
+       "limit_px": 82216.87125000001,
+       "size": 133.98894548242396,
+       "notional": 11018304.657515898,
+       "vwap": 82232.93808190488,
+       "new_mid_est": 82216.37125000001,
+       "new_best_bid_est": 82215.87125000001
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 133.98894548242396,
+       "sweep_notional_usd": 11018304.657515898,
+       "sweep_vwap": 82232.93808190488,
+       "sweep_slippage_bp": 2.9859791624007554,
+       "unwind_notional_usd": 11024026.160325827,
+       "unwind_vwap": 82275.63938677245,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 2.2051954864242895,
+       "slippage_roundtrip_usd": 5721.502809929552,
+       "slippage_roundtrip_pct_of_sweep": 0.051927251857451166,
+       "fees_usd": {
+        "base_4.5bp": 9919.048868028774,
+        "diamond_2.7bp": 5951.429320817266,
+        "incident_implied_2.25bp": 4959.524434014387,
+        "maker_unwind_1.5bp": 6611.841019931027
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 15640.551677958327,
+        "diamond_2.7bp": 11672.932130746818,
+        "incident_implied_2.25bp": 10681.02724394394,
+        "maker_unwind_1.5bp": 12333.34382986058
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.141950619120787,
+        "diamond_2.7bp": 0.10594127221545267,
+        "incident_implied_2.25bp": 0.09693893548911907,
+        "maker_unwind_1.5bp": 0.11193504094522977
+       },
+       "rule_2x_slippage_usd": 6582.051009181061,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 16501.099877209836,
+        "diamond_2.7bp": 12533.480329998327,
+        "incident_implied_2.25bp": 11541.575443195448,
+        "maker_unwind_1.5bp": 13193.892029112088
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 3128.1103355916653,
+        "diamond_2.7bp": 2334.5864261493634,
+        "incident_implied_2.25bp": 2136.205448788788,
+        "maker_unwind_1.5bp": 2466.668765972116
+       }
+      }
+     }
+    },
+    "10": {
+     "move_bp": 10,
+     "up": {
+      "target_mid": 82339.75749999999,
+      "mechA": {
+       "P_est": 82421.51499999998,
+       "size": 592.0913519499874,
+       "notional": 48744550.70050089,
+       "vwap": 82326.06428039543,
+       "new_best_ask_est": 82422.51499999998,
+       "new_mid_est": 82339.75749999999,
+       "new_mid_label_variant": 82343.5,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 592.0913519499874,
+       "sweep_notional_usd": 48744550.70050089,
+       "sweep_vwap": 82326.06428039543,
+       "sweep_slippage_bp": 8.335322663030745,
+       "unwind_notional_usd": 48651981.30059398,
+       "unwind_vwap": 82169.7211762409,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 10.671224357548091,
+       "slippage_roundtrip_usd": 92569.3999069112,
+       "slippage_roundtrip_pct_of_sweep": 0.18990717644661761,
+       "fees_usd": {
+        "base_4.5bp": 43828.439400492694,
+        "diamond_2.7bp": 26297.06364029562,
+        "incident_implied_2.25bp": 21914.219700246347,
+        "maker_unwind_1.5bp": 29232.845010314497
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 136397.8393074039,
+        "diamond_2.7bp": 118866.46354720682,
+        "incident_implied_2.25bp": 114483.61960715755,
+        "maker_unwind_1.5bp": 121802.2449172257
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.27982171821721663,
+        "diamond_2.7bp": 0.243855901508977,
+        "incident_implied_2.25bp": 0.2348644473319171,
+        "maker_unwind_1.5bp": 0.24987869037015062
+       },
+       "rule_2x_slippage_usd": 81192.6349496106,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 125021.0743501033,
+        "diamond_2.7bp": 107489.69858990621,
+        "incident_implied_2.25bp": 103106.85464985695,
+        "maker_unwind_1.5bp": 110425.4799599251
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 13639.783930740388,
+        "diamond_2.7bp": 11886.646354720682,
+        "incident_implied_2.25bp": 11448.361960715756,
+        "maker_unwind_1.5bp": 12180.22449172257
+       }
+      },
+      "mechB": {
+       "limit_px": 82339.25749999999,
+       "size": 367.2946301724732,
+       "notional": 30227988.17021778,
+       "vwap": 82299.02015181491,
+       "new_mid_est": 82339.75749999999,
+       "new_best_ask_est": 82340.25749999999
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 367.2946301724732,
+       "sweep_notional_usd": 30227988.17021778,
+       "sweep_vwap": 82299.02015181491,
+       "sweep_slippage_bp": 5.047582507967239,
+       "unwind_notional_usd": 30194112.627277877,
+       "unwind_vwap": 82206.79026289987,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 6.164755444807967,
+       "slippage_roundtrip_usd": 33875.54293989814,
+       "slippage_roundtrip_pct_of_sweep": 0.11206681287931072,
+       "fees_usd": {
+        "base_4.5bp": 27189.945358873043,
+        "diamond_2.7bp": 16313.967215323828,
+        "incident_implied_2.25bp": 13594.972679436522,
+        "maker_unwind_1.5bp": 18131.71157068968
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 61065.48829877119,
+        "diamond_2.7bp": 50189.51015522197,
+        "incident_implied_2.25bp": 47470.51561933466,
+        "maker_unwind_1.5bp": 52007.25451058782
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.20201638281351506,
+        "diamond_2.7bp": 0.16603655483983332,
+        "incident_implied_2.25bp": 0.1570415978464129,
+        "maker_unwind_1.5bp": 0.17205000285737884
+       },
+       "rule_2x_slippage_usd": 30500.257611125733,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 57690.202969998776,
+        "diamond_2.7bp": 46814.22482644956,
+        "incident_implied_2.25bp": 44095.23029056226,
+        "maker_unwind_1.5bp": 48631.96918181541
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 6106.548829877119,
+        "diamond_2.7bp": 5018.951015522197,
+        "incident_implied_2.25bp": 4747.0515619334665,
+        "maker_unwind_1.5bp": 5200.725451058783
+       }
+      }
+     },
+     "down": {
+      "target_mid": 82175.2425,
+      "mechA": {
+       "P_est": 82093.48499999999,
+       "size": 534.4995800250182,
+       "notional": 43926742.09012175,
+       "vwap": 82182.93097267857,
+       "new_best_bid_est": 82092.48499999999,
+       "new_mid_est": 82175.2425,
+       "new_mid_label_variant": 82174.0,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 534.4995800250182,
+       "sweep_notional_usd": 43926742.09012175,
+       "sweep_vwap": 82182.93097267857,
+       "sweep_slippage_bp": 9.065316514777098,
+       "unwind_notional_usd": 43998997.24656727,
+       "unwind_vwap": 82318.11378506194,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 7.368785224683658,
+       "slippage_roundtrip_usd": 72255.15644551172,
+       "slippage_roundtrip_pct_of_sweep": 0.16449013290644302,
+       "fees_usd": {
+        "base_4.5bp": 39566.58270151006,
+        "diamond_2.7bp": 23739.949620906038,
+        "incident_implied_2.25bp": 19783.29135075503,
+        "maker_unwind_1.5bp": 26366.88352753988
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 111821.73914702178,
+        "diamond_2.7bp": 95995.10606641776,
+        "incident_implied_2.25bp": 92038.44779626674,
+        "maker_unwind_1.5bp": 98622.03997305161
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.25456415346625094,
+        "diamond_2.7bp": 0.21853454524232777,
+        "incident_implied_2.25bp": 0.20952714318634696,
+        "maker_unwind_1.5bp": 0.22451480642637903
+       },
+       "rule_2x_slippage_usd": 79714.22757235444,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 119280.81027386451,
+        "diamond_2.7bp": 103454.17719326049,
+        "incident_implied_2.25bp": 99497.51892310947,
+        "maker_unwind_1.5bp": 106081.11109989433
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 11182.173914702178,
+        "diamond_2.7bp": 9599.510606641776,
+        "incident_implied_2.25bp": 9203.844779626674,
+        "maker_unwind_1.5bp": 9862.203997305161
+       }
+      },
+      "mechB": {
+       "limit_px": 82175.7425,
+       "size": 316.0007956900207,
+       "notional": 25979525.734720558,
+       "vwap": 82213.48201985237,
+       "new_mid_est": 82175.2425,
+       "new_best_bid_est": 82174.7425
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 316.0007956900207,
+       "sweep_notional_usd": 25979525.734720558,
+       "sweep_vwap": 82213.48201985237,
+       "sweep_slippage_bp": 5.35124215392315,
+       "unwind_notional_usd": 26004855.26648768,
+       "unwind_vwap": 82293.63856411616,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 4.393345788063269,
+       "slippage_roundtrip_usd": 25329.531767121516,
+       "slippage_roundtrip_pct_of_sweep": 0.0974980529889722,
+       "fees_usd": {
+        "base_4.5bp": 23392.971450543708,
+        "diamond_2.7bp": 14035.782870326224,
+        "incident_implied_2.25bp": 11696.485725271854,
+        "maker_unwind_1.5bp": 15591.514870597402
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 48722.503217665224,
+        "diamond_2.7bp": 39365.31463744774,
+        "incident_implied_2.25bp": 37026.01749239337,
+        "maker_unwind_1.5bp": 40921.046637718915
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.18754192711281722,
+        "diamond_2.7bp": 0.1515243774632792,
+        "incident_implied_2.25bp": 0.1425199900508947,
+        "maker_unwind_1.5bp": 0.1575126776969205
+       },
+       "rule_2x_slippage_usd": 27819.43350263935,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 51212.40495318305,
+        "diamond_2.7bp": 41855.21637296557,
+        "incident_implied_2.25bp": 39515.9192279112,
+        "maker_unwind_1.5bp": 43410.94837323675
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 4872.250321766523,
+        "diamond_2.7bp": 3936.5314637447736,
+        "incident_implied_2.25bp": 3702.6017492393366,
+        "maker_unwind_1.5bp": 4092.1046637718914
+       }
+      }
+     }
+    },
+    "15": {
+     "move_bp": 15,
+     "up": {
+      "target_mid": 82380.88625000001,
+      "mechA": {
+       "P_est": 82503.77250000002,
+       "size": 693.1653031180489,
+       "notional": 57080054.09591255,
+       "vwap": 82346.95798989176,
+       "new_best_ask_est": 82504.77250000002,
+       "new_mid_est": 82380.88625000001,
+       "new_mid_label_variant": 82428.5,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 693.1653031180489,
+       "sweep_notional_usd": 57080054.09591255,
+       "sweep_vwap": 82346.95798989176,
+       "sweep_slippage_bp": 10.875359680486058,
+       "unwind_notional_usd": 56941221.898488685,
+       "unwind_vwap": 82146.67070372876,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 13.473457893960301,
+       "slippage_roundtrip_usd": 138832.19742386878,
+       "slippage_roundtrip_pct_of_sweep": 0.24322366126455797,
+       "fees_usd": {
+        "base_4.5bp": 51309.57419748056,
+        "diamond_2.7bp": 30785.744518488336,
+        "incident_implied_2.25bp": 25654.78709874028,
+        "maker_unwind_1.5bp": 34227.20762793395
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 190141.77162134933,
+        "diamond_2.7bp": 169617.9419423571,
+        "incident_implied_2.25bp": 164486.98452260907,
+        "maker_unwind_1.5bp": 173059.40505180275
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.33311421061698887,
+        "diamond_2.7bp": 0.2971579908760165,
+        "incident_implied_2.25bp": 0.2881689359407734,
+        "maker_unwind_1.5bp": 0.3031871777153683
+       },
+       "rule_2x_slippage_usd": 124018.34935930383,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 175327.9235567844,
+        "diamond_2.7bp": 154804.09387779215,
+        "incident_implied_2.25bp": 149673.13645804411,
+        "maker_unwind_1.5bp": 158245.55698723777
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 12676.118108089955,
+        "diamond_2.7bp": 11307.86279615714,
+        "incident_implied_2.25bp": 10965.798968173938,
+        "maker_unwind_1.5bp": 11537.293670120183
+       }
+      },
+      "mechB": {
+       "limit_px": 82380.38625000001,
+       "size": 526.7193302675236,
+       "notional": 43358043.78151748,
+       "vwap": 82317.16834750626,
+       "new_mid_est": 82380.88625000001,
+       "new_best_ask_est": 82381.38625000001
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 526.7193302675236,
+       "sweep_notional_usd": 43358043.78151748,
+       "sweep_vwap": 82317.16834750626,
+       "sweep_slippage_bp": 7.253848889920072,
+       "unwind_notional_usd": 43288004.390163034,
+       "unwind_vwap": 82184.19545790511,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 8.911593726394685,
+       "slippage_roundtrip_usd": 70039.39135445566,
+       "slippage_roundtrip_pct_of_sweep": 0.161537249483363,
+       "fees_usd": {
+        "base_4.5bp": 38990.72167725623,
+        "diamond_2.7bp": 23394.433006353738,
+        "incident_implied_2.25bp": 19495.360838628116,
+        "maker_unwind_1.5bp": 26004.32036020732
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 109030.1130317119,
+        "diamond_2.7bp": 93433.82436080939,
+        "incident_implied_2.25bp": 89534.75219308377,
+        "maker_unwind_1.5bp": 96043.71171466298
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.2514645577210955,
+        "diamond_2.7bp": 0.2154936344260025,
+        "incident_implied_2.25bp": 0.20650090360222922,
+        "maker_unwind_1.5bp": 0.2215130188959405
+       },
+       "rule_2x_slippage_usd": 62856.94407333429,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 101847.66575059053,
+        "diamond_2.7bp": 86251.37707968803,
+        "incident_implied_2.25bp": 82352.3049119624,
+        "maker_unwind_1.5bp": 88861.26443354161
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 7268.674202114126,
+        "diamond_2.7bp": 6228.921624053959,
+        "incident_implied_2.25bp": 5968.983479538918,
+        "maker_unwind_1.5bp": 6402.914114310865
+       }
+      }
+     },
+     "down": {
+      "target_mid": 82134.11375,
+      "mechA": {
+       "P_est": 82011.22750000001,
+       "size": 653.8268584434855,
+       "notional": 53717206.13234362,
+       "vwap": 82158.15156358668,
+       "new_best_bid_est": 82010.22750000001,
+       "new_mid_est": 82134.11375,
+       "new_mid_label_variant": 82129.0,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 653.8268584434855,
+       "sweep_notional_usd": 53717206.13234362,
+       "sweep_vwap": 82158.15156358668,
+       "sweep_slippage_bp": 12.077735940591225,
+       "unwind_notional_usd": 53834937.51064685,
+       "unwind_vwap": 82338.21663246976,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 9.812677563718925,
+       "slippage_roundtrip_usd": 117731.3783032335,
+       "slippage_roundtrip_pct_of_sweep": 0.21916884138236367,
+       "fees_usd": {
+        "base_4.5bp": 48398.46463934571,
+        "diamond_2.7bp": 29039.078783607427,
+        "incident_implied_2.25bp": 24199.232319672854,
+        "maker_unwind_1.5bp": 32247.983386151656
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 166129.8429425792,
+        "diamond_2.7bp": 146770.45708684094,
+        "incident_implied_2.25bp": 141930.61062290636,
+        "maker_unwind_1.5bp": 149979.36168938517
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.3092674673609857,
+        "diamond_2.7bp": 0.2732280169695369,
+        "incident_implied_2.25bp": 0.2642181543716747,
+        "maker_unwind_1.5bp": 0.279201716708571
+       },
+       "rule_2x_slippage_usd": 129913.35214278454,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 178311.81678213025,
+        "diamond_2.7bp": 158952.43092639197,
+        "incident_implied_2.25bp": 154112.5844624574,
+        "maker_unwind_1.5bp": 162161.3355289362
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 11075.322862838615,
+        "diamond_2.7bp": 9784.697139122729,
+        "incident_implied_2.25bp": 9462.040708193757,
+        "maker_unwind_1.5bp": 9998.624112625677
+       }
+      },
+      "mechB": {
+       "limit_px": 82134.61375,
+       "size": 435.67146160248427,
+       "notional": 35811017.764813185,
+       "vwap": 82197.29984859073,
+       "new_mid_est": 82134.11375,
+       "new_best_bid_est": 82133.61375
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 435.67146160248427,
+       "sweep_notional_usd": 35811017.764813185,
+       "sweep_vwap": 82197.29984859073,
+       "sweep_slippage_bp": 7.318500004166172,
+       "unwind_notional_usd": 35858716.77463041,
+       "unwind_vwap": 82306.7837464843,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 5.991398533179742,
+       "slippage_roundtrip_usd": 47699.009817230166,
+       "slippage_roundtrip_pct_of_sweep": 0.13319646520657608,
+       "fees_usd": {
+        "base_4.5bp": 32251.38054274962,
+        "diamond_2.7bp": 19350.82832564977,
+        "incident_implied_2.25bp": 16125.69027137481,
+        "maker_unwind_1.5bp": 21493.765510360492
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 79950.39035997979,
+        "diamond_2.7bp": 67049.83814287993,
+        "incident_implied_2.25bp": 63824.70008860498,
+        "maker_unwind_1.5bp": 69192.77532759066
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.22325640361591906,
+        "diamond_2.7bp": 0.18723242825218184,
+        "incident_implied_2.25bp": 0.17822643441124755,
+        "maker_unwind_1.5bp": 0.19321644467635704
+       },
+       "rule_2x_slippage_usd": 52454.975906334934,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 84706.35644908456,
+        "diamond_2.7bp": 71805.8042319847,
+        "incident_implied_2.25bp": 68580.66617770975,
+        "maker_unwind_1.5bp": 73948.74141669543
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 5330.026023998653,
+        "diamond_2.7bp": 4469.989209525329,
+        "incident_implied_2.25bp": 4254.9800059069985,
+        "maker_unwind_1.5bp": 4612.8516885060435
+       }
+      }
+     }
+    },
+    "30": {
+     "move_bp": 30,
+     "up": {
+      "target_mid": 82504.27249999999,
+      "mechA": {
+       "P_est": 82750.54499999998,
+       "size": 1015.6563090529788,
+       "notional": 83716913.51090316,
+       "vwap": 82426.42000517156,
+       "new_best_ask_est": 82751.54499999998,
+       "new_mid_est": 82504.27249999999,
+       "new_mid_label_variant": 82528.5,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 1015.6563090529788,
+       "sweep_notional_usd": 83716913.51090316,
+       "sweep_vwap": 82426.42000517156,
+       "sweep_slippage_bp": 20.535514107717805,
+       "unwind_notional_usd": 83354759.32417706,
+       "unwind_vwap": 82069.84841348442,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 22.81270236945951,
+       "slippage_roundtrip_usd": 362154.1867261078,
+       "slippage_roundtrip_pct_of_sweep": 0.4325938111406142,
+       "fees_usd": {
+        "base_4.5bp": 75182.2527757861,
+        "diamond_2.7bp": 45109.35166547166,
+        "incident_implied_2.25bp": 37591.12638789305,
+        "maker_unwind_1.5bp": 50175.82497853298
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 437336.4395018939,
+        "diamond_2.7bp": 407263.53839157947,
+        "incident_implied_2.25bp": 399745.31311400083,
+        "maker_unwind_1.5bp": 412330.01170464075
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.5223991439256009,
+        "diamond_2.7bp": 0.4864770108116063,
+        "incident_implied_2.25bp": 0.4774964775331076,
+        "maker_unwind_1.5bp": 0.49252892206894316
+       },
+       "rule_2x_slippage_usd": 343129.3379555129,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 418311.590731299,
+        "diamond_2.7bp": 388238.6896209846,
+        "incident_implied_2.25bp": 380720.46434340597,
+        "maker_unwind_1.5bp": 393305.1629340459
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 14577.881316729796,
+        "diamond_2.7bp": 13575.451279719315,
+        "incident_implied_2.25bp": 13324.843770466694,
+        "maker_unwind_1.5bp": 13744.333723488025
+       }
+      },
+      "mechB": {
+       "limit_px": 82503.77249999999,
+       "size": 693.1653031179811,
+       "notional": 57080054.095906965,
+       "vwap": 82346.95798989174,
+       "new_mid_est": 82504.27249999999,
+       "new_best_ask_est": 82504.77249999999
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 693.1653031179811,
+       "sweep_notional_usd": 57080054.095906965,
+       "sweep_vwap": 82346.95798989174,
+       "sweep_slippage_bp": 10.875359680484289,
+       "unwind_notional_usd": 56941221.89848314,
+       "unwind_vwap": 82146.67070372879,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 13.473457893956763,
+       "slippage_roundtrip_usd": 138832.19742382495,
+       "slippage_roundtrip_pct_of_sweep": 0.24322366126450495,
+       "fees_usd": {
+        "base_4.5bp": 51309.574197475544,
+        "diamond_2.7bp": 30785.744518485328,
+        "incident_implied_2.25bp": 25654.787098737772,
+        "maker_unwind_1.5bp": 34227.207627930606
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 190141.7716213005,
+        "diamond_2.7bp": 169617.94194231028,
+        "incident_implied_2.25bp": 164486.98452256274,
+        "maker_unwind_1.5bp": 173059.40505175554
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.3331142106169359,
+        "diamond_2.7bp": 0.29715799087596356,
+        "incident_implied_2.25bp": 0.28816893594072046,
+        "maker_unwind_1.5bp": 0.3031871777153153
+       },
+       "rule_2x_slippage_usd": 124018.34935927154,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 175327.9235567471,
+        "diamond_2.7bp": 154804.09387775685,
+        "incident_implied_2.25bp": 149673.1364580093,
+        "maker_unwind_1.5bp": 158245.55698720214
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 6338.0590540433495,
+        "diamond_2.7bp": 5653.931398077009,
+        "incident_implied_2.25bp": 5482.899484085425,
+        "maker_unwind_1.5bp": 5768.646835058518
+       }
+      }
+     },
+     "down": {
+      "target_mid": 82010.7275,
+      "mechA": {
+       "P_est": 81764.45499999999,
+       "size": 1148.565918710018,
+       "notional": 94232568.08890988,
+       "vwap": 82043.67424966322,
+       "new_best_bid_est": 81763.45499999999,
+       "new_mid_est": 82010.7275,
+       "new_mid_label_variant": 81979.0,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 1148.565918710018,
+       "sweep_notional_usd": 94232568.08890988,
+       "sweep_vwap": 82043.67424966322,
+       "sweep_slippage_bp": 25.99468137699038,
+       "unwind_notional_usd": 94722220.73084953,
+       "unwind_vwap": 82469.99078401555,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 25.832390239862647,
+       "slippage_roundtrip_usd": 489652.6419396534,
+       "slippage_roundtrip_pct_of_sweep": 0.5196214555859908,
+       "fees_usd": {
+        "base_4.5bp": 85029.65496889174,
+        "diamond_2.7bp": 51017.79298133505,
+        "incident_implied_2.25bp": 42514.82748444587,
+        "maker_unwind_1.5bp": 56612.98874963687
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 574682.2969085451,
+        "diamond_2.7bp": 540670.4349209884,
+        "incident_implied_2.25bp": 532167.4694240992,
+        "maker_unwind_1.5bp": 546265.6306892902
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.6098552852410044,
+        "diamond_2.7bp": 0.573761753378999,
+        "incident_implied_2.25bp": 0.5647383704134976,
+        "maker_unwind_1.5bp": 0.5796993988043286
+       },
+       "rule_2x_slippage_usd": 491185.93875884206,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 576215.5937277338,
+        "diamond_2.7bp": 542203.7317401771,
+        "incident_implied_2.25bp": 533700.766243288,
+        "maker_unwind_1.5bp": 547798.927508479
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 19156.076563618168,
+        "diamond_2.7bp": 18022.347830699615,
+        "incident_implied_2.25bp": 17738.915647469974,
+        "maker_unwind_1.5bp": 18208.854356309675
+       }
+      },
+      "mechB": {
+       "limit_px": 82011.2275,
+       "size": 653.8268584435114,
+       "notional": 53717206.132345736,
+       "vwap": 82158.15156358668,
+       "new_mid_est": 82010.7275,
+       "new_best_bid_est": 82010.2275
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 653.8268584435114,
+       "sweep_notional_usd": 53717206.132345736,
+       "sweep_vwap": 82158.15156358668,
+       "sweep_slippage_bp": 12.077735940591225,
+       "unwind_notional_usd": 53834937.51064898,
+       "unwind_vwap": 82338.21663246976,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 9.812677563718925,
+       "slippage_roundtrip_usd": 117731.37830323816,
+       "slippage_roundtrip_pct_of_sweep": 0.21916884138236367,
+       "fees_usd": {
+        "base_4.5bp": 48398.46463934762,
+        "diamond_2.7bp": 29039.078783608573,
+        "incident_implied_2.25bp": 24199.23231967381,
+        "maker_unwind_1.5bp": 32247.98338615293
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 166129.8429425858,
+        "diamond_2.7bp": 146770.45708684673,
+        "incident_implied_2.25bp": 141930.61062291198,
+        "maker_unwind_1.5bp": 149979.36168939108
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.30926746736098576,
+        "diamond_2.7bp": 0.2732280169695369,
+        "incident_implied_2.25bp": 0.26421815437167473,
+        "maker_unwind_1.5bp": 0.279201716708571
+       },
+       "rule_2x_slippage_usd": 129913.35214278966,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 178311.8167821373,
+        "diamond_2.7bp": 158952.43092639823,
+        "incident_implied_2.25bp": 154112.58446246348,
+        "maker_unwind_1.5bp": 162161.33552894258
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 5537.661431419527,
+        "diamond_2.7bp": 4892.348569561557,
+        "incident_implied_2.25bp": 4731.020354097066,
+        "maker_unwind_1.5bp": 4999.312056313036
+       }
+      }
+     }
+    },
+    "60": {
+     "move_bp": 60,
+     "up": {
+      "target_mid": 82751.045,
+      "mechA": {
+       "P_est": 83244.09,
+       "size": 1585.3746631749991,
+       "notional": 130980404.26449366,
+       "vwap": 82617.94975465405,
+       "new_best_ask_est": 83245.09,
+       "new_mid_est": 82751.045,
+       "new_mid_label_variant": 82778.5,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 1585.3746631749991,
+       "sweep_notional_usd": 130980404.26449366,
+       "sweep_vwap": 82617.94975465405,
+       "sweep_slippage_bp": 43.81968266164805,
+       "unwind_notional_usd": 129840798.81722926,
+       "unwind_vwap": 81899.12569764399,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 43.56737104288474,
+       "slippage_roundtrip_usd": 1139605.4472644113,
+       "slippage_roundtrip_pct_of_sweep": 0.870057970628311,
+       "fees_usd": {
+        "base_4.5bp": 117369.54138677531,
+        "diamond_2.7bp": 70421.72483206519,
+        "incident_implied_2.25bp": 58684.770693387654,
+        "maker_unwind_1.5bp": 78417.30174160653
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 1256974.9886511865,
+        "diamond_2.7bp": 1210027.1720964764,
+        "incident_implied_2.25bp": 1198290.2179577989,
+        "maker_unwind_1.5bp": 1218022.7490060178
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.9596664445415283,
+        "diamond_2.7bp": 0.9238230549762413,
+        "incident_implied_2.25bp": 0.9148622075849195,
+        "maker_unwind_1.5bp": 0.9299274619327167
+       },
+       "rule_2x_slippage_usd": 1142895.816752356,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 1260265.3581391312,
+        "diamond_2.7bp": 1213317.5415844212,
+        "incident_implied_2.25bp": 1201580.5874457436,
+        "maker_unwind_1.5bp": 1221313.1184939626
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 20949.58314418644,
+        "diamond_2.7bp": 20167.119534941274,
+        "incident_implied_2.25bp": 19971.50363262998,
+        "maker_unwind_1.5bp": 20300.379150100296
+       }
+      },
+      "mechB": {
+       "limit_px": 82750.545,
+       "size": 1015.6563090529978,
+       "notional": 83716913.51090474,
+       "vwap": 82426.42000517157,
+       "new_mid_est": 82751.045,
+       "new_best_ask_est": 82751.545
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 1015.6563090529978,
+       "sweep_notional_usd": 83716913.51090474,
+       "sweep_vwap": 82426.42000517157,
+       "sweep_slippage_bp": 20.535514107719575,
+       "unwind_notional_usd": 83354759.3241786,
+       "unwind_vwap": 82069.84841348442,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 22.81270236945951,
+       "slippage_roundtrip_usd": 362154.1867261293,
+       "slippage_roundtrip_pct_of_sweep": 0.4325938111406318,
+       "fees_usd": {
+        "base_4.5bp": 75182.2527757875,
+        "diamond_2.7bp": 45109.35166547251,
+        "incident_implied_2.25bp": 37591.12638789375,
+        "maker_unwind_1.5bp": 50175.82497853392
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 437336.4395019168,
+        "diamond_2.7bp": 407263.5383916018,
+        "incident_implied_2.25bp": 399745.31311402307,
+        "maker_unwind_1.5bp": 412330.0117046632
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.5223991439256185,
+        "diamond_2.7bp": 0.4864770108116238,
+        "incident_implied_2.25bp": 0.47749647753312513,
+        "maker_unwind_1.5bp": 0.49252892206896065
+       },
+       "rule_2x_slippage_usd": 343129.3379555489,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 418311.5907313364,
+        "diamond_2.7bp": 388238.6896210214,
+        "incident_implied_2.25bp": 380720.46434344264,
+        "maker_unwind_1.5bp": 393305.1629340828
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 7288.94065836528,
+        "diamond_2.7bp": 6787.72563986003,
+        "incident_implied_2.25bp": 6662.421885233718,
+        "maker_unwind_1.5bp": 6872.1668617443875
+       }
+      }
+     },
+     "down": {
+      "target_mid": 81763.955,
+      "mechA": {
+       "P_est": 81270.91,
+       "size": 1539.1097940899997,
+       "notional": 126087120.17473438,
+       "vwap": 81922.10890925006,
+       "new_best_bid_est": 81269.91,
+       "new_mid_est": 81763.955,
+       "new_mid_label_variant": 81729.0,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 1539.1097940899997,
+       "sweep_notional_usd": 126087120.17473438,
+       "sweep_vwap": 81922.10890925006,
+       "sweep_slippage_bp": 40.7733143786205,
+       "unwind_notional_usd": 127131769.36699693,
+       "unwind_vwap": 82600.84488784877,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 41.740253210803736,
+       "slippage_roundtrip_usd": 1044649.1922625295,
+       "slippage_roundtrip_pct_of_sweep": 0.828513801262834,
+       "fees_usd": {
+        "base_4.5bp": 113948.50029377909,
+        "diamond_2.7bp": 68369.10017626746,
+        "incident_implied_2.25bp": 56974.25014688954,
+        "maker_unwind_1.5bp": 75808.96948368
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 1158597.6925563086,
+        "diamond_2.7bp": 1113018.292438797,
+        "incident_implied_2.25bp": 1101623.442409419,
+        "maker_unwind_1.5bp": 1120458.1617462095
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.9188866324734023,
+        "diamond_2.7bp": 0.882737499989175,
+        "incident_implied_2.25bp": 0.873700216868118,
+        "maker_unwind_1.5bp": 0.8886380783330233
+       },
+       "rule_2x_slippage_usd": 1032407.4252475137,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 1146355.9255412929,
+        "diamond_2.7bp": 1100776.5254237812,
+        "incident_implied_2.25bp": 1089381.6753944033,
+        "maker_unwind_1.5bp": 1108216.3947311938
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 19309.961542605142,
+        "diamond_2.7bp": 18550.30487397995,
+        "incident_implied_2.25bp": 18360.39070682365,
+        "maker_unwind_1.5bp": 18674.30269577016
+       }
+      },
+      "mechB": {
+       "limit_px": 81764.455,
+       "size": 1148.5659187099975,
+       "notional": 94232568.08890821,
+       "vwap": 82043.67424966322,
+       "new_mid_est": 81763.955,
+       "new_best_bid_est": 81763.455
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 1148.5659187099975,
+       "sweep_notional_usd": 94232568.08890821,
+       "sweep_vwap": 82043.67424966322,
+       "sweep_slippage_bp": 25.99468137699038,
+       "unwind_notional_usd": 94722220.73084784,
+       "unwind_vwap": 82469.99078401554,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 25.832390239860874,
+       "slippage_roundtrip_usd": 489652.64193962794,
+       "slippage_roundtrip_pct_of_sweep": 0.519621455585973,
+       "fees_usd": {
+        "base_4.5bp": 85029.65496889022,
+        "diamond_2.7bp": 51017.79298133413,
+        "incident_implied_2.25bp": 42514.82748444511,
+        "maker_unwind_1.5bp": 56612.988749635864
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 574682.2969085182,
+        "diamond_2.7bp": 540670.4349209621,
+        "incident_implied_2.25bp": 532167.469424073,
+        "maker_unwind_1.5bp": 546265.6306892638
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.6098552852409866,
+        "diamond_2.7bp": 0.5737617533789813,
+        "incident_implied_2.25bp": 0.5647383704134799,
+        "maker_unwind_1.5bp": 0.5796993988043109
+       },
+       "rule_2x_slippage_usd": 491185.9387588333,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 576215.5937277235,
+        "diamond_2.7bp": 542203.7317401674,
+        "incident_implied_2.25bp": 533700.7662432784,
+        "maker_unwind_1.5bp": 547798.9275084691
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 9578.038281808636,
+        "diamond_2.7bp": 9011.173915349367,
+        "incident_implied_2.25bp": 8869.45782373455,
+        "maker_unwind_1.5bp": 9104.427178154398
+       }
+      }
+     }
+    }
+   }
+  },
+  "ETH": {
+   "mid_at_snapshot": 2447.25,
+   "moves": {
+    "5": {
+     "move_bp": 5,
+     "up": {
+      "target_mid": 2448.473625,
+      "mechA": {
+       "P_est": 2449.6472500000004,
+       "size": 4996.199385100843,
+       "notional": 12233222.365549201,
+       "vwap": 2448.50563851192,
+       "new_best_ask_est": 2449.7472500000003,
+       "new_mid_est": 2448.4736250000005,
+       "new_mid_label_variant": 2448.6,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 4996.199385100843,
+       "sweep_notional_usd": 12233222.365549201,
+       "sweep_vwap": 2448.50563851192,
+       "sweep_slippage_bp": 5.130814227888842,
+       "unwind_notional_usd": 12218900.0627787,
+       "unwind_vwap": 2445.6389989592208,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 6.5829034253927015,
+       "slippage_roundtrip_usd": 14322.302770502125,
+       "slippage_roundtrip_pct_of_sweep": 0.1170771064444649,
+       "fees_usd": {
+        "base_4.5bp": 11003.455092747556,
+        "diamond_2.7bp": 6602.073055648534,
+        "incident_implied_2.25bp": 5501.727546373778,
+        "maker_unwind_1.5bp": 7337.785073913945
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 25325.75786324968,
+        "diamond_2.7bp": 20924.37582615066,
+        "incident_implied_2.25bp": 19824.030316875902,
+        "maker_unwind_1.5bp": 21660.08784441607
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.2070244217465649,
+        "diamond_2.7bp": 0.1710454956257249,
+        "incident_implied_2.25bp": 0.1620507640955149,
+        "maker_unwind_1.5bp": 0.17705954487849823
+       },
+       "rule_2x_slippage_usd": 12546.84072232825,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 23550.295815075806,
+        "diamond_2.7bp": 19148.913777976784,
+        "incident_implied_2.25bp": 18048.568268702027,
+        "maker_unwind_1.5bp": 19884.625796242195
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 5065.1515726499365,
+        "diamond_2.7bp": 4184.875165230132,
+        "incident_implied_2.25bp": 3964.80606337518,
+        "maker_unwind_1.5bp": 4332.017568883214
+       }
+      },
+      "mechB": {
+       "limit_px": 2448.423625,
+       "size": 2132.9597,
+       "notional": 5221403.222230001,
+       "vwap": 2447.9614979270364,
+       "new_mid_est": 2448.473625,
+       "new_best_ask_est": 2448.523625
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 2132.9597,
+       "sweep_notional_usd": 5221403.222230001,
+       "sweep_vwap": 2447.9614979270364,
+       "sweep_slippage_bp": 2.907336508474254,
+       "unwind_notional_usd": 5218151.359669999,
+       "unwind_vwap": 2446.436920336563,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 3.3224217527299538,
+       "slippage_roundtrip_usd": 3251.8625600024393,
+       "slippage_roundtrip_pct_of_sweep": 0.062279475872648773,
+       "fees_usd": {
+        "base_4.5bp": 4697.799561855,
+        "diamond_2.7bp": 2818.679737113,
+        "incident_implied_2.25bp": 2348.8997809275,
+        "maker_unwind_1.5bp": 3132.354153954
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 7949.66212185744,
+        "diamond_2.7bp": 6070.542297115439,
+        "incident_implied_2.25bp": 5600.7623409299395,
+        "maker_unwind_1.5bp": 6384.216713956439
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.1522514501085061,
+        "diamond_2.7bp": 0.11626266041416317,
+        "incident_implied_2.25bp": 0.10726546299057743,
+        "maker_unwind_1.5bp": 0.12227013395126787
+       },
+       "rule_2x_slippage_usd": 3035.192810004201,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 7732.992371859202,
+        "diamond_2.7bp": 5853.872547117201,
+        "incident_implied_2.25bp": 5384.092590931701,
+        "maker_unwind_1.5bp": 6167.546963958201
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 1589.932424371488,
+        "diamond_2.7bp": 1214.1084594230879,
+        "incident_implied_2.25bp": 1120.1524681859878,
+        "maker_unwind_1.5bp": 1276.8433427912878
+       }
+      }
+     },
+     "down": {
+      "target_mid": 2446.026375,
+      "mechA": {
+       "P_est": 2444.8527499999996,
+       "size": 4062.8930338760433,
+       "notional": 9937725.758603884,
+       "vwap": 2445.9727774627595,
+       "new_best_bid_est": 2444.7527499999997,
+       "new_mid_est": 2446.0263749999995,
+       "new_mid_label_variant": 2445.65,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 4062.8930338760433,
+       "sweep_notional_usd": 9937725.758603884,
+       "sweep_vwap": 2445.9727774627595,
+       "sweep_slippage_bp": 5.219011287120256,
+       "unwind_notional_usd": 9947261.912242431,
+       "unwind_vwap": 2448.3199112807156,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 4.371892045012103,
+       "slippage_roundtrip_usd": 9536.153638548685,
+       "slippage_roundtrip_pct_of_sweep": 0.09595911449148689,
+       "fees_usd": {
+        "base_4.5bp": 8948.24445188084,
+        "diamond_2.7bp": 5368.946671128505,
+        "incident_implied_2.25bp": 4474.12222594042,
+        "maker_unwind_1.5bp": 5964.065878208112
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 18484.398090429524,
+        "diamond_2.7bp": 14905.10030967719,
+        "incident_implied_2.25bp": 14010.275864489106,
+        "maker_unwind_1.5bp": 15500.219516756797
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.18600229609300803,
+        "diamond_2.7bp": 0.14998502345239959,
+        "incident_implied_2.25bp": 0.14098070529224746,
+        "maker_unwind_1.5bp": 0.15597350835866058
+       },
+       "rule_2x_slippage_usd": 10378.437098527864,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 19326.681550408706,
+        "diamond_2.7bp": 15747.383769656368,
+        "incident_implied_2.25bp": 14852.559324468284,
+        "maker_unwind_1.5bp": 16342.502976735976
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 3696.879618085905,
+        "diamond_2.7bp": 2981.0200619354378,
+        "incident_implied_2.25bp": 2802.055172897821,
+        "maker_unwind_1.5bp": 3100.0439033513594
+       }
+      },
+      "mechB": {
+       "limit_px": 2446.076375,
+       "size": 1904.7792,
+       "notional": 4660023.81,
+       "vwap": 2446.4902861182018,
+       "new_mid_est": 2446.026375,
+       "new_best_bid_est": 2445.976375
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 1904.7792,
+       "sweep_notional_usd": 4660023.81,
+       "sweep_vwap": 2446.4902861182018,
+       "sweep_slippage_bp": 3.10435746980584,
+       "unwind_notional_usd": 4662726.086030001,
+       "unwind_vwap": 2447.9089681523196,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 2.692688333107081,
+       "slippage_roundtrip_usd": 2702.276030001399,
+       "slippage_roundtrip_pct_of_sweep": 0.05798845971993862,
+       "fees_usd": {
+        "base_4.5bp": 4195.237453213501,
+        "diamond_2.7bp": 2517.1424719281003,
+        "incident_implied_2.25bp": 2097.6187266067504,
+        "maker_unwind_1.5bp": 2796.4196274045
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 6897.5134832149,
+        "diamond_2.7bp": 5219.418501929499,
+        "incident_implied_2.25bp": 4799.89475660815,
+        "maker_unwind_1.5bp": 5498.695657405899
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.1480145545268126,
+        "diamond_2.7bp": 0.11200411660406301,
+        "incident_implied_2.25bp": 0.10300150712337564,
+        "maker_unwind_1.5bp": 0.1179971579888966
+       },
+       "rule_2x_slippage_usd": 2894.1744000010694,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 7089.41185321457,
+        "diamond_2.7bp": 5411.31687192917,
+        "incident_implied_2.25bp": 4991.793126607819,
+        "maker_unwind_1.5bp": 5690.594027405569
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 1379.50269664298,
+        "diamond_2.7bp": 1043.8837003858998,
+        "incident_implied_2.25bp": 959.9789513216299,
+        "maker_unwind_1.5bp": 1099.7391314811798
+       }
+      }
+     }
+    },
+    "10": {
+     "move_bp": 10,
+     "up": {
+      "target_mid": 2449.6972499999997,
+      "mechA": {
+       "P_est": 2452.0944999999997,
+       "size": 8889.03787389996,
+       "notional": 21773733.30474264,
+       "vwap": 2449.503941104221,
+       "new_best_ask_est": 2452.1944999999996,
+       "new_mid_est": 2449.69725,
+       "new_mid_label_variant": 2450.1,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 8889.03787389996,
+       "sweep_notional_usd": 21773733.30474264,
+       "sweep_vwap": 2449.503941104221,
+       "sweep_slippage_bp": 9.210097473577331,
+       "unwind_notional_usd": 21730091.402442124,
+       "unwind_vwap": 2444.594309384836,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 10.85173404909215,
+       "slippage_roundtrip_usd": 43641.90230051641,
+       "slippage_roundtrip_pct_of_sweep": 0.2004337138225651,
+       "fees_usd": {
+        "base_4.5bp": 19576.72111823314,
+        "diamond_2.7bp": 11746.032670939885,
+        "incident_implied_2.25bp": 9788.36055911657,
+        "maker_unwind_1.5bp": 13057.693697500506
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 63218.62341874956,
+        "diamond_2.7bp": 55387.9349714563,
+        "incident_implied_2.25bp": 53430.26285963298,
+        "maker_unwind_1.5bp": 56699.59599801692
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.29034351865134495,
+        "diamond_2.7bp": 0.254379596719833,
+        "incident_implied_2.25bp": 0.245388616236955,
+        "maker_unwind_1.5bp": 0.2604036487654917
+       },
+       "rule_2x_slippage_usd": 40070.73568192451,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 59647.456800157655,
+        "diamond_2.7bp": 51816.7683528644,
+        "incident_implied_2.25bp": 49859.09624104108,
+        "maker_unwind_1.5bp": 53128.42937942502
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 6321.862341874956,
+        "diamond_2.7bp": 5538.79349714563,
+        "incident_implied_2.25bp": 5343.0262859632985,
+        "maker_unwind_1.5bp": 5669.959599801692
+       }
+      },
+      "mechB": {
+       "limit_px": 2449.6472499999995,
+       "size": 4996.199385099612,
+       "notional": 12233222.365546187,
+       "vwap": 2448.5056385119196,
+       "new_mid_est": 2449.6972499999997,
+       "new_best_ask_est": 2449.7472499999994
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 4996.199385099612,
+       "sweep_notional_usd": 12233222.365546187,
+       "sweep_vwap": 2448.5056385119196,
+       "sweep_slippage_bp": 5.130814227886983,
+       "unwind_notional_usd": 12218900.062775692,
+       "unwind_vwap": 2445.638998959221,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 6.582903425390843,
+       "slippage_roundtrip_usd": 14322.302770494054,
+       "slippage_roundtrip_pct_of_sweep": 0.11707710644442777,
+       "fees_usd": {
+        "base_4.5bp": 11003.455092744845,
+        "diamond_2.7bp": 6602.073055646908,
+        "incident_implied_2.25bp": 5501.727546372423,
+        "maker_unwind_1.5bp": 7337.785073912138
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 25325.757863238898,
+        "diamond_2.7bp": 20924.37582614096,
+        "incident_implied_2.25bp": 19824.030316866476,
+        "maker_unwind_1.5bp": 21660.087844406193
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.20702442174652777,
+        "diamond_2.7bp": 0.17104549562568777,
+        "incident_implied_2.25bp": 0.16205076409547775,
+        "maker_unwind_1.5bp": 0.1770595448784611
+       },
+       "rule_2x_slippage_usd": 12546.840722320616,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 23550.29581506546,
+        "diamond_2.7bp": 19148.913777967522,
+        "incident_implied_2.25bp": 18048.568268693038,
+        "maker_unwind_1.5bp": 19884.625796232755
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 2532.5757863238896,
+        "diamond_2.7bp": 2092.437582614096,
+        "incident_implied_2.25bp": 1982.4030316866476,
+        "maker_unwind_1.5bp": 2166.0087844406194
+       }
+      }
+     },
+     "down": {
+      "target_mid": 2444.80275,
+      "mechA": {
+       "P_est": 2442.4054999999994,
+       "size": 8269.68093575133,
+       "notional": 20217557.46012543,
+       "vwap": 2444.780834617363,
+       "new_best_bid_est": 2442.3054999999995,
+       "new_mid_est": 2444.80275,
+       "new_mid_label_variant": 2444.65,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 8269.68093575133,
+       "sweep_notional_usd": 20217557.46012543,
+       "sweep_vwap": 2444.780834617363,
+       "sweep_slippage_bp": 10.089551057869567,
+       "unwind_notional_usd": 20255174.31841848,
+       "unwind_vwap": 2449.3296024096517,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 8.497711348050547,
+       "slippage_roundtrip_usd": 37616.858293050354,
+       "slippage_roundtrip_pct_of_sweep": 0.18606035059992343,
+       "fees_usd": {
+        "base_4.5bp": 18212.72930034476,
+        "diamond_2.7bp": 10927.637580206856,
+        "incident_implied_2.25bp": 9106.36465017238,
+        "maker_unwind_1.5bp": 12136.177004819216
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 55829.58759339512,
+        "diamond_2.7bp": 48544.49587325721,
+        "incident_implied_2.25bp": 46723.22294322273,
+        "maker_unwind_1.5bp": 49753.035297869574
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.27614407775769345,
+        "diamond_2.7bp": 0.24011058689458542,
+        "incident_implied_2.25bp": 0.2311022141788084,
+        "maker_unwind_1.5bp": 0.24608825965251346
+       },
+       "rule_2x_slippage_usd": 40838.419784022815,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 59051.14908436757,
+        "diamond_2.7bp": 51766.05736422967,
+        "incident_implied_2.25bp": 49944.78443419519,
+        "maker_unwind_1.5bp": 52974.59678884203
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 5582.958759339512,
+        "diamond_2.7bp": 4854.449587325721,
+        "incident_implied_2.25bp": 4672.322294322274,
+        "maker_unwind_1.5bp": 4975.303529786957
+       }
+      },
+      "mechB": {
+       "limit_px": 2444.85275,
+       "size": 4062.8930338752593,
+       "notional": 9937725.758601967,
+       "vwap": 2445.97277746276,
+       "new_mid_est": 2444.80275,
+       "new_best_bid_est": 2444.75275
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 4062.8930338752593,
+       "sweep_notional_usd": 9937725.758601967,
+       "sweep_vwap": 2445.97277746276,
+       "sweep_slippage_bp": 5.219011287118398,
+       "unwind_notional_usd": 9947261.91224051,
+       "unwind_vwap": 2448.319911280715,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 4.371892045010245,
+       "slippage_roundtrip_usd": 9536.15363854315,
+       "slippage_roundtrip_pct_of_sweep": 0.0959591144914497,
+       "fees_usd": {
+        "base_4.5bp": 8948.244451879114,
+        "diamond_2.7bp": 5368.946671127469,
+        "incident_implied_2.25bp": 4474.122225939557,
+        "maker_unwind_1.5bp": 5964.065878206962
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 18484.398090422263,
+        "diamond_2.7bp": 14905.100309670619,
+        "incident_implied_2.25bp": 14010.275864482708,
+        "maker_unwind_1.5bp": 15500.219516750112
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.1860022960929708,
+        "diamond_2.7bp": 0.1499850234523624,
+        "incident_implied_2.25bp": 0.14098070529221027,
+        "maker_unwind_1.5bp": 0.15597350835862342
+       },
+       "rule_2x_slippage_usd": 10378.437098522165,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 19326.681550401277,
+        "diamond_2.7bp": 15747.383769649634,
+        "incident_implied_2.25bp": 14852.559324461723,
+        "maker_unwind_1.5bp": 16342.502976729127
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 1848.4398090422262,
+        "diamond_2.7bp": 1490.510030967062,
+        "incident_implied_2.25bp": 1401.0275864482708,
+        "maker_unwind_1.5bp": 1550.0219516750112
+       }
+      }
+     }
+    },
+    "15": {
+     "move_bp": 15,
+     "up": {
+      "target_mid": 2450.9208750000003,
+      "mechA": {
+       "P_est": 2454.541750000001,
+       "size": 11950.476738976784,
+       "notional": 29284986.04888953,
+       "vwap": 2450.528685050346,
+       "new_best_ask_est": 2454.6417500000007,
+       "new_mid_est": 2450.9208750000007,
+       "new_mid_label_variant": 2451.1,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 11950.476738976784,
+       "sweep_notional_usd": 29284986.04888953,
+       "sweep_vwap": 2450.528685050346,
+       "sweep_slippage_bp": 13.397425887613492,
+       "unwind_notional_usd": 29200373.858692028,
+       "unwind_vwap": 2443.4484495044676,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 15.533968722167373,
+       "slippage_roundtrip_usd": 84612.19019749908,
+       "slippage_roundtrip_pct_of_sweep": 0.2889268584804654,
+       "fees_usd": {
+        "base_4.5bp": 26318.4119584117,
+        "diamond_2.7bp": 15791.047175047019,
+        "incident_implied_2.25bp": 13159.20597920585,
+        "maker_unwind_1.5bp": 17558.299800804092
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 110930.60215591078,
+        "diamond_2.7bp": 100403.2373725461,
+        "incident_implied_2.25bp": 97771.39617670493,
+        "maker_unwind_1.5bp": 102170.48999830316
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.37879684139414915,
+        "diamond_2.7bp": 0.3428488482286757,
+        "incident_implied_2.25bp": 0.33386184993730733,
+        "maker_unwind_1.5bp": 0.34888351945169327
+       },
+       "rule_2x_slippage_usd": 78363.69885718667,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 104682.11081559837,
+        "diamond_2.7bp": 94154.74603223368,
+        "incident_implied_2.25bp": 91522.90483639252,
+        "maker_unwind_1.5bp": 95921.99865799076
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 7395.373477060718,
+        "diamond_2.7bp": 6693.54915816974,
+        "incident_implied_2.25bp": 6518.093078446996,
+        "maker_unwind_1.5bp": 6811.365999886878
+       }
+      },
+      "mechB": {
+       "limit_px": 2450.870875,
+       "size": 7242.611473362887,
+       "notional": 17737618.131285533,
+       "vwap": 2449.063876548055,
+       "new_mid_est": 2450.9208750000003,
+       "new_best_ask_est": 2450.970875
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 7242.611473362887,
+       "sweep_notional_usd": 17737618.131285533,
+       "sweep_vwap": 2449.063876548055,
+       "sweep_slippage_bp": 7.411897223638165,
+       "unwind_notional_usd": 17708728.156008504,
+       "unwind_vwap": 2445.074987266436,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 8.887578847947767,
+       "slippage_roundtrip_usd": 28889.975277027053,
+       "slippage_roundtrip_pct_of_sweep": 0.1628740401512593,
+       "fees_usd": {
+        "base_4.5bp": 15950.855829282316,
+        "diamond_2.7bp": 9570.51349756939,
+        "incident_implied_2.25bp": 7975.427914641158,
+        "maker_unwind_1.5bp": 10638.237382479765
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 44840.83110630937,
+        "diamond_2.7bp": 38460.488774596444,
+        "incident_implied_2.25bp": 36865.403191668214,
+        "maker_unwind_1.5bp": 39528.21265950682
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.25280074683319126,
+        "diamond_2.7bp": 0.2168300641604185,
+        "incident_implied_2.25bp": 0.2078373934922253,
+        "maker_unwind_1.5bp": 0.22284960904523665
+       },
+       "rule_2x_slippage_usd": 26274.406196411852,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 42225.26202569417,
+        "diamond_2.7bp": 35844.91969398124,
+        "incident_implied_2.25bp": 34249.83411105301,
+        "maker_unwind_1.5bp": 36912.64357889161
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 2989.388740420625,
+        "diamond_2.7bp": 2564.032584973096,
+        "incident_implied_2.25bp": 2457.6935461112143,
+        "maker_unwind_1.5bp": 2635.2141773004546
+       }
+      }
+     },
+     "down": {
+      "target_mid": 2443.579125,
+      "mechA": {
+       "P_est": 2439.95825,
+       "size": 10391.414396600014,
+       "notional": 25397230.595674902,
+       "vwap": 2444.059068993021,
+       "new_best_bid_est": 2439.85825,
+       "new_mid_est": 2443.579125,
+       "new_mid_label_variant": 2443.15,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 10391.414396600014,
+       "sweep_notional_usd": 25397230.595674902,
+       "sweep_vwap": 2444.059068993021,
+       "sweep_slippage_bp": 13.038843628477267,
+       "unwind_notional_usd": 25458859.41380948,
+       "unwind_vwap": 2449.989812949757,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 11.19547635001297,
+       "slippage_roundtrip_usd": 61628.818134575245,
+       "slippage_roundtrip_pct_of_sweep": 0.24265959984263208,
+       "fees_usd": {
+        "base_4.5bp": 22885.24050426797,
+        "diamond_2.7bp": 13731.144302560782,
+        "incident_implied_2.25bp": 11442.620252133986,
+        "maker_unwind_1.5bp": 15247.582680125128
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 84514.05863884321,
+        "diamond_2.7bp": 75359.96243713603,
+        "incident_implied_2.25bp": 73071.43838670923,
+        "maker_unwind_1.5bp": 76876.40081470038
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.33276879666256126,
+        "diamond_2.7bp": 0.2967251179345896,
+        "incident_implied_2.25bp": 0.28771419825259664,
+        "maker_unwind_1.5bp": 0.3026959987826085
+       },
+       "rule_2x_slippage_usd": 66316.57280895997,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 89201.81331322795,
+        "diamond_2.7bp": 80047.71711152076,
+        "incident_implied_2.25bp": 77759.19306109396,
+        "maker_unwind_1.5bp": 81564.1554890851
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 5634.270575922881,
+        "diamond_2.7bp": 5023.997495809069,
+        "incident_implied_2.25bp": 4871.429225780615,
+        "maker_unwind_1.5bp": 5125.093387646692
+       }
+      },
+      "mechB": {
+       "limit_px": 2443.6291250000004,
+       "size": 6168.184789074624,
+       "notional": 15083567.853431828,
+       "vwap": 2445.381967179152,
+       "new_mid_est": 2443.579125,
+       "new_best_bid_est": 2443.5291250000005
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 6168.184789074624,
+       "sweep_notional_usd": 15083567.853431828,
+       "sweep_vwap": 2445.381967179152,
+       "sweep_slippage_bp": 7.633191626715413,
+       "unwind_notional_usd": 15104621.199164594,
+       "unwind_vwap": 2448.7951829715935,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 6.313956365689964,
+       "slippage_roundtrip_usd": 21053.345732766367,
+       "slippage_roundtrip_pct_of_sweep": 0.13957802250331833,
+       "fees_usd": {
+        "base_4.5bp": 13584.685073668388,
+        "diamond_2.7bp": 8150.811044201034,
+        "incident_implied_2.25bp": 6792.342536834194,
+        "maker_unwind_1.5bp": 9053.298713919012
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 34638.030806434756,
+        "diamond_2.7bp": 29204.1567769674,
+        "incident_implied_2.25bp": 27845.688269600563,
+        "maker_unwind_1.5bp": 30106.64444668538
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.2296408326134448,
+        "diamond_2.7bp": 0.19361570856939422,
+        "incident_implied_2.25bp": 0.18460942755838158,
+        "maker_unwind_1.5bp": 0.19959895920669382
+       },
+       "rule_2x_slippage_usd": 23044.74326209272,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 36629.42833576111,
+        "diamond_2.7bp": 31195.554306293754,
+        "incident_implied_2.25bp": 29837.085798926913,
+        "maker_unwind_1.5bp": 32098.041976011733
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 2309.202053762317,
+        "diamond_2.7bp": 1946.94378513116,
+        "incident_implied_2.25bp": 1856.379217973371,
+        "maker_unwind_1.5bp": 2007.1096297790252
+       }
+      }
+     }
+    },
+    "30": {
+     "move_bp": 30,
+     "up": {
+      "target_mid": 2454.5917499999996,
+      "mechA": {
+       "P_est": 2461.8834999999995,
+       "size": 19798.085513099977,
+       "notional": 48569539.70691666,
+       "vwap": 2453.2442631778317,
+       "new_best_ask_est": 2461.9834999999994,
+       "new_mid_est": 2454.5917499999996,
+       "new_mid_label_variant": 2454.6,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 19798.085513099977,
+       "sweep_notional_usd": 48569539.70691666,
+       "sweep_vwap": 2453.2442631778317,
+       "sweep_slippage_bp": 24.49387344093054,
+       "unwind_notional_usd": 48318804.68241203,
+       "unwind_vwap": 2440.579653544808,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 27.256497927028196,
+       "slippage_roundtrip_usd": 250735.02450463295,
+       "slippage_roundtrip_pct_of_sweep": 0.5162392438092767,
+       "fees_usd": {
+        "base_4.5bp": 43599.75497519791,
+        "diamond_2.7bp": 26159.852985118745,
+        "incident_implied_2.25bp": 21799.877487598955,
+        "maker_unwind_1.5bp": 29104.1135704743
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 294334.7794798309,
+        "diamond_2.7bp": 276894.87748975167,
+        "incident_implied_2.25bp": 272534.9019922319,
+        "maker_unwind_1.5bp": 279839.13807510724
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.6060069361495626,
+        "diamond_2.7bp": 0.5700998592134482,
+        "incident_implied_2.25bp": 0.5611230899794196,
+        "maker_unwind_1.5bp": 0.5761618079227052
+       },
+       "rule_2x_slippage_usd": 237349.86996547788,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 280949.6249406758,
+        "diamond_2.7bp": 263509.7229505966,
+        "incident_implied_2.25bp": 259149.74745307682,
+        "maker_unwind_1.5bp": 266453.98353595217
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 9811.159315994362,
+        "diamond_2.7bp": 9229.829249658389,
+        "incident_implied_2.25bp": 9084.496733074397,
+        "maker_unwind_1.5bp": 9327.97126917024
+       }
+      },
+      "mechB": {
+       "limit_px": 2454.5417499999994,
+       "size": 11950.476738974075,
+       "notional": 29284986.048882883,
+       "vwap": 2450.5286850503458,
+       "new_mid_est": 2454.5917499999996,
+       "new_best_ask_est": 2454.6417499999993
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 11950.476738974075,
+       "sweep_notional_usd": 29284986.048882883,
+       "sweep_vwap": 2450.5286850503458,
+       "sweep_slippage_bp": 13.397425887611634,
+       "unwind_notional_usd": 29200373.85868542,
+       "unwind_vwap": 2443.4484495044685,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 15.533968722163657,
+       "slippage_roundtrip_usd": 84612.19019746358,
+       "slippage_roundtrip_pct_of_sweep": 0.2889268584804097,
+       "fees_usd": {
+        "base_4.5bp": 26318.411958405737,
+        "diamond_2.7bp": 15791.047175043443,
+        "incident_implied_2.25bp": 13159.205979202869,
+        "maker_unwind_1.5bp": 17558.29980080011
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 110930.60215586932,
+        "diamond_2.7bp": 100403.23737250702,
+        "incident_implied_2.25bp": 97771.39617666646,
+        "maker_unwind_1.5bp": 102170.48999826369
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.37879684139409353,
+        "diamond_2.7bp": 0.34284884822862,
+        "incident_implied_2.25bp": 0.33386184993725165,
+        "maker_unwind_1.5bp": 0.34888351945163765
+       },
+       "rule_2x_slippage_usd": 78363.69885715803,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 104682.11081556376,
+        "diamond_2.7bp": 94154.74603220147,
+        "incident_implied_2.25bp": 91522.9048363609,
+        "maker_unwind_1.5bp": 95921.99865795815
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 3697.6867385289775,
+        "diamond_2.7bp": 3346.7745790835675,
+        "incident_implied_2.25bp": 3259.0465392222154,
+        "maker_unwind_1.5bp": 3405.682999942123
+       }
+      }
+     },
+     "down": {
+      "target_mid": 2439.90825,
+      "mechA": {
+       "P_est": 2432.6164999999996,
+       "size": 20085.17858835035,
+       "notional": 49017484.78771841,
+       "vwap": 2440.4804055936625,
+       "new_best_bid_est": 2432.5164999999997,
+       "new_mid_est": 2439.9082499999995,
+       "new_mid_label_variant": 2439.65,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 20085.17858835035,
+       "sweep_notional_usd": 49017484.78771841,
+       "sweep_vwap": 2440.4804055936625,
+       "sweep_slippage_bp": 27.662046813106738,
+       "unwind_notional_usd": 49276406.13755897,
+       "unwind_vwap": 2453.371570524142,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 25.0140791669917,
+       "slippage_roundtrip_usd": 258921.3498405616,
+       "slippage_roundtrip_pct_of_sweep": 0.5282224311628403,
+       "fees_usd": {
+        "base_4.5bp": 44232.25091637482,
+        "diamond_2.7bp": 26539.350549824892,
+        "incident_implied_2.25bp": 22116.12545818741,
+        "maker_unwind_1.5bp": 29449.329075107125
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 303153.6007569364,
+        "diamond_2.7bp": 285460.7003903865,
+        "incident_implied_2.25bp": 281037.475298749,
+        "maker_unwind_1.5bp": 288370.67891566874
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.6184601312568636,
+        "diamond_2.7bp": 0.5823650512192543,
+        "incident_implied_2.25bp": 0.573341281209852,
+        "maker_unwind_1.5bp": 0.5883016645275148
+       },
+       "rule_2x_slippage_usd": 271937.0252439744,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 316169.27616034925,
+        "diamond_2.7bp": 298476.3757937993,
+        "incident_implied_2.25bp": 294053.15070216183,
+        "maker_unwind_1.5bp": 301386.3543190815
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 10105.120025231214,
+        "diamond_2.7bp": 9515.356679679551,
+        "incident_implied_2.25bp": 9367.915843291634,
+        "maker_unwind_1.5bp": 9612.355963855625
+       }
+      },
+      "mechB": {
+       "limit_px": 2439.95825,
+       "size": 10391.414396600014,
+       "notional": 25397230.595674902,
+       "vwap": 2444.059068993021,
+       "new_mid_est": 2439.90825,
+       "new_best_bid_est": 2439.85825
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 10391.414396600014,
+       "sweep_notional_usd": 25397230.595674902,
+       "sweep_vwap": 2444.059068993021,
+       "sweep_slippage_bp": 13.038843628477267,
+       "unwind_notional_usd": 25458859.41380948,
+       "unwind_vwap": 2449.989812949757,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 11.19547635001297,
+       "slippage_roundtrip_usd": 61628.818134575245,
+       "slippage_roundtrip_pct_of_sweep": 0.24265959984263208,
+       "fees_usd": {
+        "base_4.5bp": 22885.24050426797,
+        "diamond_2.7bp": 13731.144302560782,
+        "incident_implied_2.25bp": 11442.620252133986,
+        "maker_unwind_1.5bp": 15247.582680125128
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 84514.05863884321,
+        "diamond_2.7bp": 75359.96243713603,
+        "incident_implied_2.25bp": 73071.43838670923,
+        "maker_unwind_1.5bp": 76876.40081470038
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.33276879666256126,
+        "diamond_2.7bp": 0.2967251179345896,
+        "incident_implied_2.25bp": 0.28771419825259664,
+        "maker_unwind_1.5bp": 0.3026959987826085
+       },
+       "rule_2x_slippage_usd": 66316.57280895997,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 89201.81331322795,
+        "diamond_2.7bp": 80047.71711152076,
+        "incident_implied_2.25bp": 77759.19306109396,
+        "maker_unwind_1.5bp": 81564.1554890851
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 2817.1352879614406,
+        "diamond_2.7bp": 2511.9987479045344,
+        "incident_implied_2.25bp": 2435.7146128903073,
+        "maker_unwind_1.5bp": 2562.546693823346
+       }
+      }
+     }
+    },
+    "60": {
+     "move_bp": 60,
+     "up": {
+      "target_mid": 2461.9335,
+      "mechA": {
+       "P_est": 2476.5670000000005,
+       "size": 28436.40279839056,
+       "notional": 69906157.53607538,
+       "vwap": 2458.333356426922,
+       "new_best_ask_est": 2476.6670000000004,
+       "new_mid_est": 2461.9335,
+       "new_mid_label_variant": 2463.6,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 28436.40279839056,
+       "sweep_notional_usd": 69906157.53607538,
+       "sweep_vwap": 2458.333356426922,
+       "sweep_slippage_bp": 45.28902411654678,
+       "unwind_notional_usd": 69286767.82212691,
+       "unwind_vwap": 2436.5517788364,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 43.715276999080636,
+       "slippage_roundtrip_usd": 619389.7139484787,
+       "slippage_roundtrip_pct_of_sweep": 0.8860302665453181,
+       "fees_usd": {
+        "base_4.5bp": 62636.81641119102,
+        "diamond_2.7bp": 37582.08984671462,
+        "incident_implied_2.25bp": 31318.40820559551,
+        "maker_unwind_1.5bp": 41850.78606455296
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 682026.5303596697,
+        "diamond_2.7bp": 656971.8037951933,
+        "incident_implied_2.25bp": 650708.1221540743,
+        "maker_unwind_1.5bp": 661240.5000130316
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.9756315529253727,
+        "diamond_2.7bp": 0.9397910383733509,
+        "incident_implied_2.25bp": 0.9308309097353454,
+        "maker_unwind_1.5bp": 0.9458973620053364
+       },
+       "rule_2x_slippage_usd": 630341.5754281644,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 692978.3918393555,
+        "diamond_2.7bp": 667923.6652748791,
+        "incident_implied_2.25bp": 661659.98363376,
+        "maker_unwind_1.5bp": 672192.3614927174
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 11367.108839327828,
+        "diamond_2.7bp": 10949.530063253222,
+        "incident_implied_2.25bp": 10845.135369234571,
+        "maker_unwind_1.5bp": 11020.675000217194
+       }
+      },
+      "mechB": {
+       "limit_px": 2461.8835,
+       "size": 19798.085513100206,
+       "notional": 48569539.70691722,
+       "vwap": 2453.2442631778317,
+       "new_mid_est": 2461.9335,
+       "new_best_ask_est": 2461.9835
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 19798.085513100206,
+       "sweep_notional_usd": 48569539.70691722,
+       "sweep_vwap": 2453.2442631778317,
+       "sweep_slippage_bp": 24.49387344093054,
+       "unwind_notional_usd": 48318804.68241259,
+       "unwind_vwap": 2440.579653544808,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 27.256497927028196,
+       "slippage_roundtrip_usd": 250735.02450463586,
+       "slippage_roundtrip_pct_of_sweep": 0.5162392438092768,
+       "fees_usd": {
+        "base_4.5bp": 43599.75497519841,
+        "diamond_2.7bp": 26159.852985119047,
+        "incident_implied_2.25bp": 21799.877487599206,
+        "maker_unwind_1.5bp": 29104.113570474634
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 294334.77947983425,
+        "diamond_2.7bp": 276894.87748975493,
+        "incident_implied_2.25bp": 272534.90199223504,
+        "maker_unwind_1.5bp": 279839.1380751105
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.6060069361495626,
+        "diamond_2.7bp": 0.5700998592134483,
+        "incident_implied_2.25bp": 0.5611230899794196,
+        "maker_unwind_1.5bp": 0.5761618079227053
+       },
+       "rule_2x_slippage_usd": 237349.8699654806,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 280949.624940679,
+        "diamond_2.7bp": 263509.7229505997,
+        "incident_implied_2.25bp": 259149.74745307982,
+        "maker_unwind_1.5bp": 266453.98353595525
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 4905.5796579972375,
+        "diamond_2.7bp": 4614.914624829249,
+        "incident_implied_2.25bp": 4542.248366537251,
+        "maker_unwind_1.5bp": 4663.985634585175
+       }
+      }
+     },
+     "down": {
+      "target_mid": 2432.5665,
+      "mechA": {
+       "P_est": 2417.9329999999995,
+       "size": 31006.588759890685,
+       "notional": 75510442.15806459,
+       "vwap": 2435.303113889875,
+       "new_best_bid_est": 2417.8329999999996,
+       "new_mid_est": 2432.5665,
+       "new_mid_label_variant": 2428.65,
+       "src_end": null
+      },
+      "roundtrip_mechA": {
+       "sweep_size": 31006.588759890685,
+       "sweep_notional_usd": 75510442.15806459,
+       "sweep_vwap": 2435.303113889875,
+       "sweep_slippage_bp": 48.8175957099805,
+       "unwind_notional_usd": 76276354.97337364,
+       "unwind_vwap": 2460.0047288027613,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 52.11861805194113,
+       "slippage_roundtrip_usd": 765912.8153090476,
+       "slippage_roundtrip_pct_of_sweep": 1.0143137735914414,
+       "fees_usd": {
+        "base_4.5bp": 68304.0587091472,
+        "diamond_2.7bp": 40982.43522548832,
+        "incident_implied_2.25bp": 34152.0293545736,
+        "maker_unwind_1.5bp": 45421.15221713511
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 834216.8740181947,
+        "diamond_2.7bp": 806895.2505345359,
+        "incident_implied_2.25bp": 800064.8446636212,
+        "maker_unwind_1.5bp": 811333.9675261826
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 1.1047702147895575,
+        "diamond_2.7bp": 1.068587638310311,
+        "incident_implied_2.25bp": 1.0595419941904995,
+        "maker_unwind_1.5bp": 1.07446592065748
+       },
+       "rule_2x_slippage_usd": 740864.3691557907,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 809168.4278649378,
+        "diamond_2.7bp": 781846.8043812789,
+        "incident_implied_2.25bp": 775016.3985103642,
+        "maker_unwind_1.5bp": 786285.5213729257
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 13903.614566969913,
+        "diamond_2.7bp": 13448.254175575597,
+        "incident_implied_2.25bp": 13334.414077727019,
+        "maker_unwind_1.5bp": 13522.232792103045
+       }
+      },
+      "mechB": {
+       "limit_px": 2432.6165,
+       "size": 20085.17858835027,
+       "notional": 49017484.787718214,
+       "vwap": 2440.4804055936625,
+       "new_mid_est": 2432.5665,
+       "new_best_bid_est": 2432.5165
+      },
+      "roundtrip_mechB": {
+       "sweep_size": 20085.17858835027,
+       "sweep_notional_usd": 49017484.787718214,
+       "sweep_vwap": 2440.4804055936625,
+       "sweep_slippage_bp": 27.662046813106738,
+       "unwind_notional_usd": 49276406.137558766,
+       "unwind_vwap": 2453.3715705241416,
+       "unwind_size_covered": true,
+       "unwind_slippage_bp": 25.01407916698984,
+       "slippage_roundtrip_usd": 258921.34984055144,
+       "slippage_roundtrip_pct_of_sweep": 0.5282224311628216,
+       "fees_usd": {
+        "base_4.5bp": 44232.250916374636,
+        "diamond_2.7bp": 26539.350549824783,
+        "incident_implied_2.25bp": 22116.125458187318,
+        "maker_unwind_1.5bp": 29449.32907510701
+       },
+       "total_roundtrip_cost_usd": {
+        "base_4.5bp": 303153.60075692605,
+        "diamond_2.7bp": 285460.7003903762,
+        "incident_implied_2.25bp": 281037.47529873875,
+        "maker_unwind_1.5bp": 288370.67891565844
+       },
+       "cost_as_pct_of_notional": {
+        "base_4.5bp": 0.618460131256845,
+        "diamond_2.7bp": 0.5823650512192355,
+        "incident_implied_2.25bp": 0.5733412812098333,
+        "maker_unwind_1.5bp": 0.5883016645274961
+       },
+       "rule_2x_slippage_usd": 271937.0252439733,
+       "rule_2x_total_usd": {
+        "base_4.5bp": 316169.2761603479,
+        "diamond_2.7bp": 298476.37579379807,
+        "incident_implied_2.25bp": 294053.1507021606,
+        "maker_unwind_1.5bp": 301386.3543190803
+       },
+       "cost_per_bp_usd": {
+        "base_4.5bp": 5052.560012615434,
+        "diamond_2.7bp": 4757.678339839604,
+        "incident_implied_2.25bp": 4683.957921645646,
+        "maker_unwind_1.5bp": 4806.177981927641
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "volatility": {
+  "BTC": {
+   "n_candles": 1441,
+   "window_start_utc": "2026-10-14T23:06:00Z",
+   "window_end_utc": "2026-10-15T23:06:00Z",
+   "last_price": 82303.0,
+   "rv_annualized_1m": 0.5261502244396403,
+   "abs1m_bp_mean": 4.863370067839914,
+   "abs1m_bp_median": 3.4959424959862817,
+   "abs1m_bp_quantiles": {
+    "p50": 3.4959424959862817,
+    "p75": 6.436633963576021,
+    "p90": 10.1702858242515,
+    "p95": 13.723695300334015,
+    "p99": 29.349173777763635
+   },
+   "abs1m_bp_max": 59.26604142436509,
+   "prob_1m_move_ge": {
+    "5": 0.35138888888888886,
+    "10": 0.10277777777777777,
+    "15": 0.041666666666666664,
+    "30": 0.009027777777777777,
+    "60": 0.0
+   },
+   "prob_5m_move_ge": {
+    "5": 0.6441504178272981,
+    "10": 0.3920612813370474,
+    "15": 0.2214484679665738,
+    "30": 0.057103064066852366,
+    "60": 0.009749303621169917
+   },
+   "prob_1m_range_ge": {
+    "5": 0.5961138098542679,
+    "10": 0.21512838306731435,
+    "15": 0.08674531575294935,
+    "30": 0.016655100624566273,
+    "60": 0.002775850104094379
+   },
+   "n_1m_windows": 1440,
+   "n_5m_windows": 1436,
+   "max_drawdown_24h_pct": -2.449692719342189,
+   "max_1m_drop_bp": -59.26604142436509,
+   "max_1m_rise_bp": 58.12578569383664,
+   "persistence_ge15bp_events": 60,
+   "persistence_revert_median_min": 6.5,
+   "persistence_revert_mean_min": 12.083333333333334,
+   "persistence_censored_at_30min_share": 0.21666666666666667,
+   "persistence_revert_within_1min_share": 0.1,
+   "persistence_revert_within_5min_share": 0.48333333333333334
+  },
+  "ETH": {
+   "n_candles": 1441,
+   "window_start_utc": "2026-10-14T23:06:00Z",
+   "window_end_utc": "2026-10-15T23:06:00Z",
+   "last_price": 2449.6,
+   "rv_annualized_1m": 0.8307925580553275,
+   "abs1m_bp_mean": 6.843721113760248,
+   "abs1m_bp_median": 4.869933798811732,
+   "abs1m_bp_quantiles": {
+    "p50": 4.869933798811732,
+    "p75": 8.863097876429526,
+    "p90": 13.678473037885164,
+    "p95": 18.26614171904439,
+    "p99": 40.3086641360933
+   },
+   "abs1m_bp_max": 167.9674244994911,
+   "prob_1m_move_ge": {
+    "5": 0.48194444444444445,
+    "10": 0.2,
+    "15": 0.08402777777777778,
+    "30": 0.018055555555555554,
+    "60": 0.004861111111111111
+   },
+   "prob_5m_move_ge": {
+    "5": 0.7256267409470752,
+    "10": 0.5104456824512534,
+    "15": 0.3370473537604457,
+    "30": 0.10306406685236769,
+    "60": 0.025069637883008356
+   },
+   "prob_1m_range_ge": {
+    "5": 0.7952810548230396,
+    "10": 0.39555863983344897,
+    "15": 0.18181818181818182,
+    "30": 0.031922276197085354,
+    "60": 0.007633587786259542
+   },
+   "n_1m_windows": 1440,
+   "n_5m_windows": 1436,
+   "max_drawdown_24h_pct": -4.5265455743646825,
+   "max_1m_drop_bp": -167.9674244994911,
+   "max_1m_rise_bp": 110.00862812769574,
+   "persistence_ge15bp_events": 121,
+   "persistence_revert_median_min": 5,
+   "persistence_revert_mean_min": 12.272727272727273,
+   "persistence_censored_at_30min_share": 0.2727272727272727,
+   "persistence_revert_within_1min_share": 0.12396694214876033,
+   "persistence_revert_within_5min_share": 0.5289256198347108
+  }
+ },
+ "incident_calibration": {
+  "ETH": {
+   "10": {
+    "mechA_notional_usd": 21773733.30474264,
+    "mechB_notional_usd": 12233222.365546187
+   },
+   "15": {
+    "mechA_notional_usd": 29284986.04888953,
+    "mechB_notional_usd": 17737618.131285533
+   },
+   "20": {
+    "mechA_notional_usd": 38744272.5442999,
+    "mechB_notional_usd": 21773733.30474264
+   }
+  },
+  "BTC": {
+   "10": {
+    "mechA_notional_usd": 48744550.70050089,
+    "mechB_notional_usd": 30227988.17021778
+   },
+   "15": {
+    "mechA_notional_usd": 57080054.09591255,
+    "mechB_notional_usd": 43358043.78151748
+   },
+   "20": {
+    "mechA_notional_usd": 72892193.71566448,
+    "mechB_notional_usd": 48744550.70050191
+   }
+  },
+  "incident": {
+   "eth_mid_move_bp": "10-20",
+   "flow_usd": 20000000.0,
+   "total_volume_usd": 231000000.0,
+   "fees_usd": 52000.0,
+   "implied_fee_rate_bp": 2.251082251082251,
+   "note": "public reporting as relayed in task brief (2026-10-10/11); not independently verified"
+  }
+ },
+ "churn_observation": {
+  "fetched": [
+   {
+    "utc": "2026-10-15T23:14:03.551174Z",
+    "books": {
+     "BTC": {
+      "mid": 82185.5,
+      "ask_usd_5": 23617.02428,
+      "bid_usd_5": 2878747.7248500003,
+      "ask_usd_20": 3099347.8823999995,
+      "bid_usd_20": 10119926.28762
+     },
+     "ETH": {
+      "mid": 2442.25,
+      "ask_usd_5": 683482.6375500001,
+      "bid_usd_5": 5071059.28728,
+      "ask_usd_20": 10606100.5965,
+      "bid_usd_20": 13162367.172190001
+     }
+    }
+   },
+   {
+    "utc": "2026-10-15T23:14:07.241185Z",
+    "books": {
+     "BTC": {
+      "mid": 82191.5,
+      "ask_usd_5": 24213.1182,
+      "bid_usd_5": 1814362.90126,
+      "ask_usd_20": 3852301.57966,
+      "bid_usd_20": 7787108.65708
+     },
+     "ETH": {
+      "mid": 2442.25,
+      "ask_usd_5": 469738.18958,
+      "bid_usd_5": 4684686.71343,
+      "ask_usd_20": 10085059.94161,
+      "bid_usd_20": 12978747.28043
+     }
+    }
+   },
+   {
+    "utc": "2026-10-15T23:14:10.437894Z",
+    "books": {
+     "BTC": {
+      "mid": 82191.5,
+      "ask_usd_5": 181527.35629,
+      "bid_usd_5": 1779018.84595,
+      "ask_usd_20": 3929429.4283499997,
+      "bid_usd_20": 6920503.670460001
+     },
+     "ETH": {
+      "mid": 2442.25,
+      "ask_usd_5": 1710410.6349999998,
+      "bid_usd_5": 1956823.9210899998,
+      "ask_usd_20": 12971612.597670002,
+      "bid_usd_20": 11616449.103780001
+     }
+    }
+   },
+   {
+    "utc": "2026-10-15T23:14:13.596959Z",
+    "books": {
+     "BTC": {
+      "mid": 82191.5,
+      "ask_usd_5": 232267.34527999998,
+      "bid_usd_5": 1662524.2607299997,
+      "ask_usd_20": 4041413.95413,
+      "bid_usd_20": 7014847.691029999
+     },
+     "ETH": {
+      "mid": 2442.25,
+      "ask_usd_5": 1827086.36387,
+      "bid_usd_5": 2264333.36124,
+      "ask_usd_20": 13145607.643659998,
+      "bid_usd_20": 12231906.60126
+     }
+    }
+   }
+  ]
+ },
+ "assumptions": [
+  "Single ~5s snapshot round; no book replenishment during sweep; no quote pull-back by others.",
+  "Bucket depth uniform within bucket range; fine 20 levels exact; labels: asks ceil, bids floor to nSigFigs grid.",
+  "After a sweep to last-fill P, next best quote estimated at P +/- tick (uniform central); label variant (next bucket edge) also reported.",
+  "Mech A: best bid static. Mech B: marketable limit at P, residual rests at P, becoming best quote on its side.",
+  "Unwind: aggressive taker of the exact acquired size through the untouched opposite ladder (no refill / no drift).",
+  "Roundtrip slippage $ = (sweep VWAP - mid)*size + (mid - unwind VWAP)*size, sign-adjusted.",
+  "Fees: charged on notional of each fill; both legs taker at 4.5bp baseline; variants reported."
+ ],
+ "post_snapshot_drift": {
+  "BTC": {
+   "snapshot_mid": 82257.5,
+   "churn_first_mid": 82185.5,
+   "churn_last_mid": 82191.5,
+   "drift_vs_snapshot_bp_first": -8.7530012460868,
+   "drift_vs_snapshot_bp_last": -8.023584475579382,
+   "churn_t0_utc": "2026-10-15T23:14:03.551174Z",
+   "churn_t3_utc": "2026-10-15T23:14:13.596959Z",
+   "ask5_notional_usd_sequence": [
+    23617.02428,
+    24213.1182,
+    181527.35629,
+    232267.34527999998
+   ],
+   "bid5_notional_usd_sequence": [
+    2878747.7248500003,
+    1814362.90126,
+    1779018.84595,
+    1662524.2607299997
+   ]
+  },
+  "ETH": {
+   "snapshot_mid": 2447.25,
+   "churn_first_mid": 2442.25,
+   "churn_last_mid": 2442.25,
+   "drift_vs_snapshot_bp_first": -20.431096128307182,
+   "drift_vs_snapshot_bp_last": -20.431096128307182,
+   "churn_t0_utc": "2026-10-15T23:14:03.551174Z",
+   "churn_t3_utc": "2026-10-15T23:14:13.596959Z",
+   "ask5_notional_usd_sequence": [
+    683482.6375500001,
+    469738.18958,
+    1710410.6349999998,
+    1827086.36387
+   ],
+   "bid5_notional_usd_sequence": [
+    5071059.28728,
+    4684686.71343,
+    1956823.9210899998,
+    2264333.36124
+   ]
+  }
+ },
+ "interpretation_notes": {
+  "mech_duality": "mechA(m) and mechB(2m) clear the exact same ask range (P identical), so pure-sweep of m bp costs the same as cross-and-rest of 2m bp.",
+  "mid_granularity_uncertainty_bp": {
+   "BTC": {
+    "ns4_zone": "~+/-0.5bp (step $10)",
+    "ns3_zone": "up to +6bp overshoot vs central (step $100)"
+   },
+   "ETH": {
+    "ns4_zone": "~+/-0.1bp (step $1)",
+    "ns3_zone": "~+/-1bp (step $10)"
+   }
+  },
+  "unwind_measured_vs_2x_rule": "Measured no-refill unwind slippage ~= sweep slippage (mean ratio 1.03, range 0.74-1.35 across all 40 rows); 2x-rule round-trip totals match measured totals within ~+/-20% (rule slightly optimistic in the worst rows).",
+  "incident_match": "ETH $20M flow -> 10-20bp mid matches mechB sweep band ($12.2M@10bp .. $21.8M@20bp) and is consistent with the low end of mechA ($21.8M@10bp); $231M volume / $52k fees = 2.25bp effective, ~6.5 round trips of a 15bp ETH displacement at 2.25bp.",
+  "boundary_interpolation_caveat": "uniform-within-bucket assumption at fine->ns4 boundary gave BTC ask ratio 1.15 vs measured (churn + interpolation), ETH 0.99; treat composite depth as +/-10-30% locally, better far from boundaries."
+ },
+ "artifacts": [
+  "child3-books-BTC.json (raw l2Book)",
+  "child3-books-ETH.json",
+  "child3-depthvariants.json (fine+ns4+ns3+ns2, synchronized round)",
+  "child3-candles.json (1m 24h)",
+  "child3-churn.json (4 samples 3s apart)",
+  "child3-meta.json",
+  "child3-cost-model.json",
+  "child3-cost-model.md",
+  "scripts: child3_fetch.py child3_snapshot.py child3_analysis.py"
+ ]
+}
