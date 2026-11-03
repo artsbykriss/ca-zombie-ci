@@ -1,0 +1,735 @@
+{
+ "entrys": [
+  {
+   "constant": true,
+   "name": "name",
+   "outputs": [
+    {
+     "type": "string"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "name": "coo",
+   "outputs": [
+    {
+     "type": "address"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "name": "cfo",
+   "outputs": [
+    {
+     "type": "address"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "name": "mineContract",
+   "outputs": [
+    {
+     "type": "address"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "name": "prize_of_game",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    }
+   ],
+   "name": "game_paid_players",
+   "outputs": [
+    {
+     "name": "player",
+     "type": "address"
+    },
+    {
+     "name": "paid",
+     "type": "bool"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "name": "room_of_game",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "name": "stopped",
+   "outputs": [
+    {
+     "type": "bool"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "address"
+    }
+   ],
+   "name": "game_paid_index",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "name": "income",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "address"
+    }
+   ],
+   "name": "room_of",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "name": "owner",
+   "outputs": [
+    {
+     "type": "address"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "name": "symbol",
+   "outputs": [
+    {
+     "type": "string"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "address"
+    }
+   ],
+   "name": "balance_of",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "name": "levels",
+   "outputs": [
+    {
+     "name": "price",
+     "type": "uint256"
+    },
+    {
+     "name": "fee",
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "name": "room_map",
+   "outputs": [
+    {
+     "name": "id",
+     "type": "uint256"
+    },
+    {
+     "name": "game_id",
+     "type": "uint256"
+    },
+    {
+     "name": "status",
+     "type": "uint256"
+    },
+    {
+     "name": "level",
+     "type": "uint256"
+    },
+    {
+     "name": "paid_cnt",
+     "type": "uint256"
+    },
+    {
+     "name": "sitting_cnt",
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "type": "address"
+    }
+   ],
+   "name": "status_of",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "aceTokenAddress",
+     "type": "address"
+    }
+   ],
+   "stateMutability": "Nonpayable",
+   "type": "Constructor"
+  },
+  {
+   "inputs": [
+    {
+     "name": "old_admin",
+     "type": "address"
+    },
+    {
+     "name": "new_admin",
+     "type": "address"
+    }
+   ],
+   "name": "onUpdateAdmin",
+   "type": "Event"
+  },
+  {
+   "inputs": [
+    {
+     "name": "old_control",
+     "type": "address"
+    },
+    {
+     "name": "new_control",
+     "type": "address"
+    }
+   ],
+   "name": "onUpdateControl",
+   "type": "Event"
+  },
+  {
+   "inputs": [
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    }
+   ],
+   "name": "onUpdatePrice",
+   "type": "Event"
+  },
+  {
+   "inputs": [
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    },
+    {
+     "type": "uint256"
+    }
+   ],
+   "name": "onUpdateFee",
+   "type": "Event"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_addr",
+     "type": "address"
+    },
+    {
+     "name": "_amount",
+     "type": "uint256"
+    }
+   ],
+   "name": "WithDraw",
+   "type": "Event"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_token",
+     "type": "address"
+    },
+    {
+     "name": "_addr",
+     "type": "address"
+    },
+    {
+     "name": "_amount",
+     "type": "uint256"
+    }
+   ],
+   "name": "WithDraw_token",
+   "type": "Event"
+  },
+  {
+   "inputs": [
+    {
+     "indexed": true,
+     "name": "previousOwner",
+     "type": "address"
+    },
+    {
+     "indexed": true,
+     "name": "newOwner",
+     "type": "address"
+    }
+   ],
+   "name": "OwnershipTransferred",
+   "type": "Event"
+  },
+  {
+   "inputs": [
+    {
+     "name": "room_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "RoomToBet",
+   "type": "Event"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "name": "room_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "getPaidPlayers",
+   "outputs": [
+    {
+     "type": "address[]"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "constant": true,
+   "inputs": [
+    {
+     "name": "game_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "getPaidPlayersByGameId",
+   "outputs": [
+    {
+     "type": "address[]"
+    }
+   ],
+   "stateMutability": "View",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_players",
+     "type": "address[]"
+    },
+    {
+     "name": "_room_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "leaveRoom",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_room_id",
+     "type": "uint256"
+    },
+    {
+     "name": "_game_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "updateGame",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_players",
+     "type": "address[]"
+    },
+    {
+     "name": "_room_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "triggerBet",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_room_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "stopBet",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_room_id",
+     "type": "uint256"
+    },
+    {
+     "name": "winners",
+     "type": "address[]"
+    }
+   ],
+   "name": "endSuccessfulRound",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_room_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "endFailedRound",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "name": "withdraw",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "level",
+     "type": "uint256"
+    },
+    {
+     "name": "_room_id",
+     "type": "uint256"
+    },
+    {
+     "name": "_game_id",
+     "type": "uint256"
+    }
+   ],
+   "name": "newRoom",
+   "outputs": [
+    {
+     "type": "uint256"
+    }
+   ],
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "name": "bet",
+   "payable": true,
+   "stateMutability": "Payable",
+   "type": "Function"
+  },
+  {
+   "name": "stop",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "name": "start",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_name",
+     "type": "string"
+    }
+   ],
+   "name": "setName",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_cfo",
+     "type": "address"
+    }
+   ],
+   "name": "setCfo",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_coo",
+     "type": "address"
+    }
+   ],
+   "name": "setCoo",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_level_first",
+     "type": "uint256"
+    },
+    {
+     "name": "_level_second",
+     "type": "uint256"
+    },
+    {
+     "name": "_level_third",
+     "type": "uint256"
+    },
+    {
+     "name": "_level_fourth",
+     "type": "uint256"
+    },
+    {
+     "name": "_level_fifth",
+     "type": "uint256"
+    }
+   ],
+   "name": "updatePrice",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "_level_first",
+     "type": "uint256"
+    },
+    {
+     "name": "_level_second",
+     "type": "uint256"
+    },
+    {
+     "name": "_level_third",
+     "type": "uint256"
+    },
+    {
+     "name": "_level_fourth",
+     "type": "uint256"
+    },
+    {
+     "name": "_level_fifth",
+     "type": "uint256"
+    }
+   ],
+   "name": "updateFee",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "addr",
+     "type": "address"
+    },
+    {
+     "name": "amount",
+     "type": "uint256"
+    }
+   ],
+   "name": "withdrawAdmin",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "token",
+     "type": "address"
+    },
+    {
+     "name": "addr",
+     "type": "address"
+    },
+    {
+     "name": "amount",
+     "type": "uint256"
+    }
+   ],
+   "name": "withDrawToken",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "name": "withdrawIncome",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "name": "withdrawAllBalance",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "addr",
+     "type": "address"
+    }
+   ],
+   "name": "setMineContract",
+   "outputs": [
+    {
+     "type": "bool"
+    }
+   ],
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  },
+  {
+   "inputs": [
+    {
+     "name": "newOwner",
+     "type": "address"
+    }
+   ],
+   "name": "transferOwnership",
+   "stateMutability": "Nonpayable",
+   "type": "Function"
+  }
+ ]
+}
