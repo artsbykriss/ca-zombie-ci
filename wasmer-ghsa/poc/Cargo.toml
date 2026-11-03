@@ -1,0 +1,13 @@
+[package]
+name = "sp-drift-poc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# VERSION_PLACEHOLDER is rewritten by ci/run.sh to test 7.4.2 / 7.5.0.
+wasmer = { version = "=7.4.2", default-features = false, features = ["singlepass", "sys"] }
+wat = "1"
+
+[profile.release]
+opt-level = 2
+debug = false

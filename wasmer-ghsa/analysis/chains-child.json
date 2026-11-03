@@ -1,0 +1,677 @@
+{
+  "generated_at": "2026-11-03",
+  "advisory": {
+    "id": "GHSA-v2h8-j899-r676",
+    "package": "wasmer-compiler-singlepass",
+    "affected_range": ">=7.0.0-alpha.1, <=7.4.2",
+    "note": "7.5.0 also contains vulnerable code per requester code check"
+  },
+  "method": {
+    "http": "public keyless GET only; curl -4 -A \"Mozilla/5.0\" -m 20-30",
+    "endpoint_strategy": "direct chain-registry LCDs first, https://rest.cosmos.directory/<name> as cross-check",
+    "count_note": "pagination.count_total=true returns HTTP 400 \"offset and count queries not supported\" on all wasmd builds tested; exact counts obtained by paging /cosmwasm/wasm/v1/code?pagination.limit=100 and verifying ids 1..N are contiguous",
+    "route_note": "wasmd (>=0.54) registers list-codes at /cosmwasm/wasm/v1/code (singular). /cosmwasm/wasm/v1/codes is unregistered and returns the gRPC-gateway default 501; the same 501 is returned for /foo/bar. 501 on /codes is NOT evidence that the wasm module is absent."
+  },
+  "mapping": {
+    "wasmvm v2.2.9": {
+      "wasmvm_cargo_lock": "cosmwasm-vm 2.2.10",
+      "wasmer_compiler_singlepass": "7.4.2",
+      "in_scope": true
+    },
+    "wasmvm v2.3.5": {
+      "wasmvm_cargo_lock": "cosmwasm-vm 2.3.5",
+      "wasmer_compiler_singlepass": "7.4.2",
+      "in_scope": true
+    },
+    "wasmvm v3.0.8": {
+      "wasmvm_cargo_lock": "cosmwasm-vm 3.0.10 (pins wasmer =7.4.2, feature singlepass)",
+      "wasmer_compiler_singlepass": "7.4.2",
+      "in_scope": true
+    },
+    "wasmvm v2.2.9-rc.3": {
+      "wasmer_compiler_singlepass": "unverified (pre-release; public Cargo.lock not resolvable)",
+      "in_scope": "presumed 7.x-line but not proven"
+    },
+    "wasmvm v3.0.8-rc.3": {
+      "wasmer_compiler_singlepass": "unverified (pre-release; public Cargo.lock not resolvable)",
+      "in_scope": "presumed 7.x-line but not proven"
+    },
+    "boundary_checks": {
+      "wasmvm v3.0.7": "5.0.6 (out of scope)",
+      "wasmvm v2.3.4": "4.3.7 (out of scope)",
+      "wasmvm v2.2.8": "4.3.7 (out of scope)"
+    }
+  },
+  "chains": [
+    {
+      "chain": "Cosmos Hub",
+      "chain_id": "cosmoshub-4",
+      "endpoint": "https://rest.lavenderfive.com/cosmoshub",
+      "node_info": {
+        "url": "https://rest.lavenderfive.com/cosmoshub/cosmos/base/tendermint/v1beta1/node_info",
+        "http": 200,
+        "network": "cosmoshub-4",
+        "app_name": "gaia",
+        "app_version": "v29.0.1",
+        "git_commit": "48c981b3198164a3d5ba5632ed631fcc3e9eeb09",
+        "git_commit_12": "48c981b31981",
+        "go_version": "go version go1.26.10 linux/amd64",
+        "wasmd": "v0.60.9",
+        "wasmvm": "v2.3.5",
+        "wasmvm_module_path": "github.com/CosmWasm/wasmvm/v2"
+      },
+      "alternate_nodes": [
+        {
+          "url": "https://rest.cosmos.directory/cosmoshub/cosmos/base/tendermint/v1beta1/node_info",
+          "http": 200,
+          "samples": "15/15 identical",
+          "app_version": "v29.0.1",
+          "git_commit_12": "48c981b31981",
+          "wasmvm": "v2.3.5",
+          "wasmd": "v0.60.9"
+        }
+      ],
+      "params": {
+        "url": "https://rest.lavenderfive.com/cosmoshub/cosmwasm/wasm/v1/codes/params",
+        "http": 200,
+        "code_upload_access": {
+          "permission": "Everybody",
+          "addresses": []
+        },
+        "instantiate_default_permission": "Everybody"
+      },
+      "code_1": {
+        "url": "https://rest.cosmos.directory/cosmoshub/cosmwasm/wasm/v1/code/1",
+        "http": 200,
+        "code_id": "1",
+        "creator": "cosmos1559zgk3mxm00qtr0zu2x5n4rh5vw704qaqj6ap",
+        "data_prefix_base64": "AGFzbQEAAAAB"
+      },
+      "wasm_wired": true,
+      "code_count": {
+        "method": "paged GET /cosmwasm/wasm/v1/code?pagination.limit=100",
+        "count": 820,
+        "min_code_id": 1,
+        "max_code_id": 820,
+        "contiguous": true,
+        "count_total_supported": false,
+        "note": "pagination.count_total=true -> HTTP 400 {\"code\":3,\"message\":\"offset and count queries not supported\"}; /cosmwasm/wasm/v1/codes -> HTTP 501 (unregistered legacy path)"
+      },
+      "contract_count": null,
+      "contract_count_method": "not available: wasmd exposes no global contract-list route; /cosmwasm/wasm/v1/contract?pagination.* -> HTTP 501 and /contracts -> HTTP 405",
+      "wasmvm": "v2.3.5",
+      "wasmer_mapped": "7.4.2",
+      "upload_permission_effective": "Everybody",
+      "instantiate_default_permission": "Everybody",
+      "verdict": "AFFECTED-PERMISSIONLESS",
+      "notes": "gaia v29.0.1 wires wasmd x/wasm (app/app.go imports github.com/CosmWasm/wasmd/x/wasm and app/keepers/keepers.go constructs wasmkeeper.NewKeeper).",
+      "wasmvm_all_observed": [
+        "v2.3.5"
+      ],
+      "app_versions_all_observed": [
+        "v29.0.1"
+      ]
+    },
+    {
+      "chain": "Neutron",
+      "chain_id": "neutron-1",
+      "endpoint": "https://rest.lavenderfive.com/neutron",
+      "node_info": {
+        "url": "https://rest.lavenderfive.com/neutron/cosmos/base/tendermint/v1beta1/node_info",
+        "http": 200,
+        "network": "neutron-1",
+        "app_name": "neutron",
+        "app_version": "11.3.0",
+        "git_commit": "a3d76eb603b71314c57f84eb62da72b3d0892730",
+        "git_commit_12": "a3d76eb603b7",
+        "go_version": "go version go1.24.10 linux/amd64",
+        "wasmd": "v0.61.0",
+        "wasmvm": "v3.0.8-rc.3",
+        "wasmvm_module_path": "github.com/CosmWasm/wasmvm/v3"
+      },
+      "alternate_nodes": [
+        {
+          "url": "https://rest.cosmos.directory/neutron/cosmos/base/tendermint/v1beta1/node_info",
+          "http": 200,
+          "samples": "3/11 valid responses",
+          "app_version": "11.3.0",
+          "git_commit_12": "b83729aa9887",
+          "wasmvm": "v3.0.8",
+          "wasmd": "v0.61.0"
+        },
+        {
+          "url": "https://rest.cosmos.directory/neutron/cosmos/base/tendermint/v1beta1/node_info",
+          "http": 200,
+          "samples": "8/11 valid responses",
+          "app_version": "11.3.0-21-gf1d5578d",
+          "git_commit_12": "f1d5578d8b3c",
+          "wasmvm": "v3.0.8-rc.3",
+          "wasmd": "v0.61.0"
+        }
+      ],
+      "params": {
+        "url": "https://rest.lavenderfive.com/neutron/cosmwasm/wasm/v1/codes/params",
+        "http": 200,
+        "code_upload_access": {
+          "permission": "Everybody",
+          "addresses": []
+        },
+        "instantiate_default_permission": "Everybody"
+      },
+      "code_1": {
+        "url": "https://rest.cosmos.directory/neutron/cosmwasm/wasm/v1/code/1",
+        "http": 200,
+        "code_id": "1",
+        "creator": "neutron1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhufaa6",
+        "data_prefix_base64": "AGFzbQEAAAAB"
+      },
+      "wasm_wired": true,
+      "code_count": {
+        "method": "paged GET /cosmwasm/wasm/v1/code?pagination.limit=100",
+        "count": 5412,
+        "min_code_id": 1,
+        "max_code_id": 5412,
+        "contiguous": true,
+        "count_total_supported": false,
+        "note": "pagination.count_total=true -> HTTP 400 {\"code\":3,\"message\":\"offset and count queries not supported\"}; /cosmwasm/wasm/v1/codes -> HTTP 501 (unregistered legacy path)"
+      },
+      "contract_count": null,
+      "contract_count_method": "not available: wasmd exposes no global contract-list route; /cosmwasm/wasm/v1/contract?pagination.* -> HTTP 501 and /contracts -> HTTP 405",
+      "wasmvm": "v3.0.8-rc.3",
+      "wasmer_mapped": "7.4.2 (release node) / 7.x (rc node, pin unverified)",
+      "upload_permission_effective": "Everybody",
+      "instantiate_default_permission": "Everybody",
+      "verdict": "AFFECTED-PERMISSIONLESS",
+      "notes": "Heterogeneous validator builds: wasmvm v3.0.8 (wasmer 7.4.2, verified from libwasmvm/Cargo.lock) and v3.0.8-rc.3 (pre-release; Cargo.lock not publicly resolvable from this host).",
+      "wasmvm_all_observed": [
+        "v3.0.8-rc.3",
+        "v3.0.8"
+      ],
+      "app_versions_all_observed": [
+        "11.3.0",
+        "11.3.0-21-gf1d5578d"
+      ]
+    },
+    {
+      "chain": "Coreum",
+      "chain_id": "coreum-mainnet-1",
+      "endpoint": "https://rest-01.mainnet-1.tx.org",
+      "node_info": {
+        "url": "https://rest-01.mainnet-1.tx.org/cosmos/base/tendermint/v1beta1/node_info",
+        "http": 200,
+        "network": "coreum-mainnet-1",
+        "app_name": "tx-chain",
+        "app_version": "v8.0.0",
+        "git_commit": "5575eea6670b80261ab9168dc7ea0339bba0da34",
+        "git_commit_12": "5575eea6670b",
+        "go_version": "go version go1.24.6 linux/amd64",
+        "wasmd": "v0.60.9",
+        "wasmvm": "v2.3.5",
+        "wasmvm_module_path": "github.com/CosmWasm/wasmvm/v2"
+      },
+      "alternate_nodes": [],
+      "params": {
+        "url": "https://rest-01.mainnet-1.tx.org/cosmwasm/wasm/v1/codes/params",
+        "http": 200,
+        "code_upload_access": {
+          "permission": "Everybody",
+          "addresses": []
+        },
+        "instantiate_default_permission": "Everybody"
+      },
+      "code_1": {
+        "url": "https://rest.cosmos.directory/coreum/cosmwasm/wasm/v1/code/1",
+        "http": 200,
+        "code_id": "1",
+        "creator": "core195ply22yw08edsk5342ajhz6gn6rn5s5667yu6",
+        "data_prefix_base64": "AGFzbQEAAAAB"
+      },
+      "wasm_wired": true,
+      "code_count": {
+        "method": "paged GET /cosmwasm/wasm/v1/code?pagination.limit=100",
+        "count": 692,
+        "min_code_id": 1,
+        "max_code_id": 692,
+        "contiguous": true,
+        "count_total_supported": false,
+        "note": "pagination.count_total=true -> HTTP 400 {\"code\":3,\"message\":\"offset and count queries not supported\"}; /cosmwasm/wasm/v1/codes -> HTTP 501 (unregistered legacy path)"
+      },
+      "contract_count": null,
+      "contract_count_method": "not available: wasmd exposes no global contract-list route; /cosmwasm/wasm/v1/contract?pagination.* -> HTTP 501 and /contracts -> HTTP 405",
+      "wasmvm": "v2.3.5",
+      "wasmer_mapped": "7.4.2",
+      "upload_permission_effective": "Everybody",
+      "instantiate_default_permission": "Everybody",
+      "verdict": "AFFECTED-PERMISSIONLESS",
+      "notes": "",
+      "wasmvm_all_observed": [
+        "v2.3.5"
+      ],
+      "app_versions_all_observed": [
+        "v8.0.0"
+      ]
+    },
+    {
+      "chain": "Chihuahua",
+      "chain_id": "chihuahua-1",
+      "endpoint": "https://api.chihuahua.wtf",
+      "node_info": {
+        "url": "https://api.chihuahua.wtf/cosmos/base/tendermint/v1beta1/node_info",
+        "http": 200,
+        "network": "chihuahua-1",
+        "app_name": "chihuahua",
+        "app_version": "v10.0.1",
+        "git_commit": "4b69726b2f8929aed434d37bf3e641e7b4865e28",
+        "git_commit_12": "4b69726b2f89",
+        "go_version": "go version go1.26.5 linux/amd64",
+        "wasmd": "v0.70.4",
+        "wasmvm": "v3.0.8",
+        "wasmvm_module_path": "github.com/CosmWasm/wasmvm/v3"
+      },
+      "alternate_nodes": [],
+      "params": {
+        "url": "https://api.chihuahua.wtf/cosmwasm/wasm/v1/codes/params",
+        "http": 200,
+        "code_upload_access": {
+          "permission": "Everybody",
+          "addresses": []
+        },
+        "instantiate_default_permission": "Everybody"
+      },
+      "code_1": {
+        "url": "https://rest.cosmos.directory/chihuahua/cosmwasm/wasm/v1/code/1",
+        "http": 200,
+        "code_id": "1",
+        "creator": "chihuahua1m65lc0svtjpgkyxpmmqacrphjv06clrjaeedfu",
+        "data_prefix_base64": "AGFzbQEAAAAB"
+      },
+      "wasm_wired": true,
+      "code_count": {
+        "method": "paged GET /cosmwasm/wasm/v1/code?pagination.limit=100",
+        "count": 703,
+        "min_code_id": 1,
+        "max_code_id": 703,
+        "contiguous": true,
+        "count_total_supported": false,
+        "note": "pagination.count_total=true -> HTTP 400 {\"code\":3,\"message\":\"offset and count queries not supported\"}; /cosmwasm/wasm/v1/codes -> HTTP 501 (unregistered legacy path)"
+      },
+      "contract_count": null,
+      "contract_count_method": "not available: wasmd exposes no global contract-list route; /cosmwasm/wasm/v1/contract?pagination.* -> HTTP 501 and /contracts -> HTTP 405",
+      "wasmvm": "v3.0.8",
+      "wasmer_mapped": "7.4.2",
+      "upload_permission_effective": "Everybody",
+      "instantiate_default_permission": "Everybody",
+      "verdict": "AFFECTED-PERMISSIONLESS",
+      "notes": "",
+      "wasmvm_all_observed": [
+        "v3.0.8"
+      ],
+      "app_versions_all_observed": [
+        "v10.0.1"
+      ]
+    },
+    {
+      "chain": "Dungeon",
+      "chain_id": "dungeon-1",
+      "endpoint": "https://api.dungeongames.io",
+      "node_info": {
+        "url": "https://api.dungeongames.io/cosmos/base/tendermint/v1beta1/node_info",
+        "http": 200,
+        "network": "dungeon-1",
+        "app_name": "dungeonchain",
+        "app_version": "13.1.2-rc.1",
+        "git_commit": "5cc284f5010c75e3c2cd0a5b3bbcfd788505d2c8",
+        "git_commit_12": "5cc284f5010c",
+        "go_version": "go version go1.26.5 linux/amd64",
+        "wasmd": "v0.70.4",
+        "wasmvm": "v3.0.8",
+        "wasmvm_module_path": "github.com/CosmWasm/wasmvm/v3"
+      },
+      "alternate_nodes": [],
+      "params": {
+        "url": "https://api.dungeongames.io/cosmwasm/wasm/v1/codes/params",
+        "http": 200,
+        "code_upload_access": {
+          "permission": "Everybody",
+          "addresses": [
+            "dungeon1wxn8sqnv4kea7mglqa9jmae50d7zdx7vujhllt",
+            "dungeon1f6s4550dzyu0yzp7q2acn47mp5u25k0xhfv9sc",
+            "dungeon13x4pynlp86prhcmtns742kgsgu7pjtzj72eycc"
+          ]
+        },
+        "instantiate_default_permission": "Everybody"
+      },
+      "code_1": {
+        "url": "https://rest.cosmos.directory/dungeon/cosmwasm/wasm/v1/code/1",
+        "http": 200,
+        "code_id": "1",
+        "creator": "dungeon1wxn8sqnv4kea7mglqa9jmae50d7zdx7vujhllt",
+        "data_prefix_base64": "AGFzbQEAAAAB"
+      },
+      "wasm_wired": true,
+      "code_count": {
+        "method": "paged GET /cosmwasm/wasm/v1/code?pagination.limit=100",
+        "count": 228,
+        "min_code_id": 1,
+        "max_code_id": 228,
+        "contiguous": true,
+        "count_total_supported": false,
+        "note": "pagination.count_total=true -> HTTP 400 {\"code\":3,\"message\":\"offset and count queries not supported\"}; /cosmwasm/wasm/v1/codes -> HTTP 501 (unregistered legacy path)"
+      },
+      "contract_count": null,
+      "contract_count_method": "not available: wasmd exposes no global contract-list route; /cosmwasm/wasm/v1/contract?pagination.* -> HTTP 501 and /contracts -> HTTP 405",
+      "wasmvm": "v3.0.8",
+      "wasmer_mapped": "7.4.2",
+      "upload_permission_effective": "Everybody",
+      "instantiate_default_permission": "Everybody",
+      "verdict": "AFFECTED-PERMISSIONLESS",
+      "notes": "code_upload_access.permission=Everybody with a non-empty addresses[] array; wasmd AccessConfig.Allowed returns true unconditionally for AccessTypeEverybody (x/wasm/types/params.go v0.70.4 L138-148), so addresses are inert.",
+      "wasmvm_all_observed": [
+        "v3.0.8"
+      ],
+      "app_versions_all_observed": [
+        "13.1.2-rc.1"
+      ]
+    },
+    {
+      "chain": "Firmachain",
+      "chain_id": "colosseum-1",
+      "endpoint": "https://rest.lavenderfive.com/firmachain",
+      "node_info": {
+        "url": "https://rest.lavenderfive.com/firmachain/cosmos/base/tendermint/v1beta1/node_info",
+        "http": 200,
+        "network": "colosseum-1",
+        "app_name": "FirmaChain",
+        "app_version": "v0.5.2",
+        "git_commit": "be4109c5f4fd0b62b75a4d2e7806e739ed34ac99",
+        "git_commit_12": "be4109c5f4fd",
+        "go_version": "go version go1.23.4 linux/amd64",
+        "wasmd": "v0.54.3",
+        "wasmvm": "v2.2.9-rc.3",
+        "wasmvm_module_path": "github.com/CosmWasm/wasmvm/v2"
+      },
+      "alternate_nodes": [
+        {
+          "url": "https://rest.cosmos.directory/firmachain/cosmos/base/tendermint/v1beta1/node_info",
+          "http": 200,
+          "samples": "4/15 valid responses",
+          "app_version": "v0.5.2",
+          "git_commit_12": "5659706dbad5",
+          "wasmvm": "v2.2.9",
+          "wasmd": "v0.54.10"
+        },
+        {
+          "url": "https://api.firmachain.chaintools.tech/cosmos/base/tendermint/v1beta1/node_info",
+          "http": 200,
+          "samples": "1/1",
+          "app_version": "v0.5.2",
+          "git_commit_12": "be4109c5f4fd",
+          "wasmvm": "v2.2.9-rc.3",
+          "wasmd": "v0.54.3"
+        }
+      ],
+      "params": {
+        "url": "https://rest.lavenderfive.com/firmachain/cosmwasm/wasm/v1/codes/params",
+        "http": 200,
+        "code_upload_access": {
+          "permission": "Everybody",
+          "addresses": []
+        },
+        "instantiate_default_permission": "Everybody"
+      },
+      "code_1": {
+        "url": "https://rest.cosmos.directory/firmachain/cosmwasm/wasm/v1/code/1",
+        "http": 200,
+        "code_id": "1",
+        "creator": "firma10q7mj8wpefqfmtjqsevg2m5sc93fyhcn528z45",
+        "data_prefix_base64": "AGFzbQEAAAAB"
+      },
+      "wasm_wired": true,
+      "code_count": {
+        "method": "paged GET /cosmwasm/wasm/v1/code?pagination.limit=100",
+        "count": 4,
+        "min_code_id": 1,
+        "max_code_id": 4,
+        "contiguous": true,
+        "count_total_supported": false,
+        "note": "pagination.count_total=true -> HTTP 400 {\"code\":3,\"message\":\"offset and count queries not supported\"}; /cosmwasm/wasm/v1/codes -> HTTP 501 (unregistered legacy path)"
+      },
+      "contract_count": 25,
+      "contract_count_method": "sum of GET /cosmwasm/wasm/v1/code/{1..4}/contracts on https://rest.lavenderfive.com/firmachain (8+6+6+5)",
+      "wasmvm": "v2.2.9-rc.3",
+      "wasmer_mapped": "7.4.2 (release node) / 7.x (rc node, pin unverified)",
+      "upload_permission_effective": "Everybody",
+      "instantiate_default_permission": "Everybody",
+      "verdict": "AFFECTED-PERMISSIONLESS",
+      "notes": "Official tag v0.5.2 commit 5659706dbad5 (FirmaChain/firmachain) builds wasmvm v2.2.9/wasmd v0.54.10; 11/15 public-proxy samples and chaintools report the be4109c5f4fd rc.3 build.",
+      "wasmvm_all_observed": [
+        "v2.2.9-rc.3",
+        "v2.2.9"
+      ],
+      "app_versions_all_observed": [
+        "v0.5.2"
+      ]
+    },
+    {
+      "chain": "Terra 2",
+      "chain_id": "phoenix-1",
+      "endpoint": "https://terra-rest.publicnode.com",
+      "node_info": {
+        "url": "https://terra-rest.publicnode.com/cosmos/base/tendermint/v1beta1/node_info",
+        "http": 200,
+        "network": "phoenix-1",
+        "app_name": "terra",
+        "app_version": "v2.22.0",
+        "git_commit": "e68dd029990a4cf347157f2426cabba4d9eb5c30",
+        "git_commit_12": "e68dd029990a",
+        "go_version": "go version go1.23.12 linux/amd64",
+        "wasmd": "v0.54.10",
+        "wasmvm": "v2.2.9",
+        "wasmvm_module_path": "github.com/CosmWasm/wasmvm/v2"
+      },
+      "alternate_nodes": [],
+      "params": {
+        "url": "https://terra-rest.publicnode.com/cosmwasm/wasm/v1/codes/params",
+        "http": 200,
+        "code_upload_access": {
+          "permission": "Everybody",
+          "addresses": []
+        },
+        "instantiate_default_permission": "Everybody"
+      },
+      "code_1": {
+        "url": "https://rest.cosmos.directory/terra2/cosmwasm/wasm/v1/code/1",
+        "http": 200,
+        "code_id": "1",
+        "creator": "terra1hzt9ywljcdg7urcud5nlcsh8trk72mqyj4g8e4",
+        "data_prefix_base64": "AGFzbQEAAAAB"
+      },
+      "wasm_wired": true,
+      "code_count": {
+        "method": "paged GET /cosmwasm/wasm/v1/code?pagination.limit=100",
+        "count": 4074,
+        "min_code_id": 1,
+        "max_code_id": 4074,
+        "contiguous": true,
+        "count_total_supported": false,
+        "note": "pagination.count_total=true -> HTTP 400 {\"code\":3,\"message\":\"offset and count queries not supported\"}; /cosmwasm/wasm/v1/codes -> HTTP 501 (unregistered legacy path)"
+      },
+      "contract_count": null,
+      "contract_count_method": "not available: wasmd exposes no global contract-list route; /cosmwasm/wasm/v1/contract?pagination.* -> HTTP 501 and /contracts -> HTTP 405",
+      "wasmvm": "v2.2.9",
+      "wasmer_mapped": "7.4.2",
+      "upload_permission_effective": "Everybody",
+      "instantiate_default_permission": "Everybody",
+      "verdict": "AFFECTED-PERMISSIONLESS",
+      "notes": "",
+      "wasmvm_all_observed": [
+        "v2.2.9"
+      ],
+      "app_versions_all_observed": [
+        "v2.22.0"
+      ]
+    },
+    {
+      "chain": "THORChain",
+      "chain_id": "thorchain-1",
+      "endpoint": "https://api-thorchain.rorcual.xyz",
+      "node_info": {
+        "url": "https://api-thorchain.rorcual.xyz/cosmos/base/tendermint/v1beta1/node_info",
+        "http": 200,
+        "network": "thorchain-1",
+        "app_name": "THORChain",
+        "app_version": "3.21.0",
+        "git_commit": "31bc1ae34ee6486e8ae7a2aca4e2db5a0a6ca5a5",
+        "git_commit_12": "31bc1ae34ee6",
+        "go_version": "go version go1.26.9 linux/amd64",
+        "wasmd": "v0.54.10",
+        "wasmvm": "v2.2.9",
+        "wasmvm_module_path": "github.com/CosmWasm/wasmvm/v2"
+      },
+      "alternate_nodes": [],
+      "params": {
+        "url": "https://api-thorchain.rorcual.xyz/cosmwasm/wasm/v1/codes/params",
+        "http": 200,
+        "code_upload_access": {
+          "permission": "Everybody",
+          "addresses": []
+        },
+        "instantiate_default_permission": "Everybody"
+      },
+      "code_1": {
+        "url": "https://rest.cosmos.directory/thorchain/cosmwasm/wasm/v1/code/1",
+        "http": 200,
+        "code_id": "1",
+        "creator": "thor1e0lmk5juawc46jwjwd0xfz587njej7ay5fh6cd",
+        "data_prefix_base64": "AGFzbQEAAAAB"
+      },
+      "wasm_wired": true,
+      "code_count": {
+        "method": "paged GET /cosmwasm/wasm/v1/code?pagination.limit=100",
+        "count": 204,
+        "min_code_id": 1,
+        "max_code_id": 204,
+        "contiguous": true,
+        "count_total_supported": false,
+        "note": "pagination.count_total=true -> HTTP 400 {\"code\":3,\"message\":\"offset and count queries not supported\"}; /cosmwasm/wasm/v1/codes -> HTTP 501 (unregistered legacy path)"
+      },
+      "contract_count": null,
+      "contract_count_method": "not available: wasmd exposes no global contract-list route; /cosmwasm/wasm/v1/contract?pagination.* -> HTTP 501 and /contracts -> HTTP 405",
+      "wasmvm": "v2.2.9",
+      "wasmer_mapped": "7.4.2",
+      "upload_permission_effective": "Everybody",
+      "instantiate_default_permission": "Everybody",
+      "verdict": "AFFECTED-PERMISSIONLESS",
+      "notes": "Requested as thorchain-mainnet-v1; node_info.network is thorchain-1.",
+      "wasmvm_all_observed": [
+        "v2.2.9"
+      ],
+      "app_versions_all_observed": [
+        "3.21.0"
+      ]
+    }
+  ],
+  "unreachable_chains": [],
+  "endpoint_failures": [
+    {
+      "chain": "cosmoshub",
+      "url": "https://cosmos-lcd.quickapi.com",
+      "result": "HTTP 403 on all paths (administrative rules)"
+    },
+    {
+      "chain": "cosmoshub",
+      "url": "https://cosmoshub.lava.build",
+      "result": "HTTP 404 node_info"
+    },
+    {
+      "chain": "cosmoshub",
+      "url": "https://cosmoshub-rest.publicnode.com",
+      "result": "HTTP 000 node_info; HTTP 404 /cosmwasm/wasm/v1/code/820"
+    },
+    {
+      "chain": "neutron",
+      "url": "https://rest-lb.neutron.org",
+      "result": "HTTP 302 redirect to https://x.com/neutron_org/status/2072037746424603130 (no LCD)"
+    },
+    {
+      "chain": "neutron",
+      "url": "https://neutron-rest.publicnode.com",
+      "result": "HTTP 404 node_info"
+    },
+    {
+      "chain": "neutron",
+      "url": "https://rest.neutron.solva.solutions / rest-solara / rest-voidara / rest-pulsarix .neutron-1.neutron.org / neutron-api.polkachu.com / api.novel.remedy.tm.p2p.org / lcd.neutron.bronbro.io / api.neutron.quokkastake.io / rest.neutron.org",
+      "result": "HTTP 000 (DNS/connect/timeout)"
+    },
+    {
+      "chain": "chihuahua",
+      "url": "https://chihuahua-rest.publicnode.com",
+      "result": "HTTP 404 node_info"
+    },
+    {
+      "chain": "chihuahua",
+      "url": "https://chihuahua-api.polkachu.com / api.chihuahua.validatus.com / chihuahua-api.kleomedes.network",
+      "result": "HTTP 000"
+    },
+    {
+      "chain": "dungeon",
+      "url": "https://dungeon-rest.publicnode.com / api.dungeon.chaintools.tech",
+      "result": "HTTP 000"
+    },
+    {
+      "chain": "firmachain",
+      "url": "https://lcd-mainnet.firmachain.dev:1317 (http and https) / firma.api.m.stavr.tech / firmachain-api.polkachu.com / firmachain-api.ramuchi.tech / firmachain.api.nodeshub.online / firmachain_mainnet_api.chain.whenmoonwhenlambo.money",
+      "result": "HTTP 000"
+    },
+    {
+      "chain": "terra2",
+      "url": "https://phoenix-lcd.terra.dev",
+      "result": "HTTP 000 (timeout)"
+    },
+    {
+      "chain": "thorchain",
+      "url": "https://thorchain-rest.publicnode.com",
+      "result": "HTTP 000"
+    },
+    {
+      "chain": "thorchain",
+      "url": "https://gateway.liquify.com/chain/thorchain_api",
+      "result": "HTTP 200 node_info/params, intermittent HTTP 000 for /code/1"
+    },
+    {
+      "chain": "all",
+      "url": "https://<chain>-rest.publicnode.com where listed above",
+      "result": "publicnode responses for codes used JSON-RPC error {\"code\":-32701,\"message\":\"not implemented\"}; not used for counts"
+    }
+  ],
+  "corrections": [
+    {
+      "subject": "Prior verified work: \"Cosmos Hub gaia has NO wasm keeper wiring; /cosmwasm/wasm/v1/codes returns 501\"",
+      "finding": "FALSIFIED. cosmoshub-4 is running gaia v29.0.1 which imports github.com/CosmWasm/wasmd/x/wasm and constructs wasmkeeper.NewKeeper (app/app.go L67-69, L192; app/keepers/keepers.go L466), has wasmd v0.60.9 + wasmvm v2.3.5 in build_deps, serves /cosmwasm/wasm/v1/codes/params HTTP 200 with code_upload_access=Everybody, serves /cosmwasm/wasm/v1/code/1 HTTP 200 (creator cosmos1559..., data prefix AGFzbQEAAAAB = wasm magic), and holds 820 contiguous code ids. The 501 was the wrong path: wasmd registers list-codes at /cosmwasm/wasm/v1/code, and unregistered paths (e.g. /foo/bar) also return 501."
+    },
+    {
+      "subject": "CA2: cosmoshub v29.0.1 wasmvm v2.3.5 permissionless",
+      "finding": "CONFIRMED (permissionless; wasmer 7.4.2)."
+    },
+    {
+      "subject": "CA2: neutron v11.3.0 wasmvm v3.0.8 permissionless",
+      "finding": "PARTLY CONFIRMED. One public-node build reports 11.3.0 / b83729aa9887 / wasmvm v3.0.8; other nodes report 11.3.0-21-gf1d5578d / f1d5578d8b3c / v3.0.8-rc.3. Permission (Everybody/Everybody) and wiring confirmed on both."
+    },
+    {
+      "subject": "CA2: firmachain v2.2.9 permissionless",
+      "finding": "CONFIRMED for the official v0.5.2 tag build (commit 5659706dbad5, wasmvm v2.2.9, wasmd v0.54.10). Two public LCDs run a different build be4109c5f4fd with v2.2.9-rc.3 / wasmd v0.54.3; permission and wiring identical."
+    },
+    {
+      "subject": "CA2: coreum v8.0.0 wasmvm v2.3.5 / dungeon v13.1.2-rc.1 v3.0.8 / chihuahua v10.0.1 v3.0.8 / terra2 v2.2.9 / thorchain v2.2.9 permissionless",
+      "finding": "CONFIRMED for all five (exact build_deps and Everybody/Everybody)."
+    },
+    {
+      "subject": "Dungeon upload restriction",
+      "finding": "code_upload_access is {\"permission\":\"Everybody\",\"addresses\":[3 dungeon1... addresses]}. Not AnyOfAddresses: wasmd AccessConfig.Allowed returns true for AccessTypeEverybody regardless of the addresses array, so upload is permissionless."
+    },
+    {
+      "subject": "Chain ids",
+      "finding": "firmachain is colosseum-1 (not firmachain-mainnet-1); thorchain is thorchain-1 (not thorchain-mainnet-v1)."
+    }
+  ]
+}

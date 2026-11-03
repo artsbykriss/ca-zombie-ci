@@ -1,0 +1,34 @@
+# codegen.rs evidence — 2026-11-03T13:00:14Z
+# repo=wasmerio/wasmer path=lib/compiler-singlepass/src/codegen.rs
+
+## v7.4.2  http=200  bytes=253340  md5=d0b168fd67bcb0e2f651ea08e259981b
+
+## v7.5.0  http=200  bytes=253340  md5=d0b168fd67bcb0e2f651ea08e259981b
+
+## main  http=200  bytes=255927  md5=491df67a37cb89536728f8d821eecdbb
+
+## diff v7.4.2 -> v7.5.0 (empty means byte-identical)
+IDENTICAL
+
+## vulnerable-lowering markers in v7.5.0
+2588:                if param_types.len() == return_types.len() {
+2586:                /* We might hit a situation where an Operator::If is missing an Operator::Else. In such a situation,
+emit_if_block_end: ABSENT (expected on vulnerable builds)
+
+## fix markers in main
+1146:    fn emit_if_block_end(&mut self, was_unreachable: bool) -> Result<(), CompileError> {
+2674:            Operator::Else => self.emit_if_block_end(was_unreachable)?,
+3778:                    self.emit_if_block_end(was_unreachable)?;
+
+## releases
+v7.5.0 2026-10-01T11:32:50Z 
+v7.5.0-rc.1 2026-10-01T06:54:10Z prerelease
+v7.4.2 2026-09-16T14:49:23Z 
+v7.4.1 2026-09-08T14:01:19Z 
+v7.4.0 2026-08-31T16:52:22Z 
+
+## fix PR
+number 7128 merged True merged_at 2026-11-02T12:01:47Z
+title fix(Singlepass): lower implicit else through existing else handling
+merge_commit e5ca9b93809d744af8b33488a748a284d3d41955 base main
+changed_files 2 + 135 - 69
