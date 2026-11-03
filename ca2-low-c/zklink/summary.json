@@ -1,0 +1,62 @@
+{
+  "finding": "CA2-LOW-C / zklink",
+  "title": "zkLink Nova Arbitrator message spoofing \u2014 root cause unpatched, payout paused; live E-U $0, conditional <= $1.4k",
+  "chains": [
+    "ethereum"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 1419.23,
+    "H-O": 651.91,
+    "P": 767.31,
+    "S": 651.91
+  },
+  "latest_block": 26334539,
+  "block_numbers": {
+    "ethereum": 26334539,
+    "pause_block": 26297792,
+    "exploit_drain_block": 26295187
+  },
+  "targets_checked": 5,
+  "live_targets": 5,
+  "closed_reasons": [
+    "ZkLink.paused() == true since block 26,297,792 (2026-10-29T10:26:59Z); Unpaused has never fired",
+    "proveL2MessageInclusion reverts Pausable: paused; requestL2Transaction reverts Pausable: paused",
+    "L1ERC20Bridge.finalizeWithdrawal and claimFailedDeposit both route through the paused proof functions",
+    "ZkLink holds only 0.622821572451440221 ETH ($1,419.23); bridge holds 0 ETH and no material ERC-20",
+    "Even if unpaused, the whole Ethereum balance is below the $10k bar"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41647220393"
+    ]
+  },
+  "key_facts": [
+    "Arbitrator proxy 0x1ee09a2c... impl unchanged at 0x7a0bb4805ecb7fd3c8dabbe4afa0e91cb1761e34; stale transient finalizeMessageHash flaw still in verified source",
+    "Public relayer 0x0fdc28e6... whitelisted true; EthereumGateway 0x83bc7394... secondaryChainGateways true",
+    "ZkLink 0x5fd9f732... paused true; owner 0xdb4D755E...; forwardFeeAllocator same owner",
+    "Pause event at block 26,297,792, tx 0xb68b67b9e77209e9fd2d2976c5ca2b82750f81ad5951ccf6901b47971d7f013c, timestamp 1793269619",
+    "ZkLink balance 0.622821572451440221 ETH = $1,419.23 at ETH $2,278.71; bridge 0 ETH; 0 USDC/USDT/WETH/WBTC/HEX",
+    "Unwithdrawn forward fee 0.336731588888613576 ETH = $767.31, claimable by owner via withdrawForwardFee even while paused (sim returns 0x)",
+    "User escrow 0.286089983562826645 ETH = $651.91 stuck while paused",
+    "Real drain $783,100 on 2026-10-27 via txs 0x8a7e38b9... (block 26,295,187) and 0x4f3c23e7... (block 26,294,188)"
+  ],
+  "caveats": [
+    "Pause is an admin mitigation, not a code fix; unpause without an Arbitrator upgrade reopens the path, but only ~$1.4k remains on Ethereum",
+    "Linea/Arbitrum/Manta/zkSync escrows hold $1.48M/$306k/$127k/$117k per DefiLlama, but reachability through the Ethereum Arbitrator is unproven",
+    "ZH4-P2 prior coverage was the 2026-10-17 legitimate 15-call finalizeWithdrawal batch ($9.0M uniETH depositor exit), not this Oct 27-29 spoof",
+    "syncBatchRoot is not whenNotPaused, so a forged root can be pre-staged during the pause; payout still requires unpause, and deposits are paused so the escrow cannot grow during the pause"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live: the Arbitrator replay flaw is still deployed but ZkLink is paused (prove/deposit revert Pausable: paused) and only $1.4k ETH remains; even unpaused the conditional ceiling is $1.4k.",
+  "category_notes": {
+    "E-U": "$0 live: prove/deposit revert Pausable: paused",
+    "E-U-conditional": "<= $1,419.23 if the owner unpauses without upgrading the Arbitrator",
+    "P": "$767.31 forward fee, claimable by the owner/forwardFeeAllocator while paused",
+    "S": "$651.91 user escrow while paused; the same amount becomes H-O after unpause",
+    "H-O": "$651.91 user escrow after unpause (overlaps S while paused)"
+  }
+}

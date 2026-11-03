@@ -1,0 +1,67 @@
+{
+  "finding": "CA2-LOW-C",
+  "title": "LOW-tail verification: Aperture router, Coffer M-08, zkLink Nova Arbitrator",
+  "chains": [
+    "ethereum",
+    "arbitrum",
+    "optimism",
+    "polygon",
+    "solana"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 1419.23,
+    "E-U-aperture-conditional-nominal": 17629.92,
+    "H-O": 59069.22,
+    "P": 767.31,
+    "S": 17629.92
+  },
+  "latest_block": 26334517,
+  "block_numbers": {
+    "ethereum": 26334517,
+    "arbitrum": 520879985,
+    "optimism": 159056069,
+    "polygon": 96670312,
+    "solana_slot": 464912869
+  },
+  "targets_checked": 3,
+  "live_targets": 3,
+  "closed_reasons": [
+    "Aperture: 78 approved LP NFTs all have zero liquidity/owed; the only funded ERC-20 approval (3.48M TRU) is on a paused token; other reachable ERC-20 is $0.58 dust",
+    "Coffer: M-08 fix deployed at slot 458,810,142 (2026-10-19) and unchanged; per-leg bound one raw unit <= $0.000773",
+    "zkLink: ZkLink.paused() == true since block 26,297,792; prove/deposit revert Pausable: paused; only $1,419 ETH remains"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41647220393"
+    ]
+  },
+  "key_facts": [
+    "Aperture router 0xD83d960deBEC397fB149b51F8F37DD3B5CFA8913 is non-proxy and live on ETH/ARB/OP/POLY; exploit tx 0x7d2c160d... block 25,803,114 status 1 moved NFT 0xd188b via router-called NFPM.transferFrom",
+    "Aperture approval sweep: 1,483 logs / 392 pairs; 78 approved NFTs all empty; 1 funded ERC-20 approval (TRU 3,477,020.1 tokens) frozen by paused(); Polygon priced dust $0.5794",
+    "TRU nominal $17,629.92 at $0.00507041 (single MEXC market, $55,850/24h); token admin 0x39e6918d... controls unpause",
+    "Coffer cubic_pool 8iQtGj9m...hwu; ProgramData SHA-256 14e0965a...5bd3; last deploy slot 458,810,142 = 2026-10-19T11:04:29Z; 43 pools; 29 mints with 5-9 decimals; max one raw unit $0.0007726891",
+    "Coffer DefiLlama TVL $58,417.31; prior behavioural simulation at slot 464,630,474 showed full credit + div_up/mul_up fix; no redeploy since",
+    "zkLink Arbitrator impl 0x7a0bb480... unchanged; public relayer 0x0fdc28e6... and EthereumGateway 0x83bc7394... still active; ZkLink paused true since block 26,297,792 (2026-10-29T10:26:59Z)",
+    "zkLink ZkLink balance 0.622821572451440221 ETH = $1,419.23; forward fee 0.336731588888613576 ETH = $767.31 (P, withdrawable while paused); user escrow 0.286089983562826645 ETH = $651.91 (S/H-O)",
+    "zkLink real drain $783,100 on 2026-10-27 via 0x8a7e38b9... block 26,295,187 and 0x4f3c23e7... block 26,294,188; ZH4-P2 covered a different (legit) Oct 17 exit"
+  ],
+  "caveats": [
+    "Aperture is closed source; the ERC-20-target variant rests on public analyses, while the NFT path is trace-proven",
+    "TRU nominal is a single-venue quote with no on-chain depth; it is latent/privileged-conditional, not E-U",
+    "Coffer fix is verified behaviourally (prior run) plus deployment identity/last-deploy slot, not by source diff",
+    "zkLink pause is an admin mitigation; per-chain escrows are not counted because reachability through the Ethereum Arbitrator is unproven"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live across all three LOW targets: Aperture approved positions are empty and its only funded ERC-20 approval is on a paused token; Coffer's rounding fix is deployed with a <=$0.0008 per-leg bound; zkLink's Arbitrator flaw is masked by a live pause and only $1.4k remains.",
+  "category_notes": {
+    "E-U": "$0 live across all three targets at the named blocks",
+    "E-U-conditional": "zkLink <= $1,419.23 if the owner unpauses without upgrading the Arbitrator; Aperture <= $17,629.92 nominal if TRU is unpaused and the ERC-20-target variant is reachable (realizable likely lower)",
+    "H-O": "Coffer LP TVL $58,417.31 self-withdrawable + zkLink user escrow $651.91 after unpause",
+    "P": "zkLink forward fee $767.31 claimable by the owner/forwardFeeAllocator even while paused",
+    "S": "TRU $17,629.92 frozen by the token pause (unlocks to E-U-conditional on admin unpause); zkLink user escrow $651.91 is also S while paused and H-O after unpause (overlap noted)"
+  }
+}

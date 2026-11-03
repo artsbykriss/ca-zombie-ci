@@ -1,0 +1,51 @@
+{
+  "finding": "CA2-LOW-C / coffer",
+  "title": "Coffer Solana M-08 rounding \u2014 fix deployed 2026-10-19; per-call bound one raw unit (<= $0.0008/leg)",
+  "chains": [
+    "solana"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-counterfactual-per-call": 0.0069542,
+    "H-O": 58417.31,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 464913747,
+  "block_numbers": {
+    "solana_slot": 464913747,
+    "last_deploy_slot": 458810142
+  },
+  "targets_checked": 43,
+  "live_targets": 27,
+  "closed_reasons": [
+    "Post-incident fix deployed at slot 458,810,142 (2026-10-19T11:04:29Z), after the 2026-10-18 incident and before the prior behavioural simulation at slot 464,630,474",
+    "ProgramData is still at that deploy slot and its SHA-256 is unchanged; no rollback or redeploy",
+    "Prior simulateTransaction showed actual_balance credited in full and virtual_balance increased by the auditors' exact div_up/mul_up fix",
+    "Even unpatched, M-08 is bounded to one raw unit per live leg per call; all 29 pool mints have 5-9 decimals, so one raw unit is at most $0.0007726891 (1 sat of an 8-dp BTC token)"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41647220393"
+    ]
+  },
+  "key_facts": [
+    "Program cubic_pool = 8iQtGj9mcUfFUGaiCpPy89swC3s8YTC8FhVZWfgeZhwu; ProgramData 7Lh9eKmDMfHwDKkUjoqfYSRoPbin8dEzSAdkWkmavZw4, 652,605 bytes",
+    "Last deploy slot 458,810,142 = 2026-10-19T11:04:29Z; upgrade authority B4gyhrqLzX36VEu54ShqgTkb4TpXooTdxtcmvER3d3Bg",
+    "ProgramData SHA-256 14e0965ad0ec5a4e7a7c3d3a68d6936559abe48ab165ce3c93f952dbfde65bd3",
+    "43 pools total: 27 v5 (1683 bytes, all pool_enabled) + 16 legacy (1154 bytes)",
+    "29 unique pool mints, decimals 5-9; max one raw unit $0.0007726891; max 9-leg call $0.0069542",
+    "DefiLlama TVL $58,417.31 at 2026-11-03",
+    "2026-10-18 incident realised ~$0.7 from thousands of deposits"
+  ],
+  "caveats": [
+    "Program source is private; fix verified behaviourally and by deployment identity, not by source diff",
+    "No fresh simulation was run in this pass because the ProgramData has not changed since the prior simulation's slot; a future upgrade requires re-testing",
+    "TVL is DefiLlama's figure and is not attacker-extractable via this bug"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live: the M-08 rounding fix is still the deployed bytecode (last deploy 2026-10-19, unchanged since), and the unpatched per-call ceiling is one raw unit per leg <= $0.0008."
+}

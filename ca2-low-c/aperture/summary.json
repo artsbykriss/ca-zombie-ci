@@ -1,0 +1,63 @@
+{
+  "finding": "CA2-LOW-C / aperture",
+  "title": "Aperture Finance instant-liquidity router \u2014 path live, value $0; one funded ERC-20 approval frozen by token pause",
+  "chains": [
+    "ethereum",
+    "arbitrum",
+    "optimism",
+    "polygon"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 17629.92,
+    "H-O": 0,
+    "P": 0,
+    "S": 17629.92
+  },
+  "latest_block": 26334413,
+  "block_numbers": {
+    "ethereum": 26334413,
+    "arbitrum": 520879985,
+    "optimism": 159056069,
+    "polygon": 96670312
+  },
+  "targets_checked": 4,
+  "live_targets": 4,
+  "closed_reasons": [
+    "All 78 still-approved UniV3 LP NFTs have liquidity == 0 and tokensOwed0/1 == 0",
+    "The only funded ERC-20 approval (3,477,020.1 TRU) is on a globally paused token; transferFrom reverts ERC20Pausable: token transfer while paused",
+    "All other ERC-20 approvals with both allowance and balance are Polygon dust totalling $0.58",
+    "Router native balance is 0 on all four chains and sampled token balances are 0"
+  ],
+  "poc": {
+    "tests_passed": 0,
+    "tests_total": 0,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/41647220393"
+    ]
+  },
+  "key_facts": [
+    "Router 0xD83d960deBEC397fB149b51F8F37DD3B5CFA8913 is non-proxy (EIP-1967 impl slot 0) with 38,888-hex-char runtime on ETH/ARB/OP/POLY",
+    "Selector 0x67b34120 is still in the runtime; exploit tx 0x7d2c160d... at block 25,803,114 status 1 moved NFT tokenId 0xd188b from 0xc846d321... to caller 0xfcbe6aa9... via NFPM.transferFrom called by the router",
+    "Approval enumeration: 1,483 logs / 392 distinct (token,owner) pairs across four chains",
+    "Only 8 pairs have allowance>0 and balance>0: 1 on Ethereum (TRU), 7 on Polygon (dust)",
+    "TRU owner 0x530a445c... holds 3,477,020.105893728270632095 TRU with ~2^256 allowance to the router, but TRU paused() == true since block 24,192,375",
+    "TRU nominal at CoinGecko $0.00507041 = $17,629.92; only visible market is MEXC with $55,850/24h volume; on-chain Uniswap V2 pair holds only 0.02058 WETH",
+    "Polygon priced dust total $0.5794; FANS 2.861e9 raw = 2.86e-9 tokens at 18 dp, negligible"
+  ],
+  "caveats": [
+    "Router is closed source; ERC-20-target variant of the bug rests on cited public analyses, while the NFT-transfer path is proven by the live trace",
+    "TRU unpause is controlled by the token DEFAULT_ADMIN/PAUSER EOA 0x39e6918d... (single key), so the $17.6k nominal is a latent privileged-conditional, not live E-U",
+    "Realizable value of 3.48M TRU at size is likely below nominal and possibly below $10k due to thin MEXC depth",
+    "ApprovalForAll operator grants were not exhaustively enumerated; the one non-empty OP position was checked directly and is not approved"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0.00 live: the proven arbitrary transferFrom path remains but every approved NFT position is empty, and the only materially funded ERC-20 approval is on a paused token (nominal $17.6k latent, admin-gated).",
+  "category_notes": {
+    "E-U": "$0 live: 78 approved NFTs empty; TRU paused; dust $0.58",
+    "E-U-conditional": "<= $17,629.92 nominal if TRU is unpaused and the ERC-20-target variant is reachable; realizable likely lower",
+    "S": "3,477,020.1 TRU frozen while the token is paused; unlocks to E-U-conditional on admin unpause",
+    "P": "token DEFAULT_ADMIN/PAUSER EOA 0x39e6918d... controls unpause"
+  }
+}
