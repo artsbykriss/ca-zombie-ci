@@ -1,0 +1,47 @@
+Faroo stPROS live-gate proof
+chain=pharos(1672) block=22650973 rpc=https://rpc.pharos.xyz
+attacker=0x1111111111111111111111111111111111111111 (fresh EOA, no roles, no balance assumptions)
+
+--- 0. implementation integrity (runtime keccak vs faroo-xyz/stpros-contracts records)
+PASS  StPROS_impl runtimeKeccak 0xca97539e8a29b612d5a8dedece1b2c2bcec88905e28ce7f79bfa7fff4647e218
+PASS  BridgeVault_impl runtimeKeccak 0x1d9038d2fc9717b44647638e40ee889b4f955f25677cfd260c15257c7cc5a043
+PASS  SlpDistributor_impl runtimeKeccak 0xfa824dff1ca8b0ddf019240f571d425034c95f04739ead2e8327907ee5cf577a
+
+--- 1. privileged value paths (all must revert for a fresh EOA)
+PASS  BridgeVault.withdrawToken  -> 0xbfb92565
+PASS  BridgeVault.withdrawTokenWrapped  -> 0xbfb92565
+PASS  BridgeVault.emergencyWithdraw  -> 0x118cdaa7
+PASS  Oracle.update  -> 0xf5631094
+PASS  Oracle.onMint  -> 0x1942eea2
+PASS  Oracle.setTokenAmount  -> 0x118cdaa7
+PASS  SlpDistributor.distribute  -> 0xccf79b67
+PASS  RewardsVault.notifyOracle  -> 0xe2517d3f
+PASS  SLP1.bond  -> 0xe2517d3f
+PASS  SLP1.claim  -> 0xe2517d3f
+PASS  SLP1.transferBack  -> 0xe2517d3f
+PASS  Staking.claimReward (fresh)  -> No rewards to claim
+PASS  Staking.claimStake (fresh)  -> No withdrawable stake
+PASS  ProxyAdmin.upgrade  -> Ownable: caller is not the owner
+PASS  ProxyAdmin.changeProxyAdmin  -> Ownable: caller is not the owner
+PASS  Timelock.schedule  -> 0xe2517d3f
+
+--- 2. permissionless entries are no-ops / self-scoped
+PASS  stPROS.withdrawComplete(fresh) == 0
+PASS  stPROS.withdrawComplete() == 0
+PASS  BridgeVault.unwrapWrapped is permissionless (neutral: pays caller 0, unwraps vault WPROS only)
+
+--- 3. live accounting: exact queue funding, no unprivileged surplus
+PASS BridgeVault.getBalance(WPROS)=1153829143869170837546 native=1153829143869170837546 delta=0
+PASS getTotalBalance(1247604019831042693382433) <= queuedWithdrawal(1247604029913510245505305)+1e15 dust; unprivileged surplus=0.000000 PROS
+PASS  Oracle.poolInfo.T == 5119038217336813745218893
+PASS  Oracle.poolInfo.V == 5077168055213820953538995
+PASS  BridgeVault.vTokenAddressCount == 1
+PASS  vTokenByAsset(WPROS) == stPROS
+PASS  vTokenAddresses(stPROS) == true
+PASS  stPROS.paused == false
+PASS  BridgeVault.paused == false
+INFO  stPROS.owner=0xC30dB0543412c6881A543390d2c21FbBFf42805b (OZ TimelockController, 24h min delay; P-class)
+INFO  oracle reporter=0xd0C44d3079e97fF285dd7A3e4E0246320a9487e5 (RewardsVault; WHITELIST_ROLE only)
+INFO  distributor keeper=0x8736e68f37C1156e09445ac2D395A139e58fCAb4 (P-class)
+
+PASS=31 FAIL=0

@@ -1,0 +1,53 @@
+{
+  "finding": "CA3-OPEN-2 (Target 1)",
+  "title": "Faroo stPROS + five ERC-1967 custody proxies \u2014 unprivileged value path review",
+  "chains": [
+    "pharos"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 2729582,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 22613377,
+  "block_numbers": {
+    "pharos": 22613377
+  },
+  "targets_checked": 6,
+  "live_targets": 6,
+  "closed_reasons": [
+    "BridgeVault pays only the registered vToken (stPROS); withdrawToken/withdrawTokenWrapped revert NotVTokenContract for a fresh EOA, emergencyWithdraw is onlyOwner",
+    "Oracle writes are NotSlp (reporter = RewardsVault) or NotVToken (canonical vToken); setTokenAmount is onlyOwner",
+    "SlpDistributor.distribute is onlyKeeper and only pays whitelisted SLPs",
+    "RewardsVault.notifyOracle and every SLP value function are WHITELIST_ROLE",
+    "Pharos staking claimReward/claimStake are keyed by msg.sender; withdrawStake is validator-owner only",
+    "stPROS.withdrawComplete iterates the caller's own records and returns 0 for a fresh EOA; the queue surplus is 0 wei",
+    "No stPROS market below NAV identified; minting at NAV makes a deposit/redeem round trip value-neutral"
+  ],
+  "poc": {
+    "tests_passed": 31,
+    "tests_total": 31,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/42742614973"
+    ]
+  },
+  "key_facts": [
+    "All six proxies resolved: stPROS impl 0xfD59\u2026, BridgeVault 0xa7d3\u2026, SlpDistributor 0x05A2\u2026, RewardsVault 0xe698\u2026, SLP1 0xc3d0\u2026, SLP2 0xd15e\u2026",
+    "StPROS/BridgeVault/SlpDistributor runtime keccaks match faroo-xyz/stpros-contracts mainnet/v4 records exactly",
+    "SLP1 and SLP2 implementations are byte-identical (runtime keccak 0x48686658\u2026fc0aa3)",
+    "T = 5,119,038.227419 PROS = current staked principal 5,062,185.797112 + pending unbond 56,632.430307 + distributor float 220.000000",
+    "getTotalBalance = queuedWithdrawal = 1,247,604.019831 PROS; fresh-withdrawal surplus 0 wei",
+    "Owner and proxy admin are a 24h OZ TimelockController 0xC30dB054\u2026; guardian 0xa04698\u2026 is pause-only",
+    "Foundry 1.8 cannot fork Pharos public RPC (eth_getAccountInfo / block-object params); executable proof is a 25-probe eth_call suite"
+  ],
+  "caveats": [
+    "Point-in-time block 22,613,377; queue equality moves with claims and deposits",
+    "SLP #1/#2 and RewardsVault are EXTERNAL_DEPLOYED in the repo; source is present but bytecode is not matched to it (live gates probed instead)",
+    "USD uses DefiLlama TVL $2,729,582 (implied PROS ~$0.533)",
+    "JIT yield capture is E-U-conditional only: gross <= ~$545/report and net-negative at a 5% cost of capital"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live from Faroo stPROS: every value path is role/timelock gated, the queue is exactly funded with zero surplus, and the oracle NAV reconciles to staked principal + unbonding + float."
+}
