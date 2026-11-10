@@ -1,0 +1,61 @@
+{
+  "finding": "CA3-C5 (HAI / ZH4-01 re-check)",
+  "title": "HAI governance re-check \u2014 5% quorum vs 122k-vote defence bloc; acquisition route analysis",
+  "chains": [
+    "optimism"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 998565.24,
+    "S": 0
+  },
+  "latest_block": 159337291,
+  "block_numbers": {
+    "optimism": 159337291,
+    "optimism_fork": 159337108
+  },
+  "targets_checked": 12,
+  "live_targets": 7,
+  "closed_reasons": [
+    "Quorum is 48,698.35 KITE (~$15,030.55) but the live defence bloc is 122,423.63 votes (5 delegates, 12.57% of supply); a quorum-only proposal is Defeated 122,423.63 -> 48,698.35 (fork test 02).",
+    "No market route to the winning 122,423.63 KITE: two Velodrome pools hold 22,220.21 KITE total ($6,827.59 quote), no CEX listing (CoinGecko tickers = 2 Velodrome pools), no bridge/other-chain float (DexScreener returns only Optimism pairs).",
+    "The winning stake equals 71.3% of all EOA-held KITE (171,750.63) \u2014 requires 6-8 whales to sell OTC, publicly visible for 6.5 days.",
+    "Treasury KITE is realizable at only $6,508 (both pools drained); the $101,348 mark is not achievable. All-in quorum cost $17.5k-$29.5k > realizable treasury $6,576 => net-negative on the treasury leg.",
+    "Votes are timestamp checkpoints (getPastVotes): not flash-loanable; delegation must be checkpointed 12h before voteStart.",
+    "No guardian; TIMELOCK_ADMIN unassigned; the only proposer is the Governor; no faster path than 12h + 5d + 1d."
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/42735188726",
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/42734157127"
+    ]
+  },
+  "key_facts": [
+    "Governor 0xe807f3282f3391d237BA8B9bECb0d8Ea3ba23777: quorumNumerator=5, quorum(now-1)=48,698.35e18, proposalThreshold=20,000e18, votingDelay=43,200s, votingPeriod=432,000s, lateQuorumVoteExtension=86,400s, guardian() reverts.",
+    "Timelock 0xd68e7D20008a223dD48A6076AAf5EDd4fe80a899: minDelay 86,400s; PROPOSER/EXECUTOR/CANCELLER = Governor; TIMELOCK_ADMIN unassigned; Timelock is authorized on KITE (mint), HAI (mint) and SAFEEngine 0x9Ff82686\u2026A700.",
+    "Treasury Safe 0xDCb421Cc4Cbb7267F3b2cAcAb44Ec18AEbEd6724: owners=[Timelock], threshold 1, nonce 79; 328,143.981253588267391953 KITE + 462.947729816 OP + 0.01 WETH + 0.6360389380706 VELO = $101,348.01 mark / $6,576.02 realizable.",
+    "KITE totalSupply = 973,967e18 (CA3 wrote 973,967,000 = 1,000x error); treasury/quorum = 6.738x in token units.",
+    "Live delegated votes at 159,336,403: total 131,098.14; bloc 122,423.63 = 0x297BF847 52,202.96 + 0xCAFd432b 41,580.38 + 0xBad58e13 20,921.70 + 0x35d067D3 4,016.60 + 0x9492510B 3,702.01.",
+    "Treasury KITE has 0 votes and delegate 0x0 \u2014 it is loot, not voting power; quorum is on getPastTotalSupply.",
+    "DEX: KITE/HAI 0xf2d3941b\u2026 holds 18,606.23 KITE + 4,777.38 HAI; OP/KITE 0xf4638dC4\u2026 holds 3,613.98 KITE + 11,110.19 OP. Buying 10k KITE costs $5,604 (avg $0.560); 20k costs $61,687 (avg $3.08).",
+    "Realizing 328,143.98 KITE through both pools returns 4,520.31 HAI + 10,988.80 OP = ~$6,508 (fork test 05).",
+    "HAI TVL $801,379 (DefiLlama): WETH $398,932, wstETH $270,214, rETH $80,953, VELO $29,767, TBTC $9,840, OP $6,276, alETH $4,152, msETH $1,245. Fork test 04 seized $678,167 (187.19 WETH + 101.57 wstETH + 0.1313 TBTC) via modifyCollateralBalance + CollateralJoin.exit.",
+    "Prices 2026-11-10: KITE $0.308646 (DefiLlama; CoinGecko 0.309064; 90-day range $0.3071-$0.8355), OP $0.100293, WETH $2,127.24, HAI $1.19587. CA3's $0.113859 is not observed by any source.",
+    "No proposals since the hardening executed at block 158,342,971 (2026-10-18 00:51:59 UTC); attacker EOAs hold 0 KITE / 0 votes.",
+    "Fork tests: 48,698.35 For with no opposition executes (test 01); 48,698.35 vs live bloc is Defeated (test 02); 130,000 vs live bloc executes (test 03)."
+  ],
+  "caveats": [
+    "The attacker's 48.7k/130k KITE balance is a state override (deal cheatcode) \u2014 hypothetical capital, no such on-chain balance.",
+    "Defender votes in tests 02/03 are the real undealt live delegations (no override).",
+    "OTC premiums are unobservable; cost modelled at spot and 2x. DEX legs are exact constant-product with 30 bp.",
+    "Collateral seizure is a governance capability, not unprivileged; it requires winning the 5-day vote and could be met with off-chain emergency action (pause/disableContract) not modelled.",
+    "P category is nominal mark value of governance-reachable assets (treasury + StakingManager + HAI TVL); realizable value is far lower (~$6.5k for treasury KITE).",
+    "All reads are point-in-time; staking balance and prices move."
+  ],
+  "one_liner": "external unprivileged attacker can extract $0 live: quorum is 48,698.35 KITE ($15,030.55) but the live defence bloc is 122,423.63 votes (2.51x quorum), no CEX/bridge/DEX route can source the 122k winning stake (71% of the EOA float), and the treasury's KITE only exits at $6,508 \u2014 CA3's re-opening rests on an unsupported $0.1139 KITE price and a 1,000x quorum typo."
+}

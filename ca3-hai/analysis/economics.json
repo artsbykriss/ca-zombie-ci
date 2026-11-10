@@ -1,0 +1,114 @@
+{
+  "as_of_utc": "2026-11-10T02:15:00Z",
+  "prices": {
+    "KITE_usd": 0.30864589058818653,
+    "KITE_source": "DefiLlama coins.llama.fi ts=1794269276 (cross-checked CoinGecko 0.309064, DexScreener 0.3094/0.3136)",
+    "OP_usd": 0.1002929823,
+    "WETH_usd": 2127.2395067733337,
+    "VELO_usd": 0.02478716384964208,
+    "HAI_usd": 1.1958703223969582
+  },
+  "supply": {
+    "KITE_totalSupply": 973967.0,
+    "note": "CA3 wrote 973,967,000 (1000x); on-chain totalSupply()=973967e18",
+    "kite_in_treasury_safe": 328143.9812535883,
+    "kite_in_staking_manager": 310511.02368084807,
+    "kite_in_vesting": 89442.73625776893,
+    "kite_in_dex_pools": 22220.212094346065,
+    "kite_eoa_total": 171750.63,
+    "kite_contract_total_ex_treasury_staking_vesting": 77695.02
+  },
+  "governance": {
+    "quorum_numerator_pct": 5,
+    "quorum_kite": 48698.35,
+    "quorum_usd": 15030.55,
+    "proposal_threshold_kite": 20000,
+    "proposal_threshold_usd": 6172.92,
+    "voting_delay_s": 43200,
+    "voting_period_s": 432000,
+    "late_quorum_extension_s": 86400,
+    "timelock_min_delay_s": 86400,
+    "round_trip_days": 6.5,
+    "guardian": null
+  },
+  "delegated_votes_live": {
+    "total_delegated_kite": 131098.1362,
+    "pct_of_supply": 13.46,
+    "delegates": {
+      "0x297BF847Dcb01f3e870515628b36EAbad491e5E8": 52202.9553,
+      "0xCAFd432b7EcAfff352D92fcB81c60380d437E99D": 41580.3781,
+      "0xBad58e133138549936D2576ebC33251bE841d3e9": 20921.698,
+      "0x35d067D337Dd3F7E2BBb4367bed467DCfae1E1fb": 4016.5975,
+      "0x9492510BbCB93B6992d8b7Bb67888558E12DCac4": 3702.0053
+    },
+    "defence_bloc_total": 122423.6342,
+    "bloc_as_pct_of_supply": 12.57,
+    "bloc_as_pct_of_eoa_float": 71.28,
+    "treasury_kite_votes": 0,
+    "treasury_kite_delegate": "0x0"
+  },
+  "treasury_value": {
+    "kite_mark_usd": 101280.29,
+    "op_usd": 46.43,
+    "weth_usd": 21.27,
+    "velo_usd": 0.02,
+    "total_mark_usd": 101348.01,
+    "kite_realizable_usd_via_dex": 6508.3,
+    "dex_quote_reserves_total_usd": 6827.59,
+    "realizable_total_usd": 6576.02
+  },
+  "acquisition": {
+    "spot_cost_48698_kite_usd": 15030.55,
+    "spot_cost_122424_kite_usd": 37785.66,
+    "dex_buy_cost_5k_usd": 1988.35,
+    "dex_buy_cost_10k_usd": 5603.79,
+    "dex_buy_cost_15k_usd": 14226.63,
+    "dex_buy_cost_20k_usd": 61687.35,
+    "dex_max_kite_inventory": 22220.21,
+    "blended_quorum_10k_dex_plus_38.7k_otc_at_spot_usd": 17546.74,
+    "blended_quorum_with_2x_otc_premium_usd": 29489.52,
+    "blended_win_15k_dex_plus_107.4k_otc_at_spot_usd": 47384.14,
+    "blended_win_with_2x_otc_premium_usd": 80541.42,
+    "cex_listings": "none (CoinGecko tickers: only 2 Velodrome V2 pools)",
+    "bridges_other_chains": "none (DexScreener token lookup returns only Optimism pairs)"
+  },
+  "protocol_prize": {
+    "hai_tvl_usd": 801379.33,
+    "hai_tvl_breakdown_usd": {
+      "WETH": 398932.05,
+      "WSTETH": 270213.59,
+      "RETH": 80953.17,
+      "VELO": 29767.04,
+      "TBTC": 9840.01,
+      "OP": 6276.4,
+      "ALETH": 4151.82,
+      "MSETH": 1245.26
+    },
+    "fork_proven_seizure_usd": {
+      "WETH": 398151.0,
+      "WSTETH": 270176.0,
+      "TBTC": 9840.0,
+      "total": 678167.0
+    },
+    "hai_token_supply": 290449.8132702561,
+    "hai_mint_by_timelock": true,
+    "hai_dex_exit_depth_usd": 42000
+  },
+  "fork_tests": {
+    "block": 159337108,
+    "passed": 6,
+    "failed": 0,
+    "ci_run": "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/42735188726",
+    "results": {
+      "quorum_only_no_opposition": "PASS - 48,698.35 For, 0 Against -> treasury drained (328,143.98 KITE)",
+      "quorum_only_vs_live_bloc": "DEFEATED - 48,698.35 For vs 122,423.63 Against",
+      "130k_vs_live_bloc": "PASS - 130,000 For vs 122,423.63 Against -> treasury drained + 462.95 OP",
+      "collateral_seizure": "PASS - modifyCollateralBalance + CollateralJoin.exit moved 187.19 WETH + 101.57 wstETH + 0.1313 TBTC"
+    }
+  },
+  "verdict": {
+    "net_vs_treasury_only": "NEGATIVE: blended quorum cost $17.5k-$29.5k vs $6.58k realizable treasury",
+    "net_vs_protocol_if_vote_won": "POSITIVE on paper (prize ~$808k vs ~$47k-$81k stake) but requires 122,423.63 KITE = 5.5x the entire DEX float and 71% of all EOA holdings",
+    "live_extractable_unprivileged": 0
+  }
+}
