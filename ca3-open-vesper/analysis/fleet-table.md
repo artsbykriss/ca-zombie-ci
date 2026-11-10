@@ -1,0 +1,26 @@
+| # | chain | pool | asset | version | totalValue (tokens) | price USD | value USD | strategies |
+|---:|---|---|---|---|---:|---:|---:|---:|
+| 1 | ethereum | `0x4C73F025a1947ec770327B9956Fc61f535F72C22` vamsUSD | msUSD | 5.1.0 | 31,951,088.1897 | 0.8130 | 25,975,853.40 | 3 |
+| 2 | ethereum | `0xCa7c607C590ad16007CCBbba9D26f4df656a36C2` vamsETH | msETH | 5.1.0 | 13,585.0242 | 1,846.6165 | 25,086,329.57 | 3 |
+| 3 | ethereum | `0x4Dbe3f01aBe271D3E65432c74851625a8c30Aa7B` vaSTETH | stETH | 5.0.2 | 6,296.0581 | 2,128.3869 | 13,400,447.37 | 4 |
+| 4 | base | `0x913Ece180df83A2B81A4976F83cA88543a0C51b8` vamsETH | msETH | 5.1.0 | 3,298.7358 | 1,846.6165 | 6,091,499.86 | 1 |
+| 5 | ethereum | `0xd1C117319B3595fbc39b471AB1fd485629eb05F2` vaETH | ETH | 5.0.1 | 956.7984 | 2,127.0423 | 2,035,150.67 | 7 |
+| 6 | optimism | `0xdd63ae655b388Cd782681b7821Be37fdB6d0E78d` vawstETH | wstETH | 5.1.1 | 468.5584 | 2,652.8546 | 1,243,017.24 | 3 |
+| 7 | ethereum | `0x103cc17C2B1586e5Cd9BaD308690bCd0BBe54D5e` vETH | ETH | None | 455.5538 | 2,127.0423 | 968,982.25 | 0 |
+| 8 | optimism | `0x539505Dde2B9771dEBE0898a84441c5E7fDF6BC0` vaUSDC | USDC | 5.1.1 | 835,476.9558 | 0.9998 | 835,329.67 | 2 |
+| 9 | ethereum | `0xa8b607Aa09B6A2E306F93e74c282Fb13f6A80452` vaUSDC | USDC | 5.0.1 | 488,409.4260 | 0.9998 | 488,289.16 | 1 |
+| 10 | base | `0x82562507429876486B60AF4F32390ef0947b3d13` vaETH | ETH | 5.1.0 | 195.6538 | 2,127.0423 | 416,163.94 | 2 |
+| 11 | ethereum | `0x4B2e76EbBc9f2923d83F5FBDe695D8733db1a17B` vWBTC | WBTC | None | 4.0801 | 75,069.8915 | 306,294.74 | 0 |
+| 12 | optimism | `0xCcF3d1AcF799bAe67F6e354d685295557cf64761` vaETH | ETH | 5.1.0 | 120.9327 | 2,125.0928 | 256,993.28 | 1 |
+| 13 | ethereum | `0x0C49066C0808Ee8c673553B7cbd99BCC9ABf113d` vUSDC | USDC | None | 188,223.3840 | 0.9998 | 188,177.03 | 0 |
+| 14 | ethereum | `0x0538C8bAc84E95A9dF8aC10Aad17DbE81b9E36ee` vaDAI | DAI | 5.0.1 | 76,152.9280 | 0.9999 | 76,147.80 | 2 |
+| 15 | ethereum | `0xDD9F61a85fFE73E41eF889817972f0B0AaE6D6Dd` vaRETH | rETH | 5.0.2 | 19.8486 | 2,496.0617 | 49,543.24 | 3 |
+| 16 | ethereum | `0x01e1d41C1159b745298724c5Fd3eAfF3da1C6efD` vaWBTC | WBTC | 5.0.1 | 0.5238 | 75,069.8915 | 39,324.80 | 1 |
+| 17 | ethereum | `0xc14900dFB1Aa54e7674e1eCf9ce02b3b35157ba5` vaFRAX | FRAX | 5.0.1 | 24,229.4778 | 0.9897 | 23,978.99 | 1 |
+| 18 | ethereum | `0xef4F4604106de23CDadfEAE08fcC34602cB475C1` vaLINK | LINK | 5.0.1 | 2,081.4463 | 10.6487 | 22,164.75 | 1 |
+| 19 | base | `0x1e41238aCd3A9fF90b0DCB9ea96Cf45F104e09Ef` vaUSDC | USDC | 5.1.0 | 22,060.3190 | 0.9998 | 22,054.89 | 2 |
+| 20 | base | `0x46fb68Eb2b1Fc43654AbaE5691D39D18D933E4b4` vawstETH | wstETH | 5.1.0 | 1.2841 | 2,652.6774 | 3,406.38 | 0 |
+| 21 | ethereum | `0x650CD45DEdb19c33160Acc522aD1a82D9701036a` vaCBETH | cbETH | 5.1.0 | 0.8175 | 2,433.5300 | 1,989.41 | 1 |
+| 22 | optimism | `0x19382707d5a47E74f60053b652Ab34b6e30Febad` vaOP | OP | 5.1.0 | 6,116.7832 | 0.1010 | 617.89 | 1 |
+| 23 | base | `0x3899a6090c5C178dB8A1800DA39daD0D06EeEFBE` vacbETH | cbETH | 5.1.0 | 0.1357 | 2,433.5300 | 330.23 | 0 |
+| | | | | **total** | | | **77,532,086.55** | |

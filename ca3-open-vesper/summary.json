@@ -1,0 +1,59 @@
+{
+  "finding": "CA3-OPEN-1",
+  "title": "Vesper V2 fleet (23 pools, Ethereum + Base + Optimism) — full enumeration and unprivileged-profit probe",
+  "chains": ["ethereum", "base", "optimism"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 1250,
+    "H-O": 46190.38,
+    "P": 77532086.55,
+    "S": 865435.0
+  },
+  "latest_block": 26381372,
+  "block_numbers": {"ethereum": 26381372, "base": 55427996, "optimism": 159339279},
+  "targets_checked": 23,
+  "live_targets": 23,
+  "closed_reasons": [
+    "VPool.reportEarning/reportLoss have no pool-level modifier but PoolAccountant requires strategy[msg.sender].active (revert '16') — fork-proven on 11/11 Ethereum and 4/4 Optimism pools",
+    "PoolAccountant.reportEarning/reportLoss/decreaseDebt are onlyPool, and reportEarning also requires token.balanceOf(strategy) >= profit + payback",
+    "migrateStrategy / updateUniversalFee / updatePoolRewards / updateMaximumProfitAsFee / setup / transferGovernorship are onlyGovernor",
+    "sweepERC20 / pause / unpause / shutdown / open / addKeeper / addMaintainer are onlyKeeper",
+    "Strategy.withdraw is onlyPool; rebalance/sweep/swapToCollateral/claimAndSwapRewards/approveToken are onlyKeeper; upgradeToAndCall is onlyProxy + _authorizeUpgrade onlyGovernor",
+    "All pool proxies and every ProxyAdmin are owned by the same Gnosis Safe 3-of-6 (vaRETH additionally behind a TimelockController)",
+    "Share minting rounds up in _calculateShares, so donation / first-depositor inflation is value-destructive (fork: -41.36 WETH, -0.02 WBTC)",
+    "Deposit->withdraw round trip returns exactly the deposited amount (fork: 10 ETH and 10,000 ETH on vaETH)"
+  ],
+  "poc": {
+    "tests_passed": 18,
+    "tests_total": 18,
+    "ci_run_urls": []
+  },
+  "key_facts": [
+    "23 pools = 14 Ethereum + 5 Base + 4 Optimism; the Optimism leg ($2.34M) was missing from ca3-recon's 19-pool count",
+    "On-chain totalValue at DefiLlama spot = $77,532,087 (ETH $75.20M + Base $6.54M + OP $2.34M). DefiLlama quotes $87.36M because it marks msETH/msUSD at par; live msUSD = $0.813, msETH = $1,846.62 vs ETH $2,127.04",
+    "44 registered strategies: 25 v5/v6 Ethereum + 3 legacy bridge + 6 Base + 7 Optimism",
+    "All privileged authority resolves to Gnosis Safe 0x9520b477Aa81180E6DdC006Fc09Fb6d3eb4e807A (3-of-6); Base/OP governor 0x32934AD7b1121DeFC631080b58599A0eaAB89878 (same signers); vaRETH governor is a TimelockController 0x1a32036fe8342143fe198b43cdafd1cc32d78b2c",
+    "Keeper router 0xf7364E230EA0e5CC41E6Cd4E2a30A26Ca1850b73 (Keeper proxy) gates execute() to 5 keeper EOAs; one is an EIP-7702 smart account delegated to MetaMask EIP7702StatelessDeleGator 0x63c0c19a282a1b52b07dd5a65b58948a07dae32b",
+    "Pool impls: VPool 5.0.1 0x3ceddef5, 5.0.2 0xd948ba1b, 5.1.0 0x91f92f75 (+VETH 0xf296b111); Base 0x67006c2e / 0x097f419a; OP 0x65595214 / 0x5c39cd35 / 0x44edc69f / 0xffa0075c; accountants over 0x95561370 / 0xd5fba168",
+    "externalDepositFee = 0 on all 20 v5 pools (no cost to enter, which enables JIT)",
+    "vaDAI books 76,152.93 DAI of NAV but only 2,022.61 DAI is realisable (97.34% shortfall) because Rari_Dummy_DAI 0x084aFb5e holds 74,130.56 DAI of debt with tvl()=0",
+    "OP vaUSDC books 835,476.96 USDC but only 44,167.77 USDC is realisable (94.71% shortfall): strategy Sonne_USDC 0x64Ef984F owns 47% of the Sonne USDC market which has getCash()=0, holds 0 idle USDC.e, and withdraw() transfers nothing",
+    "Other dead-but-booked strategies: Sommelier_Dummy_ETH 5.798 ETH, Euler_Dummy_ETH 1.486 ETH, Maker_Dummy_STETH 3.392 stETH — all covered by excess in sibling strategies",
+    "vaETH's Alpha-Lend-Strategy (lastRebalance 2023-02-28, debtRatio 0) holds 371.78 ETH of ibETHv2 against 248.04 ETH debt, which is why vaETH is -12.85% vs booked (over-collateralised)",
+    "Per-rebalance realised profit measured by simulating every live keeper: 325.56 FRAX, 518.08 USDC, 0.1475 ETH, 0.0252 ETH, 49.94 msUSD, 0.2489 DAI, remainder <= 1 wei or reverting; total ~= $1,250 per fleet-wide cycle",
+    "JIT fork proof: 30M FRAX deposit around the real keeper rebalance captured +313.19 FRAX of a 325.56 FRAX profit report (~96%); a 10,000 ETH vaETH deposit produced exactly 0 and the Convex keeper rebalance itself reverts",
+    "Legacy v2 pools expose permissionless sweepErc20 but hold only 1 HEX (~$0.005) + 2 spam tokens as non-reserved value; legacy rebalance() always reverts 'caller-is-not-keeper'",
+    "whitelistedWithdraw is a deprecated ungated alias of withdraw in 5.0.x — no whitelist, no extra privilege"
+  ],
+  "caveats": [
+    "4 strategies are v1/v3/v5.1-era contracts probed by selector rather than line-by-line source audit (DummyStrategy, Alpha-Lend, CompoundLeverage, AaveV3_Sommelier_Xy_STETH_WETH)",
+    "JIT numbers are a one-cycle snapshot and depend on keeper cadence; the four strategies with the largest mark-to-market gap ($106k) cannot currently be rebalanced at all",
+    "Cap_wstETH tvl() is denominated in wstETH while pool debt is stETH, so vaSTETH backing is approximate",
+    "The Sonne mark uses exchangeRateStored, which may itself be stale — but with getCash()=0 no mark is realisable",
+    "Legacy v2 pool value chains through vETH2/vUSDC2/vWBTC2 pricePerShare, itself a book value",
+    "DefiLlama's $87.36M vs on-chain $77.53M is a pricing difference, not a custody difference"
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 principal from the $77.5M / 23-pool Vesper V2 fleet (every pool and strategy is cleanly role-gated, fork-proven); the only live unprivileged income is ~$1.25k per fleet-wide rebalance cycle of JIT yield dilution, while ~$865k is already stuck (vaDAI dummy-strategy debt + Optimism vaUSDC locked in a zero-cash Sonne market)."
+}
