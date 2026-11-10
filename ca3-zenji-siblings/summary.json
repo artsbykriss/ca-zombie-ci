@@ -1,0 +1,75 @@
+{
+  "finding": "CA3-ZENJI-SIBLINGS",
+  "title": "Zenji recipe sibling hunt \u2014 permissionless rebalance valued and floored by the same Curve pool",
+  "chains": [
+    "ethereum",
+    "optimism",
+    "base",
+    "arbitrum"
+  ],
+  "headline_extractable_usd": 0.0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0.0,
+    "H-O": 161.74,
+    "P": 0.0,
+    "S": 0.0
+  },
+  "latest_block": 26381000,
+  "block_numbers": {
+    "ethereum": 26381000,
+    "ethereum_exploit": 26371413,
+    "ethereum_exploit_fork": 26371412,
+    "optimism": 159337708,
+    "base": 55418325,
+    "arbitrum": 522842578
+  },
+  "targets_checked": 37,
+  "live_targets": 0,
+  "closed_reasons": [
+    "Zenji wstETH vault: loanExists=false, debt=0, strategy balanceOf=0, StakeDAO LP=0; rebalance() reverts RebalanceNotNeeded() 0x5121f343; only 0.009065059159379702 wstETH of holder-owned dust remains",
+    "Zenji WBTC vault: same state; 0.00183694 WBTC dust",
+    "Zenji pmUSD-era vaults: totalAssets=0 and totalSupply=0, never funded",
+    "Extra Finance: all three keeper switches false and caller-whitelisted (Error(string) \"20\" = VL_LIQUIDATOR_NOT_IN_WHITELIST); minOut is caller-supplied",
+    "Contango V2: no on-chain liquidation entry point; trade/close is owner-or-approved (Unauthorised(address))",
+    "Extrafi XLend MetaMorpho: allocate/reallocate allocator-only and priced on Morpho oracle, no LP leg",
+    "Gearbox v3: liquidation priced by IPriceOracleV3, not by a pool the caller trades; no vault-level permissionless rebalance",
+    "Fluid Lite (ex-Instadapp Lite): rebalance modules are onlyRebalancer",
+    "YieldBasis: no keeper rebalance entry point (mint/redeem only; leverage adjusted by users), 11 live LT markets",
+    "Curvance: money market, no leveraged LP vault with a keeper path",
+    "LlamaLend leverage wrappers: stateless zaps, no funds and no keeper path",
+    "Beefy / Yearn v3 / StakeDAO CLM controls: permissionless harvest/report but no debt and no pool-derived LTV (fail tests b and c)"
+  ],
+  "poc": {
+    "tests_passed": 16,
+    "tests_total": 16,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/42738506283"
+    ]
+  },
+  "key_facts": [
+    "Historical exploit reproduced from scratch: independent attacker contract at fork block 26371412 flash-borrows 7,237,500 USDT from Morpho Blue, buys 7,138,299.911635911250934175 crvUSD in Curve StableNG 0x390f\u20267BF4, calls rebalance() on both Zenji vaults, sells the crvUSD back and nets +4,951.395691 USDT \u2014 identical to the on-chain attacker's 4,951,395,691 units",
+    "Attacker's real tx: 0x79fa5b304186be7eaa19a59f57b82e1fa942afee92da45ae73afe27ee817d701, block 26,371,413, 6,792,575 gas, executed in the attacker contract constructor; proceeds later sent to the Tornado router 0xd90e2f\u2026f31b",
+    "Three tests all pass on deployed code: rebalance() is external with no role; strategy balanceOf() = min(cached get_virtual_price, calc_withdraw_one_coin(lp, crvUSD)) from the same pool; _removeLiquidity derives minOut from that same calc_withdraw_one_coin quote (vault maxSlippage 1%)",
+    "Attack size is capped by the pool's crvUSD inventory (7.19M at the exploit block, 7.99M at block 26,381,000): 10M and 14M buys revert",
+    "Historical size sweep at block 26371412: 1M -199, 2.5M -499, 5M -999, 7.2375M +4,951, 10M revert, 14M revert (USDT units)",
+    "Live dust: vault A 0.009065059159379702 wstETH ($24.07) + vault B 0.00183694 WBTC ($137.68) = $161.74 at wstETH $2,654.78 / WBTC $74,941.92 (DefiLlama 2026-11-10); holder-redeemable, not attacker-extractable",
+    "Latent re-arm quantified on a simulated 100 wstETH ($238k) third-party deposit: +$15,136 at 8.0M flash with no price move (NAV -6.3%); +$69,082 at 8.2M and +$143,799 at 8.8M after a mocked -10% wstETH move (NAV -29.9% / -71.3%)",
+    "Both vaults still accept deposits (depositsPaused=false, emergencyMode=false, depositCap=0) and the deployed strategies are immutable and unpatched; only the GitHub source was hardened",
+    "Fleet enumeration: 4 Zenji vaults from the deployer's 30 creations after block 25.2M; Rebalance(uint256,uint256,bool) topic0 0xd2412c66\u2026383d returns 93 logs from exactly 2 addresses; DefiLlama erc4626 registry lists the same 2; no public fork of the Zenji repo",
+    "Independent ETH-lane confirmation: the two additional Zenji pmUSD-era vaults 0xB415bce7\u2026c31F (ZenjiWbtcLlamaStakeDao) and 0x45bBa5E1\u20261595 (ZenjiWstEthLlamaStakeDao) are exact-code siblings that pass all three tests but hold $0 (totalSupply=0); rebalance() from 0x\u2026dEaD reverts RebalanceNotNeeded() and harvestYield() succeeds",
+    "Strongest funded near-miss: Fluid Lite iETHv2 0xA0D3707c\u2026Be78 holds $148.9M (70,077.77 stETH) but every rebalance path is onlyRebalancer (eth_call revert 0x78fb3fe5 = Helpers__NotRebalancer()) and NAV is a stored exchangePrice checkpoint, not pool spot",
+    "YieldBasis: 11 live LT markets, $93.08M protocol equity, but no rebalance/delever/harvest selector; valuation uses a bounded price_scale EMA plus LEVAMM invariant, and the only permissionless protocol trade is distribute_borrower_fees() (~$1,809 of accrued interest protocol-wide, donated back to LPs)",
+    "Gearbox v3: $19.38M protocol / $7.46M wstETH debt; liquidateCreditAccount is public but priced by Chainlink feeds with staleness checks, so it cannot be moved by a DEX skew",
+    "Extra Finance (OP/Base $8.21M + $0.50M TVL): all three keeper switches false and caller-whitelisted, all funded Base vaults frozen, borrowEnabled=false on every funded vault; minOut is caller-supplied in the close structs",
+    "Contango V2 ($9.32M Arb + $0.76M Base + $0.36M OP): no on-chain liquidation function; trade/close requires owner or isApprovedForAll (Unauthorised(address))"
+  ],
+  "caveats": [
+    "Latent table uses vm.mockCall on the Chainlink wstETH/USD feed to simulate a -10% collateral drawdown and a `deal`-funded 100 wstETH deposit on a fork; it measures what a returning depositor would expose, not a live position, and is excluded from the E-U headline",
+    "Latent profitability is non-monotonic and pool-state dependent: 8.2M and 8.8M lose money on a healthy vault while 8.0M profits; sizes outside the window revert or lose, so the range is a bound, not a guaranteed yield",
+    "L2/ETH sibling verdicts rely on verified source plus behavioural eth_call probes at the stated blocks; Extra Finance's OP/Base bytecode is unverified (flag/field-name inference marked as such in the child report)",
+    "USD values are point-in-time (DefiLlama 2026-11-10); USDT/crvUSD are treated at ~$1",
+    "No mainnet transactions were sent; the fork suite is the only execution path"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 live: the only contracts implementing the Zenji recipe are its own 4 vaults \u2014 2 drained to $161.74 of holder dust (no loan, no LP, keeper reverts RebalanceNotNeeded) and 2 never funded; the recipe itself is fork-proven at +4,951.40 USDT and re-arms on any future deposit (latent $15.1k-$143.8k per tx on a simulated $238k vault)."
+}
