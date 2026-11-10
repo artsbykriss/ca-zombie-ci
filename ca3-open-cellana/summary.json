@@ -1,0 +1,35 @@
+{
+  "finding": "CA3-OPEN-2 (Target 2)",
+  "title": "Cellana vote_manager::rescue_stuck_rewards — no-signer reward recycling",
+  "chains": ["aptos"],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {"E-U": 0, "H-O": 0, "P": 0, "S": 0},
+  "latest_block": 7980724750,
+  "block_numbers": {"aptos_ledger_version": 7980724750, "cellana_epoch": 2966},
+  "targets_checked": 1,
+  "live_targets": 1,
+  "closed_reasons": [
+    "rescue_stuck_rewards claims rewards for the passed address and sends every FungibleAsset to incentivize(pool, rescued), which deposits into the pool's incentive reward pool; there is no transfer/mint/deposit to the caller",
+    "rewards_pool::claim_rewards, add_rewards, increase_allocation and decrease_allocation are friend-only, with vote_manager as the sole friend; no external allocation-mint or direct-claim path exists",
+    "live veNFTs are excluded by assert!(!voting_escrow::nft_exists(account_address)); a fresh address has no veNFT and zero claimable rewards",
+    "the protocol is dust: top pool 0 USDC + 13 APT; prior-epoch fee total 0; incentive pool empty",
+    "principal (LP, staked, veNFT locked) is never in scope; only reward shares move"
+  ],
+  "poc": {"tests_passed": 25, "tests_total": 25, "ci_run_urls": []},
+  "key_facts": [
+    "Deployed entry: rescue_stuck_rewards(address, vector<Object<LiquidityPool>>, u64), no &signer",
+    "Source mirror and deployed ABI agree; the only asset sink is incentivize -> rewards_pool::add_rewards(incentive_pool, rewards, epoch+1)",
+    "Top pool 0x234f0be5… holds 0 USDC / 13 APT and carries 86.5% of votes",
+    "total_rewards(fees_pool, 2965) = 0; total_rewards(incentive_pool, 2965) = 0; epoch 2966 fees = 44.65 USDC + 73.79 APT (~$87.9)",
+    "A fresh address has nft_exists=false, claimable_rewards=[0,0] for the prior epoch",
+    "Entry simulation blocked by the APT gas balance check; dead-veNFT inventory not enumerable (indexer events deprecated; 408/429 on heavy queries)"
+  ],
+  "caveats": [
+    "Source is a third-party mirror (asilenced/Boston_Next.js@ae6b912) but is ABI-identical to the deployed module",
+    "Dead-veNFT reward inventory is unmeasured; this bounds only the indirect LP-share number, not the direct-payout verdict",
+    "Point-in-time epoch 2966; APT priced at $0.586 (DefiLlama 2026-11-10)",
+    "No Move decompiler was provisioned; evidence is ABI + source + live /v1/view"
+  ],
+  "one_liner": "External unprivileged attacker can extract $0 directly from Cellana rescue_stuck_rewards: it only recycles the passed address's reward shares into the pool's incentive pool, never pays the caller, and the live protocol is dust."
+}

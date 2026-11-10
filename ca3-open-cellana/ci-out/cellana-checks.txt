@@ -1,0 +1,33 @@
+Cellana vote_manager::rescue_stuck_rewards — read-only checks
+rpc=https://fullnode.mainnet.aptoslabs.com/v1
+PASS  rescue_stuck_rewards is exposed  
+PASS  rescue is entry  
+PASS  rescue takes no &signer  
+PASS  rescue params = (address, vector<Object<LiquidityPool>>, u64)  ['address', 'vector<0x1::object::Object<0x4bf51972879e3b95c4781a5cdcb9e1ee24ef483e7d22f2d903626f126df62bd1::liquidity_pool::LiquidityPool>>', 'u64']
+PASS  rewards_pool::claim_rewards is friend-only  friend
+PASS  rewards_pool::increase_allocation is friend-only  friend
+PASS  rewards_pool::decrease_allocation is friend-only  friend
+PASS  rewards_pool::add_rewards is friend-only  friend
+PASS  rewards_pool friends == vote_manager  ['0x4bf51972879e3b95c4781a5cdcb9e1ee24ef483e7d22f2d903626f126df62bd1::vote_manager']
+PASS  claimable_rewards is a public view  
+PASS  source defines module fullsail::vote_manager  
+PASS  rescue present in source  
+PASS  rescue asserts no veNFT exists  
+PASS  rescue claims for the passed address  
+PASS  rescue recycles into incentivize(pool, rescued_rewards)  
+PASS  rescue has no transfer/deposit to the caller  
+PASS  rescue has no signer parameter  
+PASS  epoch readable  epoch=2966
+PASS  top pool has a fee reward pool  0xedd6a18ade851139ab8dd5a90b0234826f8193b4e3047665a5b9144cc91bf41e
+PASS  top pool has an incentive reward pool  0x8926ecb1aff4263a32eac211c41cc0d06d59a32de1263112cb286a138f010ba
+PASS  fresh address has no veNFT (rescue precondition passes)  
+PASS  fresh address has zero claimable fees for a past epoch  [0, 0]
+INFO  top pool reserve vectors: ['0', '0'] / ['0', '13'] (raw units; pool is dust)
+PASS  top pool returns two reserve legs  
+INFO  top pool assets: ['0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDC', '0x1::aptos_coin::AptosCoin']
+INFO  top-pool fee total for epoch 2965: 0 (raw mixed token units, informational)
+PASS  incentive pool has no unclaimed epoch allocation  0
+PASS  direct caller payout is 0 by construction  
+MODEL  hypothetical rescued=1000000 -> caller direct=0, LP-share capture(@10%)=100000
+MODEL  value is reward-only; no LP principal, no staked principal, no veNFT principal is touched
+PASS=25 FAIL=0
