@@ -1,0 +1,80 @@
+{
+  "measured_at_block": 55433658,
+  "fork_timestamp": 1794277107,
+  "prices": {
+    "UP_usd": 0.0011173920191665338,
+    "ETH_usd": 2121.2647021334833,
+    "source": "DefiLlama coins.llama.fi, 2026-11-10"
+  },
+  "pool": {
+    "uniswap_v3_up_weth_03": "0x9EF81F4E2F2f15Ff1c0C3f8c9ECc636580025242",
+    "UP": "14529731520378158261633068",
+    "WETH": "6620134790859734541",
+    "aerodrome": "0xDd295951b46B245638E3C3643299210Eea06a897",
+    "aerodrome_UP": "887736850324858743872661",
+    "aerodrome_WETH": "465095330863744957"
+  },
+  "measured_swaps": {
+    "router": "0x2626664c2603336E57B271c5C0b26F421741e481",
+    "fee": 3000,
+    "50k": {
+      "weth_in": "26341850542624521",
+      "weth_out": "26184236682886694",
+      "usd_in": 55.88,
+      "usd_out": 55.54,
+      "loss_usd": 0.33
+    },
+    "3m": {
+      "weth_in": "1655510425631256888",
+      "weth_out": "1645825260286273313",
+      "usd_in": 3511.78,
+      "usd_out": 3491.23,
+      "loss_usd": 20.54,
+      "loss_pct": 0.585,
+      "spot_usd": 3352.18,
+      "slippage_usd": 159.6
+    },
+    "6_58m": {
+      "weth_in": "4172557076022692978",
+      "weth_out": "4149680827253767238",
+      "usd_in": 8851.1,
+      "usd_out": 8802.57,
+      "loss_usd": 48.53,
+      "spot_usd": 7352.44,
+      "slippage_usd": 1498.66
+    },
+    "13_69m": {
+      "weth_in": "85031998299264392407",
+      "weth_out": "84755312260559884616",
+      "usd_in": 180375.38,
+      "usd_out": 179788.45,
+      "loss_usd": 586.92,
+      "spot_usd": 15297.1,
+      "mark_to_market_impact_usd": 165078.28
+    }
+  },
+  "prize": {
+    "UP": "26858278409555449632244760",
+    "ETH": "6431220781814201863",
+    "USDC": "2697402409",
+    "WETH": "497088301403394765",
+    "nominal_usd": 47405.41,
+    "up_leg_realised_weth": "4497410001492739762",
+    "up_leg_realised_usd": 9540.2,
+    "realisable_usd": 26934.38,
+    "net_of_acquisition_usd": 26913.78
+  },
+  "timing": {
+    "hold": "1 block (~2s) around snapshot",
+    "snapshot_offset_s": 345600,
+    "voting_period_s": 518400,
+    "min_delay_s": 172800,
+    "same_block_flashloan": false,
+    "threshold_prior_block": true
+  },
+  "notes": [
+    "The $165,078 mark-to-market impact on the 13.69M buy is not the round-trip loss; it is only recoverable if no other trader sells UP into the temporarily 12x-priced pool between buy and sell.",
+    "The 50k threshold and 3M quorum can be acquired at different times; peak capital is ~$3,568 if both are held, ~$3,512 otherwise.",
+    "No deposit/escrow in propose(); the proposal can be cancelled by the proposer only while Pending."
+  ]
+}

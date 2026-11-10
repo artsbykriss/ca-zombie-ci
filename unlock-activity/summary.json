@@ -1,0 +1,145 @@
+{
+  "finding": "P7-LOW-6 UnlockProtocolGovernor \u2014 capital / recoverability / activity follow-up",
+  "title": "Unlock governance: 3M UP quorum costs $3,511.78, a failed attempt loses only $20.54, but 6.58M-47.11M UP of observed opposition and a 39.45M whale make capture E-U ~$0",
+  "chains": [
+    "base"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "medium",
+  "headline_conditional_usd": 26914,
+  "headline_note": "The mechanism is real and cheap: 3,000,000 UP costs 1.655510 WETH = $3,511.78 through the live UniV3 pool (spot $3,352.18), the stake only needs to be held for ONE block (~2s) around the snapshot, propose takes no deposit, and a failed attempt loses only $20.54 (99.4% of capital recovered). But $3k buys quorum, not victory: the observed opposition is 6.58M-13.69M UP and the max is 47.11M UP; two prior 'govscan capture' proposals both failed (0/2); the real defender is 0xf5c28ce2 with 39,447,548 votes, not the deployer. Conditional upside if the DAO is completely asleep: $26,914 net (nominal prize $47,405; UP leg only realises $9,540).",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 26914,
+    "H-O": 0,
+    "P": 47405,
+    "S": 0
+  },
+  "latest_block": 55433658,
+  "block_numbers": {
+    "base": 55433658
+  },
+  "state_block": 55433572,
+  "targets_checked": 6,
+  "live_targets": 1,
+  "capital": {
+    "up_price_usd": 0.0011173920191665338,
+    "eth_price_usd": 2121.2647021334833,
+    "quorum_up": "3000000000000000000000000",
+    "quorum_spot_usd": 3352.18,
+    "quorum_dex_cost_weth": "1655510425631256943",
+    "quorum_dex_cost_usd": 3511.78,
+    "quorum_slippage_usd": 159.6,
+    "threshold_up": "50000000000000000000000",
+    "threshold_cost_usd": 55.88,
+    "threshold_round_trip_loss_usd": 0.33,
+    "opposition_6_58m_cost_usd": 8851.1,
+    "opposition_13_69m_cost_usd": 180375.38,
+    "max_against_47_11m_dex_purchasable": false,
+    "pool_up_reserve": "14529731520378158261633068",
+    "pool_weth_reserve": "6620134790859734541"
+  },
+  "failure_case": {
+    "quorum_3m_round_trip_loss_usd": 20.54,
+    "quorum_3m_round_trip_loss_pct": 0.59,
+    "threshold_round_trip_loss_usd": 0.33,
+    "gas_usd_estimate": 0.1,
+    "total_failed_attempt_usd": 20.9,
+    "capital_recovered_pct": 99.4,
+    "6_58m_loss_usd": 48.53,
+    "13_69m_loss_usd": 586.92,
+    "13_69m_mark_to_market_impact_usd": 165078,
+    "propose_deposit": "none \u2014 only the 50,000 UP threshold via getVotes(proposer, clock()-1); no escrow",
+    "cancel": "proposer only while Pending (4-day delay); no cancel after voting starts (no CANCELLER_ROLE anywhere)",
+    "reusable": true
+  },
+  "timing": {
+    "token_clock": "timestamp (CLOCK_MODE=mode=timestamp)",
+    "voting_delay_s": 345600,
+    "voting_period_s": 518400,
+    "min_delay_s": 172800,
+    "hold_required": "1 block (~2 seconds) around the snapshot, not 4 days",
+    "same_block_flashloan_works": false,
+    "same_block_flashloan_reason": "buy+sell at the same block.timestamp overwrites the checkpoint to 0/50k",
+    "threshold_hold": "1 prior block (getVotes(proposer, clock()-1))"
+  },
+  "activity": {
+    "n_proposals": 158,
+    "n_votes": 1710,
+    "executed": 99,
+    "no_quorum": 54,
+    "defeated": 3,
+    "canceled": 1,
+    "succeeded_not_executed": 1,
+    "turnout_min_up": 0,
+    "turnout_median_up": 5109176.99,
+    "turnout_max_up": 47569740.04,
+    "turnout_below_3m": 34,
+    "cadence_per_month_overall": 5.9,
+    "cadence_per_month_ex_spam": 4.1,
+    "deployer_0x81dd_votes": 2,
+    "deployer_0x81dd_support": "0/2 (both Against), weight 59,735.099462 each",
+    "deployer_0x81dd_balance_up": "59735099462003103689691",
+    "whale_0xf5c2_votes": 6,
+    "whale_0xf5c2_support": "0/6 (all Against), 39,447,548 each",
+    "whale_0xf5c2_votes_now": "39447548492558083214417800",
+    "safe_0x3074_balance_up": "390561436781000230324308335",
+    "safe_0x3074_votes": 0,
+    "top_delegate_0x38b8_votes": 103,
+    "top_delegate_0x38b8_split": "79 For / 24 Against",
+    "capture_attempts": 2,
+    "capture_successes": 0,
+    "max_against_up": 47111520.1,
+    "last_capture_for_up": 3400168.69,
+    "last_capture_against_up": 13691014.94
+  },
+  "success_model": {
+    "p_3m": 0.01,
+    "p_6_58m": 0.035,
+    "p_13_69m": 0.075,
+    "p_gt_47m": 0.005,
+    "ev_3m_at_1pct_usd": 248,
+    "ev_13_69m_at_7_5pct_no_mev_usd": 1475,
+    "ev_13_69m_with_full_mev_impact_usd": -150678,
+    "risk_adjusted_ev": "approximately $0; the 3M ticket is positive-EV but almost never wins; the 13.69M stake only works if the whale abstains and MEV is avoided"
+  },
+  "poc": {
+    "tests_passed": 11,
+    "tests_total": 11,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/42741782318"
+    ]
+  },
+  "closed_reasons": [
+    "the vote is the binding constraint: observed opposition 6.58M-13.69M UP, max 47.11M; 0/2 direct capture attempts succeeded",
+    "the 39.45M whale 0xf5c28ce2 votes Against on every contentious proposal; the 390.56M Safe is undelegated but available; 13.69M stewards defeated the 2026-10-29 attempt",
+    "the DEX cannot supply >14.53M UP, and 13.69M costs $180,375 with $165k mark-to-market/MEV exposure > the $26.9k realisable prize",
+    "the 4-day delay + 6-day vote give the DAO 10 days to react; a 13.69M buy is a visible price spike"
+  ],
+  "key_facts": [
+    "CORRECTION: deployer 0x81Dd955D02D337DB81BA6c9C5F6213E647672052 holds 59,735.099462 UP (59,735,099,462,003,103,689,691 wei), NOT 59,735,099.46 UP; its on-chain VoteCast weight is 59,735.099462. ca3 H1's 59.7M is a 1000x decimal error.",
+    "3,000,000 UP (quorum) costs 1.655510425631256943 WETH = $3,511.78 at ETH $2,121.2647 (spot $3,352.18; slippage $159.60 / 4.8%). Sell-back returns 1.645825260286273295 WETH = $3,491.23; round-trip loss $20.54 (0.59%).",
+    "50,000 UP (threshold) costs 0.026341850542624522 WETH = $55.88; round-trip loss $0.33. propose() has no deposit/escrow; the 50k must be held one prior block (getVotes(proposer, clock()-1)) and can be sold immediately after.",
+    "Snapshot timing: UP uses clock()=block.timestamp. Buy 3M at snapshot-2, sell at snapshot+2, getPastVotes(snapshot)=3,050,000 and castVote weight 3,050,000. The required hold is 1 block (~2s), NOT the 4 days pass7 assumed.",
+    "Same-block flash loan fails: buy+sell at the same block.timestamp overwrites the checkpoint to 50,000; getPastVotes(snapshot)=50,000, vote weight 50,000.",
+    "With the deployer voting Against (59,735), a 3.05M For proposal still SUCCEEDS (fork test 09). The deployer cannot stop the attack.",
+    "With the 39,447,548-vote whale 0xF5C28ce24Acf47849988f147d5C75787c0103534 voting Against, the 3.05M For proposal is DEFEATED (fork test 08); the attacker's loss is $20.54 and the 3M is recovered.",
+    "Unopposed 3.05M For passes and executes: timelock drained of 26,858,278.41 UP + 6.4312 ETH + 2,697.40 USDC + 0.4971 WETH; UP leg dumped for 4.4974 WETH ($9,540); net $26,914.",
+    "Activity: 158 proposals (2024-08-05 to 2026-10-29), 99 executed, 54 no-quorum, 3 defeated, 1 canceled, 1 succeeded-not-executed; turnout min/median/max 0 / 5,109,177 / 47,569,740 UP; 34/158 below 3M.",
+    "The deployer voted 2/158 times (1.3%), both Against. Delegate 0x38b826a4 cast 103 votes (79 For / 24 Against); 0x9ded35ae 103 (100/3); 0xca763232 111 (83/28); whale 0xf5c28ce2 6/6 Against.",
+    "Two 'govscan capture' attempts: 2026-10-13 (0 For vs 6.58M Against, no quorum) and 2026-10-29 (3.40M For vs 13.69M Against, DEFEATED). 0/2 successes. Max observed Against 47.11M on 2026-09-19.",
+    "Acquisition routes: UniV3 0x9EF81F4E is the only scalable public route (14.53M UP / 6.62 WETH); Aerodrome has <0.9M UP; no CEX; UP is Base-native with no bridge; the UPSwap 0x12be7322 holds 54.08M UP at a fixed 1 UDT = 1000 UP but UDT's only market is a $270 UniV2 pool (OTC-gated).",
+    "UP is freely transferable: stock OZ ERC20+ERC20Votes+Ownable, no pause/blacklist/lock/vesting/transfer tax; owner() is the timelock; no l1Address (not bridged); no CEX tickers.",
+    "UP is not listed on Aave V3 Base (getConfiguration=0) or Compound III (BadAsset); Morpho Blue is permissionless but no liquid UP market was found. Borrowing WETH for the 1-block hold is possible but requires collateral and does not change the exposure."
+  ],
+  "caveats": [
+    "Governance behaviour is social, not code: the p estimates are calibrated judgment; the 13.69M coalition can escalate with the 39.45M whale, and the whale's abstention on 2026-10-29 is not a guarantee for the next proposal.",
+    "The 3M failure loss is $20.54 only if no other trader interleaves; a full capture of the 4.8% price impact by an MEV bot raises it to ~$160 (still small). The 13.69M loss is similarly execution-dependent, up to ~$165k if the impact is captured.",
+    "The 13.69M acquisition's $165k mark-to-market impact is only recoverable if no other trader sells UP into the temporarily 12x-priced pool between the buy and sell; a 2-block MEV window can capture it. The $586.92 round-trip loss assumes no interleaving trades.",
+    "The UPSwap/UDT route is OTC-gated; UDT's on-chain market is ~$270 deep, so 3,000 UDT cannot be bought publicly. Its depth is unknown.",
+    "The token/price/timelock state is point-in-time 2026-11-10 (block 55,433,658); re-read before acting. The timelock's UP/USDC balances fell after executed payments (pass7 had 27.17M UP / 3,997 USDC).",
+    "The 1-block hold assumes Base produces a block at or after the snapshot timestamp; a skipped block only widens the hold by one block (~2s), not four days.",
+    "The 50k threshold is spammable: 51 proposals appeared in Sept 2026, mostly zero-vote spam; this does not drain funds but can fatigue voters."
+  ],
+  "one_liner": "Unlock's 0.3% quorum is $3,511.78 of capital and only $20.54 of at-risk cost (1-block hold, no deposit, 99.4% recoverable), but $3k buys quorum not victory: 6.58M-13.69M UP of observed opposition, a 39.45M whale, 0/2 prior capture successes and a 47.11M max Against make E-U ~$0; the deployer's '59.7M' is a 1000x decimal error (actual 59,735 UP), and the conditional upside if the DAO sleeps is $26,914."
+}
