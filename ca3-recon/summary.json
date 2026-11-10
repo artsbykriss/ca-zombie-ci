@@ -1,0 +1,157 @@
+{
+  "finding": "CA3-RECON",
+  "title": "CA3 residual reconciliation \u2014 every named candidate dispositioned; OPEN list",
+  "campaign_corpus": "CA3 of 2026-11-09 (466-line README + 48 research files)",
+  "chains": [
+    "ethereum",
+    "arbitrum",
+    "base",
+    "optimism",
+    "bsc",
+    "pulsechain",
+    "robinhood-4663",
+    "soneium",
+    "linea",
+    "scroll",
+    "tron",
+    "solana",
+    "sui",
+    "aptos",
+    "stellar",
+    "ton",
+    "pharos-1672",
+    "bot-chain-677",
+    "xphere",
+    "strato",
+    "morph",
+    "hypercore",
+    "near",
+    "injective",
+    "neutron"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "headline_scope": "new extractable value identified by this reconciliation; prior live C1/C2 not re-credited",
+  "categories": {
+    "E-U": 0,
+    "H-O": 0,
+    "P": 0,
+    "S": 0
+  },
+  "latest_block": 26380997,
+  "block_numbers": {
+    "ethereum": 26380997,
+    "base": 55405158,
+    "arbitrum": 522832557,
+    "pharos": 22609065,
+    "robinhood": 110337185,
+    "bsc": 132657191,
+    "pulsechain": 28016834
+  },
+  "targets_checked": 87,
+  "live_targets": 30,
+  "counts": {
+    "total": 87,
+    "readme_sourced": 45,
+    "research_sourced": 42,
+    "prior_assigned": 9,
+    "prior_covered": 50,
+    "prior_partial": 5,
+    "prior_total": 64,
+    "research_only_closed": 16,
+    "not_a_protocol": 4,
+    "open": 3,
+    "open_above_10k_bar": 0
+  },
+  "open": [
+    {
+      "rank": 1,
+      "id": "S05",
+      "target": "Vesper V2 fleet",
+      "chain": "Ethereum/Base/OP",
+      "funds_usd_context": 87360896,
+      "funds_score": 5,
+      "plausibility_score": 2,
+      "triage_score": 10,
+      "why_open": "No prior hit; research checked only vUSDC+vETH yield vaults ($9.69M) of a 19-pool, $87.36M fleet.",
+      "addresses": [
+        "0xa8b607Aa09B6A2E306F93e74c282Fb13f6A80452",
+        "0xd1C117319B3595fbc39b471AB1fd485629eb05F2",
+        "0x1e41238aCd3A9fF90b0DCB9ea96Cf45F104e09Ef"
+      ],
+      "next_check": "Enumerate all 19 pools; per-pool reportEarning (0x05bed046), migrateStrategy (0x6cb56d19), whitelistedWithdraw (0xff643a7c), proxy admin/upgrade auth. 3/3 sampled revert (16 / not-governor / not-a-keeper).",
+      "confidence": "low (no path shown)"
+    },
+    {
+      "rank": 2,
+      "id": "S12",
+      "target": "Faroo stPROS",
+      "chain": "Pharos 1672",
+      "funds_usd_context": 2729582,
+      "funds_score": 3,
+      "plausibility_score": 2,
+      "triage_score": 6,
+      "why_open": "No prior hit; only stPROS totalAssets/rate checked; 6 custody contracts, five unverified ERC-1967 proxies.",
+      "addresses": [
+        "0x6b0a44c64190279f7034b77c13a566e914fe5ec4",
+        "0xf1df1cb080256f48e8702c24149136e4a6dec25e",
+        "0xf772b375f93650f798bf724ce7a9a45c9e7a579f",
+        "0xd0c44d3079e97ff285dd7a3e4e0246320a9487e5"
+      ],
+      "next_check": "Read each proxy impl; test withdraw/claim/unstake/migrate auth from a fresh EOA; reconcile totalAssets vs custody; check staking precompile 0x4100... accounting.",
+      "confidence": "low (no path shown)"
+    },
+    {
+      "rank": 3,
+      "id": "S35",
+      "target": "Cellana vote_manager::rescue_stuck_rewards",
+      "chain": "Aptos",
+      "funds_usd_context": 0,
+      "funds_score": 1,
+      "plausibility_score": 1,
+      "triage_score": 1,
+      "why_open": "No prior hit; only no-signer value-moving entry found in the Aptos ABI scan; simulation showed zero balance change but semantics unresolved.",
+      "addresses": [
+        "0x4bf51972879e3b95c4781a5cdcb9e1ee24ef483e7d22f2d903626f126df62bd1::vote_manager::rescue_stuck_rewards"
+      ],
+      "next_check": "Fetch Move source; simulate on a pool with non-zero stuck rewards; test whether the address argument can be an arbitrary recipient.",
+      "confidence": "low (reward-only)"
+    }
+  ],
+  "closed_reasons": [
+    "64/87 rows are prior-assigned, prior-covered or prior-partial (9 + 50 + 5) with tracker/dossier citations.",
+    "The four \u00a77 'unassessed' bridges (Popdex $77.2M, STRATO $1.14M, Pacifica $23.4M, JustLend sTRX $3.135B) were fully closed at E-U $0 in prior passes; funds remain but paths are gated.",
+    "16/87 research-only rows are closed at the auth layer or verified negative (ABI/source/simulation).",
+    "4/87 rows are not protocols or out of E-U scope (Moats empty factory, Hyperliquid Earn HyperCore-native, Neutron governance incidents, ACryptoS attacker EOA).",
+    "No OPEN candidate shows a public value path; all three are coverage gaps (Vesper fleet, Faroo impls, Cellana semantics)."
+  ],
+  "poc": {
+    "tests_passed": 6,
+    "tests_total": 6,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/42731864017"
+    ]
+  },
+  "key_facts": [
+    "87 candidate rows: 45 README-sourced, 42 research-only.",
+    "Dispositions: 9 prior-assigned, 50 prior-covered, 5 prior-partial, 16 research-only-closed, 4 not-a-protocol, 3 OPEN-LOW.",
+    "New extractable value: $0. Prior live E-U (C1 wsNET, C2 Startale) is not re-credited.",
+    "Popdex bridge still holds 74,937,815.66 USDT0 (Arbitrum 522,832,117); prior verdict CLOSED E-U $0 (wave2/v14).",
+    "STRATO Safe still holds 70.3859 ETH + 438,616.80 USDC + 36,898.72 USDT + 55.7405 wstETH (Ethereum 26,380,997); prior CLOSED E-U $0 (ZH2B6 H2-05).",
+    "Syntetika is actually Ember Hilbert BTC (hBTC); bridgeAdapter()=0, so bridgeMint is disabled today (Base 55,405,158).",
+    "Vesper protocol TVL is $87.36M across 19 pools (14 ETH + 5 Base), not the $9.69M subset in CA3; sampled reportEarning/migrateStrategy gates hold.",
+    "Faroo stPROS totalAssets 5,119,038.23 PROS / supply 5,077,168.07 / rate 1.008246755; five custody proxies are unverified 2,739-B ERC-1967 contracts.",
+    "Faiyah, BDEX V3, JUSD, Kamui, Ascend, Shift, Theo, Loopscale, Exceed are prior E-U $0; CA3's LOW/OPEN labels for Faiyah/BDEX are stale.",
+    "Gambit/ApolloX CA3 numbers differ from CA2-OPEN-2/6; neither is live E-U."
+  ],
+  "caveats": [
+    "Point-in-time reads at the stated blocks; chains move.",
+    "No historical-state RPC; research-only closures are eth_call auth probes, not forks.",
+    "Faroo impls unverified; Vesper fleet not enumerated; Aptos tooling not provisioned for Cellana.",
+    "OPINION/Tenbin/Securitize addresses unpublished; those rows are assigned or permissioned.",
+    "'No OPEN above bar' is bounded by these gaps.",
+    "No secrets; no keyed URLs; read-only."
+  ],
+  "one_liner": "The new CA3 adds no unassigned live finding: 64/87 candidates are prior-covered/assigned, the four 'unassessed' bridges were closed at E-U $0 in prior passes, and the only OPEN items are three LOW coverage gaps (Vesper $87.4M fleet, Faroo $2.7M custody, Cellana reward function) with no demonstrated path.",
+  "live_targets_note": "rows with a positive USD context; most are prior/dust, not live E-U"
+}
