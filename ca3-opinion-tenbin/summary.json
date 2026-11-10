@@ -1,0 +1,142 @@
+{
+  "finding": "CA3-OPINION-TENBIN",
+  "title": "OPINION (BNB) L-06 dispute-timeout + Tenbin Labs (Ethereum) Zellic 3.2/3.3 \u2014 live unprivileged extraction assessment",
+  "chains": [
+    "bsc",
+    "ethereum"
+  ],
+  "headline_extractable_usd": 0,
+  "headline_confidence": "high",
+  "categories": {
+    "E-U": 0,
+    "E-U-conditional": 2621.0,
+    "H-O": 0,
+    "P": 2717.09,
+    "S": 0
+  },
+  "latest_block": 132687070,
+  "block_numbers": {
+    "bsc": 132687070,
+    "ethereum": 26381171
+  },
+  "targets_checked": 43,
+  "live_targets": 6,
+  "closed_reasons": [
+    "OPINION: timeoutDispute(bytes32) is onlyRole(OPERATOR_ROLE); unprivileged eth_call reverts AccessControlUnauthorizedAccount and the fork test confirms it.",
+    "OPINION: resolve(bytes32,uint256[]) is gated to the ResolutionMultiSig contract 0x95eea6b2a441dd720177ddd365a113f8b4129e91 (storage-override eth_call returns 0xfff7d58e(caller,0x95ee...)); the disputor cannot self-resolve.",
+    "OPINION: the 72 x 1000 OPN reward pool ($2,621.00) is only reachable after a privileged timeout; observed 0/61 timeouts, break-even probability 50%, EV at the 95% upper bound is -$32.82/dispute.",
+    "OPINION: the $2.753M CTF USDT collateral is not in the DisputeResolver and is not moved by L-06.",
+    "Tenbin 3.2: RevenueModule.collect() is onlyRole(REVENUE_KEEPER_ROLE) and CollateralManager.withdrawRevenue() is onlyRevenueModule; both revert for an unprivileged caller.",
+    "Tenbin 3.2: the keeper is a protocol EOA; current realizable P-value is min(getRevenue,liquid) = $23.28 (tGLD 9.94 + tMXN 13.34; tBRL has 0 liquid).",
+    "Tenbin 3.3: the audited MorphoVaultV1Adapter is not deployed in the live parent vaults; the live funded adapter is GenericMorphoAdapter targeting Steakhouse Prime USDC.",
+    "Tenbin 3.3: Steakhouse Prime USDC has $139.17M TVL; zeroing a $447k allocation needs $5.99e31 of donation, and a $1M donation only dilutes 71 bps."
+  ],
+  "poc": {
+    "tests_passed": 9,
+    "tests_total": 9,
+    "ci_run_urls": [
+      "https://github.com/artsbykriss/ca-zombie-ci/actions/runs/42735134675"
+    ],
+    "note": "Earlier run 42734829660 failed only because CI BSC_RPC_URL was set-but-empty; the fallback was fixed and the suite re-ran 9/9 green."
+  },
+  "targets": [
+    {
+      "name": "OPINION",
+      "chain": "bsc",
+      "finding": "Pashov L-06 dispute timeouts always favor the disputor (acknowledged, High impact / Low likelihood)",
+      "addresses": {
+        "v5_auto_resolver": "0xE19B1645ef54D703b5Ee6DFB7EdF91DEcAae64A4",
+        "v5_impl": "0xe0f9f92a20402611f95b68352a7783f430060c5c",
+        "v4_committee_resolver": "0x5E09dab0CC6f952c715919a1AbCe81AF918a5985",
+        "v4_impl": "0x153797a30fa330e87902e9ac4286d03f624834ac",
+        "conditional_tokens": "0xAD1a38cEc043e70E83a3eC30443dB285ED10D774",
+        "opn_token": "0x7977BF3e7e0c954D12cdcA3E013ADAf57E0B06E0",
+        "operator_eoa": "0xBE39f18621a478354BcA521D89B71770085Fc14e",
+        "resolution_multisig": "0x95eea6b2a441dd720177ddd365a113f8b4129e91"
+      },
+      "live_values": {
+        "opn_price_usd": 0.036402718,
+        "v5_reward_pool_opn": 72000,
+        "v5_reward_pool_usd": 2621.0,
+        "v4_residual_opn": 2000,
+        "v4_residual_usd": 72.81,
+        "active_questions": 72,
+        "all_pending": true,
+        "reward_per_question_opn": 1000,
+        "ctf_usdt": 2753274.36,
+        "observed_timeouts": 0,
+        "observed_finalizations": 61
+      },
+      "categories": {
+        "E-U": 0,
+        "E-U-conditional": 2621.0,
+        "H-O": 0,
+        "P": 2693.81,
+        "S": 0
+      },
+      "verdict": "Closed to unprivileged attackers. L-06 requires OPERATOR_ROLE to call timeoutDispute after the committee fails; negative EV at observed liveness. Conditional/P-class only."
+    },
+    {
+      "name": "Tenbin Labs",
+      "chain": "ethereum",
+      "finding": "Zellic 3.2 revenue collection drains principal using unrealized vault gains (acknowledged); 3.3 MorphoVaultV1Adapter inflation (acknowledged)",
+      "addresses": {
+        "tBRL_manager": "0x67eB9338bAd71443aDC1f6C319D5400292a8b7e4",
+        "tGLD_manager": "0x42F3F01D45E67294e20cE98AcFDC24dD7EA75dEa",
+        "tMXN_manager": "0x2a21014B89F72de3Ffa6d645F89b8Ca5A6eFfe75",
+        "tBRL_revenue_module": "0x83cF329b9cbD2790aB2002E880592358C7c8Ff5F",
+        "tGLD_revenue_module": "0x933745Dc6fcBcCDc491d9A8322672d731C8a262e",
+        "tMXN_revenue_module": "0xD7D6C0c722b918045F1D725C5BB09F79Fc851033",
+        "tBRL_parent_vault": "0xE275a69B93A5745e1560ee82D033205D323BfAd9",
+        "tGLD_parent_vault": "0x7290245b3e564f0Ae2dA5af0690eF4842CF13c75",
+        "tMXN_parent_vault": "0x43E3f5e27422C3a938269368eb7c3A3B545Bb6ca",
+        "active_adapter_target": "0xbeef088055857739C12CD3765F20b7679Def0f51",
+        "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+      },
+      "live_values": {
+        "tvl_usdc": 1345792.27,
+        "tvl_by_product_usdc": {
+          "tBRL": 447127.46,
+          "tGLD": 429926.04,
+          "tMXN": 468738.77
+        },
+        "unrealized_revenue_usdc": 35.93,
+        "liquid_usdc": 203.63,
+        "payable_now_usdc": 23.28,
+        "already_collected_in_modules_usdc": 919.88,
+        "target_vault_tvl_usdc": 139172709.25,
+        "target_vault_shares": 133920757.58
+      },
+      "categories": {
+        "E-U": 0,
+        "E-U-conditional": 0,
+        "H-O": 0,
+        "P": 23.28,
+        "S": 0
+      },
+      "verdict": "Closed to unprivileged attackers. 3.2 is live code but keeper-gated (P $23.28 now). 3.3's audited adapter is not deployed and the live target vault is economically un-attackable."
+    }
+  ],
+  "key_facts": [
+    "OPINION production addresses were recovered from the app.opinion.trade Next.js bundle (BSC_MAINNET stage) and cross-checked against DefiLlama's sumTokens owner 0xAD1a38cEc043e70E83a3eC30443dB285ED10D774 (ConditionalTokens).",
+    "OPINION v5 auto resolver 0xE19B...64A4 (VERSION 5.0.0) holds 72,000 OPN ($2,621.00) and 72 active Pending questions; v4 committee resolver 0x5E09...5985 is idle with 2,000 OPN ($72.81).",
+    "timeoutDispute on both resolvers reverts AccessControlUnauthorizedAccount for 0x1111..., role 0x97667070...b929 (OPERATOR_ROLE); holder is EOA 0xBE39...c14e (nonce 130,241).",
+    "Storage-override eth_call on a Disputed resolution: resolve() returns 0xfff7d58e(caller, 0x95eea6b2a441dd720177ddd365a113f8b4129e91) for the attacker/disputor, a random EOA and the operator EOA; 0x95ee... is a custom ResolutionMultiSig (VERSION 1.3.0, proposals(uint256), admin 0x074A...2655).",
+    "OPINION L-06 net to a successful disputor is +1,000 OPN ($36.40) per question (claim pays 2x the 1,000 OPN stake); the CTF holds 2,753,274.36 USDT ($2.753M) but is not in the resolver.",
+    "Observed 63 ResolutionReceived, 61 ResolutionFinalized, 63 RewardDeposited, 0 DisputeFiled, 0 DisputeTimedOut, 0 StakeClaimed in 132,650,000..132,685,435.",
+    "Tenbin TVL is $1,345,792.27 USDC across tBRL/tGLD/tMXN; all three CollateralManager implementations are verified and match the audited 3.2 _getRevenue/withdrawRevenue code.",
+    "Tenbin unrealized revenue is $35.93; liquid USDC is $203.63; min(revenue,liquid) = $23.28; the modules already hold $919.88 of collected USDC.",
+    "Tenbin collect() reverts AccessControlUnauthorizedAccount(..., 0x42877691...a4f5) for an unprivileged caller; withdrawRevenue() reverts OnlyRevenueModule; the revenue keeper is an EOA (code size 0).",
+    "Tenbin's live funded adapter is GenericMorphoAdapter targeting Steakhouse Prime USDC (0xbeef0880...0f51, $139.17M TVL); none of the 12 live adapters exposes morphoVaultV1(); the audited MorphoVaultV1Adapter is absent.",
+    "Inflation math: zeroing a $447,127 allocation would require totalAssets > 5.988e37 raw USDC ($5.99e31); a $1M donation dilutes the next allocation by 71 bps."
+  ],
+  "caveats": [
+    "OPINION v5 implementation source is unverified; resolve() auth and timeoutDispute gating were established from ABI/selectors, eth_call revert payloads, a storage-override probe and a fork test, not from source.",
+    "The OPINION committee's off-chain re-vote cadence and the operator EOA's automation are not public; timeout probability is estimated from ~4 hours of events (0/61), 95% upper bound ~4.9%.",
+    "OPINION's OPN price is a DefiLlama spot price ($0.036402718); thin liquidity could lower the realized USD reward but does not create an unprivileged path.",
+    "Tenbin's parent-vault allocator (dev multisig 0x48Fa008bD2660974d55Ee9b7A9ECA1cE61347614) can change adapter targets; a future unsafe ERC-4626 target would reopen 3.3 as an admin-conditioned path.",
+    "Tenbin TVL is the on-chain USDC collateral only; the protocol also describes an off-chain futures hedge leg, which is outside this on-chain assessment.",
+    "No mainnet transaction was sent; all exploit/value-transfer demonstrations ran on ephemeral forks in GitHub Actions."
+  ],
+  "one_liner": "External unprivileged attacker can extract ~$0 live: OPINION L-06 needs the OPERATOR_ROLE EOA to time out a dispute after the committee fails (conditional $2,621, negative EV), and Tenbin 3.2 is keeper-gated while 3.3's audited adapter is not deployed and its live Steakhouse target ($139M TVL) is inflation-infeasible (P $23.28)."
+}

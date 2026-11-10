@@ -1,0 +1,312 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+/// @title IController
+/// @notice The Controller handles mint and redemption orders for the Tenbin protocol.
+interface IController {
+    /// @notice Supported signature types
+    /// @param EIP712 EIP712 signature
+    /// @param ERC1271 ERC1271 signature
+    enum SignatureType {
+        EIP712,
+        ERC1271
+    }
+
+    /// @notice Supported order types
+    /// @param Mint Mint order type
+    /// @param Redeem Redemption order type
+    enum OrderType {
+        Mint,
+        Redeem
+    }
+
+    /// @notice Signature data structure with support for multiple signature types
+    /// @param signature_type Type of signature used to sign data
+    /// @param signature_bytes Signed data
+    struct Signature {
+        SignatureType signature_type;
+        bytes signature_bytes;
+    }
+
+    /// @notice Order data structure
+    /// @param order_type Order type
+    /// @param nonce Signer nonce
+    /// @param expiry Order expiration time
+    /// @param payer Account to transfer tokens from
+    /// @param recipient Account to transfer tokens to
+    /// @param collateral_token Collateral token
+    /// @param collateral_amount Amount of collateral
+    /// @param order_token Token for this order - either asset or staked asset
+    /// @param asset_amount Amount of asset tokens used for this order
+    struct Order {
+        OrderType order_type;
+        uint256 nonce;
+        uint256 expiry;
+        address payer;
+        address recipient;
+        address collateral_token;
+        uint256 collateral_amount;
+        address order_token;
+        uint256 asset_amount;
+    }
+
+    /// @notice Context is signed by a minter and used during order execution
+    /// @param order_hash Hash of order for this context
+    /// @param share_price Share price used for atomic vault curation
+    /// @param is_curated Flag to determine whether or not an order execution includes vault curation
+    struct Context {
+        bytes32 order_hash;
+        uint256 share_price;
+        bool is_curated;
+    }
+
+    /// @notice Oracle data structure to hold oracle adapter and tolerance
+    /// @param adapter Oracle adapter used to get normalized price
+    /// @param tolerance Percentage tolerance from oracle price. 1e18 = 100%
+    struct Oracle {
+        address adapter;
+        uint96 tolerance;
+    }
+
+    /// @notice Struct to track and enforce limits per block
+    /// @param blockNumber Block number in which amount is tracked
+    /// @param amount Amount for this block
+    struct Limit {
+        uint128 blockNumber;
+        uint128 amount;
+    }
+
+    /// @notice Pause states
+    /// @param None Contract is not in a pause state
+    /// @param MintRedeemPause Contract is not in a pause state
+    /// @param FMLPause Emergency pause state
+    enum ControllerPauseStatus {
+        None,
+        MintRedeemPause,
+        FMLPause
+    }
+
+    /// @notice Event emitted when an asset is minted
+    /// @param signer Signer account which signed the order
+    /// @param executor Account which executes the order
+    /// @param nonce Nonce used by signer
+    /// @param payer Payer account which provided collateral
+    /// @param recipient Recipient account which received assets
+    /// @param collateralToken Collateral used for this mint
+    /// @param collateralAmount Collateral amount sent
+    /// @param mintAmount Amount of asset tokens minted
+    event Mint(
+        address executor,
+        address indexed signer,
+        uint256 nonce,
+        address indexed payer,
+        address indexed recipient,
+        address collateralToken,
+        uint256 collateralAmount,
+        uint256 mintAmount
+    );
+
+    /// @notice Event emitted when an asset is redeemed
+    /// @param executor Account which executes the order
+    /// @param signer Signer account which signed the order
+    /// @param nonce Nonce used by signer
+    /// @param payer Payer account which provided assets
+    /// @param recipient Recipient account which received collateral
+    /// @param collateralToken Collateral used for this redeem
+    /// @param collateralAmount Collateral amount received
+    /// @param redeemAmount Amount of asset redeemed and burned
+    event Redeem(
+        address executor,
+        address indexed signer,
+        uint256 nonce,
+        address indexed payer,
+        address indexed recipient,
+        address collateralToken,
+        uint256 collateralAmount,
+        uint256 redeemAmount
+    );
+
+    /// @notice Emitted when mint & redemption pause status changes
+    /// @param status New mint and redemption pause status
+    event MintRedeemPauseStatusChanged(bool status);
+
+    /// @notice Emitted when payer invalidates a specific nonce
+    /// @param payer Address that invalidated the nonce
+    /// @param nonce Nonce invalidated
+    event NonceInvalidated(address indexed payer, uint256 nonce);
+
+    /// @notice Emitted when emergency pause status changes
+    /// @param status New emergency pause status
+    event PauseStatusChanged(ControllerPauseStatus status);
+
+    /// @notice Emitted when allowed signer status changes
+    /// @param signer Signer account
+    /// @param status Signer allowed status
+    event SignerStatusChanged(address signer, bool status);
+
+    /// @notice Emitted when a signer adds or removes an approved recipient
+    /// @param signer Signer which has set status for a recipient account
+    /// @param recipient Account which can receive tokens during order execution
+    /// @param status Recipient status: true if a recipient can receive tokens
+    event RecipientStatusChanged(address signer, address recipient, bool status);
+
+    /// @notice Emitted when an account delegates a signer to sign orders on their behalf
+    /// @param payer Account which allows signer to sign orders on its behalf
+    /// @param signer Signer which can sign orders on behalf of payer
+    /// @param status Delegate status: true if a signer can use tokens from payer during order execution
+    event DelegateStatusChanged(address payer, address signer, bool status);
+
+    /// @notice Emitted when collateral support status is updated
+    /// @param collateral New collateral account
+    /// @param status Collateral allowed status
+    event CollateralStatusChanged(address collateral, bool status);
+
+    /// @notice Emitted when custodian is updated
+    /// @param newCustodian New custodian account
+    event CustodianUpdated(address newCustodian);
+
+    /// @notice Emitted when manager is updated
+    /// @param newManager New manager account
+    event ManagerUpdated(address newManager);
+
+    /// @notice Emitted when ratio is updated
+    /// @param newRatio New ratio amount
+    event RatioUpdated(uint256 newRatio);
+
+    /// @notice Emitted when oracle tolerance is updated
+    /// @param newTolerance New tolerance amount
+    event OracleToleranceUpdated(uint96 newTolerance);
+
+    /// @notice Emitted when oracle adapter is updated
+    /// @param newAdapter New adapter account
+    event OracleAdapterUpdated(address newAdapter);
+
+    /// @notice Emitted when mint limit amount is updated
+    /// @param newBlockMintLimit New mint limit amount
+    event MintLimitUpdated(uint128 newBlockMintLimit);
+
+    /// @notice Emitted when redeem limit amount is updated
+    /// @param newBlockRedeemLimit New redeem limit amount
+    event RedeemLimitUpdated(uint128 newBlockRedeemLimit);
+
+    /// @notice Unsupported collateral type
+    error CollateralNotSupported();
+    /// @notice Context order hash does not match order hash
+    error ContextOrderHashMisMatch();
+    /// @notice Exceeds block mint limit
+    error ExceedsBlockMintLimit();
+    /// @notice Exceeds block redeem limit
+    error ExceedsBlockRedeemLimit();
+    /// @notice Exceeds max block limit amount
+    error ExceedsMaxLimitAmount();
+    /// @notice Order price exceeds oracle tolerance
+    error ExceedsOracleDeltaTolerance();
+    /// @notice Emergency Pause
+    error FMLPause();
+    // @notice Invalid approval signature
+    error InvalidApproval();
+    /// @notice Invalid asset amount
+    error InvalidAssetAmount();
+    /// @notice Invalid collateral amount
+    error InvalidCollateralAmount();
+    /// @notice Collateral token has an invalid number of decimals
+    error InvalidCollateralDecimals();
+    /// @notice Invalid EIP712 signature
+    error InvalidERC712Signature();
+    /// @notice Invalid ERC1271 signature
+    error InvalidERC1271Signature();
+    /// @notice Invalid nonce
+    error InvalidNonce();
+    /// @notice Invalid order token
+    error InvalidOrderToken();
+    /// @notice Invalid order type
+    error InvalidOrderType();
+    /// @notice Invalid ratio
+    error InvalidRatio();
+    /// @notice Invalid payer account
+    error InvalidPayer();
+    /// @notice Invalid recipient account
+    error InvalidRecipient();
+    /// @notice Invalid share price
+    error InvalidSharePrice();
+    /// @notice Invalid signature type
+    error InvalidSignatureType();
+    /// @notice Invalid signer
+    error InvalidSigner();
+    /// @notice Mint and Redemption Paused
+    error MintRedeemPaused();
+    /// @notice New oracle tolerance exceeds the maximum tolerance
+    error NewToleranceExceedsMax();
+    /// @notice Invalid zero address
+    error NonZeroAddress();
+    /// @notice Order past expiration time
+    error OrderExpired();
+    /// @notice Emitted if rescue ether fails
+    error RescueEtherFailed();
+
+    /// @notice Get asset token this controller manages
+    /// @return Asset token address
+    function asset() external view returns (address);
+
+    /// @notice Get custodian address for this controller
+    /// @return Custodian address
+    function custodian() external view returns (address);
+
+    /// @notice Get manager address for this controller
+    /// @return Manager address
+    function manager() external view returns (address);
+
+    /// @notice Get the EIP712 typed data hash of an order.
+    /// @param order Order data
+    /// @return orderHash EIP712 typed data hash of `order`
+    function hashOrder(Order calldata order) external view returns (bytes32 orderHash);
+
+    /// @notice Get the EIP712 typed data hash of a context.
+    /// @param context Context data
+    /// @return contextHash EIP712 typed data hash of `context`
+    function hashContext(Context calldata context) external view returns (bytes32 contextHash);
+
+    /// @notice Verify a signed EIP712 order
+    /// @param order Order data
+    /// @param signature Signature of hashed order
+    /// @return signer Signer of this order
+    /// @return orderHash Order hash of verified order
+    function verifyOrder(Order calldata order, Signature calldata signature)
+        external
+        view
+        returns (address signer, bytes32 orderHash);
+
+    /// @notice Verify a signed EIP712 context. Reverts if context is not signed by MINTER_ROLE
+    /// @param context Context data
+    /// @param approval Signature of hashed context
+    function verifyContext(Context calldata context, Signature calldata approval) external view;
+
+    /// @notice Verify a signer nonce.
+    /// @param account to verify for
+    /// @param nonce Nonce to check
+    function verifyNonce(address account, uint256 nonce) external view;
+
+    /// @notice Mint asset tokens
+    /// @param order Order data
+    /// @param signature Signature of hashed order
+    /// @param context Context used to determine order execution options
+    /// @param approval ECDSA signature of context data
+    function mint(
+        Order calldata order,
+        Signature calldata signature,
+        Context calldata context,
+        Signature calldata approval
+    ) external;
+
+    /// @notice Redeem asset tokens
+    /// @param order Order data
+    /// @param signature ECDSA signature of hashed order
+    /// @param context Context used to determine order execution options
+    /// @param approval ECDSA signature of context data
+    function redeem(
+        Order calldata order,
+        Signature calldata signature,
+        Context calldata context,
+        Signature calldata approval
+    ) external;
+}
